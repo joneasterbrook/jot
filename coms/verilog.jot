@@ -1,0 +1,163 @@
+%%Verilog utility.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Revision history:
+
+%%
+%%
+%g?
+Restrictions/Assumptions:
+  No line breaks between the end of a netname and the ')' in an instance-terminal connection.
+  the '0 macro assumes a flat netlist - leads to problems when a signal name exists in more than one module. 
+  Assumes the hierarchy delimiter to be "|".
+
+Buffer usage: 
+  0 - Command macro to find other instance terminals on a net.
+  @ - Journal of net names visited.
+  + - In '0 macro holds list of Instance-terminals visited by the net.
+      For Esc+n and Esc+i reports block names for instance names in the path.
+  $ - Temporary names,
+
+HotKeys: 
+ 
+  Esc-d descends into the definition of the current module.
+  
+  <netName>Esc-n - descends hierarchy and locates first instance terminal on the net. 
+   
+  <instName>Esc-i - descends hierarchy and locates the first instance-terminal in the instance.
+   
+  0 - Makes list of instance terminals, then moves to selected inst term.
+      Select one of the inst-terms indicated in the menu ans press the 0 button again.
+:
+
+%%Initialization. 
+n.a@
+
+%%Set up Esc-d hotkey - descend into block.
+%g$
+%%Pick up the terminal name.
+f-/(/((v-/ /r-)0 r-\ m-r0)0 rn.f-1/./-a$h$
+%%Pick up the block name.
+f/;/ v/(/r-, ol0(q/)/ol1o-r-,q/(/\(r-,m-r0),o~r-)0ok r-0(v/ /r)0n.f1/ /a+h+
+%%Find module definition.
+m-0( (f'+(q-/_A-Za-z0-9/r?,rr-f1'+-q/_A-Za-z0-9/))0f-1'+ (v-/ /r-)0v-/module/\f'$)0
+%%Find first instance terminal on the net.
+(f'$(v-/ /r-)0v-/(/\f'$, f1'$-(v/ /r)0v/)/\ )0 f-'$
+:
+%%obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z^m-0b-i"d       "h$oz
+obz$m-0((v/ /e)0r0(v-/ /e-)0j)0z^m-0b-i"d       "h$oz
+
+%%Set up the Esc-n hotkey. 
+%g$
+%%Initialization.
+m0
+%%Process the hierarchy name.
+n.a+obz+i"##"r-0(f/|/eb)0 m-0oz
+( %%Loop to locate instance definitions - excluding any net or terminal names that might happen to match.
+  ((f-'+(q-/_A-Za-z0-9/r?,r-?f1'+-q/_A-Za-z0-9/)r-f-1'+)0f-1'+ (v-/ /r-)0q-/.(/f-'+)0
+  %%Get module name.
+  (v-/ /r-)0n.r-0(v/ /r)0a$h$
+  %%Add module name to path list.
+  obz+r0i/	/h$oz
+  %%Locate module definition.
+  ((f-'$(q-/_A-Za-z0-9/r?,r-?f1'$-q/_A-Za-z0-9/)r-f-1'$)0f-1'$ (v-/ /r-)0v-/module/\(r-,m-r0) )0 
+  %%If not found report it.
+  (v-/module/, n.a@z@i/%X=Cannot locate definition of module /h$oz'@)
+  %%Advance to next subpath name.
+  obz+m2m-oz
+  %%Since there is more than one subpath left it's still an instance name - seek out that instance in current module.
+  f/endmodule/
+  )0
+%%Reached net name part of path.
+oz(f'+ ((v-/ /r-)0 r-\ m-r0)0 rv-/(/\r f'+ )0 f'+
+:
+obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z^m-0b-i"n       "h$oz
+
+%%Set up the Esc-i hotkey. 
+%g$
+%%Initialization.
+m0
+%%Process the hierarchy name.
+n.a+obz+i"##"r-0(f/|/eb)0 m-0oz
+%%n.a+obz+i"dc1_padring_inst|rtc_padlogic|PadLogic_40"l0(f/|/eb)0 m-0oz
+( %%Loop to locate instance definitions - excluding any net or terminal names that might happen to match.
+  ((f-'+(q-/_A-Za-z0-9/r?,r-?f1'+-q/_A-Za-z0-9/)r-f-1'+)0f-1'+ (v-/ /r-)0q-/.(/f-'+)0
+  %%Get module name.
+  (v-/ /r-)0n.r-0(v/ /r)0a$h$
+  %%Add module name to path list.
+  obz+r0i/	/h$oz
+  %%Locate module definition.
+  ((f-'$(q-/_A-Za-z0-9/r?,r-?f1'$-q/_A-Za-z0-9/)r-f-1'$)0f-1'$ (v-/ /r-)0v-/module/\(r-,m-r0) )0 
+  %%If not found report it.
+  (v-/module/, n.a@obz@i/%X=Cannot locate definition of module /h$oz'@)
+  %%Advance to next subpath name.
+  obz+moz
+  %%Since there is more than one subpath left it's still an instance name - seek out that instance in current module.
+  f/endmodule/
+  )0
+%%Reached lowest-level instance.
+oz
+:
+obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z^m-0b-i"i       "h$oz
+
+%g0
+obz+ob
+( o=\
+  %%We are not in the menu - assume it's a verilog  buffer then.
+  %%Clear the instance-terminal list.
+%%  ozorn.a+
+  ozn.a+
+   
+  %%Extract net name.
+  (q-"a-zA-Z0-9_[]/\"r-)0 n.(q"a-zA-Z0-9_[]/\"r)0 a$h$ (v/ /r)0 v/)/ f-'$(((v-/ /r-)0 r-\ m-r0)0 rv-/(/,
+    %X=This does not look much like a valid net name.
+    )
+  %%Copy net name to journal.  
+  obz@m0r0bh$
+  %%Start building the list of destination instance terminals.
+  n.a+ z+i/Instance terminals connecting to net /h$b oz
+   
+  %%Construct a list of instance-terminals.
+  on m-0
+  ( (f'@ ((v-/ /r-)0 r-\ m-r0)0 rv-/(/\r f'@ )0 f'@ ocon
+  %%Put together instance-terminal details.
+  v'@f/;/ 
+  ( %%Net name OK - pick up cell and instance name.
+    v/(/r-, ol0(q/)/ol1o-r-,q/(/\(r-,m-r0),o~r-)0ok n.r-0a$h$ obz+i/    /h$oz
+    %%Now terminal name then return to end of current instance terminal.
+    ono-omorf-/(/n.f-1/./-a$h$obz+h$bozf/)/ )
+  )0
+  
+  %%Go back to the original line of verilog and find the instance name.
+  ono-om f/;/(v/(/r-, ol0(q/)/ol1o-r-,q/(/\(r-,m-r0),o~r-)0ok)
+  %%Complete filling in the inst-term heading.
+  n.r-0a$h$ obz+m-0f'$r-0re3i/==>/m-0mb-i/Starting point indicated by ==>/
+  mb-i/Move cursor and select another instance to trace./b
+  
+  %%If there is only one choice go straight to it.
+  (m2m-2, ) 
+, ) %%Starting-in-verilog block ends.
+ 
+%%In instance-terminal menu - if we're on a valid instance terminal then move to it.
+r-0(v/ /ok r4n.((v/ /r)0f1/ /)2a$h$o#ozm-0f'$f'@, )
+:
+

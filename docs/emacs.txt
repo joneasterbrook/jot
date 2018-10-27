@@ -1,0 +1,371 @@
+Emacs crib sheet, from adapted https://www.gnu.org/software/emacs/refcards/pdf/refcard.pdf
+
+GNU Emacs Reference Card
+(for version 25)
+
+NB: sexp - matching braces in the text.
+    dired - displays a directory listing
+    face - typeface
+
+1 Starting Emacs
+----------------
+To enter GNU Emacs 25, just type its name: emacs
+  
+1.1 Leaving Emacs
+-----------------
+{Ctrl+z}	suspend Emacs (or iconify it under X) 
+{Ctrl+x Ctrl+c}	exit Emacs permanently 
+
+2 Files
+-------
+{Ctrl+x Ctrl+f}	read a file into Emacs 
+{Ctrl+x Ctrl+s}	save a file back to disk 
+{Ctrl+x s}	save all files 
+{Ctrl+x i}	insert contents of another file into this buffer 
+{Ctrl+x Ctrl+v}	replace this file with the file you really want 
+{Ctrl+x Ctrl+w}	write buffer to a specified file 
+{Ctrl+x Ctrl+q}	toggle read-only status of buffer 
+
+3 Getting Help
+--------------
+{Ctrl+h} (or F1)}	and follow the directions. The help system is simple. Type 
+{Ctrl+h t}	For a tutorial. If you are a first-time user, type 
+{Ctrl+x 1}	remove help window 
+{Ctrl+Alt+v}	scroll help window 
+{Ctrl+h a}	apropos: show commands matching a string 
+{Ctrl+h k}	describe the function a key runs 
+{Ctrl+h f}	describe a function 
+{Ctrl+h m}	get mode-specific information 
+
+4 Error Recovery
+----------------
+{Ctrl+g}	abort partially typed or executing command
+{Alt+x} recover-session	recover files lost by a system crash
+{Ctrl+x u}, {Ctrl+_} or {Ctrl+/}	undo an unwanted change 
+{Alt+x} revert-buffer	restore a buffer to its original contents
+{Ctrl+l}	redraw garbaged screen 
+
+5 Incremental Search
+--------------------
+{Ctrl+s}	search forward 
+{Ctrl+r}	search backward 
+{Ctrl+Alt+s}	regular expression search 
+{Ctrl+Alt+r}	reverse regular expression search 
+{Alt+p}	select previous search string 
+{Alt+n}	select next later search string 
+{return}	exit incremental search 
+{delete}	undo effect of last character 
+{Ctrl+g}	abort current search 
+{Ctrl+r}	repeat the search in backwards direction. 
+{Ctrl+s}	repeat the search in forwards direction. 
+{Ctrl+g}	cancels only the part not matched. Emacs is still searching, 
+
+6 Motion
+--------
+entity to move over backward forward
+{Ctrl+b}	previous character
+{Ctrl+f}	next character 
+{Alt+b}	previous word
+{Alt+f}	next word 
+{Ctrl+p}	previous line
+{Ctrl+n}	next line 
+{Ctrl+a}	go to line beginning
+{Ctrl+e}	go to line end
+{Alt+a}	sentence start
+{Alt+e}	sentence end
+{Alt+{}	paragraph back
+{Alt+}}	paragraph forwards
+{Ctrl+x[}	page up
+{Ctrl+x]}	page down
+{Ctrl+Alt+b}	sexp backwardsforwards
+{Ctrl+Alt+f}	sexp forwards
+{Ctrl+Alt+a}	function backwards
+{Ctrl+Alt+e}	function forwards 
+{Alt+<}	go to buffer beginning
+{Alt+>}	go to buffer end
+{Ctrl+v}	scroll to next screen 
+{Alt+v}	scroll to previous screen 
+{Ctrl+x <}	scroll left 
+{Ctrl+x >}	scroll right 
+{Ctrl+l}	scroll current line to center, top, bottom 
+{Alt+g g}	goto line 
+{Alt+g c}	goto char 
+{Alt+m}	back to indentation 
+
+7 Killing and Deleting
+----------------------
+{DEL}	character delete back, not kill)
+{Ctrl+d}	character delete forwards, not kill) 
+{Alt+d}	word-delete forwards 
+{Alt+DEL}	Word-delete backwards.
+{Alt+0 Ctrl+k}	Delete line (backwards to start of)
+{Ctrl+k}	Delete line (forwards to end of) 
+{Ctrl+x DEL}	Delete sentance, forwards to end.
+{Alt+k}	Delete sentence, backwards to start.
+{Alt+- Ctrl+Alt+k}	sexp backwards.
+{Ctrl+Alt+k}	sexp forwards.
+{Ctrl+w}	kill region 
+{Alt+w}	copy region to kill ring 
+{Alt+z} char	kill through next occurrence of char 
+{Ctrl+y}	yank back last thing killed 
+{Alt+y}	replace last yank with previous kill 
+
+8 Marking (Defining a region)
+---------
+{Ctrl+@} or {Ctrl+SPC}	set mark here 
+{Ctrl+x Ctrl+x}	exchange point and mark 
+{Alt+@}	set mark arg words away 
+{Alt+h}	mark paragraph 
+{Ctrl+x Ctrl+p}	mark page 
+{Ctrl+Alt+@}	mark sexp 
+{Ctrl+Alt+h}	mark function 
+{Ctrl+x h}	mark entire buffer 
+
+9 Query Replace
+---------------
+{Alt+%}	interactively replace a text string 
+{Alt+x} query-replace-regexp	using regular expressions 
+    Valid responses in query-replace mode are:
+    replace this one, go on to next SPC or y
+    replace this one, don’t move ,
+    skip to next without replacing DEL or n
+    replace all remaining matches !
+    back up to the previous match ^
+    exit query-replace RET
+    {Ctrl+r}	enter recursive edit ({Ctrl+Alt+c to exit) 
+
+10 Multiple Windows
+-------------------
+When two commands are shown, the second is a similar command
+for a frame instead of a window.
+{Ctrl+x 1} {Ctrl+x 5 1}	delete all other windows 
+{Ctrl+x 2 {Ctrl+x 5 2}	split window, above and below 
+{Ctrl+x 0 {Ctrl+x 5 0}	delete this window 
+{Ctrl+x 3}	split window, side by side 
+{Ctrl+Alt+v}	scroll other window 
+{Ctrl+x o} {Ctrl+x 5 o}	switch cursor to another window 
+{Ctrl+x 4 b} {Ctrl+x 5 b}	select buffer in other window 
+{Ctrl+x 4} {Ctrl+o Ctrl+x 5 Ctrl+o}	display buffer in other window 
+{Ctrl+x 4 f} {Ctrl+x 5 f}	find file in other window 
+{Ctrl+x 4 r} {Ctrl+x 5 r}	find file read-only in other window 
+{Ctrl+x 4 d} {Ctrl+x 5 d}	run Dired in other window 
+{Ctrl+x 4 .} {Ctrl+x 5 .}	find tag in other window 
+{Ctrl+x ^}	grow window taller 
+{Ctrl+x {}	shrink window narrower 
+{Ctrl+x }}	grow window wider 
+
+11 Formatting
+-------------
+Indent current line (mode-dependent) TAB
+{Ctrl+Alt+\}	indent region (mode-dependent) 
+{Ctrl+Alt+q}	indent sexp (mode-dependent) 
+{Ctrl+x TAB}	indent region rigidly arg columns 
+{Alt+;}	indent for comment 
+{Ctrl+o}	insert newline after point 
+{Ctrl+Alt+o}	move rest of line vertically down 
+{Ctrl+x Ctrl+o}	delete blank lines around point 
+{Alt+^}	join line with previous (with arg, next) 
+{Alt+\}	delete all white space around point 
+{Alt+SPC}	put exactly one space at point 
+{Alt+q}	fill paragraph 
+{Ctrl+x f}	set fill column to arg 
+{Ctrl+x .}	set prefix each line starts with 
+{Alt+o}	set face 
+
+12 Case Change
+--------------
+{Alt+u}	uppercase word 
+{Alt+l}	lowercase word 
+{Alt+c}	capitalize word 
+{Ctrl+x Ctrl+u}	uppercase region 
+{Ctrl+x Ctrl+l}	lowercase region 
+
+13 The Minibuffer
+-----------------
+{TAB}	complete as much as possible in minibuffer.
+{SPC}	complete up to one word in minibuffer.
+{^m}	complete and execute in minibuffer. 
+{?}	show possible completions in minibuffer. 
+{Alt+p}	fetch previous minibuffer input 
+{Alt+n}	fetch later minibuffer input or default 
+{Alt+r}	regexp search backward through history 
+{Alt+s}	regexp search forward through history 
+{Ctrl+g}	abort command 
+{Ctrl+x Ctrl+[ Ctrl+[}	to edit and repeat the last command that used the minibuffer. Type F10 to activate menu bar items on text terminals.
+
+14 Buffers
+----------
+{Ctrl+x b}	select another buffer 
+{Ctrl+x Ctrl+b}	list all buffers 
+{Ctrl+x k}	kill a buffer 
+
+15 Transposing
+--------------
+{Ctrl+t}	transpose characters 
+{Alt+t}	transpose words 
+{Ctrl+x Ctrl+t}	transpose lines 
+{Ctrl+Alt+t}	transpose sexps 
+
+16 Spelling Check
+-----------------
+{Alt+$}	check spelling of current word 
+{Alt+x} ispell-region	check spelling of all words in region 
+{Alt+x} ispell-buffer	check spelling of entire buffer 
+{Alt+x} flyspell-mode	toggle on-the-fly spell checking 
+
+17 Tags
+-------
+{Alt+.}	find a tag (a definition) 
+{Alt+.}	find next occurrence of tag 
+{Ctrl+u Alt+.}	Find previous occurrence of tag.
+{Alt+x} visit-tags-table	specify a new tags file 
+{Alt+x} tags-search	regexp search on all files in tags table 
+{Alt+x} tags-query-replace	run query-replace on all the files 
+{Alt+,}	continue last tags search or query-replace 
+
+18 Shells
+---------
+{Alt+!}	execute a shell command 
+{Alt+&}	execute a shell command asynchronously 
+{Alt+|}	run a shell command on the region 
+{Ctrl+u Alt+|}	filter region through a shell command 
+{Alt+x} shell	start a shell in window *shell* 
+
+19 Rectangles
+-------------
+{Ctrl+x r r}	copy rectangle to register 
+{Ctrl+x r k}	kill rectangle 
+{Ctrl+x r y}	yank rectangle 
+{Ctrl+x r o}	open rectangle, shifting text right 
+{Ctrl+x r c}	blank out rectangle 
+{Ctrl+x r t}	prefix each line with a string 
+
+20 Abbrevs
+----------
+{Ctrl+x a g}	add global abbrev 
+{Ctrl+x a l}	add mode-local abbrev 
+{Ctrl+x a i g}	add global expansion for this abbrev 
+{Ctrl+x a i l}	add mode-local expansion for this abbrev 
+{Ctrl+x a e}	explicitly expand abbrev 
+{Alt+/}	expand previous word dynamically 
+
+21 Miscellaneous
+----------------
+{Ctrl+u} num	numeric argument 
+{Alt+-}	negative argument 
+{Ctrl+q} char	quoted insert 
+
+22 Regular Expressions
+----------------------
+any single character except a newline . (dot)
+zero or more repeats *
+one or more repeats +
+zero or one repeat ?
+quote special characters \
+quote regular expression special character c \c
+alternative (“or”) \|
+grouping \( . . . \)
+shy grouping \(:? . . . \)
+explicit numbered grouping \(:NUM . . . \)
+same text as nth group \n
+at word break \b
+not at word break \B
+entity match start match end
+line ^ $
+word \< \>
+symbol \_< \_>
+buffer \‘ \’
+class of characters match these match others
+explicit set [ . . . ] [^ . . . ]
+word-syntax character \w \W
+character with syntax c \sc \Sc
+character with category c \cc \Cc
+
+23 International Character Sets
+-------------------------------
+{Ctrl+x ^m l}	specify principal language 
+{Alt+x} list-input-methods	show all input methods 
+{Ctrl+\}	enable or disable input method 
+{Ctrl+x ^m c}	set coding system for next command 
+{Alt+x} list-coding-systems	show all coding systems 
+{Alt+x} prefer-coding-system	choose preferred coding system 
+
+24 Info
+-------
+{Ctrl+h i}	enter the Info documentation reader 
+{Ctrl+h S}	find specified function or variable in Info 
+Moving within a node:
+{spc}	scroll forward
+{DEL}	scroll reverse
+{b}	beginning of node
+Moving between nodes:
+{n}	next node
+{p}	previous node
+{u}	move up
+{m}	select menu item by name 
+{n}	select nth menu item by number (1-9)
+{f}	follow cross reference (return with l)
+{l}	return to last node you saw
+{d}	return to directory node
+{t}	go to top node of Info file
+{g}	go to any node by name
+Other:
+{h}	run Info tutorial
+{i}	look up a subject in the indices
+{s}	search nodes for regexp 
+{q}	quit Info
+
+25 Registers
+------------
+{Ctrl+x r s}	save region in register 
+{Ctrl+x r i}	insert register contents into buffer 
+{Ctrl+x r SPC}	save value of point in register 
+{Ctrl+x r j}	jump to point saved in register 
+
+26 Keyboard Macros
+------------------
+{Ctrl+x (}	start defining a keyboard macro 
+{Ctrl+x )}	end keyboard macro definition 
+{Ctrl+x e}	execute last-defined keyboard macro 
+{Ctrl+u Ctrl+x (}	append to last keyboard macro 
+{Alt+x} name-last-kbd-macro	name last keyboard macro 
+{Alt+x} insert-kbd-macro	insert Lisp definition in buffer 
+
+27 Commands Dealing with Emacs Lisp
+-----------------------------------
+{Ctrl+x Ctrl+e}	eval sexp before point 
+{Ctrl+Alt+x}	eval current defun 
+{Alt+x} eval-region	eval region 
+{Alt+:}	read and eval minibuffer 
+{Alt+x} load-library	load a Lisp library from load-path 
+
+28 Simple Customization
+-----------------------
+{Alt+x} customize	customize variables and faces 
+Making global key bindings in Emacs Lisp (example):
+    (global-set-key (kbd "{Ctrl+c g") ’search-forward)
+    (global-set-key (kbd "{Alt+#") ’query-replace-regexp)
+
+29 Writing Commands
+-------------------
+(defun command-name (args)
+"documentation" (interactive "template")
+body)
+An example:
+(defun this-line-to-top-of-window (line)
+"Reposition current line to top of window.
+With prefix argument LINE, put point on LINE."
+(interactive "P")
+(recenter (if (null line)
+0
+(prefix-numeric-value line))))
+{Ctrl+h f}	The interactive spec says how to read arguments interactively.
+{^m}	interactive for more details.
+
+Copyright c 2017 Free Software Foundation, Inc.
+For GNU Emacs version 25
+Designed by Stephen Gildea
+Released under the terms of the GNU General Public License version 3
+or later.
+For more Emacs documentation, and the TEX source for this card, see
+the Emacs distribution, or http://www.gnu.org/software/

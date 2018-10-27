@@ -1,0 +1,41 @@
+%%Searches all valid buffers for the key string in the argument.
+%%The buffer key and the first occurence are added to the '$' buffer.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Key string must be wrapped up by valid delimiter characters.
+%%
+
+%%Prepare argument string.
+%%obz$m-0f/%%/-e-0(m-k-0,) 
+obz$m-0
+%%
+%%Check delimiters.
+(v/ /e)0q`/.:;"'=`n.ra!f1'!er\ok, oz %x=Invalid delimiter string use one of the following: /.:\;"=;
+%%
+%%Get a list of active buffers to search.
+%q~=system; f/Buffers:/k-0m0r0bm-0 
+%%%%Exclude buffers on stack.
+%%m-0(f/  buffer ~:/k)0
+%%Search buffers.
+z~m-0 ((z~ f1/  buffer /- q/~a-z/k)0 oick o#ozosm-0(f'$r-0n.ma~.&z~m-osoo/%c:  /m, osok))0
+%%Copy results into $
+z~m-0n.m0r0a$z$ ok

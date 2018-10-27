@@ -1,0 +1,230 @@
+%%Set up editor for specified project file.
+%%
+%%Each project file loads buffers and sets up the editor for that project.
+%%
+  
+%g#
+ob
+%q~=version;
+( mf1/chrome/
+  %s=setenv JOT_RESOURCES /home/jone/ed/my_resources;
+, f1/linux/
+  %s=setenv JOT_RESOURCES /home/jone/ed/my_resources;
+,
+  %s=setenv JOT_RESOURCES C:/Users/jone/ed/my_resources;
+ )
+osozok
+  
+%%Check that we are editing a simple filename in buffer .
+%%If it's a re-pressing of the do button then do nothing.
+obz^m-0(m\ oz
+  %w
+  %l
+  %w
+  ,
+  oz
+  %x=Do nothing - setup already done
+  )
+:
+'#
+  
+%r=${JOT_HOME}/coms/startup.jot
+%if=startup.jot
+%%
+  
+%g# 
+  
+%%Re-read primary file into buffer s (not possible if was reading from stdin) then go to end of pathname.
+( z. %q~=buffer;
+  f/pathName/r0 z. %is=; obos
+   z~, )
+  
+%%Main caseblock - currently the only valid cases are:
+%%    hello     - normal hello-example development, 
+%%    jot       - normal jot development, 
+%%    ide_tree  - simple tree demonstrator for ide.jot and ctags.jot
+%%    ide_jot   - jot development in the experimental ide.jot IDE and 
+%%    ide_hello - asimple demonstrator for ide.jot script.
+
+(
+v-/ = hello/
+  %%The simplest project involving a small c file named hello.c - guess what that does.
+  %i.=../hello/hello.c
+  z.
+  ,
+
+v-/ide_hello/
+  %%For testing the ide.jot script using the hello-world example in ${JOT_RESOURCES}/ide/tree.
+  %i.=../hello/hello.c
+  %r=ide;
+  %d~=cd ../hello \\; make lin; ov/.=linCompile/
+  %d~=cd ../hello \\; make win; ov/.=winCompile/
+  %d~=../hello/hello;           ov/.=linExePath/
+  %d~=../hello/hello.exe;       ov/.=winExePath/
+  z.
+  ,
+
+v-/ide_tree/
+  %%For testing the ide.jot script using the example tree in ${JOT_RESOURCES}/ide/tree.
+  %i.=../tree/tags;                                        %%The primary file is the ctags-generated index.
+  %r=ide;                                                  %%Set up the IDE editing environment.
+  %r=ctags -atoz;                                          %%There is more than on source file, use the ctags-generated index to navigate around them.
+  %d~=cd ../tree \\; make lin;   ov/.=linCompile/          %%Use the Makefile to compile a linux executable.
+  %d~=cd ../tree \\; make win;   ov/.=winCompile/          %%Use the Makefile to compile a windows executable.
+  %d~=../tree/tree;              ov/.=linExePath/          %%Define the linux and windows executable paths.
+  %d~=../tree/tree.exe;          ov/.=winExePath/          %%
+  ,
+
+v-/ide_curses/
+  %%For testing the ide.jot script using the ncurses source tree.
+  
+  %%Set up your ncurses pathname first:
+  %i.=/home/jone/Downloads/ncurses-4.2/tags
+  
+  %r=ide;
+  %r=ctags;
+%%  %d~=../ed/a.out; ov/.=linExePath/
+  ,
+
+ v-/ide_jot/
+  %%Based on the jot project but for testing the ide.jot script.
+  %i.=${JOT_HOME}/source/jot.c
+  %io;                                         %b=readonly
+  %id=${JOT_HOME}/docs/jot_ug.txt;             %b=writeifchanged
+  %it=${JOT_HOME}/docs/jot_tech.txt;           %b=writeifchanged
+  %ig=${JOT_HOME}/docs/jot_walkthrough.txt;    %b=writeifchanged
+  %ih=${JOT_HOME}/docs/jot_qr.txt;             %b=writeifchanged
+  %ic=${JOT_HOME}/docs/jot_coms.txt;           %b=writeifchanged
+  %iv=${JOT_HOME}/docs/index.txt;              %b=writeifchanged
+  %ib=${JOT_HOME}/docs/jot_eval.txt;           %b=writeifchanged
+  %ir=${JOT_HOME}/READMEs/releasenote.txt;     %b=writeifchanged
+  %iy=${JOT_HOME}/t.t
+  %iq=${JOT_HOME}/coms/ide.jot;
+  %ie=${JOT_HOME}/coms/test.jot;
+  %iz=${JOT_HOME}/coms/startup.jot
+  %q$=env TERM; m ( %ix=${JOT_HOME}/coms/curses_keys_'$.jot;, %ix=${JOT_HOME}/coms/curses_keys_xterm.jot; )?
+  z@k0k-0
+    i|<<ideCompile>>|b
+    i|%%Customized compile function for ide.jot|b
+    i|oq/.=linExePath/ oq/.=ldOpts/ oq/.=sourcePath/ oq/.=ccOpts/|b
+    i|%d$=%e@=cc -DLINUX -DnoX11 -g '~ -Wall '~ -D_FILE_OFFSET_BITS=64 -lncursesw -lncurses -lgcc_s '~ -o '~ 2>&1; '$|b
+    b 
+    i|<<ideRun>>|b
+    i|oq/.=linExePath/ z$m-0k0i/%e@=/h~oki" ${JOT_RESOURCES}/t.t -tty -in=p0%a" '$|
+    b
+    %h'=call AddNewFunctions;
+  %r=${JOT_HOME}/coms/ide.jot;
+  %d~=cd ../ed \\; make lin;       ov/.=linCompile/
+  %d~=cd ../ed \\; make win;       ov/.=winCompile/
+  %d~=../ed/jot_dev;               ov/.=linExePath/
+  %d~=../ed/jot_dev.exe;           ov/.=winExePath/
+  %d~= ${JOT_RESOURCES}/t.t -in=%r=test;
+                                   ov/.=testArgs/              %%To test run with t.t and %r=test
+  ,
+
+v-/jot/
+  %%The jot project - simple editing only.
+  %i.=${JOT_HOME}/source/jot.c
+  %io;                                         %b=readonly
+  %id=${JOT_HOME}/docs/jot_ug.txt;             %b=writeifchanged
+  %it=${JOT_HOME}/docs/jot_tech.txt;           %b=writeifchanged
+  %ig=${JOT_HOME}/docs/jot_walkthrough.txt;    %b=writeifchanged
+  %ih=${JOT_HOME}/docs/jot_qr.txt;             %b=writeifchanged
+  %ic=${JOT_HOME}/docs/jot_coms.txt;           %b=writeifchanged
+  %iv=${JOT_HOME}/docs/index.txt;              %b=writeifchanged
+  %ib=${JOT_HOME}/docs/jot_eval.txt;           %b=writeifchanged
+  %ir=${JOT_HOME}/READMEs/releasenote.txt;     %b=writeifchanged
+  %ie=../ed/coms/test.jot;        %%Tests all the native jot commands.
+  %iz=../ed/coms/startup.jot
+  ( %q=windows;
+    %ix=../ed/coms/WindowsNT_keys.jot;
+    %%This version of macro 9 for windows (backslashes as pathname separators).
+    %d9=zs(f/jot_dev/m-pmf1//- (v/ /r)0n.f1/ /a$& obz$l0(f./.s.\.)0 zt%i.='$; ozf1/ -in/-f1/=/-(v/"/r,)n. r0(v-/ /r-)0 (v-/"/r-,), n.)a$& z.'$ -hereEndsThePercentCommand;
+  , %%Assume it's some flavour of unix then.
+    (%q$=version; mf1/ chrome /%ix=../ed/coms/curses_keys_chrome.jot;, %q$=env TERM; kzz %ix=../ed/coms/curses_keys_'$; ) z.)
+  ,
+
+%%A drop-through to here indicates that something failed.
+%%The two most common causes of this are
+%%  1/ The primary file is not registered with startup.jot or
+%%  2/ one of the secondary files has gone walkabout (this condition can no longer happen since a RunError at startup time now abandons processing of this startup file).
+%%
+%%ASCII code for . is 46 BTW.
+  obol46
+  (o= %%We're still on the primary file - unregistered?
+    z.ok %m=ERROR: this primary file is not registered in startup.jot
+  , n.a$&z$oo/%c/z.ok %m=ERROR: Something went wrong - last-loaded buffer was '$; ) 
+  )  %%Main case block ends.
+
+%%Locate correct place in the setup file.
+okokob(zs%q~=buffer; f/pathName = /-bn.r0a$h$ z$r-0i"v-/"r0i"/"zfm-0 (f'$(mr)0m-2, )
+  %%Set up code-specific editor buttons.
+  z.%q~=buffer; f/pathname/r0 (v-/.il/
+    %%It's skill.
+    ( %ic=/home/jone/CDS.log
+      ,)
+    (z1m-0m\r\z2m-0m\r\z3m-0m\r\
+      %r=skill
+      ,
+      %m=Not running skill.jot - button 1 2 or 3 already defined.
+      )
+  ,
+  v-/.c/
+    %%It's C
+    (z1m-0m\r\z2m-0m\r\
+      %r=c
+      ,
+      %m=Not running c.jot - maybe button 1 2 or 3 already defined.
+      )
+  ,
+  v-/.jot/
+    %%It's an jot macro
+    (z1m-0m\r\z2m-0m\r\z3m-0m\r\
+      %r=jot
+      ,
+      %m=Not running jot.jot - button 1 2 or 3 already defined.
+      )
+  ,
+  (v-/.pl/, v-/.pm/, m-0f30/$PERL/)
+    %%Perl browser 
+    (z1m-0m\r\z2m-0m\r\z3m-0m\r\
+      %r=perl
+      ,
+      %m=Not running perl.jot - button 1 2 or 3 already defined.
+      )
+  ,
+  m-0v"#!/bin/csh"
+    %%C-chell browser 
+    (z1m-0m\r\z2m-0m\r\z3m-0m\r\
+      %r=csh
+      ,
+      %m=Not running csh.jot - button 1 2 or 3 already defined.
+      )
+  ,
+  m-0v"#!/bin/sh"
+    %%C-chell browser 
+    (z1m-0m\r\z2m-0m\r\z3m-0m\r\
+      %r=sh
+      ,
+      %m=Not running sh.jot - button 1 2 or 3 already defined.
+      )
+  ,
+    ) zsok
+    
+  %%Set up skill load and run records as appropriate.
+  zs(f/to load this/v-/%%\mnawhw
+    %w
+    %w 32
+    %w 0
+    %w 1 w
+    (zsm-0f/To test this/mnaehe 
+      z.
+      %w 1 e
+    ,)
+  , %%Any other project.
+    )
+  m-0z.m-0(mm-, zs)
+  , ) %%Block ends - 'Locate correct place in the setup file'.
+okoz w
+:
+'#

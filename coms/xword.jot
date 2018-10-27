@@ -1,0 +1,178 @@
+%%A simple utility to help with crossrord puzzles.
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+	  A simple helper for crossword-puzzles, based on the Gutenberg Roget's Thesaurus.  
+	  Syntax for macro 1 query:
+	<n> <c1>=<l1>[ <c2>=<l2>[ ...]]{KP_4}
+	  Where:
+	    n - length of word or phrase.
+	    c - letter no, counting from 1.
+	    l - known letter.
+	e.g:
+	9 1=s 3=b 9=t{Esc 4}
+	Returns:
+	sobriquet
+	subjacent
+	    
+	  Buffers used:
+	    @ - The word database extracted from Roget's
+	    4 - Query macro.
+	    # - Used only in construction of database.
+	    4 - used in  construction of database and for argument passing.
+:
+
+%g4 
+%%xword query macro.
+%%
+%%Check and extract arguments
+z$e-0(v/ /e)0 
+q/0-9/\ %x=Bad xword query syntax: first item must be word length.;, (q/0-9/r)0b (v/ /r)0e-0
+ 
+( %%Arg checking loop. 
+  q/0-9/\ %x=Bad xword query syntax: first element of <c>=<l> must be digits.;, (q/0-9/r)0
+  v/=/\ %x=Bad xword query syntax: separator in <c>=<l> must be '='.;, r
+  (q/a-zA-Z?/r)0 rr- v/ /\ %x=Bad xword query syntax: second query element in <c>=<l> an alpha character.;, b (v/ /r)0
+  rr-
+  )0
+ 
+%%Find correct wordlength block copy it to working copy in buffer #.
+z$m-0i/##/z@m-0 (v/##/, %x=Word lookup-table is broken, try restarting xword;) (f'$m, z$e-0oz %x=Invalid word length '$; ) n.(rm)0a#&
+  
+%%For each query item remove more entries from working copy.
+%%
+( %%Query-item loop.
+  z$m oidv/=/rb-
+  ( %%Letter loop - get next letter in current query, '?' is wild - skip one character.
+    z$m(v/?/o~rb)0q/a-zA-Z/rb-
+    ( %%Purge loop - trim out entries that don't match this query character.
+      z#m-0o#omm- (v'$r)0oc
+      ( f1'$ %%More matching words follow.
+        o#oc oso-os m-0 (o#orn.oso#ora%osm2m-)0 okok
+      , %%No more words matching this character - trim of remaining words before proceeding to next query character.
+        z#m-0 (o#ore0m2m-)0\ ) )0  %%Purge loop ends.
+    ok o~ )0                       %%Letter loop ends.
+  )0                               %%Query-item loop ends.
+  
+%%Report words.
+ok z#n.a$ (z#m-0rr- (n.ra$+m)0 z$rb)0 z$m0m-onm-0
+%x=Found '~ words/phrases matching your query.
+:
+
+ob
+ 
+%%if an xword_db.txt exists - use it.
+%%%q$=env JOT_RESOURCES; m 
+%%%q=file '$/xword_db.txt; %i@=${JOT_RESOURCES}/xword_db.txt; oz %x=Ready now.;, 
+%q=file ${JOT_RESOURCES}/xword_db.txt; %i@=${JOT_RESOURCES}/xword_db.txt; oz %x=Ready now.;, 
+
+%g#
+ob
+%%Read the word list from Roget's
+%i@=${JOT_RESOURCES}/thesaurus.txt
+  
+%%Extract the basic word/phrase list. 
+%%
+%%top and tail.
+f/ #1./m-k-0 m0((v/ /r)0v/#/\m-)0(mr)0k0
+%%
+%%Make initial list.
+%%
+%%Used to test for control characters.
+ol31
+%%
+%m=Extracting word list.
+m-0
+( %%Word (or phrase) loop.
+%%(v/#47. /d, )
+  %%Sanity check.
+  (v/ /e)0((r\m)0 r-(v./.e)0q/a-zA-Z0-9.,:;!?*|&'"%$@# [({<-/, r-r%x=Invalid character found.; )
+  %%start of a new block?
+  (v/#/ n.f/-- /f1/./-(v/ /r)0a%(rr-, j), ) 
+  %%Trim word or phrase.
+  ( (q/A-Za-z/(q/A-Za-z '-/r)0 r\ji/ /)0r-, v/"/\, e(f1/"/\ ji/ /)0e, ) (v/'/\, e(f1/'/\ ji/ /)0e, )
+  %%Remove whitespace, punctuation, anything in brackets and other bits of non-word text.
+  ((v/ /e)0 (q",.;:|?*!@$/&-"e)0 q/0-9/(q/0-9/e)0v/;/e(v/ /e)0, v/[/n.f/]/-a%, v/(/n.f/)/-a%, v/{/n.f/}/-a%, v/<--/n.f/-->/-a%, v/</n.f/>/-a%)0
+  %%There's also those funny control characters???
+  (rr-(oicr-o<, e), )
+  %%Final trim at end of a word or phrase - also ensure there's a line break here, remove various informational lines.
+  (v-/ /e-)0 (rr-b, ) (v/%/n.(mv/%/\)0ma%, ) (v/ /e)0
+  )0
+okok
+:
+
+%%Generate the xword_db.txt now.
+'#
+%%Remove any accents, hyphans etc within words.
+m-0(((q/a-z/r, q/A-Z/c)0re-)0 m)0
+%%Trim and tidy.
+m-0(rm, k)0
+w
+%m=Sorting
+%b=sort
+%m=Purging duplicate entries.
+m-0 (r\k)0r0 (n.r-0a_&m (r0v-'_k)0)0
+%%
+%m=Sorting by length.
+n.a$
+%%Delete any entries over 30 characters.
+m-0(r31k,m)0
+
+%%Form transposed word lists sorted by word length.
+m-0n.m0r0a#
+z#m-0n.a$(r30na$+, m)0 z@i/##30/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r29na$+, m)0 z@i/##29/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r28na$+, m)0 z@i/##28/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r27na$+, m)0 z@i/##27/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r26na$+, m)0 z@i/##26/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r25na$+, m)0 z@i/##25/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r24na$+, m)0 z@i/##24/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r23na$+, m)0 z@i/##23/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r22na$+, m)0 z@i/##22/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r21na$+, m)0 z@i/##21/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r20na$+, m)0 z@i/##20/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r19na$+, m)0 z@i/##19/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r18na$+, m)0 z@i/##18/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r17na$+, m)0 z@i/##17/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r16na$+, m)0 z@i/##16/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r15na$+, m)0 z@i/##15/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r14na$+, m)0 z@i/##14/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r13na$+, m)0 z@i/##13/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r12na$+, m)0 z@i/##12/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r11na$+, m)0 z@i/##11/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r10na$+, m)0 z@i/##10/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r9na$+,  m)0 z@i/##9/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r8na$+,  m)0 z@i/##8/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r7na$+,  m)0 z@i/##7/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r6na$+,  m)0 z@i/##6/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r5na$+,  m)0 z@i/##5/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r4na$+,  m)0 z@i/##4/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r3na$+,  m)0 z@i/##3/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$(r2na$+,  m)0 z@i/##2/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+
+%%Prompt for save? 
+n.a$ %s=prompt Save the xword database file? y|[n] ; z$gz$
+(m-v/y/ z@ %o=${JOT_RESOURCES}/xword_db.txt; oz, oz )
+%s=prompt > ;
+  
+%x=Ready now.
+oz
+

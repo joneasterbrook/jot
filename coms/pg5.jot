@@ -1,0 +1,54 @@
+%%Command file to multicolumn a document to 5 columns for 180 by 62-line forms.
+%%Changed I and S conventions 2/10/92
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%The file produced is suitable for printing via the PostScript generator (PG).
+%%  use the following PG options:
+%%    M (Top margin) set to 0cm.
+%%    B (bottom margin) set to 0cm.
+%%    R (rotation) set to 90 degrees.
+%%    S (font size) set to 7pt.
+%%
+%%Save filespec.
+m0n.r0a@
+
+%%Substitute formfeeds with correct number of blank lines.
+m-0(n.mf60//-ob (a2z2m0f-//eb64m-0m61k0ozh2),ozm)0
+%%m-0(n.mt60//(a2z2m0f-//eb64m-0m61k0z~h2),z~m)0
+
+%%Initialize then load column buffers 2 to 5.
+n.a2n.a3n.a4n.a5
+m-0(mm-m61?mm-n.m61?a2+mm-n.m61?a3+mm-n.m61?a4+mm-n.m61?a5+)0
+%%Insert trailing blanks into document.
+m-0r0i-/ /180n.r0a%(r0h%m)0
+%%Restore columns 2 to 5.
+m-0r36h2*
+m-0r72h3*
+m-0r108h4*
+m-0r144h5*
+
+%%Trim off any trailing spaces (and other characters too!).
+m-0(r180?e0m)0
+%%Insert Form-Feeds - Comment-out this line for old version of FEPos.
+m-0(m61i-//)0
+%%Restore filespec.
+m0e0h@

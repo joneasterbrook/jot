@@ -1,0 +1,72 @@
+%%Looks up words in rogets thesaurus.
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%History
+
+%g?
+  Prerequsites:
+    The Gutenberg Roget's EBook must be in your JOT_RESOURCES directory and it must be named thesaurus.txt
+    This can be downloaded free from gutenberg.org
+     
+  Usage:
+    <word1>[ <word2>[ ...]]{KP_8} -- returns entriy(ies) on the intersection of all the given words.
+   
+  Buffers used:
+    t - The thesaurus.
+    8 - macro 8, launches a thesaurus query.
+    $ - temporary, used for setup and queries.
+    ! - temporary - holds the section.
+    @ - results.
+
+:
+
+%g#
+%%Read and prepare the thesaurus.
+ztm-0
+( f1/The Project Gutenberg EBook of Roget's Thesaurus/, 
+  %it=${JOT_RESOURCES}/thesaurus.txt; 
+  %%Insert endstop.
+  f/End of the Project Gutenberg EBook of Roget's Thesaurus, by Peter Mark Roget/r-0b-i/#./)
+%b=readonly
+:
+ob'#oz
+
+%g8
+%%Macro to launch a thesaurus query.
+%%First munge the argument  into a list of words.
+%%z$m-0k(v/ /e)0(v/ /e)0(f1/ /(v/ /e)0rlb)0
+z$(v/ /e)0(v/ /e)0(f1/ /(v/ /e)0rr-b)0
+ztm-0 n.a@&
+( %%Outer loop - search for entries matching *all* words in argument list.
+  z$m-0zt
+  %%Search for first word and extract the entry
+  (f'$(q-/_A-Za-z0-9/r?,rr-f1'$-q/_A-Za-z0-9/))0
+  %%Extract section to buffer !.
+  f-1'$ (f-/#/r((q/0-9/r)0)\, f-1/#/(r-v-/ /)0r-)0 n.((m(v/ /r)0v/#/\, r(q/0-9/r)0v/./\) )0 r-0a!&
+  %%Attempt to match all the other words.
+  (z$m? z!m-0 (f'$(q-/_A-Za-z0-9/r?,rr-f1'$-q/_A-Za-z0-9/))0 z$mm-)0
+  %%If word matches and word list is exhausted then this is a matching entry.
+  (z!f-1'$ z$m\ z@h!b, )
+  )0
+  
+%%Now collect up the headings and report.
+z@m-0b-n.a$ (f/ #/m-r0n.mf1/--/a$+&)0 z$m-0p0
+:

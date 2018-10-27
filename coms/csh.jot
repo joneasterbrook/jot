@@ -1,0 +1,115 @@
+%%Sets up buttons specific to editing C-shell command files.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%g?
+  C-shell script-browser,  the  following  functions  have  been  assigned  to
+  numeric-keypad buttons.
+  
+  1 - Locates previous block-end statement, if not already at one, then  finds
+      corresponding block start.
+   
+  2 - Locates next block-start statement, if not already at  one,  then  finds
+      corresponding block end.
+      
+N.B.
+  - Block-start keywords recognized: 'if', 'foreach', 'switch', and 'while'.
+  
+  - Block-end keywords: 'endif', 'end', 'endsw'.
+  
+  - Case-start keywords: 'case' and ''default'
+  
+  - Case-end keyword: 'breaksw' 
+  
+  - functions  work  by  counting  block  depth,  there  is  no  checking   of
+    block-start  to  block-end  keyword-consistency,  e.g.  an    'if'   block
+    terminated by 'end' is not detected.
+     
+:
+
+%g1
+%%Check for valid starting point, if not then find one and stop.
+(((q/ 	/r)0 v/endif/\ v/endsw/\ v/end/\ v/case/\ v/else/\ )\,  
+  ((f-1/;/(f-1/;/-, r-0), m-r0f-1/;/-, r-0) (q/ 	/r)0 v/endif/\ v/endsw/\ v/end/\ v/case/\ v/else/\  )0
+  v// %x=Found a valid starting point.
+  , %x=Failed to find a valid starting point (one of the following "endif", "endsw", "end", "else, or "case").
+  )
+   
+%%Initialization - set counter to -1 
+(ol-1 (v/case/, v/else/)
+  ( %%Search for previous case statement or parent-block start statement (should be 'if').
+    ( %%Main block-counting loop.
+      %%Index to previous statement (on same line separated by a ';', or on previous line).
+      (f-1/;/(f-1/;/-, r-0), m-r0f-1/;/-, r-0)(q/ 	/r)0
+      %%Increment and conditionally exit on each new block start.
+      (((v/if/\v/switch/\v/while/\v/for/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\f-1//?, o~v-// )
+      %%Decriment on each new block end.
+      (((v/endif/\v/end/\v/endsw/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\f-1//?, ol1o-v-// ) 
+      %%Exit if an 'else' or 'case' and count is -1. 
+      ((v/case/, v/else/)\, ol-1o=\)
+      )0 )
+  , %%Search for previous block-start statement at the same level.
+    ( %%Main block-counting loop.
+      %%Index to previous statement (on same line separated by a ';', or on previous line).
+      (f-1/;/(f-1/;/-, r-0), m-r0f-1/;/-, r-0)(q/ 	/r)0
+      %%Increment and conditionally exit on each new block start.
+      (((v/if/\v/switch/\v/while/\v/for/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\f-1//?, o~v-// )
+      %%Decriment on each new block end.
+      (((v/endif/\v/end/\v/endsw/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\f-1//?, ol1o-v-// ) 
+      )0 )
+  
+okf-1//?
+:
+
+%g2
+%%Check for valid starting point, if not then find one and stop.
+(((q/ 	/r)0 v/if/\ v/switch/\ v/for/\ v/while/\ v/until/\ v/case/\ v/else/\ )\, 
+  ((f1/;/-, m) (q/ 	/r)0 v/if/\ v/switch/\ v/for/\ v/while/\ v/until/\ v/case/\ v/else/\  )0
+  v// %x=Found a valid starting point.
+  , %x=Failed to find a valid starting point (one of the following "if", "for", "while", "until", "else" or "switch").
+  )
+   
+%%Initialization.
+(ol-1 (v/case/, v/else/, v/default/) 
+  ( %%Search for next case statement or parent-block end statement (should be 'endif').
+    ( %%Main block-counting loop.
+      %%Index to next statement (on same line separated by a ';', or on next line).
+      (f1/;/-, m) (q/ 	/r)0 
+      %%Decriment for each new block start.
+      (((v/if/\v/switch/\v/while/\v/for/\v/until/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\v-//?, ol1o- )
+      %%Increment for each new block end.
+      (((v/endsw/\v/endif/\v/end/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\v-//?, o~ )
+      %%Exit if an 'else', 'case' or 'default' and count is -1. 
+      (((v/case/\v/else/\v/default/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\v-//?, ol-1o=\)
+      )0 )
+  , %%Search for next block end statement at the same level.
+    ( %%Main block-counting loop.
+      %%Index to next statement (on same line separated by a ';', or on next line).
+      (f1/;/-, m) (q/ 	/r)0 
+      %%Decriment for each new block start.
+      (((v/if/\v/switch/\v/while/\v/for/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\v-//?, ol1o- )
+      %%Increment for each new block end.
+      (((v/endsw/\v/endif/\v/end/\)\ v//q-/a-zA-Z0-9_/\f1//-q//\)\v-//?, o~ )
+      )0 )
+okf-1//?
+:

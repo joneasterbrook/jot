@@ -1,0 +1,4625 @@
+Created from a document-format file
+
+                               JOT User Guide
+                               --------------
+
+ 
+{{{ General Description of Editor
+General Description of Editor
+-------------------------------
+  This is a command-driven text editor with a good set of  primitive  commands
+  and a simple (ECCE-like) command  structure  allowing  the  construction  of
+  powerful text manipulation procedures. The result is an editor  as  powerful
+  as any yet with the absolute minimum of magic modes and similar trickery.
+    - Command language (ECCE-like) supports loops and conditional flow.
+    - Most operations return a status result which can control command flow.
+    - Simple arithmetic operations can be performed on numerical text.
+    - Recovery of entire edit environment, following a crash.
+    - Strong interaction with system environment.
+    - A useful library of command scripts.
+    - Easy construction of powerful macro-commands.
+    - A useful error reporting and debugging environment.
+    - Reasonably well behaved (i.e. rarely crashes or locks up).
+    - Reasonably high capacity (typically better than 1Gb).
+
+{{{ About the current character and substrings
+About the current character and substrings
+----------------------------------------------
+  The current character is displayed in  reverse  video.  For  most  purposes,
+  however, it is more helpful to think about the cursor  as  being  the  space
+  between the highlighted character and the character to it's left. e.g:
+    - the command to erase n characters erases n characters starting with  the
+      current character and
+    - the find  command  will  normally  begin  it's  search  at  the  current
+      character.
+  
+  When a substring has been selected (e.g. by a find  command)  the  substring
+  and the substring is displayed with underscores with the  current  character
+  in reverse video. Of the commands which define a substring, some  leave  the
+  cursor at the start of the substring (e.g. find - see `F`) others  leave  it
+  at the end. For these  commands  the  current  character  is  the  character
+  immediately following the substring (e.g. traverse `T` and insert `I`).
+  
+  In tty mode (see `-tty`) The current line is printed and below it the  carat
+  character ( ^ ) indicates the current character, and tildes ( ~  )  indicate
+  the currently-selected substring.
+
+}}}
+{{{ Failures and Errors
+Failures and Errors
+-----------------------
+  Failures are quite normal in JOT - many commands are used simply  to  locate
+  structures in the text and  these  failures  are  normally  handled  in  the
+  command sequence. One may, for example want to test if the cursor is at  the
+  end of a record, then we might use the move right (`R`)  command  and  check
+  it's status - a failure can only happen when the cursor is at the end  of  a
+  record.
+  
+  Errors are more serious, these result in an immediate exit from the  command
+  sequence with a message in the console area. 
+   
+  If a command fails for some reason then this  normally  raises  the  failure
+  flag - this is a logical flag  that  affects  the  execution  of  subsequent
+  commands. If no command is found to handle the failure, then  the  block  or
+  macro fails, if the failing command was not in  a  block  or  macro  then  a
+  message like this appears at the console:
+	> {Command-sequence failed.}...<failingcommand>...
+  
+  Failing commands are handled as follows: 
+   
+     - If the next command is the ignore-failures command `?`, the failure  is
+       ignored and processing continues.
+        
+     - If  a  failure  handler  exists  (see  the  `,`  command),   then   the
+       failure-handler code is executed
+       
+     - If there is no failure handler, then the current block exits (see  `Jot
+       command structure` and `(` `)` ).
+        
+       If the block was an infinite loop i.e. '( ... )0' then the  loop  exits
+       without passing on the failure, all other types of blocks fail.
+       
+     - The reverse status command `\` reverses the  status  of  the  preceding
+       command you can also reverse the status of a command that's already had
+       it's status reset by the  `?`  command  -  in  this  case  the  command
+       *always* fails - which is sometimes useful.
+
+}}}
+{{{ Jot command structure
+Jot command structure
+-------------------------
+  Jot allows users to construct macro-commands  which  can  apply  tests  make
+  decisions and return results - they can also, of course, alter your text.
+  
+  Most commands are capable of failure, by looking at the status returned by a
+  command we can often deduce something useful about the  text  we're  working
+  on. If, for example, the `r` command fails it can only mean that the  cursor
+  is already at the end of a line, if `f`/<string>/ fails then it  means  that
+  string does not exist. When writing a macro-command these failures  are  not
+  so disasters but potentially useful results.
+  
+  Jot  commands  are  organized  into  blocks  bounded  by   round   brackets.
+  Optionally, the sequence of commands within a block may be broken by commas,
+  the sequence following the comma take control if a  failure  occurs  in  the
+  sequence before the comma -  giving  us  an  if-else  structure.  Since  the
+  else-sequence might fail successive commas can be deployed giving us  an  if
+  ... elseif ... elseif ... structure. Ultimately, if the last sequence in the
+  block fails then the *entire* block returns a failure. Blocks may be  nested
+  to any number of levels.
+  
+  Jot blocks, like most jot commands, can be given a repeat count. As with jot
+  commands this may be infinite the repeat count for a block must be a decimal
+  literal immediately after the end brace. As with other jot commands  for  an
+  infinitely repeating block, set the repeat count to zero. In the event of an
+  unhandled failure occurring in a repeated block, the block exits immediately
+  even if it has not gone through all it's iterations. In these  circumstances
+  a  block  with  a  finite   repeat    count    returns    a    failure,   an
+  infinitely-repeating block always returns success.
+  
+  A sequence of commands can be enclosed within parenthesis (see `(`  and  `)`
+  ), this has the following effects:
+   
+    - The block can be used to define the extent of `failures and errors` - in
+      the phrase (r, m) ... , for example, if the  r  command  fails  (because
+      we're at the end of a line), then it moves to the next line.
+      
+    - The block can repeat commands for a predefined number  of  iterations  -
+      for example, the phrase (mi/#/)10 will insert a # at the  start  of  the
+      next 10 lines. If a command in this type of block should fail, then  the
+      loop exits early and the block sets the failure flag.
+      
+    - The block can be repeated to exhaustion - i.e. until something  fails  -
+      for example l0(q/A-Z/c, r)0 will  change  the  case  of  all  upper-case
+      characters on the line. In this case, a failing command will also  cause
+      the block to exit, but the failure flag is reset.
+      
+    - The block's status can be handled like the status of any other command:
+     
+      - ( ... )? and ( ...  )123?  -  resets  the  failure  flag  following  a
+        failure.
+       
+      - ( ... )\ and ( ... 123)\ reverse the status on exit. 
+      
+      - ( ... )?\ and ( ... )123?\ - these blocks will always fail. 
+       
+      - ( abc ) def , ghi - if the '( abc )' block fails then commands ghi are
+        executed, otherwise it takes commands def.
+        
+    Here's a few examples:
+      - ( ... , )0 - this block will loop indefinitely.
+      - ( ... ,) and ( ... )?  - these two have an identical effect,
+
+{{{ Finite Repeat Block Example
+Finite Repeat Block Example
+---------------------------------
+  (f/fred/s/bill/)23 - is  a  finite  repeat  block,  it  seeks  the  next  23
+  occurrences of fred and substitutes bill. If there are less then 23 freds in
+  the text then the F command fails and so to does the complete block.
+
+}}}
+{{{ Conditional Repeat Block Example
+Conditional Repeat Block Example
+--------------------------------------
+  (f/fred/s/william/)0 - is a conditional repetitive block, the thing keeps on
+  finding freds and substituting williams until all  freds  have  been  found,
+  then the `F` command fails, the block exits but in this case the block exits
+  successfully.
+
+}}}
+{{{ Status Checking Example
+Status Checking Example
+-----------------------------
+  (f/fred/s/bill/,m-0f/jim/s/dave/) - This will find the next fred and  change
+  it to bill, if there are no freds left the first F will fail and the  second
+  F will take over and change jim to dave.
+
+}}}
+}}}
+{{{ About macros
+About macros
+----------------
+  Any buffer can hold sequence of commands, such a buffer can then be expanded
+  out into the command line and the commands executed in the usual way.
+  
+  To run a macro place the macro-buffer key it in a command string prefixed by
+  a single quotemark ( ' ) e.g:
+	> %d3=f/my_string/
+  this macro is run as follows:
+	> '3 
+
+}}}
+{{{ About parameters
+About parameters
+--------------------
+  Numeric parameters must be specified in decimal.
+  
+  String parameters  may  use  any  non-alphanumeric  delimiter  provided  the
+  delimiter does not occur in the string.
+  
+  Most commands that accept a string parameter will also accept a reference to
+  a buffer by replacing the string and delimiters with '<key> in  the  command
+  line (e.g. F'@ ) in this case the string used is the entire current line  of
+  the secondary buffer. The input parameters to many of the  percent  commands
+  (mainly those which take pathNames) may also be defined indirectly  in  this
+  way (e.g. %i '$; %qa=file '$ ) but the destination buffer cannot be the same
+  as the pathName buffer.
+  
+  All references to the stack cause the to item to be removed. If the top item
+  is a buffer the buffer object usually destroyed as the buffer item is popped
+  off the stack. It  does,  however,  first  check  for  further  stack  items
+  pointing to the same temporary buffer  (i.e.  copies  made  using  the  `o#`
+  command) if these exist then the buffer object survives the pop.
+  
+  If there is no further text on the command line then the string may be  left
+  unterminated. eg: F/Fred
+
+}}}
+{{{ About parameter passing
+About parameter passing
+---------------------------
+  The native jot language imposes no restrictions on  how  strings  etc.  find
+  their way from the the console area and into scripts and  macros,  it's  all
+  defined in the startup script. For both scripts and  macros,  these  strings
+  are passed in the $ buffer but the exact format for scripts is different  to
+  that for macros.
+  
+  For scripts, the <<Do>> function takes the entire string into the $  buffer.
+  If it finds an argument string after the script  name  it  breaks  the  line
+  there and inserts a '%%'.
+  
+  Macros 0-to-9 are triggered by the appropriate numeric-keypad or, {Alt+0}  -
+  {Alt+9} keys. These can be modified by the NumLock button,  if  the  xmodmap
+  settings are appropriate. If the NumLock key is redefined to be 'KP_Equal' -
+  then it acts as a modifier prefix to the function. The  argument  string  is
+  passed into the first line of the $ buffer, if the NumLock key  was  pressed
+  once, this is followed by a blank line, if the NumLock key was pressed twice
+  there are two blank lines. The macro code can  then  pick  up  the  argument
+  string and work out which which modified function to apply.
+
+}}}
+{{{ About line numbers
+About line numbers
+----------------------
+  When a file is read in the first line in the file is, of course, always line
+  no. 1. By default, the first line will remain line no.  1  as  the  file  is
+  modified by adding and removing  lines.  This  means,  however,  that  while
+  working through a list of warning/error messages, any change to the  overall
+  line count will invalidate the line numbers associated with later messages.
+  
+  JOT therefore has a command-line option to maintain the line number  of  the
+  LAST line - in this mode of operation, adding lines has the  bizarre  effect
+  of making the first line go negative.
+  
+  Recent versions of JOT can deal with  this  anyway,  by  doing  some  simple
+  calculations in the arithmetic stack (see cerr.jot, for example) -  so  this
+  feature is probably irrelevant now.
+
+}}}
+{{{ About text buffers
+About text buffers
+----------------------
+  In jot, a text buffer is an internal data structure containing an  image  of
+  some text. Each buffer is identified by a single-character buffer key -  the
+  following buffers are accessible but some are used by command file  scripts.
+  Buffers may contain a file image, fragments of text or jot command strings -
+  otherwise known as macro commands.
+   
+    - . the home buffer normally, this contains an image of the file given  in
+      the command line.
+     
+    - a-to-z  available  without  restriction,  not  that  these    are   case
+      insensitive i.e. a and A are the same buffer.
+     
+    - 0-to-9 user-defined functions attached to Alt-0 ... Alt-9
+     
+    - $      used to pass parameters into hot-keys and user macros.
+     
+    - ^      used for hotkey-function mapping 
+      
+    - !"#%&'()*+-./:;<=>?@[\]_ accessible and available but  may  be  used  by
+      scripts or hotkey functions.
+   
+    - As with any JOT command, the buffer key identifier is case insensitive.
+    
+    - The following buffers are generally available for text: A B ... Z 6 7  8
+      and 9
+    
+    - The buffers 1 2 3 4 and 5 are bound to the numeric-keypad  buttons  1-5,
+      and are available for you to define your own macros but note  that  some
+      JOT command files redefine these buffers
+    
+    - The following buffers are dedicated to special  uses  by  the  standard
+      setup script: ! $ % ^ : ; @
+    
+    - The following buffers are dedicated to the `doc`.jot script  -  sets  up
+      simple document-processing utilities [ ] < > - &
+      
+    - The buffer = is available but cannot be used as a destination buffer for
+      the `%Q`, `%F` and, possibly, other  percent  commands  since  it  would
+      confuse the command parser.
+    
+    - Many scripts define brief help information in the ? buffer.
+      
+  See `A`, `H` and `about parameters`.
+
+}}}
+{{{ About selected substring
+About selected substring
+----------------------------
+  On completion of a successful find, verify, substitution or  insertion  (see
+  `F`, `V`, `S` and `I` commands). The relevant substring  is  highlighted  on
+  the screen  and,  internally,  some  special  pointers  are  set  up).  Some
+  subsequent  substitute  command  can  then  replace  the  currently-selected
+  substring with some new substring - see also `%U`.
+  
+  Any command that involves moving the current character pointer  will  remove
+  this highlighting and reset the internal pointers.
+
+}}}
+{{{ About the Operand Stack
+About the Operand Stack
+----------------------------
+  The operand stack allows  simple  arithmetic  operations  and  tests  to  be
+  performed on objects (typically integer  quantities)  held  in  a  push-down
+  stack. It can also hold  temporary  buffers  created  by  the  system  query
+  commands. The full range of operations is described in `Stack Operations`.
+  
+  For the benefit  of  those  not  familiar  with  the  notion  of  stacks  in
+  computing. Stacks are analogous  to  those  spring-loaded  plate  stacks  so
+  beloved of institutional caterers. As clean plates are delivered, the  stack
+  gets pushed down, as plates are taken off the next one pops up.  Note  that,
+  as plates are added individually, the last one on is the  first  one  off  -
+  this is a key property of computer stacks. And so it is,  with  our  operand
+  stack, new values are 'pushed' onto the stack and  later  'popped'  off  for
+  processing.
+  
+  Essentially the stack can be loaded with values from: 
+    - integer of real numbers picked up from the text,
+    - integer literals picked up from the command line,
+    - integers generated by the random-number generator,
+    - integers describing the current focus  point  (i.e.  buffer  i.e.,  line
+      number and character number),
+    - A temporary buffer created for as a destination  buffer  for  a  percent
+      command  e.g.  `%q`~=...,  `%e`~=...  or  `%f`~=...  see   also   `about
+      parameters`.
+      
+  Jot supports the usual arithmetic and logical operations and can use  values
+  in the stack to control programme flow or values can be written to the text.
+  Addition, for example, pops the top two values and  pushes  their  sum  back
+  onto the stack.
+  
+  All arithmetic and comparison operations will  work  with  integer  or  real
+  values, for mixed operations integers are first converted to reals  and  the
+  results of such arithmetic is always real.
+
+}}}
+{{{ About metasyntax
+About metasyntax
+---------------------
+  The following metasyntax has been used in this user guide: 
+    - a '$' in the first column represents a CLI prompt, the following text is
+      something for you to type in response to whatever prompt your CLI uses.
+      
+    - a '>' in the first column represents a jot prompt, the following  string
+      is something you type to the editor.
+      
+    - A key name in curly  brackets  indicates  that  this  is  a  button,  or
+      sequence of buttons to press e.g:
+	> fred{F8}        - type the word 'fred' then hit the F8 function key
+	> fred{Shift+F8}  - type 'fred' then hold the Shift key and hit F8
+	> fred{Ctrl+F8}   - type 'fred' then hold the Control key and hit F8
+	> fred{Alt+F8}    - type 'fred' then hold the Alt key and hit F8
+	> fred{Mod KP_9}  - hit the Mod button followed by 9 on the numeric keypad.
+    
+    - The numeric-keypad functions cannot be modified by  holding  the  Shift,
+      Ctrl or Alt keys, instead first hit the NumLock  button  to  obtain  the
+      modified function. The NumLock key can be defined as the Mod  button  by
+      mapping it to KP_Equal using xmodmap.
+    
+    - Anything else in angle brackets is intended to represent some  class  of
+      command or command argument. e.g. <failingCommand> denotes some  command
+      that failed, <n> any number, <alphaString> - any number of  alphabetical
+      characters.
+      
+    - Something in double angle brackets  (e.g.  <<this>>)  represents  a  jot
+      function defined in the startup file - normally you will  be  given  the
+      key bindings to type in. You will see these mentioned in the user  guide
+      ./jot_ug.html  and  in  the  startup  scripts  ../coms/startup.jot   and
+      ../coms/curses_keys.jot.
+      
+    - Something  in  square  brackets  is  optional  [   -bells][   -whistles]
+      indicating that it's valid to give -bells and/or -whistles  or  neither.
+      In some cases they are nested - e.g.: [ -bells[ -whistles]]  -  in  this
+      case valid usage would be give -bells, -bells and -whistles or neither.
+    
+    - A list of things, separated by vertical bars ( | ) are valid options, in
+      some cases you must give at least on of them  -  the  accompanying  text
+      should clarify this.
+
+}}}
+{{{ About Hashtables
+About Hashtables
+---------------------
+  Each buffer can have an associated hashtable. This is a  useful  alternative
+  to searching when there is some computational  effort  associated  with  the
+  search or when the number of references or the size of the buffer  make  the
+  searching a significant proportion of a macros execution time.
+  
+  Typically what happens is the text is scanned to identify the target points,
+  creating hashtable entries. When queried, the editor picks up a reference to
+  the original target point an restores the editor focus to that at  the  time
+  when the entry was created. 
+  
+  There are two methods the query can use to restore focus, controlled by  the
+  -fast qualifier - see `hashtable create`.
+   
+  However - you need to apply some caution and you need some understanding  of
+  the inner workings.
+   
+  Internally, this works by storing internal memory addresses  of  records  in
+  the hashtable, this is important because these  addresses  must  not  change
+  during the currency of the hashtable. Hence hashtable entries can only refer
+  to readonly buffers. 
+  
+  There's nothing to stop you changing the buffers back to  unrestricted  (see
+  `%b` ) after the hashtables are defined.  It  is  recommended  that  scripts
+  doing this should check the  samesinceindexed  flag  of  the  buffer  before
+  proceeding.
+  
+  If, after setting up the hashtable, the status of the buffer is  changed  to
+  allow edits, then you must be careful to not change records that  have  been
+  indexed. If not the editor will probably crash while attempting  to  refocus
+  to a stale record entry.
+   
+  There are two commands to reference an entry - %h[<key>]=find <key> and the,
+  slightly less clonky, `X` command. Their result  is  the  same  the  %h=find
+  version allows searching in hashtables associated with other buffers.  While
+  the hash tables are generally set up by macros and  command  scripts  the  X
+  command allows interactive searching while minimizing the  risk  of  typists
+  cramp.
+  
+    - %h[<key>]=create  [<n>][  -fast]  -  Creates  a  new  hashtable  in  the
+      nominated buffer (defaults to  the  current  buffer)  -  see  `hashtable
+      create`.
+    - %h[<key>]=add <hashTableKey> - Create a hashtable entry pointing to  the
+      current character under the key - see `hashtable add`.
+    - %h<key>=new <hashTableKey> - Similar to add except that  key  collisions
+      result in failure and the original entry is unchanged -  see  `hashtable
+      new`.
+    - %h[<key>]=find <hashTableKey> -  Search  for  a  match  to  key  in  the
+      hashtable associated with the nominated buffer (defaults to the  current
+      buffer) - see `hashtable find`.
+    - `x`<delim><hashTableKey><delim> - same result as %h=find.
+
+}}}
+{{{ About Journal Files
+About Journal Files
+------------------------
+  By default no journal is maintained - the editor is not particularly  crashy
+  and modern computers and power grids are generally pretty  reliable  -  even
+  modern operating systems are not too bad - although  some,  maybe,  less  so
+  than others. It is, however, pretty distressing to see hours of  work  wiped
+  out by such an event.  If  the  crash  was  due  to  some  unfortunate  data
+  sensitivity bug in the editor, you may need  to  edit  the  recovery  script
+  before running it - the journal will, of course, replicate the very  command
+  that caused all that grief the first time around.
+  
+  The journal files are maintained when the `-journal` qualifier is given.  It
+  works by taking copies of all the original files and saving all commands and
+  text entered from the keyboard - the history file. It also keeps a  copy  of
+  all files read by the session in the journal  area,  including  all  replies
+  from `%e` queries. 
+  
+  Journal files are deleted when the editor closes down normally but,  in  the
+  event of a crash, can be used to rework your edits automatically. Note  that
+  the history file is only updated when as the enter or function keys are  hit
+  - so you may still lose the last line of input.
+  
+  The identities of saved-copies of files is preserved but they are uniquified
+  by suffixing them with a unique number. This is in order that, in the  event
+  of there being two or more files with the same name but different paths or a
+  file is first read, then written and then read back in again, they  all  get
+  saved properly.
+  
+  Note that if there's a preexisting journal directory of the same  name,  the
+  session will bounce complaining it can't create the  <fileName>.jnl  journal
+  directory.
+     
+  In addition to the -journal  CLI  qualifier,  you  can  set  the  shell  env
+  EDIT_JOURNAL (see `Env setup`) and  it  will  maintain  journals  for  every
+  editor session using the default directory name described above.
+  
+  The  recovery  process  starts  with  a   special    initialisation   script
+  "journal_recover.jot" which reads the history file and  creates  a  runnable
+  recovery script and then  runs  that  recovery  script.  Here  is  the  full
+  process, from the start of the crashing session:
+   
+	$ jot <fileName> -journal
+      - It crashes (to test this, suspend it with Ctrl+Z).
+       
+      - In this case the journal files should be in ./<fileName>.jnl/
+       
+      - Start of the recovery procedure: note  this  next  editor  session  is
+        started  with  no  -journal  qualifier  if  you  did  it  would   fail
+        immediately complaining that it could not create the new history file.
+        If you've got EDIT_JOURNAL set, then you had better unset this first.
+$ jot <fileName> -init=%r=journal_recover
+        This  creates  a  recovery  script  recover_now.jot  which   it   then
+        immediately runs - if all goes well you will end  up  at  pretty  much
+        where you were - but, note that, the file names have not been  changed
+        back to your original names.
+        
+        If your original session was started with an -init=... sequence,  then
+        add the %r=journal_recover after the -init commands.
+  
+  Now, if the recovery session crashes in the same  way  at  the  same  point,
+  congratulations, you have probably discovered a  genuine  jot  bug!!  Please
+  report your bug - a tarball of the journal directory would be  most  helpful
+  to the investigation into what went wrong. To recover from such a situation,
+  edit the recovery script  created  by  journal_recover,  removing  the  last
+  command then restart using the modified recover_now script:
+	$ jot <fileName> -init="%r=./recover_now.jot -asConsole"
+  
+  N.B. The history maintained for the %Q `query history` command  is  entirely
+  independent of the history file in the journal area.
+
+}}}
+{{{ About help files
+About help files
+---------------------
+  The help files are structured in a similar fashion to occam folded files.
+  
+  The top help file normally contains only file folds. If,  for  example,  the
+  JOT_RESOURCES env is set to /home/my_home/resources, there should  be  a
+  top-level helpfile help.hlp in the help subdirectory:
+    /home/my_home/resources/help/help.hlp
+  Inside that file we might find this line: 
+    [unix]unix          - Notes on a few unix commands.
+  When When a user queries this help entry (by moving the cursor to  somewhere
+  in the line and hitting F1) the [unix]unix element is transformed  into  the
+  path:
+    /home/my_home/resources/help/unix/unix.hlp
+    
+  Within the child help files are folded sections like this:
+	> {{{ Section name
+	>   Section text.
+	>   ...
+	> }}}
+  
+  These help sections are nestable.
+  
+  The help files can be typed in manually, but it is easy to make mistakes  in
+  the fold  nesting.  It  is  recommended  that  help  files  be  prepared  as
+  plain-text documents using `doc`.jot with the section hierarchy  defined  by
+  section header levels (i.e. the section  levels  indicated  by  the  section
+  numbers).
+  
+  There are some text-processing scripts to help with this: 
+    - `doc`.jot - the main document processing script.
+    - `doc2fold`.jot - Creates a help file from a text document.
+    - `fold2doc`.jot - reverse of doc2fold - only use  this  when  the  source
+      text is not available.
+    - `updatehelp`.jot - pushes simple modifications to a help  fold  back  to
+      the helpfile.
+
+}}}
+{{{ About long lines
+About long lines
+---------------------
+  The maximum length line that can be displayed properly  is  limited  by  the
+  display window. When the editor has to display a longer line  the  behaviour
+  is as follows:
+   
+    - If current character and all of any selected substring are in within the
+      terminal width then the line, the current character  and  the  substring
+      are displayed normally. Any text to the right of the window right margin
+      is silently ignored.
+       
+    - If the current character or some part of the selected substring is at or
+      beyond the terminal width then the line  is  displayed  in  the  console
+      area of the screen.
+       
+    - If a LeftOffset is set for the buffer  (see  `%b=leftoffset`)  then  the
+      left margin of the display is aligned to somewhere right  of  the  first
+      character. If the current  character  or  some  part  of  the  currently
+      selected substring falls outside the defined screen  area  then,  again,
+      the relevant section of the record is displayed in the console area.
+
+}}}
+{{{ About Tabular text
+About Tabular text
+-----------------------
+  Jot  supports  text  written  in  a  tabular  form  -  e.g.  csv  images  of
+  spreadsheets, or manually written text in a tabular form. See  `%b=tabstops`
+  and `TabSort`.
+  
+  A line of text belonging to a table is said to consist of a number of cells,
+  with cells separated by separator  characters.  By  default,  the  separator
+  character used by jot is VT (i.e. Tab). To assign a different character  for
+  this purpose use the `-tableseparator` CLI qualifier.
+  
+  There  are  various  options  for  representing  tabular  text,  these   are
+  controlled using the `%b=tabstops` qualifier to the %B command:
+    - Predefined TabStops - here the tab settings are given as an argument  to
+      %b=tabstops 
+    - Simple fixed-width columns, you only need define the first  TabStop,  it
+      then calculates the successive tabstops based on the same column width.
+    - Dynamically-assigned TabStops, in this case the window manager  analyses
+      all the tabular text currently in view and assigns the minimum number of
+      tabstops possible. Note that this means the columns tend to wiggle about
+      as the view is scrolled.
+      
+  Also, you can define  a  header  line  that  shows  column  headings  -  see
+  `%b=header`.
+
+}}}
+{{{ The jot debugger
+The jot debugger
+---------------------
+  The editor has a simple breakpoint and single-step  debugger.  This  can  be
+  entered explicitly by placing a `D` command in the command sequence. It  can
+  also be triggered in response to a specified event - see the `%T` command.
+  
+  In addition to breakpointing, the editor can be set to dump certain  classes
+  of information at selected points in the flow.
+   
+  The trace or break action may optionally be delayed by setting  a  dedicated
+  internal counter - see `System TraceCounter`.
+  
+  The `D`  command  simply  sets  the  trace-mode  bitmask  bits  Trace_Stack,
+  Trace_Print, Trace_Break and Trace_AllCommands (currently this is equivalent
+  to `%t`=B001).  Other useful values are 
+    - B002 - Trace_Print, Trace_Break and Trace_CommandLines
+    - B004 - Trace_Print, Trace_Break and Trace_Fails
+    - B010 - Trace_Print, Trace_Break and Trace_Macros
+
+}}}
+{{{ Jot for experienced ecce users
+Jot for experienced ecce users
+-----------------------------------
+  The first, most obvious difference between jot and ecce is  that  jot  is  a
+  screen editor - it maintains a window as an accurate reflection of the  what
+  the file image is currently looking like.
+  
+  The next significant  difference  is  that,  whereas  ecce  would  only  use
+  printing characters for controlling the editor, jot also  utilises  function
+  keys and, where available, the numeric and mid keypads
+  
+  Comparing the command set of ecce with jot, we see a few old favourites have
+  been culled (D, T, U  have  been  abolished  or  reassigned  new  meanings).
+  However, for the percent commands, the cull is more like a total bloodbath -
+  only %A, %C, %I and %O remain in anything like their original forms.
+    - `A` - can now abstract to the nearest character (see  `N`),  and  has
+      new '+', '-', '.', '*' and '&' qualifiers.
+    - `B`,  `C` - identical.
+    - `D` Reassigned to be a debugger breakpoint.
+    - `E`, `F`, `G` - pretty much unchanged.
+    - `H` - has new '*' qualifier.
+    - `I`, `J`, `K`, `L` and `M` - unchanged.
+    - `N` has new '.' qualifier for abstraction to nearest character.
+    - `M` - has new '*' qualifier (move window).
+    - O - abolished.
+    - `P`, `Q`, `R` and `S` - unchanged.
+    - `T` Currently supported but not recommended - use f/<string>/- instead.
+    - U - abolished.
+    - `V` - unchanged.
+    - `W` - new command - refresh Window.
+    - `X` - was macro X call, now a hashtable ref (see `About Hashtables`, `%H`.
+    - `Y` - was macro Y call, now Y command (move in column).
+    - `Z` - was macro Z call, now zoom (i.e. change current buffer).
+    - `%A` `%C` - essentially unchanged.
+    - `%D` - Reassigned, now defines a one-line macro/text buffer.
+    - `%F` - Reassigned - now regular-expression search.
+    - `%G` - Reassigned - now defines (Gett) multi-line macro/buffer.
+    - `%H` - New Command - for hashtable maintenance.
+    - `%I` - unchanged.
+    - `%L` - Reassigned - (case sensitivity set by %Y) now defines terminal line
+      length.
+    - `%M` - Reassigned prints message to console area.
+    - %N - Abolished.
+    - `%O` - Unchanged.
+    - `%P` - Reassigned - now sets prompt for `G` command.
+    - `%Q` - Reassigned - now system Query.
+    - `%R` - Reassigned - now Run a command script (file).
+    - `%S` - Reassigned - now performs a quickSort on current buffer.
+    - `%T` - Reassigned - now sets trace-mode bitmask.
+    - `%U` - Reassigned - (now use %Y to set case sensitivity) now reverses last
+      substitution.
+    - `%W` - Reassigned - now assigns buffers to windows. 
+    - `%X` - Reassigned - now prints specified message in the console  area  and
+      eXits.
+    - `%Y` = Reassigned - sYstem setup - defines state  common  to  all  buffers
+      e.g. case (in)sensitivity, command/screen mode ...)
+    - %Z - Abolished.
+
+}}}
+}}}
+{{{ Editor commands
+Editor commands
+-----------------
+  JOT has the  following  commands,  meta-commands  and  modifiers,  most  are
+  capable of failing in some way, failures normally result in the  raising  of
+  the failure flag (see `Failures and  Errors`),  this  can  affect  execution
+  flow:
+    - `A` - Abstract All Text From Note Point e.g. aq
+    - `B` - Break Line At Current Character e.g. b2
+    - `C` - Change Case e.g. c5
+    - `D` - enter Debug (single-step) mode e.g. d
+    - `E` - Erase e.g. e5
+    - `F` - Find Substring e.g. f/fred/
+    - `G` - Get (read) Some Lines From Terminal e.g. g3
+    - `H` - Here (copy Text Buffer Here) e.g. hq
+    - `I` - Insert Substring e.g. i/fred/
+    - `J` - Join This Line With Next/previous Line(s) e.g. j-3
+    - `K` - Kill (delete) record(s) e.g. k
+    - `L` - Move Cursor Left e.g. l
+    - `M` - Move To A New Line e.g. m
+    - `N` - Note This Point In Text For A Later Abstract Operation e.g. n
+    - O - `Stack Operations`
+    - `P` - Print Line(s) e.g. p9
+    - `Q` - Qualify (tests next chr. for membership of string) e.g. q/a-zA-z/
+    - `R` - Move Cursor Right e.g. r
+    - `S` - Substitute current substring for guven string e.g. s/fred/
+    - `T` - Traverse Substring e.g. t/fred/
+    - `V` - Verify (tests immediate for match with substring) e.g. v/fred/
+    - `Y` - Move Cursor In Y Axis e.g. y3
+    - `Z` - Zoom Into Another Buffer e.g. zq
+    - `(` - Block start e.g. (f/fred/s/jim/)0 
+    - `)` - Block end e.g. (f/fred/s/jim/)0
+    - `,` - Else clause e.g. f/fred/, f/jim/.
+    - `\` - Reverse status of previous command e.g. v/fred/\
+    - `?` - Ignore status of previous command e.g. f/fred/?. 
+
+{{{ L
+L
+-----
+  L[n] - move Left.
+   
+  Move current character pointer n[1] to left, it fails and raises the failure
+  flag if there is an attempt to move left of the start of the line.
+
+}}}
+{{{ R
+R
+-----
+  R[n] - move Right.
+   
+  Move character pointer n[1] places to the right, it  fails  and  raises  the
+  failure flag if there is an attempt to go past the end of the line.
+
+}}}
+{{{ M
+M
+-----
+  M[[+|-]n]|[*[-]] - Move to start of specified line.
+    - M moves forwards by one line.
+    - M<n> Moves forwards by n lines.
+    - M* Moves forwards sufficient lines to view next page on screen. 
+    - M- moves back by 1 line.
+    - M-<n> moves back by n lines.
+    - M*- Moves back sufficient lines to view previous page on screen. 
+    - M0 moves to last line of file.
+    - M-0 move to first line of file.
+    - M+<n> moves to absolute line no. n
+     
+  The command raises the failure flag if there is an attempt to move past  the
+  last line or before the first line of the file.
+
+}}}
+{{{ Y
+Y
+-----
+  Y[n] - move in the vertical (Y axis) by [n] lines. 
+
+  Similar to the `M` command except that current character position in the new
+  line. If there is an attempt to go beyond  the  boundaries  of  the  current
+  buffer, then the failure flag is raised.
+  
+  If the destination line has too few characters, then moves to the end of the
+  line without raising the failure  flag.  Subsequent  invocations  of  the  Y
+  command will retain the original character position.
+  
+  The character position is reset by the next  `M`  command.  If  there  is  a
+  switch to another buffer (see the  `Z`  command)  without  an  M,  then  the
+  current character position is retained in the other buffer.
+
+}}}
+{{{ P
+P
+-----
+  P[-][<n>] - print line(s).
+   
+  Prints (displays in the console area) the next[/previous] n[1] lines.  If  n
+  is specified, and is greater than 1, or less than -1, then the current  line
+  is set to the last line printed. If the value of n  would  cause  it  to  go
+  outside the range of the current buffer then the failure flag is raised.
+
+}}}
+{{{ W
+W
+-----
+  W - redraw Window.
+   
+  Forces a redrawing of the Window - by default the  window  is  only  redrawn
+  when it re-prompts for a new command  string  (at  a  breakpoint  or  normal
+  command-entry prompt) - this command can be included in a complicated  macro
+  or command script to allow the user to review progress or for debugging.
+
+}}}
+{{{ F
+F
+-----
+  F[-][range][<delim><string><delim>|'<key>][-][rpts] -  Find - find a string.   
+   
+  Search text for specified string. If found the substring is highlighted  and
+  becomes the `about selected substring`
+  
+  This is one of the substring search commands (see also T command), it  takes
+  parameters which specify the search string, a range and  repeat  count.  JOT
+  always starts off in it's case insensitive mode, this can be modified by the
+  %Y=case command.
+   
+  Parameters:
+  
+    - 1 Direction, a '-' will cause it to search back towards the start
+        e.g. f-/abc/
+  
+    - 2 Range  specifies  the  max.  no.  of  lines  to  search  (defaults  to
+      unlimited). e.g. f3/abc/ -  this  will  search  the  next  three  lines,
+      including any of the current line to the right of the cursor.
+  
+    - 3 The string can be a literal string delimited by  any  non-alphanumeric
+      character that does not appear in the string e.g. f"abc",  also,  the  '
+      character cannot be used - see `about parameters`.
+      
+      The second delimiter may be omitted is there are no further commands  or
+      modifiers on the command line - e.g. f/monday
+      
+      Alternatively, the '<key> form will search for a match  to  the  current
+      line of the nominated buffer e.g. f'@ - see `about parameters`.
+      
+    - The optional hyphen after the search string causes the current-character
+      pointer to be left after the end of the substring. By default it is left
+      at the first character of the substring.
+  
+    - 4 The final parameter is used to repeat the search. e.g.  f/abc/23  will
+      stop at the 23rd. occurrence of "abc".
+      
+  See also `%F` - regular-expression search, `%Y` to change  case  sensitivity
+  and `X` hashtable reference.
+
+}}}
+{{{ T
+T
+-----
+  T[-][range][<delim><string><delim>|'<key>][rpts] - Traverse - find a  string
+  and set current character to end of string.
+  
+  Similar to `F` command except: 
+    - The cursor is left at the end of the matching string and
+    - The default range is 1 (i.e. expects to match on current line).
+    
+  The T command was defined in ecce and is currently supported by jot  but  is
+  not recommended. Use the f/<string>/- command variant instead  -  T  may  be
+  abolished in later versions of jot.
+
+}}}
+{{{ X
+X
+-----
+  X<delim><hashTableKey><delim> - Xref - look up key in hashtable.
+   
+  Look up the key in the current-buffers hashtable and move to  the  specified
+  character position - see `about hashtables` and `%H`. 
+
+}}}
+{{{ Q
+Q
+-----
+  Q[-][<delim><string><delim>|'<key>] -  Qualify  -  tests  for  existence  of
+  character in substring.
+   
+  The character at [or before] the current character position  is  matched  to
+  the character set specified by the string parameter, if one of the specified
+  set of characters matches then the command returns  successfully,  otherwise
+  if reports a failure. The Q command is invariably case sensitive and has  no
+  effect on the text file image.
+  
+  If, instead of the <delim><string><delim> syntax, the '<key> syntax is used,
+  then the qualifying string is in the current line of the specified buffer.
+  
+  The string may be a simple list of all allowable characters, or may  specify
+  a sequence of ASCII codes generated by the '-' operator,  to  match  to  the
+  literal '-' character it should be the first  or  last  in  the  string  for
+  example:- Q/0123456789/ Will match to any digit. Q/0-9/ Will do the same but
+  saves typing. Q/0-9+-/ Will match to any digit or the '+' or '-' characters.
+  Q/0-9A-Fa-f/ Will match to any Hex digit.
+
+}}}
+{{{ V
+V
+-----
+  V[-][string]
+   
+  Verify - tests text at current character position for match with string.
+  
+  If the given string matches the substring to the right of  the  cursor  then
+  the substring is highlighted and becomes the `about selected substring`.  If
+  not then the failure flag is raised. Correspondingly, V- verifies  the  text
+  to the left of the cursor.
+
+}}}
+{{{ C
+C
+------
+  C[-][n] - Change, change case of current character.
+   
+  Change case of next [/previous] n characters. If n is  specified  and  would
+  cause the cursor to go out of bounds the failure flag is raised.
+
+}}}
+{{{ D
+D
+------
+  D - Debug, enter the debug mode.
+  
+  Enter Debug (single-step) mode - it sets the trace word to 161 (hex)  -  for
+  details see `%T`. Use this command by dropping it directly into macros.
+  
+  In this mode you  can  type  in  any  valid  command  but  note  that,  when
+  processing continues, any changes you've made will affect the outcome of the
+  macro.
+    - Return - steps to next JOT command
+    - any valid jot command,
+    - A hex value entered with a leading 0 character sets the trace value (see
+      `%T` for details) here's a few useful combinations:
+      - 0 sets the trace word to 0 i.e. turns off tracing.
+      - 0161 breaks at every command displaying the stack,  command  line  and
+        the text line.
+      - 0162 similar but breaks only at the start of every new command line.
+      - 0101 Breaks on each new command with no diagnostic display.
+      - 0102 Breaks at start of each  new  command  line  with  no  diagnostic
+        display.
+
+}}}
+{{{ E
+E
+------
+  E[-][n]- Erase character(s).
+   
+  Erase next[/previous] n[1] characters. If n is specified and would cause the
+  cursor to go out of bounds the failure flag is raised.
+  
+  Starting  at  [/immediately  before]  the  current  character  position  the
+  next[/previous] n[defaults to 1] characters are removed from the text.
+
+}}}
+{{{ I
+I
+------
+  I[-][string][n] - Insert = Inserts string before current character.
+   
+  The optional '-' parameter only affects the position of  the  substring  end
+  pointer on completion - normally the cursor is immediately after the end  of
+  the inserted substring I- causes it to be at the start.
+
+}}}
+{{{ S
+S
+------
+  S[-][<delim><string><delim>|'<key>]    -    replace     (Substitute)     the
+  currently-selected string with the given string.
+   
+  If a substitute  string  is  defined  then  this  is  replaces  the  current
+  substring,  if  no  substitute  string  is  specified  then  the  last  used
+  substitute string is used.
+  
+  When the '<key> syntax is used, the substituted string  is  taken  from  the
+  current line of the specified buffer.
+  
+  This command normally only  fails  when  there  is  not  a  `about  selected
+  substring` (e.g. following a F, T V or a previous S command) - when it fails
+  the failure flag is raised.
+
+}}}
+{{{ B
+B
+------
+  B[-][n] - Break line at current character.
+   
+  Where n is an optional (defaults to  1)  repeat  count,  on  completion  the
+  character pointer is left pointing to the beginning of the second line (i.e.
+  it still points to the same character), except if a negative repeat count is
+  entered - zeros are not allowed for break counts.
+  
+  A negative repeat count will break the line the same  number  of  times  but
+  will leave the character pointer at the end of the first half line.
+
+}}}
+{{{ G
+G
+------
+  G[<n>] - Get a new line of text
+   
+  Use this to key in new text above the current line, the parameter  sets  the
+  number of lines to be input or you may terminate with a control+C or a colon
+  ':' at the beginning of an otherwise empty line.
+  
+  You will not normally be prompted for the entry, but you may  define  prompt
+  message using the `%P` command.
+  
+  If you specify n and exit before you've typed in that many, then the failure
+  flag is raised.
+
+}}}
+{{{ J
+J
+------
+  Join joins current line with next (or previous) line.
+   
+  J[-][n] 
+   
+    - J Joins the current line with the next line
+    - J- Joins the current line with the previous line
+    - J<n> joins the next n+1 lines
+    - J-<n> joins the previous n+1 lines
+    
+  If join runs out of lines (because it's at the start/end of the buffer) then
+  the failure flag is raised.
+
+}}}
+{{{ K
+K
+------
+  K[-][n] - Kill (delete) lines.
+   
+  This completely removes lines, and there is no way of getting them back.  If
+  <n> is specified and finite and it runs out  of  lines  to  kill,  then  the
+  command fails.
+  
+  Note that there must always be at least one line in a  buffer.  To  maintain
+  this situation, an instruction to kill the last record in  the  buffer  will
+  only erase all the text leaving an empty record - it will also fail.
+
+}}}
+{{{ N
+N
+------
+  Note
+N[.] 
+  Note = Note line [and character] number for later abstract.
+  
+  This sets the start point of one or more lines of text  to  be  moved  by  a
+  later `A` command, this command also selects whether complete lines or parts
+  of lines are to be taken, the default being complete lines inclusive of  the
+  current lines at the time when the N and A commands were issued.
+  
+  The optional '.' parameter has the effect of noting the  character  position
+  for abstraction of sections of lines.  This  is  useful  for  relocation  or
+  duplication of words, phrases or complete sentences into new contexts.
+  
+  See also `A` and `H` commands.
+
+}}}
+{{{ A
+A
+------
+  A<key>[+|-|.][*|&] - Abstract text from note point (see  `N`)  to  nominated
+  buffer.
+   
+  By default, moves text from current buffer to new buffer. If the  whole-line
+  abstraction flag is set (see `N` command),  then  only  complete  lines  are
+  moved.
+  
+  The optional '+' qualifier places the abstracted text after the end  of  any
+  preexisting text in the buffer, '-' similarly places it before the start '.'
+  places at the current character in the buffer. If none of  these  qualifiers
+  are specified then the buffer is cleared before the new text is  abstracted.
+  The current character pointer of the buffer is always left at the  beginning
+  of the of the last line of abstracted text.
+  
+  The optional * qualifier replaces the abstracted  text  with  an  equivalent
+  number of spaces, this feature is useful when editing tables  and  pictorial
+  text.
+  
+  The optional & qualifier copies the text without changing the original.
+  
+  If the abstraction fails (typically because no note-point is set)  then  the
+  failure flag is raised.
+  
+  See also `H` and `N` commands.
+
+}}}
+{{{ H
+H
+------
+  H<key>[<count>][*] -  copy Here, copy contents of buffer to here..
+   
+  This command calls for a context image to be copied into current context. If
+  the whole-lines abstraction flag was set  (see  `N`  command,  not  the  one
+  responsible for the context being copied), then the text is  inserted  above
+  the current line. Otherwise the the text is copied  in  before  the  current
+  character.
+  
+  The effect of the optional count is to insert the text that many times. 
+  
+  The effect of the optional * qualifier is to overlay the original text  with
+  the new. The '*' and count qualifiers cannot be used together.
+  
+  See also `N` and `A` commands.
+
+}}}
+{{{ Z
+Z
+------
+  Z<key> - Zoom, change focus to nominated buffer.
+  
+  The the key for the  current  buffer  is  displayed  in  the  editor  prompt
+  following the line number, it is also be displayed in the window  separators
+  (see %w command). 
+  
+  See also `OZ` 
+
+}}}
+{{{ (
+(
+------
+  ( - Block start - (<any valid command sequence>)
+   
+  The block must be terminated by a ')', it may contain any  number  of  valid
+  jot commands, including sub blocks.
+
+}}}
+{{{ )
+)
+------
+  ) - Block end (<any valid command sequence>)[<n>]
+   
+  This terminates the current block, if a repeat count is specified  then  the
+  block is repeated that many times or until the block fails,  if  the  repeat
+  count is zero then the block only exits when it fails.
+
+}}}
+{{{ ,
+,
+------
+  , - Failure handler <command sequence>,<failure handler sequence>
+   
+  The commands following the comma are only executed when some earlier command
+  has failed. When a  command  fails,  control  is  transferred  to  the  code
+  following the comma - the failure handler. A single block can containing any
+  number of failure handlers, each picking up the failure condition  from  the
+  previous - this could be thought of as an if, elseif, elseif ... structure
+
+}}}
+{{{ \
+\
+------
+  \ - Reverse status of previous command. 
+    
+  <validCommand or block>\
+   
+  If the previous command failed and raised the failure flag, then this resets
+  it, correspondingly, if the previous command did not fail then  the  failure
+  flag is raised.
+  
+  Note, \ only applies to the command  *immediately* before it.
+  
+  If, for example, we want to insert xyz in any case except  when  it  already
+  exists:
+	> (v/abc/\i/abc/,)
+
+}}}
+{{{ ?
+?
+------
+  ? - Ignore status of previous command.
+   
+  <validCommand or block>?
+   
+  This has the effect of lowering the failure flag irrespective of the outcome
+  of the previous command.
+  
+  Note, ? only applies to the command *immediately* before  it.  Thus  in  the
+  sequence m99p? the ignore-failure command applies only to the  p  command  -
+  which never fails anyway.
+  
+  You can also combine ? with \ to ensure that  a  command  *always*  fails  -
+  this is useful when a failure handler needs to exit a repeated block.
+  
+  See also `\`, `Jot command structure` and `Failures and Errors`.
+
+}}}
+{{{ Stack Operations
+Stack Operations
+---------------------
+  The editor maintains an evaluation stack used for numerical  (integer  only)
+  and logical operations. The stack holds 100 items, overflows and  underflows
+  bring any macro command to an abrupt end.
+  
+  A stack frame may contain one  of  three  datatypes  (an  integer  value,  a
+  floating-point quantity or a buffer - tagged '~'), as values are  retrieved,
+  there is a simple check to ensure compatibility with the expected  datatype,
+  in the event of a mismatch, execution halts with an error message.
+    - `O+` - Add.
+    - `O-` - Subtract.
+    - `O*` - Multiply.
+    - `O/` - Divide.
+    - `O%` - remainder
+    - `O~` - increment - add 1 to item at top, fail if result=0.
+     
+    - `O?` - dump contents of stack
+    - `O#` - duplicate top of stack.
+    - `O=` - fail if top two items on stack not equal, top item is destroyed.
+    - `O<` - test that item at top greater than next one down
+    - `O>` - test that item at top less than next one down
+     
+    - `OB` - push pointer to current buffer onto stack.
+    - `OC` - push current chr. no. onto stack.
+    - `ON` - push current line no. onto stack.
+    - `OU` - push sUbstring length onto stack.
+    - `OA` - push rAndom number onto stack.
+    - `O.` - set current line number to <top of stack>.
+    - `OL`<n> - decimal Literal is pushed onto stack.
+    - `OI`[C|D|O|X|F] - formatted Input conversion - result to stack.
+    - `OO` - formatted Output - pop value, using given string.
+     
+    - `OR` - index Right (left if -ve) no. of chrs popped off stack.
+    - `OM` - Move (backwards if -ve) no. of lines popped off stack.
+    - `OZ` - Zoom (change to buffer) pointer popped off stack.
+     
+    - `OK` - Kill - delete top of stack.
+    - `O!` - reset stack and random number generator.
+    - `OS` - Swap 1st and 2nd items of stack.
+     
+    - `OW` - scrolls Window view by no. lines set in top of stack.
+    
+    - See also `query stack` 
+
+{{{ OL
+OL
+---------
+  OL<val> - push integer literal onto stack.
+ 
+  The specified value is placed on the top of the stack.
+
+}}}
+{{{ O?
+O?
+---------
+  O? - List contents of stack.
+  
+  This is only useful for debugging - dumps the entire contents of  the  stack
+  to the console.
+
+}}}
+{{{ OO
+OO
+---------
+  OO<delimitedFormatString> - Output using sprintf format string.
+  
+  Output the value at top of stack using a format string picked  up  from  the
+  nominated buffer.
+  
+  On completion, the current character points  to  the  end  of  the  inserted
+  substring.
+  
+  Examples:
+	> ol12345 oo"%-10d"
+	> %q~=buffer; t0/pathName = /bza oo/The pathname is %s/ok
+	> off za oo/%8f/
+
+}}}
+{{{ O+
+O+
+---------
+  O+ - Add
+  
+  Replace top two values with their sum.
+
+}}}
+{{{ O-
+O-
+---------
+  O- - Subtract
+  
+  The value at the top of the stack is subtracted from the next value, the top
+  two items are replaced by the result.
+
+}}}
+{{{ O*
+O*
+---------
+  O* - Multiply
+   
+  Replace top two values with their product.
+
+}}}
+{{{ O/
+O/
+---------
+  O/ - Divide
+  
+  The top-but-one item on the stack is divided by the top item both items  are
+  replaced by the result.
+
+}}}
+{{{ O%
+O%
+----------
+  O% - remainder.
+  
+  The top-but-one item on the stack is divided by the top item both items  are
+  replaced by the remainder.
+
+}}}
+{{{ O=
+O=
+----------
+  O= Test equals
+  
+  The top two items are compared and the top item  is  removed,  if  they  are
+  equal the command status is Success, otherwise it's Fail.
+
+}}}
+{{{ O~
+O~
+----------
+  O~ increment value in top of stack.
+   
+  After the increment, the value is checked and fails if the result is zero.
+
+}}}
+{{{ O>
+O>
+----------
+  O> - Greater than.
+  
+  The top two items compared and the top item is removed, if the top  item  is
+  greater than the next, then the command  status  is  Success,  otherwise  it
+  Fails.
+
+}}}
+{{{ O<
+O<
+----------
+  O< - Less than.
+  
+  The top two items compared and the top item is removed, if the top  item  is
+  less than the next, then the command status is Success, otherwise it Fails.
+
+}}}
+{{{ OB
+OB
+----------
+  OB - Buffer
+  
+  The ASCII value of the current buffer identification key is  placed  on  the
+  stack.
+
+}}}
+{{{ OZ
+OZ
+----------
+  OZ - Zoom.
+  
+  The value at the top of the stack is removed and used to  specify  an  ASCII
+  code, this is used to specify the new current buffer.
+
+}}}
+{{{ OU
+OU
+----------
+  OU - push length of current sUbstring onto stack.
+  
+  The length of the currently-selected substring, in the  current  buffer,  is
+  pushed onto the top of the stack, or zero if there is no  currently-selected
+  substring in that buffer.
+  
+  A negative substring indicates that the  current  character  is  immediately
+  after the selected substring (e.g. after a f/.../- os s/.../  command,  doc.
+  Otherwise the value is positive indicating that the current character is the
+  first character of the substring (e.g. after a F/.../ or S-/../ command).
+
+}}}
+{{{ ON
+ON
+----------
+  ON - line Number
+  
+  The current line number is placed on the stack.
+
+}}}
+{{{ OM
+OM
+----------
+  OM - Move
+  
+  The value at the top of the stack is removed and used to specify a  relative
+  move forwards (+ve.) or backwards (-ve) by no. of lines.
+  
+  If the move is out of bounds (i.e. before the start or after the end of  the
+  current buffer) then the cursor is left at the start of the  first  or  last
+  line as appropriate and the command fails.
+  
+  N.B. With a zero at the top of the stack, OM just moves to the start of  the
+  current line.
+
+}}}
+{{{ OA
+OA
+----------
+  OA - rAndom
+  
+  A randomly-generated number is pushed onto the top of the stack. In reality,
+  of course, this is a pseudo-random number. 
+  
+  To reseed the pseudorandom number generator use `O!`. It's kind  of  obvious
+  but, note that  following  a  reset,  you  get  a  repeat  of  the  original
+  random-number sequence.
+
+}}}
+{{{ O.
+O.
+----------
+  O. - Set line no.
+  
+  The value at the top of the stack is removed and used to  specify  the  line
+  no. of current line from top of stack.
+  
+  N.B. This has no effect on the cursor, it simply  changes  the  line  number
+  displayed in the JOT prompt, and the line number in `M`+ operations and `ON`
+  etc.
+
+}}}
+{{{ OC
+OC
+----------
+  OC - Column no.
+  
+  Place current column no. (i.e. no of characters right of beginning of  line)
+  onto the stack.
+
+}}}
+{{{ OI
+OI
+----------
+  OI[C|D|O|X] - formatted Input conversion (of string at current character).
+  
+  OI<chr> uses the character (D, D O or X) as a C format specifier and uses it
+  to convert the value at the current character, it pushes the result onto the
+  stack. Each of these variants converts characters beginning with the current
+  character and proceeding  to  the  right.  The  current  character  is  left
+  pointing to the character to the right of the last converted  character  and
+  all the converted characters are highlighted as a substring. In the event of
+  there being no valid characters the current  character  is  left  unchanged,
+  nothing is added to the stack and the command fails.
+    - OIC converts the character immediately  to  the  right  of  the  current
+      character to it's ASCII  code  -  this  one  does  not  skip  whitespace
+      characters.
+    - OID converts a string of numeric characters to decimal.
+    - OIO converts value in an octal string and 
+    - OIX converts value in a hexadecimal string.
+
+}}}
+{{{ OR
+OR
+----------
+  OR - Index
+  
+  Item at top of stack is removed and used to specify a new cursor position in
+  the same line. Cursor moves cursor right (+ve.) or left (-ve.) by no. places
+  at top of stack. If the move is out of bounds (before the start or after the
+  end of the current line) then the operation fails and the cursor is moved to
+  the start/end of the line as appropriate.
+
+}}}
+{{{ O!
+O!
+----------
+  O! - Reset
+  
+  Reseeds the random number generator (see `OA`) and then destroys  all  items
+  currently in the stack. If the item at the top of the stack  is  an  integer
+  type then this is is used to reseed the generator, otherwise it uses 1.
+
+}}}
+{{{ OS
+OS
+----------
+  OS - Swap
+  
+  The items in the top and next-but-one slots in the stack swap places.
+
+}}}
+{{{ O#
+O#
+----------
+  O# - Duplicate
+  
+  The item at the top of the stack is copied and  placed  above  the  original
+  item.
+
+}}}
+{{{ OK
+OK
+----------
+  OK - Kill
+  
+  The item at the top of the stack is removed and ignored.
+
+}}}
+{{{ OW
+OW
+----------
+  The screen display is scrolled by the number of lines indicated by  the  top
+  of stack - a positive value scrolls up the screen, negative scrolls down.
+
+}}}
+}}}
+{{{ Percent Commands
+Percent Commands
+---------------------
+  Historically, these commands occupied a complete command line on  their  own
+  with no terminating character. This made some operations difficult so these may now  be
+  freely incorporated in command sequences but must then be terminated with  a
+  semicolon. The only exceptions are
+    - %% (comment) all text to the right of '%%' is ignored.
+    - %e (CLI command) can not be terminated with a semicolon
+  
+  Where the command text must contain a  semicolon  this  can  be  escaped  by
+  prefixing a backslash e.g.
+    %m=Correct: London, England\; Paris, France and Madrid, Spain.;
+  This OK for most cases and conforms most unix-users expectations.
+  
+  The exception is the `%e` command (this sends the body text to the  CLI  and
+  reports the result) Unfortunately,  the  semicolon  and  the  backslash  are
+  important to the syntax of CLI languages - making  the  precise  meaning  of
+  `%E` commands difficult to predict. For this reason the text for %e commands
+  is passed direct to the CLI complete with any backslashes.
+  
+  For this, and any other situations where it is  difficult  to  escape  these
+  semicolons,  any  percent  command  may  be  terminated  by  the  string   '
+  -hereEndsThePercentCommand;' this will,  of  course  fail  if  the  inserted
+  string happens to contain that string so a  %D  command  using  this  cannot
+  itself be the subject of a higher-level %d command.
+   
+    - `%%` - Comment line.
+    - `%A` - Exit without writing file.
+    - `%B` - set Buffer attributes.
+    - `%C` - Exit writing new file.
+    - `%D` - Define a buffer from console.
+    - `%E` - Execute following CLI command line.
+    - `%G` - Get - but from current command file (or console).
+    - `%H` - Hashtable maintenance.
+    - `%I` - Secondary input file.
+    - `%L` - set line Length.
+    - `%M` - Message.
+    - `%O` - Output current buffer as specified file.
+    - `%P` - set user Prompt for G command.
+    - `%Q` - system Query.
+    - `%R` - Run a command file.
+    - `%S` - Sort.
+    - `%T` - set Trace, prefix with '+' to XOR with current value
+    - `%U` - Undo last substitution.
+    - `%W` - Set up a screen window.
+    - `%X` - eXit current macro with a user-defined error message.
+    - `%Y` - sYstem settings (case sensitivity, type-into screen mode ...).
+    - `%~` - Insert or display control character.
+    
+  Example:
+
+{{{ %A
+%A
+---------
+  %A[=<message>] - Abandon = Exit without writing file.
+  
+  This exits the editor image, no files are written out.
+  
+  The message defaults to "Edit abandoned", it  is  written  to  stdout  after
+  closing the screen management system.
+
+}}}
+{{{ %C
+%C
+---------
+  %C[=<message>] - Continue = Exit writing new file.
+  
+  The file spec. is initially determined by the arguments given to the  editor
+  image (see `-to`) and may be further redefined by the `%b=pathname` command.
+  By default the file will have the same pathname as the original.
+  
+  The error flag is raised if there is an attempt to %C from any buffer  other
+  than the main buffer . - to write out some other buffer use %O.
+   
+  The message defaults to "Normal exit", it is written to stdout after closing
+  the screen management system.
+
+}}}
+{{{ %E
+%E
+---------
+  %E[<key>]=<CliCommand>[ -filter=<jotCommandString>]
+  
+  If a destination buffer is specified with the optional <key> qualifier, then
+  the stdout of the child process is picked up  ant  saved  in  the  specified
+  buffer - this may be a temporary buffer  on  the  stack  if  the  key  ~  is
+  specified. If no destination buffer is specifed the child's std goes to  the
+  screen.
+  
+  If the optional -filter command sequence is specified, then it  is  used  to
+  filter the incoming stream - see `filter commands`.
+   
+  The command is passed to the CLI, the return status is checked and  used  to
+  set the failure flag.
+  
+  %e~=... is a special case, the ~ buffer is created on the stack - see `about
+  the operand stack`.
+
+}}}
+{{{ %F
+%F
+---------
+  %F[-]<key>=<regularExpression> - search buffer using regular expression.
+  
+  Performs a regular-expression search - for a backwards search use  the  form
+  %F-<key>=<regularExpression>. When a match is found, the first record of the
+  destination buffer is set to  the  complete  matched  substring.  Subsequent
+  records  of  the  destination  buffer  are  set  to    substrings   matching
+  parenthesized sub-expressions.
+  
+  %f~=... is a special case, the ~ buffer is created on the stack - see `about
+  the operand stack`.
+   
+  The underlying system call  only  searches  forwards  hence,  for  backwards
+  searches, when a matching line of text is found, the system call is repeated
+  until there are no more valid matches. Hence reverse regex searches  can  be
+  quite inefficient for cases where there are many possible matches on a line.
+  
+  Briefly, it supports most of your  favourite  regular-expression  constructs
+  but some of the more complex ones may be missing, for details  look  at  the
+  documentation of the regex library routine:
+    http://www.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap09.html
+    - Circumflex '^' and dollar sign '$', respectively, at the start or end of
+      the RE, will anchor the body of the RE to the start or end of the  match
+      string.
+    - Bracketed expressions - '[' ... ']', the expression  inside  a  pair  of
+      matching square brackets - see below.
+    - Sub-expression grouping, enclosing expressions in matching round  braces
+      '(' and ')', creates a result for each such subexpression. Each of these
+      is assigned a separate record in  the  destination  buffer  and  may  be
+      referred to by  number  in  some  later  expression  (see  subexpression
+      references, below).
+    - Alternation  within  sub-expressions  the  vertical  bar  character  '|'
+      indicates an alternative subexpression. (<subexpr1>|<subExpr2> ... )
+    - Subexpression references - \n (where n is a decimal) refers to the value
+      extracted for that subexpression.
+    - Numeric quantifiers -  specifying  that,  for  a  match,  the  preceding
+      subexpression should be reiterated a given number of times.
+    - Range quantifiers, a comma-separated pair of  decimal  values  in  curly
+      braces '{'m, n'}' where m specifies the minimum number of repeats, n the
+      maximum.
+    
+  Bracketed expressions - anything in matching square brackets [ ... ]
+    - A set of equally  acceptable  characters,  special  characters  must  be
+      escaped with a backslash.
+    - A range of characters <ch1>-<ch2> in the ASCII/POSIX collating sequence.
+    - A circumflex '^' - the negation character, matches to any character  not
+      in the expression e.g. [^a-zA-Z] matches to any non-alpha character.
+    - Character-class expressions of the form [ ... [:<classexpr>:] ... ]  the
+      following character class expressions are allowed: alnum, cntrl,  lower,
+      space, alpha, digit, print, upper, blank, graph, punct, xdigit.
+
+}}}
+{{{ %M
+%M
+---------
+  %M=<message> - prints Message in console area.
+  
+  Prints the message in the console area and continues -  see  also  `%X`  the
+  message may  contain  an  indirect  reference  to  a  buffer  -  see  `about
+  parameters`e.g:
+	> ob %q~=date; t2/, /b %m=This is the time '~; osozok
+
+}}}
+{{{ %X
+%X
+---------
+  %X=<message> - eXit current command sequence, macro or script displaying the
+  message in the console area.
+  
+  Prints the message to the  console  area  then  abruptly  exits  of  current
+  command sequence - see also  `%M`.  The  message  may  contain  an  indirect
+  reference to a buffer - see `about parameters` e.g:.
+	> %x=File 'n is of the wrong type.
+
+}}}
+{{{ %Y
+%Y
+---------
+  %Y=<attribute> [<value>] - set the value of a sYstem attribute.
+   
+  This group of commands control various system attributes affecting behaviour
+  in any buffer.
+  
+  Briefly, these are the valid attribute keys: 
+    - %Y=Case [0|1|+1] - Sets case sensitivity for F, and V commands.
+    - %Y=CommandMode [+][<bitMask>] - to select screen-edit mode.
+    - %Y=TraceCounter to set/read the trace counter.
+    - %Y=SetEnv <envName> <envValue> - sets an environmental variable.
+    - %Y=Verbose - to change verbosity level.
+
+{{{ System Case
+System Case
+--------------------
+  %Y=Case [0|1|+1] - set case sensitivity attribute.
+   
+  This sets case sensitivity for the `F` and `V` commands - 1 makes them  case
+  sensitive, 0 makes then case-insensitive (e.g. f/Fred/ will match  to  fred,
+  FRED or Fred equally well). If no valid value is given,  it  defaults  to  0
+  (i.e. insensitive to case). The value +1 reverses the current setting.
+
+}}}
+{{{ System CommandMode
+System CommandMode
+---------------------------
+  %Y=CommandMode [+][<bitMask>] - sets command-mode attribute.
+   
+  This switches the editor between command mode  (it's  default  setting)  and
+  type-into-screen (i.e. WYSIWYG - What You See Is What You Get) mode.
+    - In command mode, the  editor  prompts  for  commands,  the  response  is
+      generally taken to be a command. The command is analyzed and appropriate
+      action follows.
+    - In type-into-screen mode text typed in is inserted  directly  into  your
+      document - i.e. the way most modern word processors work.
+      
+  The value is set as a hexadecimal bit mask - bits are assigned as follows:
+    - 0 - Normal command-driven mode.
+    - 1 - Temporary type-into-screen mode, reverts to command  mode  when  any
+      function or cursor-control key is hit.
+    - 2  -  Perminant  type-into-  screen  mode  (exits    on    an   explicit
+      %y=CommandMode setting or a Ctrl+C interrupt).
+    - 4 - Overtype when in type-into-screen mode.
+    
+  Thus we have several useful combinations:
+    - %y=CommandMode  0; %%This reverts to command mode.
+    - %y=CommandMode  1; %%Enter type-into-screen mode until the  next  hotkey
+      action.
+    - %y=CommandMode +1; %%Toggles the above.
+    - %y=CommandMode  2; %%Enter type-into-screen mode until changed by another
+      %y command.
+    - %y=CommandMode +2; %%Toggles the above.
+
+}}}
+{{{ System TraceCounter
+System TraceCounter
+----------------------------
+  %Y=TraceCounter [<decimalValue>] - sets the value of the trace counter.
+   
+  This sets or displays an internal counter used to count  down  to  trace  or
+  break point activation. This internal counter is designed to to be  used  in
+  conjunction with the trace mask (see `the jot debugger` and`%T`).
+  
+  The trace mask determines the trace trigger and action. When  this  internal
+  counter reaches zero, the trace action is enabled when nonzero, the  counter
+  is decremented.
+  
+  If a value is given, this is treated as a decimal literal and  the  internal
+  counter is set to that value. If no value is given then the current value of
+  the counter is displayed. Note that, depending on the  trace-mask  settings,
+  the %Y command used to display the value of the counter may  also  decrement
+  the counter before it's displayed.
+
+}}}
+{{{ System SetEnv
+System SetEnv
+----------------------
+  This sets an environmental variable in your session. It does not, of course,
+  change the environment in your shell but only for your editor session.
+
+}}}
+{{{ System Verbose
+System Verbose
+-----------------------
+  %y=Verbose <n> - sets verbosity level.
+   
+    - 0 Quiet - no messages unless absolutely necessary.
+     
+    - 1 Normal reporting - errors and warnings.
+     
+    - 2 Verbose - some additional diagnostic  messages  sent  to  the  console
+      area, it is recommended to allow at least 5 lines in  the  console  area
+      when set.
+
+}}}
+}}}
+{{{ %P
+%P
+---------
+  %P=<promptString> - set prompt string.
+  
+  Sets the prompt for the `G` command. 
+
+}}}
+{{{ %B
+%B
+---------
+  %b=<attributeName>[ <value>] - set Buffer attribute.
+   
+  This is used to set one of a number of buffer  attributes  for  the  current
+  buffer.
+
+{{{ %B=cfs
+%B=cfs
+---------------
+  %b=cfs - count line numbers from start of buffer.   
+   
+  Specifies that linenumbers should be Counted from  start  of  buffer  -  the
+  default state - see `about line numbers`
+
+}}}
+{{{ %B=cfe
+%B=cfe
+---------------
+  %b=cfe - count line numbers from end of buffer.
+   
+  Counts lines from back from end of buffer - see `about line  numbers`.  Note
+  the line numbers always ascend as we move down the buffer.
+
+}}}
+{{{ %B=unrestricted
+%B=unrestricted
+------------------------
+  %b=unrestricted - sets the buffer write-access attribute.
+   
+  This is the default state the buffer may be changed.
+
+}}}
+{{{ %B=readonly
+%B=readonly
+--------------------
+  %b=readonly - sets the buffer write-access attribute.
+ 
+  In this state the buffer can not  be  changed.  When  abstracting  from  the
+  buffer be sure to use the & qualifier  (see  `A`  command).  This  state  is
+  essential if the buffer  is  to  contain  hashtable  targets  -  see  `about
+  hashtables`.
+
+}}}
+{{{ %b=writeifchanged
+%b=writeifchanged
+--------------------------
+  %b=writeifchanged - sets the buffer write-access attribute.
+ 
+  In this state the buffer may be modified but if there is an attempt to  exit
+  the editor without first saving. Then a warning is  issued  and  the  editor
+  session remains live.
+  
+  The motivation for this one is that jot encourages users  to  edit  multiple
+  files in one session - it's just a bit too easy to forget and  exit  without
+  saving something important.
+
+}}}
+{{{ %b=leftoffset
+%b=leftoffset
+----------------------
+  %b=leftoffset <n> - sets the buffers left-offset attribute.
+   
+  Sets the text column to appear in the leftmost column  of  the  window  when
+  displaying this buffer.
+  
+  By default, the left offset is 0. This may be increased to  display  records
+  longer than the width of the current window. See `about long lines`
+
+}}}
+{{{ %b=tabstops
+%b=tabstops
+--------------------
+  %b=tabstops[ <n1>[ <n2>[ <n3>[ ...]]]] - controls display of tabular text.
+   
+  By default, tabs and other control characters are rendered as a tilde '~' on
+  the screen. If TabStops have been defined for a buffer (e.g. one  containing
+  tabular data) then each tab is replaced by one or more blank in the  display
+  so that the following text is neatly aligned with that of other  records  in
+  the display.
+  
+  Each entry in the TabStops command  is  a  number  indicating  the  absolute
+  column number to be assigned to the following text - hence  TabStops  should
+  always be an ascending sequence of column numbers. If a tab  is  encountered
+  that is already beyond (i.e. to the right of) it's assigned column then  the
+  tab character is simply rendered as a single blank.
+  
+  If the command  line  contains  no  numeric  entries  then  any  preexisting
+  TabStops are removed.
+  
+  In the event of there being a record with more then the number of predefined
+  TabStops, then additional TabStops are assigned by adding 8 to the  previous
+  TabStop.
+  
+  If the first TabStop is any negative number, then this is taken as a request
+  for automatically-assigned TabStops - any other values in the  command  line
+  are  ignored.  With  automatically  assigned  TabStops  the  window  manager
+  analyses the position of all tab characters currently in  view  and  assigns
+  the smallest TabStops  compatible  with  displaying  tabular  data  in  neat
+  columns. Currently, the maximum number of of automatically-assigned TabStops
+  is limited to 100.
+  
+  The TabStops are displayed in the `query buffer` report. 
+
+}}}
+{{{ %b=header
+%b=header
+------------------
+  %b=header <headerText> - defines a static header line for display.
+   
+  This inserts a delimiter line at the top of the window,  the  line  contains
+  the specified text written in inverse video. If the buffer has TabStops  set
+  (see `%b=tabstops`) then any tabs in the header text will be treated in  the
+  same way as those in the main body of the buffer. The upshot of this is that
+  the text can  contain  column  headings  for  buffers  containing  tabulated
+  entries (e.g. images of spreadsheets etc.).
+
+}}}
+{{{ %b=pathname
+%b=pathname
+--------------------
+  %b=pathname <pathName> - (re)defines pathname.
+   
+  This sets the default pathname to be used when this buffer is later  written
+  to the filing system.
+
+}}}
+{{{ %b=sameflag1
+%b=sameflag1
+---------------------
+  %b=sameflag - sets the user change-control flag.
+   
+  Sets the user flag SameFlag1 - this remains true until there is some  change
+  to the buffer text. This flag can be tested if ever a macro needs to know if
+  there have been changes.
+
+}}}
+}}}
+{{{ %Q
+%Q
+---------
+  %Q[<bufferKey>]=<query> 
+   
+  Query this command offers a few selected peepholes  into  selected  internal
+  editor states and the system environment.
+   
+  In most cases the target buffer, indicated by <bufferKey>, is the buffer  to
+  receive the  result.  The  exceptions  are  dir,  file,  SameFlag1  and  the
+  hashtable queries. In all cases the first line of output  to  the  nominated
+  buffer is the original %q command. Valid queries are:
+  
+  %q~=... is a special case, the ~ buffer is created on the stack - see `about
+  the operand stack`.
+
+}}}
+{{{ Query wd
+Query wd
+----------------
+  %q<key>=wd - Returns the users current working directory.
+     
+}}}
+{{{ Query window
+Query window
+--------------------
+  %q<key>=window - reports window assignments.
+   
+  Lists  screen  size,  details  of  all  allocated  windows  and  number   of
+  unallocated lines on the screen.
+     
+}}}
+{{{ Query date
+Query date
+------------------
+  %q<key>=date - reports date and time.
+   
+  Returns the current date and time in the form dd/mm/yy, hh:mm:ss
+         
+}}}
+{{{ Query env
+Query env
+-----------------
+  %q<key>=env <name> - reports value of nominated env variable.
+   
+  Returns the current value of the specified variable in the users env.
+      
+}}}
+{{{ Query stack
+Query stack
+-------------------
+  %q<key>=stack - reports state of stack.
+   
+  Returns the current state of the stack in decimal hex and character format.
+      
+}}}
+{{{ Query buffer
+Query buffer
+--------------------
+  %q<key>=buffer - reports buffer state.
+   
+  Returns the state  of the current buffer in tabular form.
+  e.g:  
+	> %qa=buffer
+  In buffer A it inserted the following text:
+	buffer
+	                  key = .                   The key for the buffer.
+	             pathName = t.t                 The pathname of the file read into the buffer.
+	          SameSinceIO = TRUE                This flag is set true when the file was originally read and reset by  a change to any text in the buffer.
+	     SameSinceIndexed = FALSE               This flag is set true bu adding some hashtable entries and reset by  a change to any text in the buffer.
+	            SameFlag1 = FALSE               This flag is set by the `%b=sameflag1` command and reset by a change to any text in the buffer.
+	           lineNumber = 1                   The normal line number of the record.
+	           CurrentChr = 0                   The current character position, in this case it is the leftmost character of the record.
+	      SubstringLength = 0                   The length of the currently-selected substring - in this case none is selected.
+	         wholeRecords = TRUE                Indicates that, if inserted into text it will not break lines.
+	          activeMacro = FALSE               Indicates that this buffer holds a macro that is currently in progress.
+	             editLock = Unrestricted        Other options are WriteIfChanged and ReadOnly.
+	       countFromStart = TRUE                Indicates that line numbers are count so that the first line remains line no. 1
+	           LeftOffset = 0                   See `%b=leftoffset`
+	    CurrentRec length = 209                 Indicates the current character in the current record, counting from the leftmost ( 0 )
+	               Header = "pinNames"~"signalName"~"padName"~"functionalDir"~"insta ... See `%b=header`
+	             TabStops = 17 41 62 89 172 ... Indicates columns in tabular text.
+	                 htab = FALSE               Indicates that there is no hash table associated with this buffer.
+	originalDatestamp = 4448309/09/19, 06:13:04 The file's datestamp at the time it was read.
+	 currentDatestamp = 2011/10/04, 16:27:16    The file's datestamp at the time of the query.
+
+}}}
+{{{ Query samesinceio
+Query samesinceio
+-------------------------
+  %q=samesinceio - tests state of buffers SameSinceIO flag.
+   
+  Use this command to test for changes to the buffer since it was last read or
+  written back to the filing system.
+   
+  Command exits with failure if  the  buffer  has  been  changed  in  any  way
+  compared to the  version  on  the  filing  system,  exits  with  success  if
+  unchanged. Note that text buffers which are not images of files  are  always
+  created with samesinceio set false.
+
+}}}
+{{{ Query samesinceindexed
+Query samesinceindexed
+------------------------------
+  %q=samesinceindexed - tests state of buffers SameSinceIndexed flag.
+   
+  Use this command to test for changes to the the buffer since making the last
+  hash table entry.
+   
+  Command exits with failure if the buffer has been changed in any  way  since
+  it was indexed with the `%H` commands, exits with success if unchanged. Note
+  that text buffers which have  not  been  indexed  are  always  created  with
+  samesinceindexed set false.
+
+}}}
+{{{ Query sameflag1
+Query sameflag1
+-----------------------
+  %q=sameflag1 - tests state of buffers SameFlag1 flag.
+   
+  Use this command to test for changes to the buffer since the flag was set. 
+   
+  Command exits with failure if the buffer has been changed in any  way  since
+  the SameFlag1 was set (see `%b=sameflag1`), exits with success if unchanged.
+  Note that text buffers  are  initially  created  with  samesinceindexed  set
+  false.
+
+}}}
+{{{ Query case
+Query case
+------------------
+  %q=case - tests state of the case-sensitivity flag.
+   
+  This simply sets the failure flag - it fails if case sensitivity is off.
+
+}}}
+{{{ Query version
+Query version
+---------------------
+  %q[<key>]=version - reports editor version.
+   
+  This delivers a brief informational message about the editor  version  build
+  date and host system. If the buffer key is given this message goes  to  that
+  buffer otherwise it goes to the console area of the screen.
+  
+  The report is also a useful way for scripts to find out if  they  are  being
+  run in a linux or dos environment.
+
+}}}
+{{{ Query dir
+Query dir
+-----------------
+  %q[<key>]=dir <path>[ <fmt1>[ <fmt2>[ <fmt3> ... ]]] - reports  contents  of
+  directory.
+   
+  Lists the contents of the nominated directory - note that the order is  just
+  as returned by the filing system - you will need to use the sort function to
+  sort them out. This command will always  check  that  the  path  exists  and
+  destination node really is a directory and will fail if this is not  so.  If
+  no destination buffer is specified, this check is all it does.
+  
+  If any format specifiers are included then the relevant information is added
+  to  the  file  entries.  The  following  format  specifiers  are   currently
+  supported:
+    - -mtime - the file's modification time in the form yyy/mm/dd, hh:mm:ss
+    - -utime - the file's usage time in the form yyyy/mm/dd, hh:mm:ss
+    - -ctime - the file's creation time in the form yyyy/mm/dd, hh:mm:ss
+    - -uid - the uid of the file's owner, 
+    - -gid - the gid of the file's owner, 
+    - -size - the file size in bytes,
+    - -inode - the file's inode number,
+    
+  In the report sent to the specified destination buffer,  the  optional  data
+  fields are separated from the file names by a tab  (VT)  character.  To make
+  this a bit easier on the eye run the `autotab` script.
+
+}}}
+{{{ Query file
+Query file
+------------------
+  %q[<key>]=file [<pathName>] - reports on state of file.
+   
+  Lists various bits of system information about the specified file. The  file
+  query will always check that the pathName exists and will fail  if  this  is
+  not so. If no destination buffer is specified, this check is  all  it  does.
+  Note that there is no  stripping  of  additional  whitespace  following  the
+  delimiter blank after the file keyword. Currently the following  information
+  is written to the target buffer:
+	file <pathName>
+	         Name = "<pathName>"
+	        inode = <inodeNumber>
+	         Mode = <modeInOctal>
+	          uid = <userID>
+	          gid = <groupID>
+	         size = <fileSizeInBytes>
+	       linkTo = "<linkTargetOrEmptyString>"
+	    directory = <1_IfDirectory_0_IfNot>
+	  Access time = <fileAccessTime>
+	  Modify time = <fileModifyTime>
+	Creation time = <fileCreationTime>
+  All datestamps are in the following format: YYYY/MM/DD, HH:MM:SS
+
+}}}
+{{{ Query heap
+Query heap
+------------------
+  %q=heap - reports heap statistics.
+   
+  Heap-usage report - this uses malloc_stats() to henerate these reports. This
+  only sends the reports to stdout, the upshot of this is you can only see the
+  report with curses screen management turned off. 
+  
+  Thus it is that the editor temporarily turns off screen management while you
+  to look at the result. It prompts you  to  enter  any  character  to  resume
+  curses. Alternatively, you might try running the editor with `-tty`.
+
+}}}
+{{{ Query history
+Query history
+---------------------
+  %q<buf>=history - reports command history.
+   
+  Reports all entries in the history  buffer  in  chronological  order  -  the
+  report is directed to the nominated buffer. The size of the  history  buffer
+  is limited but can be changed with the `-history` cli qualifier.
+   
+  N.B. The history maintained for the history query is entirety independent of
+  the history file in the journal area - see `about journal files`.
+
+}}}
+{{{ %H
+%H
+------------
+  %H[<key>]=create [<n>][ -fast] - Creates a new hashtable
+  %H[<key>]=add <hashTableKey> - Create a hashtable entry
+  %H[<key>]=new <hashTableKey> - Create a new hashtable entry.
+  %H[<key>]=find <hashTableKey> -  Search for key
+   
+  The  %H  command  is  used  for  maintenance  of  hashtables  -  see  `about
+  hashtables`. There are four options:
+    - `hashtable create`
+    - `hashtable add`
+    - `hashtable new`
+    - `hashtable find`
+  See also see `about hashtables` and `X` 
+
+{{{ Hashtable create
+Hashtable create
+-------------------------
+  %H[<key>]=create [<size>|-1][ -fast] - Create a new hashtable.
+   
+  Create an empty hashtable in specified buffer, or  the  current  buffer,  if
+  none specified. The size parameter specifies the size  of  the  table.  Take
+  care to not underestimate the required size. The value can be  specified  on
+  the command line or, if any negative value is given, picked up from the  top
+  of the stack.
+  
+  The -fast qualifier should only be used in special  circumstances  -  it  is
+  intended for fast changes of focus in *very* large reference files which can
+  be tagged as ReadOnly (see `%b=readonly` command) - see `about hashtables`.
+  
+  By default, the editor will extract a linenumber from the hashtable and will
+  index through the destination buffer until it finds the correct record. When
+  -fast is set, it extracts a pointer  to  the  destination  record  and  goes
+  straight there. Used interactively, for small buffers, you will probably not
+  notice the difference.
+  
+  Thus the -fast is indeed faster but it's mode is dangerous,  if  the  buffer
+  has been changed in such a way as to replace a  target  record  then  memory
+  used for the the original destination record may have  been  reallocated  to
+  some other purpose. In other words, the it'll  crash  and  burn.  Hence  the
+  insistence on buffer being ReadOnly.
+
+}}}
+{{{ Hashtable add
+Hashtable add
+----------------------
+  %H[<key>]=add <hashtableKey> - adds a hashtable key.
+   
+  Adds a new entry to the hash table for the specified or, current buffer,  if
+  none is specified. The hash table entry will store the exact location of the
+  current character in the current buffer. In the event of a  collision  (i.e.
+  the key already exists in the hashtable)  the  original  value  is  silently
+  replaced by the new value.
+  
+  The current buffer must be set as ReadOnly - see  `%b=readonly`  and  `about
+  hashtables`.
+
+}}}
+{{{ Hashtable new
+Hashtable new
+----------------------
+  %h[<key>]=new <hashtableKey> - adds a new hashtable key.
+   
+  Similar to add (above) except  that,  in  the  event  of  a  collision,  the
+  original entry is unchanged and the command fails.
+  
+  The current buffer must be set as readonly - see `about hashtables`.
+
+}}}
+{{{ Hashtable find
+Hashtable find
+-----------------------
+  %h[<key>]=find <hashtableKey> - performs a hashtable lookup.
+   
+  The hash table in the specified buffer  (or  the  current  buffer,  if  none
+  specified) is searched. If the key exists then the focus is restored to  the
+  point at which the key was entered. If  the  key  is  not  found,  then  the
+  command fails - see `about hashtables`.
+  
+  See also `X`. 
+
+}}}
+}}}
+{{{ %D
+%D
+----------
+  %D<key>=<string> - Defines the specified buffer directly from the console.
+  
+  The first parameter is the buffer identifier key - a single  character  used
+  to reference the buffer.
+  
+  Whereas %D will define a single-line buffer (usually a macro) `%G` is useful
+  for defining any-number of lines.
+
+}}}
+{{{ %G
+%G
+---------
+  %G - Get = Reads in an buffer from current command stream or macro.
+  
+  This is similar to the G editing command, except that G always  takes  input
+  from the console, %G will take from whatever command input currently active.
+  
+  Whereas %G defines any number of records `%D` is a quick convenient  way  of
+  defining a single-record macro.
+
+}}}
+{{{ %I
+%I
+----------
+  %I<key>[=<pathName>][ -filter=<jotCommandString.] - Input a secondary file.
+  
+  This loads the file into a new buffer, referenced by the  buffer  identifier
+  key.
+  
+  The pathname defaults to the pathname of the currently-edited file.  If  the
+  new filename is incompletely specified then the missing fields are filled in
+  using the current pathname.
+  
+  If the optional -filter  qualifier  is  given  then  the  incoming  file  is
+  filtered using the specified commands - see `filter commands`.
+
+}}}
+{{{ %L
+%L
+----------
+  %L[<width>] - Sets the terminal line length.
+  
+  If the newly specified line length is  not  132  characters  then  the  line
+  length is set to the default value of 80 characters. This  only  works  when
+  the xterm attribute DECCOLM, allowing 80/132 switches, is enabled.
+  
+  More typically, in an  xterm  environment  the  xterm  size  is  changed  by
+  dragging the window boundaries. After this, %l  can  be  used,  without  the
+  width parameter, after changing the xterm dimensions. It reads back the  new
+  screen height and width henceforth these new values  are  used  in  internal
+  calculations involving screen dimensions.
+  
+  This command also completely redraws the screen, hence it is useful if,  for
+  whatever reason, the screen happens to get messed up.
+
+}}}
+{{{ %O
+%O
+----------
+  %O<pathname> - Output current buffer as specified file.
+  
+  The current buffer is written out using the given pathname.
+  
+  The pathname defaults to the pathname of the currently-edited file.  If  the
+  new filename is incompletely specified then the missing fields are filled in
+  using the current pathname.
+
+}}}
+{{{ %R
+%R
+----------
+  %R=[pathname][ -asConsole] - Run a command file.
+  
+  If no path is explicitly specified, then JOT first  searches  your  PWD,  if
+  it's not in there, then it searches the directory specified by the  JOT_HOME
+  env. See `env setup`.
+  
+  The file contains editor commands, these are all executed in the same way as
+  with console input, the default pathname is startup.jot.
+  
+  In the event of an un-trapped error (i.e.  a  command  failed  and  no  else
+  clause applies), then execution of the script is terminated.
+  
+  When the -asConsole qualifier is  given,  the  behaviour  is  more  like  an
+  interactive session:
+    - Errors are reported normally then, instead of abandoning the script, the
+      error is changed to an  ordinary  command  failure  so  that  processing
+      resumes at the else block or the next line of the script.
+    - The script may contain escape sequences - in practice the only ones that
+      are likely to contain these are recovery scripts -  see  `about  journal
+      files`.
+  
+  Command files may be nested to a depth of 20.
+
+}}}
+{{{ %T
+%T
+----------
+  %T[+][<XXXX>] - Trace = Set [modify] trace mode, in hexadecimal.
+   
+  The  optional  +  qualifier  causes  the  existing  trace   value    to   be
+  Exclusive-Ored with the given value.
+  
+  The screen window is only redrawn when the Trace_Break bit is set.
+  
+  %T sets a mask which controls the user-script  debugging  facility  for  the
+  editor - see also the `D` command.  
+  
+  The trace action may optionally be delayed by setting an internal counter  -
+  see `System TraceCounter`.
+  
+  The trace mode flag has ten control bits which can be  ORed  together:-
+    - 0001 Trace_AllCommands: Trace at each new command.
+    - 0002 Trace_CommandLines: Trace at the start of each new command line.
+    - 0004 Trace_Fail: Trace on exit from a failing block.
+    - 0008 Trace_Blocks: Trace at start of each new block.
+    - 0010 Trace_Macros: Trace at start of each new macro.
+    - 0020 Trace_Scripts: Trace on entry to command files.
+    - 1000 Trace_Stack: At a trace point dump the contents of the stack.
+    - 2000 Trace_Print: At a trace  point,  print  the  current  line  of  the
+      current buffer.
+    - 4000 Trace_Commands: At a trace point, show command line.
+    - 8000 Trace_Break: Break at selected trace point, halts and prompt for  a
+      debug command.
+     
+  One group  of  bits  (Trace_AllCommands,  Trace_CommandLines,  Trace_Blocks,
+  Trace_Macros and Trace_Scripts) define the requested trace points. The other
+  group of bits  (Trace_Stack,  Trace_Print  and  Trace_Break)  determine  the
+  action to be taken at the trace point.
+  
+  The Trace_Stack bit directs a stack dump to the console, this will not be of
+  much help unless the console area of the screen is reasonably large or there
+  is not much on the stack.
+  
+  The Trace_Print bit prints the current  line  of  the  current  buffer  just
+  before execution of the command.
+  
+  The Trace_Break bit triggers a break at the trace point, it  prompts  for  a
+  command with 'Debug Command>' any valid JOT command string may  be  entered.
+  If a hexadecimal value is entered with a leading zero, then this sets a  new
+  value for the trace mode - in  particular  0  will  exit  trace  mode.  Just
+  hitting the return key advances to the  next  break  point.  Note  that  the
+  debugger does not attempt to restore the original  context.  Note  also  the
+  debugger interface does not handle hotkeys.
+  
+  If no trace action is specified, it just prints the  command  line  at  each
+  trace point.
+  
+  The `D` command simply sets the trace value to 161 -  this  stops  at  every
+  command displaying the command line, stack  and  prints  the  current  line.
+  Another useful value id 162 - this displays the same but only stops  at  the
+  start of each new command line.
+
+}}}
+{{{ %S
+%S
+----------
+  %S - sort current buffer.
+   
+  Sorts the current buffer using the strcmp function. Sort locates  sort  keys
+  at user-specified columns  in  tabulated  text  (by  default  uses  one  key
+  starting in column 1). With the tabsort qualifier, the keys are extracted at
+  user-specified tabstops.
+
+{{{ Default (tabsort not given)
+Default (tabsort not given)
+-------------------------------------
+%s=[<sliceColumn1>][ <sliceColumn2>[ <sliceColumn3> ...]]]
+  Each parameter is taken as a slice definition (i.e. a  vertical  slice  down
+  the tabulated text), the following forms are supported:
+    - <firstChrNo>-<lastChrNo> - counting from the  first  character  in  each
+      record (chr no. 0), this defines a slice of the buffer to be used in the
+      sort comparison.
+    - <firstChrNo>+<width> - defines the start  character  and  width  of  the
+      slice - minimum sensible width is 1.
+  
+  The sort function (a  version  of  quicksort)  compares  pairs  of  records,
+  initially from slice slice1. If they are found to be identical, it  tries  a
+  comparison from slice slice2, then slice3 etc... If no slices are  specified
+  it performs just one comparison on each complete record.
+  
+  Note that left to the user to ensure that  each  record  has  at  least  the
+  number of columns specified - otherwise results are unpredictable.
+  
+  The sort function modifies the current buffer and writes a sort summary into
+  the nominated destination buffer.
+
+}}}
+{{{ tabsort
+tabsort
+-----------------
+  %S=tabsort <tab1>[ <tab2> [<tab3> ...]]] - sort buffer holding tabular text.
+   
+  sorts records by values of unaligned fields, the fields must be delimited by
+  tab characters.
+  
+  Each field must be delimited left and right by tab characters.
+  
+  Shorter fields always rank higher in a  strcmp  string  comparison  so  some
+  additional whitespace padding may be required.
+
+}}}
+}}}
+{{{ %U
+%U
+----------
+  %U - Undo = Undo last substitution.
+  
+  The current substring (irrespective of whether selected by F, U, I or S)  is
+  replaced by the last specified search  string.  Normally,  of  course,  this
+  would have been set as a result of a S (substitute) command, following  a  F
+  (Find) command, hence the substitution is undone.
+  
+  If the original find substring had a different case pattern to the  replaced
+  substring (i.e. the find was done in case-insensitive mode)  then  the  undo
+  will not reflect the original case pattern.
+
+}}}
+{{{ %W
+%W
+----------
+  %W[n[ <key>]] - Window = Set up next n lines as a screen window.
+  
+    - If no arguments follow this command then all screen windows are cleared.
+    
+    - n - Specifies the number of screen lines to allocate to the next window.
+      These are allocated sequentially starting from the top line.
+    
+    - The optional <key> parameter specifies which buffer is to be  associated
+      with the screen window, if this is not given then the current buffer  is
+      displayed in the window.
+  
+  There is a 3-line guardband at the top and bottom of each window, the effect
+  of this guardband is to ensure that the next three lines above and below the
+  current line are visible. For windows of six, or less,  lines  there  is  no
+  guardbanding.
+
+}}}
+{{{ %%
+%%
+----------
+  An JOT comment.
+  
+  The command scanner ignores all text to the right of the %%. 
+
+}}}
+{{{ %~
+%~
+----------
+  %~ - Insert/Evaluate Control Character
+   
+  All control characters (i.e. characters having an ASCII code  of  less  than
+  0x20) are represented on the screen as a '~'. To evaluate such a  character,
+  the %~ command returns the ASCII code, in hex,  for  the  character  at  the
+  cursor position. This command has an optional hex-value parameter, if  given
+  then the command will instead insert a control character  of  the  specified
+  value, at the cursor position.
+
+}}}
+}}}
+}}}
+{{{ Command file library
+Command file library
+----------------------
+  There are a number of predefined JOT command file  in  the  ${JOT_HOME}/coms
+  area, in general these have a one-line  description  at  the  start  of  the
+  command file. The most useful ones are described below - see `env setup`.
+  
+  These are run by first typing the  name  of  the  script,  followed  by  any
+  arguments and then pressing the 'F2' button i.e: 
+	> <scriptName>[ <arg1>[ <arg2>[ ...]]]{F2}
+  
+  If the <<Do>> function has not been mapped to  the  F2  button  then,  as  a
+  temporary workaround you can type in the  command  %r=<scriptName>.  If  the
+  script happens to be one that takes arguments then you must manually  define
+  the arguments in the $ buffer - this is always used  to  define  script  and
+  macro arguments. Then run the script with %r=<scriptName> like this:
+	> %d$=%% <arg1> <arg2> ...
+	> %r=<scriptName>
+
+{{{ startup
+startup
+-----------
+  The script ${JOT_HOME}/coms/startup.jot is normally run by the editor as  it
+  starts up.  This  script  maps  symbolic  keyboard  functions  to  keys  (as
+  identified by their xterm  escape  sequences)  and  runs  the  `curses_keys`
+  script.
+  
+  The symbols in startup and curses_keys  correspond  to  those  used  in  the
+  hotkey definitions in the following section.  To  achieve  some  alternative
+  mapping of the functions to hotkeys.
+  
+  The startup.jot script  will  normally  load  key  mappings  from  the  file
+  curses_keys.jot. If, it detects the key mappings  are  already  defined,  it
+  uses those mappings.
+  
+  If the current directory contains a startup.jot file then this replaces  the
+  JOT_HOME version.
+  
+  If  the  optional  CLI  arg  -startup  is  specified    (see   `command-line
+  arguments`), then this overrides any startup path from  ${JOT_HOME}/coms  or
+  the current directory. if the qualifier is given without  the  '=<pathName>'
+  value, this is equivalent to -startup=/dev/null i.e. no startup script.
+  
+  In summary, the startup-file selection is, in order of precedence: 
+    - 1 The -startup=<pathName> arg,
+    - 2 a startup.jot in the current directory and
+    - 3 ${JOT_HOME}/coms/startup.jot
+
+{{{ curses_keys
+curses_keys
+-----------------
+  This script is run by the standard `startup` script, it defines  mapping  of
+  keys to curses  key  codes,  theses  are  then  assigned  functions  by  the
+  `startup` script.
+  
+  If run interactively, it's  only  effect  is  to  load  buffer  ^  with  the
+  functions-to-keyboard map - after doing that none of the function keys  will
+  work properly until startup has been re-run to attach functions to them.
+
+}}}
+}}}
+{{{ get
+get
+-------
+  get [<path>[/<pathElem>]]{F2}
+   
+  e.g. 
+	> get ~/ed/*.t{F2}
+   - selects files matching *.t in ~/ed 
+         
+  The get script picks up a directory path and lists files in the directory in
+  a simple menu-style buffer. The intrepid user can then browse  through  this
+  buffer using the cursor-control or find keys to  select  either  a  file  or
+  directory. The target is selected by running  the  0  macro  (bound  to  the
+  numeric-keypad 0 button). 
+  
+  The directory listing shows one item to each line of the  buffer,  with  the
+  directory path at the head of the list, subdirectory names are suffixed with
+  a  slash  '/'.  Both  the  directory  path  and  the  trailing  slashes   on
+  subdirectory names are recognized by and are important to the 0 macro.
+  
+  The initial path is determined according to the following prioritised list: 
+   
+    - The path given as a command-line argument.
+    
+    - The current-buffer's path - if the PathName is set - see %B=pathname').
+     
+    - A path relative to your PWD.
+    
+    - A path specified by the env GetDefaultPath. 
+     
+    - A path picked up from the current position in the text.
+     
+  When a file is selected, get runs the unix file utility to identify the file
+  type, if it is an archive offer a  new  menu  showing  all  members  of  the
+  archive and invites you to select again. If the selected file is  compressed
+  then get will decompress a copy of the file before reading.
+  
+  If your selection is a directory (including the .. directory to descend  the
+  directory tree) then the new directory redefines the menu. If the target  is
+  a file and you did not specify a destination buffer on the command line, you
+  will be prompted for a destination buffer and the file will be  loaded  into
+  that buffer.
+   
+  To force get to pick up the current file-image  path,  even  when  the  text
+  under the cursor could  be  interpreted  as  a  pathName,  then  enter  some
+  whitespace as the path - e.g:
+get {F2}
+  
+  If the file name is fully specified  and  exactly  matches  a  file  in  the
+  directory indicated by the path, then the file is selected, if the file name
+  contains wildcards (the * character)  then  the  resultant  menu  lists  the
+  matching files.
+
+}}}
+{{{ comp
+comp
+--------
+  comp[ <key>]{F2}
+  
+  This sets up macros 4 and 5 to compare  the  contents  of  two  buffers  the
+  current buffer and the ref buffer. It takes  one  optional  argument  -  the
+  'Ref' buffer. If the ref buffer is not given, then the buffer is assumed  to
+  be a file image and the current filing-system version of the  file  is  read
+  into the ; buffer and that is compared to the current buffer.
+  
+  It also redefines macros 4 and 5 (bound to numeric-keypad 4 and 5 buttons).
+  
+    - Button 5 will then compare the  current  buffer  with  the  ref  buffer,
+      starting at the current character position in both progressing  forwards
+      through the buffers.
+    
+    - Button 4 is similar, except that it compares backwards.
+    
+    - If an jot command string is entered before hitting buttons 4 or 5,  then
+      instead of running the comparison, the jot command string is applied  to
+      both buffers - this is designed to  allow  synchronization  of  the  two
+      buffers.
+
+}}}
+{{{ do
+do
+------
+  do <CliCommand>{F2}
+   
+  This simply performs the shell commands and it's arguments,  the  result  is
+  read back into the @ buffer.
+
+}}}
+{{{ ls2list
+ls2list
+------------
+  ls2list{F2}
+   
+  Transforms the output of a unix ls  -F  listing  to  a  list  of  paths  for
+  `multi_do`, `multi_ed` etc.
+
+}}}
+{{{ multi_do
+multi_do
+------------
+  multi_do <CliCommand>{F2}
+ 
+  This script assumes that the current buffer is a list of pathnames. It takes
+  a CLI command as it's argument this is applied to all files in the list  and
+  the results are captured in the @ buffer. See also `ls2list`.
+  
+  One way of processing many files might be something like this: 
+	> do ls -R <path>{F2}  - first create a list of files and directories
+	> n.m0aa               - The do script left it's result in a scratch buffer - move them to the 'a' buffer.
+	> ls2list{F2}          - transform the result of the ls into a simple list of pathnames.
+	>  ...                 - perform any further filtering and selection of files to be processed.
+~multi_do ... {F2}    - run your shell command on all files in the list.
+
+}}}
+{{{ multi_ed
+multi_ed
+------------
+  multi_ed{F2}
+   
+  This script also assumes  that  the  current  buffer  is  a  list  of  valid
+  pathnames. It prompts you for a series of jot commands, when you've finished
+  entering the jot commands, the complete set of jot commands  is  applied  to
+  every file in the list.
+
+}}}
+{{{ retab
+retab
+----------
+  retab[ <string>]{F2}
+   
+  Searches the entire buffer for the  given  string,  when  found,  the  first
+  instance of the string in any line is prefixed with a  tab  character.  Also
+  removes any whitespace adjacent the inserted tab.  Tabs,  along  with  other
+  control characters are displayed as a tilde ( ~ ).
+  
+  This script is intended for use as a precursor to  `autotab`,  `autotabjust`,
+  `autotabdp` or `transposetab` - see `tabulated text`.
+
+}}}
+{{{ retabhere
+retabhere
+-------------
+  retabhere{F2}
+   
+  This  inserts  tabs  in  the  current-character  column.  This  is  used  in
+  conjunction with `retab`, `autotab` and `autotabjust`.
+  
+  This script is useful for preservation of one column of  a  partly-formatted
+  table - see `tabulated text`.
+
+}}}
+{{{ autotab
+autotab
+------------
+  autotab{F2}
+   
+  This searches the entire buffer for lines containing tabs,  it  locates  the
+  first tab character on each line with  one  or  more  tabs,  and  finds  the
+  rightmost first tab.
+  
+  It then replaces the first tab on any line  with  sufficient  whitespace  to
+  align the text following the first tab on any line.
+  
+  Lines which do not contain any tabs are ignored - see `tabulated text`. 
+
+}}}
+{{{ autotabjust
+autotabjust
+----------------
+  autotabjust{F2}
+   
+  Similar to autotab, but right-justifies  so  that  the  following  tabs  are
+  aligned - see `tabulated text`.
+
+}}}
+{{{ autotabdp
+autotabdp
+--------------
+  autotabdp{F2}
+   
+  Similar to autotab but inserts blanks so as to align decimal points  in  the
+  column following the tab - see `tabulated text`.
+
+}}}
+{{{ tab
+tab
+--------
+  tab[<n>]{F2}
+   
+  Resolves tabs to the specified tab spacing - defaults to 8.
+
+}}}
+{{{ c (command script)
+c (command script)
+-----------------------
+  c{F2}
+   
+  Redefines macros 1 and 2 (bound to numeric-keypad  1  and  2)  to  functions
+  suitable for browsing C code. It is reasonably bulletproof but it will  fail
+  to set up the hashtables  when  it  finds  a  mismatch  in  the  curly-brace
+  structure of your coding. Even valid C can fail  in  this  way  when  curly
+  braces are inside #ifdef (etc.) blocks.
+  
+  It also sets the env variable GetDefaultPath to /usr/include - the effect of
+  this is to tell the `get` script to default to the specified path, with this
+  set you can set the cursor to a library include file and it will find it.
+  
+  The script first scans your C and  creates  the  hash-table  entries,  these
+  remain set up until the source code is changed in any  way.  The  change  is
+  detected automatically and then it re-generates  the  index  -  for  largish
+  source files you may notice a bit of a hiatus as it generates  the  index  -
+  after that it goes like the wind. 
+  
+  The speedup due to the hastable method, although welcome, is not really  the
+  motivation for it's use. Because  C  allows  multi-line  comments  and  text
+  strings, it is  difficult,  maybe  impossible,  to  reliably  parse  C  when
+  plodding back through the code. The c script  plods  forwards  once  to  get
+  forward and back links for the hashtable.
+   
+    - {KP_1} - Calls macro 1, this finds last '}' character then goes back  to
+      it's matching '{' using the hash table for  that  buffer  -  see  `about
+      hashtables`.
+       
+    - {KP_2} - Calls macro 2, this Find next '{' character then goes  to  it's
+      matching '}'.
+     
+    - {Mod KP_1} and {Mod KP_2} achieve the same effect as {KP_1}  and  {KP_2}
+      respectively but does it by simply plodding through the  text.  Although
+      this is slower, it's useful when  there  is  a  mismatch  in  the  curly
+      braces. It is, in fact, a useful tool for locating such mismatches.
+
+}}}
+{{{ jot
+jot
+--------
+  jot{F2}
+   
+  Sets up macros 1, 2  and  3  (bound  to  numeric-keypad  1-3)  to  functions
+  suitable for browsing jot command scripts. As with the `c` script,  it  uses
+  hash tables. Jot code is another one of  those  difficult  ones  where  it's
+  difficult to plod back through the code.
+    - {KP_1} Calls macro 1 - find previous ')' then refocus  to  its  matching
+      '('.
+     
+    - {KP_2} Calls macro 2 - find next '(' then refocus  to  its  matching
+      ')'.
+     
+    - <jotCommand>{KP_3} Calls macro 3 find next occurrence of  the  specified
+      jot command string.
+
+}}}
+{{{ perl
+perl
+---------
+  perl{F2}
+   
+  Defines macros 1 and 2 (bound to numeric-keypad 1 & 2)  assigning  functions
+  suitable for browsing perl code.
+    - {KP_1} Macro 1 Go back to start of current block i.e locates the '{'  or
+      '[' matching the current '}' or ']'.
+       
+    - {KP_2} Macro 2 Go forwards end of current block i.e locates the  '}'  or
+      ']' matching the current '{' or '['.
+  
+  Normally, macro 1 should be started with the cursor over a  block-end  brace
+  (a '}'} or ']' character) or over whitespace to the right of one. If started
+  with the cursor at some other point, the  macro  locates  a  suitable  start
+  point and stops - you need to check the chosen start point and press  the'1'
+  key once more.
+  
+  Similarly, macro 2 matches  to  the  current  open-brace  character  or  the
+  whitespace immediately  before  one,  if  the  cursor  is  over  some  other
+  character, it locates a suitable start point and  stops  to  let  you  check
+  before restarting.
+
+}}}
+{{{ skill
+skill
+----------
+  skill{F2}
+   
+  Defines macros 1, 2, 3, 4 and 5  (bound  to  numeric-keypad  1-5)  assigning
+  functions useful for browsing skill code. The functions dedicated  to  skill
+  keywords recognize the following skill keywords: if, when, unless,  foreach,
+  for, while, case, cond and procedure
+    - Macro 1 scan back to keyword at start of current block. 
+    - Macro 2 scan forwards to keyword at end of current block.
+    - Macro 3 scan forwards to next "( ... )" block-start.
+    - Macro 4 scan back to start of current "( ... )" block.
+    - Macro 5 scan forwards to end of current "( ... )" block.
+
+}}}
+{{{ csh
+csh
+--------
+  csh{F2}
+   
+  Redefines macros 1, 2, 3, 4 and 5 to functions suitable for browsing C-shell
+  scripts (these macros are normally bound to Numeric-keypad buttons 1, 2,  3,
+  4 and 5 respectively).
+  
+  In the context of a  C-shell  script,  a  block  is  a  series  of  commands
+  controlled by some recognized  C-shell  built-in  structure.  The  following
+  structures are supported:
+    - if ... else ... elsif ... endif
+    - foreach ... end
+    - while ... end
+    - switch case ... case ...  endsw
+     
+  The following macros are defined: 
+    - {KP_1} - Macro 1 - searches back for the  previous  end-block  statement
+      (endif, end or endsw)  and  then  finds  the  matching  startpoint  (if,
+      foreach, while or switch). Note, the  jot  script  does  not  check  the
+      consistency of the start and end points (e.g. it will not complain if  a
+      foreach is terminated by an endsw).
+       
+    - {KP_2} - Macro 2 - searches forwards for the next start-block  statement
+      (if, foreach, while or switch) and  then  finds  the  matching  endpoint
+      (endif, end  or  endsw).  As  with  Macro  1,  it  does  not  check  the
+      consistency of the start and end points.
+
+}}}
+{{{ sh
+sh
+-------
+  sh{F2}
+   
+  Redefines macros 1 and 2 (bound to numeric-keypad  1  and  2)  to  functions
+  suitable for browsing Bourne-shell scripts.
+    - {KP_1} - Macro 1, Locates previous block-end statement (fi, esac,  done,
+      else, or elif), if not already at one, then  finds  corresponding  block
+      start (if, case, for, if, elif). 
+   
+    - {KP_2} - Macro 2, Locates previous block-start statement (if, case, for,
+      if, elif) with it's matching  block-start  (fi,  esac,  done,  else,  or
+      elif).
+      
+N.B.
+  Both functions work by  counting  block  depth,  there  is  no  checking  of
+  block-start to block-end keyword-consistency, e.g. an 'if' block  terminated
+  by 'end' is matched without complaint.
+
+}}}
+{{{ ksh
+ksh
+--------
+  ksh{F2}
+   
+  Similar to `sh` but supports some additional ksh keywords.
+
+}}}
+{{{ mif
+mif
+--------
+  mif{F2}
+   
+  Sets up macros 1, 2 and 3 (bound to numeric-keypad  1-3)  for  browsing  mif
+  files.
+    - {KP_1} Macro 1 - Go back to start of current block '<'.
+     
+    - {KP_2} Macro 2 - 2 Go forwards end of current block '>'.
+     
+    - {KP_3} Macro 3 - Go forwards to  next  'TextFlow'  keyword  disregarding
+      structure.
+
+}}}
+{{{ edif
+edif
+---------
+ edif{F2}
+  
+  Sets up macros 1, 2  and  3  (bound  to  numeric-keypad  1-3)  to  functions
+  suitable for browsing edif files.
+    - {KP_1} Macro 1 Go back to start of current block '('. 
+    - {KP_2} Macro 2 Go forwards end of current block ')'.
+    - {KP_3}  Macro  3  Go  forwards  to  next  'Cell'  keyword   disregarding
+      structure.
+
+}}}
+{{{ vhdl
+vhdl
+---------
+  vhdl{F2}
+   
+  This sets up macros 1 to  5  (bound  to  numeric-keypad  1-5)  to  functions
+  suitable for browsing VHDL files.
+    - {KP_1} Macro 1 Finds previous clause in current block.
+    - {KP_2} Macro 2 Finds next clause in current block.
+    - {KP_3} Macro 3 Find next next signal/variable  assignment,  block  start
+      statement or labelled statement irrespective of level.
+    - {KP_4} Macro 4 Finds previous block start statement.
+    - {KP_5} Macro 5 Finds next block end (invariably the END statement).
+     
+  Notes and restrictions:
+    - Block-start  keywords  recognized:  IF,  CASE,  FOR,    WHILE,   ENTITY,
+      ARCHITECTURE, CONFIGURATION, PROCESS, PACKAGE, PROCEDURE,  FUNCTION  and
+      COMPONENT
+    
+    - Subblock-start keywords recognized: ELSE, ELSIF, WHEN and BEGIN.
+       
+    - In general the  VHDL  keywords  mentioned  above  should  be  the  first
+      non-whitespace character on a line, but a crude  implementation  of  the
+      <labelName>:<keyWord> syntax works most of the time.
+     
+    - The editor should not be run in case sensitive mode  -  some  lower-case
+      identifiers may confuse it.
+     
+    - The cursor is left at the beginning of a significant VHDL  keyword,  all
+      buttons will work when the cursor is left anywhere in whitespace  before
+      a VHDL keyword.
+    
+    - There is no checking of the consistency of the keywords - thus  ELSE  is
+      accepted as a subblock delimiter in a COMPONENT definition.
+
+}}}
+{{{ tcl
+tcl
+--------
+  tcl{F2}
+   
+  Sets up macros 1, 2  and  3  (bound  to  numeric-keypad  1-3)  to  functions
+  suitable for browsing edif files.
+    - {KP_1} Macro 1 Go back to start of current block '{/['. 
+    - {KP_2} Macro 2 Go forwards end of current block '}/]'.
+    - {KP_3}  Macro  3  Go  forwards  to  next    structure-building   keyword
+      disregarding block structure.
+
+}}}
+{{{ searchbuffers
+searchbuffers
+------------------
+  searchbuffers <delim><string><delim>{F2}
+   
+  This searches all buffers for the string, results are presented in the  form
+  of a list of buffers where a string match was found. In  each  buffer  where
+  the string-match was found, the current line is set to  the  first  matching
+  line, for other buffers the current line ends up being the last line of  the
+  buffer.
+
+}}}
+{{{ showbuffers
+showbuffers
+----------------
+  showbuffers{F2}
+   
+  Generates a report in ! buffer with the filenames from each buffer.
+
+}}}
+{{{ age
+age
+--------
+  age{F2}
+   
+  Tells you the age of the file, in the current buffer, in years, days, hours,
+  minutes and seconds (n.b. the day count can go wrong in leap years).
+  
+  This uses the perl interpreter. 
+
+}}}
+{{{ change
+change
+-----------
+  change{F2}
+   
+  Adds change bars to an sccs-controlled document - based on  result  of  sccs
+  diffs.
+
+}}}
+{{{ copy
+copy
+---------
+  copy{F2}
+ 
+  Copies all of the current buffer into the X-windows  copy  buffer.  This  is
+  useful for exporting an entire buffer to some x  application  (e.g.  a  mail
+  composer).
+  
+  N.B: This script requires xsel to be on your search path. 
+
+}}}
+{{{ paste
+paste
+----------
+  paste[ <key>][ -here]{F2} 
+   
+  If neither the destination buffer or -here is specified it prompts  for  the
+  destination buffer.
+   
+  If the destination buffer is specified then the contents of that buffer  are
+  replaced with the contents of the x-windows paste buffer.
+  
+  If -here is specified, then the paste buffer is inserted  into  the  current
+  character position of the current buffer.
+  
+  N.B: This script requires xsel to be on your search path. 
+
+}}}
+{{{ count
+count
+----------
+  count{F2}
+   
+  Counts the number of words in the current buffer. 
+
+}}}
+{{{ date
+date
+---------
+  date[ -rev]{F2}
+   
+  By default inserts the current date at the cursor  in  dd/mm/yy  format,  if
+  -rev is given, inserts in yymmdd format.
+
+}}}
+{{{ doc
+doc
+-------
+  doc{F2}
+   
+  The doc script sets up a  simple  document  formatting  system,  it  defines
+  several macros and escape sequences:
+   
+    - Esc p - re-format the current paragraph, the paragraph is deemed  to  be
+      the current line and all the adjacent lines with the same indent  level.
+      This adjusts  whitespace  between  words  to  align  line  endings,  the
+      line-length to aim for is in the ] buffer.
+      
+    - Esc P reformats all paragraphs in the current buffer.
+    
+    - Esc h - makes the current line into a section heading, the heading level
+      is determined by the previous heading.
+       
+    - Esc .h - resets the heading, the heading level  is  unchanged,  but  the
+      section number is corrected.
+       
+    - Esc H - resets all headings, the heading levels are unchanged,  but  the
+      section numbers are corrected.
+       
+    - Esc +h - makes the current line into a section heading, the heading level
+      is one higher than the previous heading.
+       
+    - Esc -h - makes the current line into a section heading, the heading level
+      is one lower than the previous heading.
+      
+    - Esc s - checks the current paragraph  for  spelling  errors  (using  the
+      aspell command). Any errors appear in the console area - note,  {Esc  s}
+      does not overwrite the @ buffer.
+      
+    - Esc S - checks the entire document for spelling errors, if the there  is
+      a spell.lis file in the same directory as the  document,  then  this  is
+      passed to the spelling checker (aspell command). The list of  misspelled
+      words is read into the @ buffer - see the {Esc  n}  and  {Esc  N}  keys,
+      below.
+      
+    - Esc n - moves to the next instance of the current misspelled word  found
+      by Esc S}, above. If there are no more instances, then moves to the next
+      word in the @ (misspelled words) buffer and finds the first instance  of
+      that one.
+      
+    - Esc N - moves to the next word in the @ (misspelled words) buffer, this
+      ignores any further instances of the current misspelled word.
+      
+    - <re>{Esc l} - this greps for the  regular  expression  in  the  spelling
+      lexicon. The lexicon is quite small so there are plenty of  valid  words
+      that don't match but, on the  plus  side,  it  hardly  ever  matches  to
+      archaic or obscure words that hardly anyone knows.
+      
+  The doc script defines a paragraph as any number of nonblank lines  of  text
+  at the same indentation level.
+  
+  A line of text can be protected from the paragraph processor (Esc p and  Esc
+  P) by placing a non-blank character in column 1 - in this context a  tab  is
+  taken as a non-blank character. 
+
+{{{ Doc section and paragraph format
+Doc section and paragraph format
+---------------------------------------
+  Typically, most lines of of text in documents are in  paragraphs.  Paragraph
+  lines are always indented by at least one blank,  in  order  to  distinguish
+  them from special text such as headings, tables and  literal  text  such  as
+  code examples. Text documents are deemed to consist of sections,  introduced
+  by a section heading and containing any number of paragraphs.
+   
+  Several scripts are designed to text documents in doc.jot format, these make
+  the following assumptions about the structuring of the text.
+   
+    - Numbered sections always start in column 0, may contain  any  number  of
+      subsection numbers, each delimited by a decimal point the section number
+      is terminated by whitespace, followed by the section name e.g:
+	> 12.4.9 This section is a child of section 12.4 and grandchild of section 12
+       
+    - In addition to numbered sections, a section name may start at  column  0
+      and be terminated by a colon,  which  me,  optionally,  be  followed  by
+      section text e.g:
+	Fred: this is name frequently used to denote any name.
+  
+    - Bullet points are  paragraphs  introduced  by  a  bullet  character,  by
+      default these are hyphens ( - ).
+      
+    - A paragraph is a series of  lines,  all  indented  to  the  same  level,
+      delimited by either blank lines, special lines or  by  paragraphs  at  a
+      different level of indentation.
+      
+    - Special text lines do not have a blank in the first column, these are:
+      - Numbered section headings (their first character is always a digit),
+      - tabular text (their first character is always a tab)
+      - literal text (their first character is any non-blank, non-digit).
+
+}}}
+}}}
+{{{ doc2fold
+doc2fold
+-------------
+  doc2fold{F2}
+   
+  This translates a document to a folded help document suitable for use in the
+  jot help system. The document sections and  paragraphs  must  be  structured
+  according to the `doc` script conventions. See also `about help files`.
+
+}}}
+{{{ fold2doc
+fold2doc
+-------------
+  fold2doc{F2}
+   
+  This performs the reverse of the `doc2fold` process, it is only useful  when
+  a help file requires major changes and the original source document  is  not
+  available - see also `about help files`.
+
+}}}
+{{{ doc2frame
+doc2frame
+--------------
+  doc2frame{F2}
+   
+  Translates the text in the current buffer into  framemaker  -  sections  and
+  paragraph format defined by `doc`.
+
+}}}
+{{{ doc2html
+doc2html
+-------------
+  doc2html[ -split][ -index][ -noLinks]{F2}
+   
+  Translates the text in the current buffer into html.
+ 
+    -split - splits up sections and moves contents into parent sections.
+   
+    -index - Adds index at start of html (or each page if -split is also set).
+     
+    -noLinks - skips link-resolution stage, this saves time for debugging, but
+    the html is of little use.
+   
+  Any text in backticks is assumed to be a hyperlink - several forms are supported:
+    - A link to a heading either in the same file
+    - A link to a heading in some other file in the same directory. 
+    - A file://<path>#<tag>
+    - <file>.gif 
+  For example, the following line (from the walkthrough course), refers to the
+  section "Keyboard functions defined at startup." in this document.
+    be found at `Keyboard functions defined at startup.`
+
+}}}
+{{{ doc2help
+doc2help
+-------------
+  doc2help{F2}
+   
+  Transforms an jot doc-format document into a folded-help file  suitable  for
+  including in the jot help system.
+
+}}}
+{{{ dic
+dic
+--------
+  dic{F2}
+   
+  This reads the dictionary  and  creates  a  hashtable  index  for  all  word
+  definitions in the dictionary. To search the dictionary for a word  type  in
+  the word and hit {KP_3} on the numeric keypad - laptop users must type Alt+3
+  instead.
+    - <word>{KP_4} - changes context to the dictionary definition of the word.
+  
+  dic.jot  attempts  to   read    the    Gutenberg    websters    Ebook   from
+  ${JOT_RESOURCES}/websters.txt    -    this    can    be    downloaded   from
+  www.gutenberg.org.
+
+}}}
+{{{ thes
+thes
+---------
+  thes{F2}
+   
+  This reads the Gutenberg Ebook version of Roget's thesaurus and  sets  up  a
+  simple  macro  to  process    queries.    It    reads    the    Ebook   from
+  ${JOT_RESOURCES}/thesaurus.txt, this can be downloaded  from  the  gutenberg
+  project - www.gutenberg.org.
+    - <word1>[ <word2>[ ...]]{KP_8} 
+  
+  The query macro expects a  list  of  words,  it  then  returns  all  Roget's
+  sections which contain all of the given words, the  results  are  in  the  @
+  buffer.
+
+}}}
+{{{ duplicates
+duplicates
+---------------
+  duplicates{F2}
+   
+  The current buffer is searched  for  duplicated  lines,  starting  from  the
+  current line. The script halts at a  duplicated  line  or  the  end  of  the
+  buffer.
+
+}}}
+{{{ purge
+purge
+----------
+  purge[ -rev | -count]{F2}
+   
+  The current buffer is searched  for  duplicated  lines,  starting  from  the
+  current line. Duplicated lines are removed leaving just the  first  instance
+  of each unique line of text.
+  
+  If the optional qualifier -rev is given, then it is the  unduplicated  lines
+  that are removed.
+  
+  If the optional  qualifier  -count  is  given  then  the  number  of  purged
+  duplicate lines is appended to  the  undeleted  lines  separated  by  a  tab
+  character.
+
+}}}
+{{{ expand_verilog_busses
+expand_verilog_busses
+--------------------------
+  expand_verilog_busses{F2}
+   
+  Locates verilog busses of the form name[start:end] (where end < start),  and
+  replaces them with fully-expanded form
+
+}}}
+{{{ findcol
+findcol
+------------
+  findcol<delim><string><delim>{F2}
+   
+  The current  buffer  is  assumed  to  be  text  written  written  vertically
+  top-to-bottom. The current column is searched for the string.
+
+}}}
+{{{ findhelp
+findhelp
+-------------
+  findhelp<string>{F2}
+   
+  The ${JOT_RESOURCES}/help tree is searched for the string, results appear in
+  the help menu buffer.
+
+}}}
+{{{ updatehelp
+updatehelp
+---------------
+  updatehelp[ -NODATEstamp]{F2}
+   
+  This command file is used after you've updated an entry in the  help  buffer
+  (;). The current buffer must be the help buffer and the fold marks  must  be
+  unchanged (these are used to locate the fold in the file).  It  locates  the
+  current file fold by searching for the previous file fold in the help buffer
+  (:) then reads the file into a temporary buffer and  updates  it  with  your
+  revised fold.
+  
+  The changes must not affect the fold structure in any  way,  or  the  script
+  will fail.
+  
+  The updatehelp script will insert a datestamp mark near  the  start  of  the
+  fold indicating when the change was made. The  -nodatestamp  qualifier  will
+  prevent it doing this
+
+}}}
+{{{ near
+near
+---------
+  near <string1> <string2>[ <n>]{F2}
+  
+  If n is specified, this sets the search-window size - defaults to 5.
+   
+  Searches the current buffer, starting at the current line,  for  occurrences
+  of the two strings in nearby  lines  -  the  definition  of  nearby  is  the
+  optional window-size parameter.
+
+}}}
+{{{ nonprinting
+nonprinting
+----------------
+  nonprinting{F2}
+   
+  Detects any nonprinting characters in the current buffer.
+
+}}}
+{{{ cli
+cli
+--------
+  cli <cliCommand>{F2}
+  
+  The cli script assumes that the current buffer is a file image,  the  file's
+  pathName is picked up and the specified CLI (Command-Line Interpreter  -  or
+  shell, in unix parlance) command is applied to it.
+
+}}}
+{{{ path
+path
+---------
+  path <cliCommand>{F2}
+    
+  The path script assumes that the current buffer is a file image, the  file's
+  path is picked up and the specified command is applied to it.
+
+}}}
+{{{ sccs
+sccs
+---------
+  sccs <sccsCommand>{F2}
+   
+  This assumes that the current buffer is a file image, it  applies  the  sccs
+  command to the current file.
+
+}}}
+{{{ print
+print
+----------
+  print[ -break]{F2}
+   
+  The current buffer is checked and,  if  there  are  no  unresolved  tabs  or
+  overlong lines, it is written out to a temporary file, this  temporary  file
+  is printed using a2ps.
+  
+  The optional -break qualifier causes overlong lines ( >80 characters) to  be
+  broken at a suitable point.
+
+}}}
+{{{ wideprint
+wideprint
+--------------
+  wideprint[ -break][ -preview][ -l <n>][ -1, 2, 3, ... 9]{F2}
+   
+  The current buffer is checked and,  if  there  are  no  unresolved  tabs  or
+  overlong lines, it is written out to a temporary file, this  temporary  file
+  is printed using a2ps.
+  
+  - The -break qualifier allows overlong lines to be broken.
+  - the preview qualifier displays the buffer with broken lines,
+  - the -l <n> sets the maximum line width, this is used to set the font size.
+  - the -1, -2, -3 ... -9 qualifiers set multicolumn mode. 
+
+}}}
+{{{ renumber
+renumber
+-------------
+  renumber{F2}
+   
+  The line numbers in the current buffer are reset  so  that  the  first  line
+  becomes line no. 1 again.
+
+}}}
+{{{ timex
+timex
+----------
+  timex{F2}
+   
+  Sets  up  macro  1  to  generate  an  activity  summary  report  from   your
+  timex/titracks files.
+
+}}}
+{{{ transpose
+transpose
+--------------
+  transpose{F2}
+   
+  The text in the current buffer is rotated through 90deg.
+
+}}}
+{{{ transposetab
+transposetab
+-----------------
+  transposetab{F2}
+   
+  The current buffer should contain a tab-separated table, this is transposed.
+
+}}}
+{{{ cal
+cal
+--------
+  cal[ <year>][ -split]{F2}
+   
+  This runs the unix cal command, by default, it takes the current year.
+  
+  The result is similar to that of the  unix  cal  command  except  that  week
+  numbers are prefixed before each week.
+  
+  The -split qualifier splits the output listing each day on a separate line.
+
+}}}
+{{{ match_words
+match_words
+----------------
+  match_words  <bufferKey>[<anotherBufferKey>][<...]][    -split][   -nosort][
+  -notab][ -map]{F2}
+  
+  This The object of this script  is  to  match  lists  of  words  in  various
+  buffers. Typically, the words will  be  the  names  of  objects  defined  in
+  different places (e.g. file names in various directories or backup discs  or
+  module names from a linker map).
+  
+  - -split - splits text at whitespace. 
+   
+  - -nosort - by default match_words begins by sorting the  lists  to  improve
+    the speed of the re-synchronization process.  For  unsorted  lists  it  is
+    necessary to search the entire buffer for a match - this becomes  an  n**2
+    process and can get tedious for long lists. The -nosort qualifier is  used
+    to leave the list ordering unchanged. N.B. match_words only sorts  a  copy
+    of the buffer - the original list is always left unchanged.
+    
+  - -notab - while processing match_words  inserts  tabs  to  indicate  column
+    boundaries. Normally these are resolved to create  a  nice  neat  table  -
+    -notab suppresses this last step.
+    
+  - -map - the map qualifier simplifies the final table to put  all  words  in
+    the left column and subsequent columns  contain  either  whitespace  or  a
+    buffer-key character  to  indicate  that  the  word  was  matched  in  the
+    specified buffer.
+
+}}}
+{{{ xword
+xword
+----------
+	> xword{F2}
+  This is a little fun script primarily intended to  demonstrate  features  of
+  jot. It's a crossword puzzle assistant, it looks up words and phrases  of  a
+  predetermined length matching various criteria.
+  
+  The words and phrases are read from the on-line Roget's (see `thes`),  these
+  are munged into a database that's designed for speedy searching. It takes  a
+  few moments to do this, when complete it prompts you before writing out  the
+  file to your JOT_RESOURCES area, thereafter it only needs to read that file.
+  
+  The query syntax is
+    <n> <c1>=<l1>[<l2>[<l3>...]]] [<c2>=<l1>[<l2>[<l3>...]]]... 
+  where
+    - n is the number of characters in the word or phrase you're looking for.
+    - c1 denotes the character number of the  first  character  in  the  first
+      query element.
+    - l1 is the first letter of a substring beginning at c1.
+    - l2, l3 are the letters immediately after l1.
+    - Any number of query elements are allowed in any order.
+    - Any single character may be replaced by the wildcard character '?'. 
+  
+  Queries are entered using macro 4, defined by xword and attached to  {KP_4}.
+  Suppose we're looking for a 6 letter word with the 3rd. letter t and the 5th
+  letter e - then any of these queries would identify the same set of matching
+  words:
+	> 6 3=t 5=e{KP_4}
+	> 6 5=e 3=t{KP_4}
+	> 6 3=t?e{KP_4}
+	> 6 1=??t?e{KP_4}
+	> 6 1=??t?e 5=e{KP_4}
+
+}}}
+}}}
+{{{ JOT techniques
+JOT techniques
+-----------------
+  This section attempts to reveal some insights into JOT usage.
+
+{{{ Do that again
+Do that again
+-----------------
+  Simply typing a number at the console will repeat the last command that many
+  times. This is how the <<Again>> function works. Typically you will want  to
+  do  this  when  you've  typed  in  a  short  command  string  and  want   to
+  interactively control how many times it gets repeated.
+  
+  e.g. The following command removes any indentation from the current line and
+  replaces it with two blanks: 
+	> (v/ /e)0i/ /m
+  To repeat the treatment  on  subsequent  lines  just  keep  on  pumping  the
+  <<Again>> key.
+
+}}}
+{{{ Case blocks
+Case blocks
+---------------
+  A block can have any number of failure handlers, thus each case becomes  the
+  failure handler for the previous one e.g. (v/fred/..., v/jim/..., ...)
+
+}}}
+{{{ Match to any number of equal-priority conditions.
+Match to any number of equal-priority conditions.
+-----------------------------------------------------
+  A block without a failure handler will pass it's status  up  to  the  parent
+  block, so if there are a list of conditions, any of  which  may  be  met  we
+  could write something like this:
+    ( ... (v/fred/\v/jim/\v/bill/\)  abc, def )
+  If the cursor is at the start of any of those names, then the command string
+  abc is executed, otherwise it's command def.
+
+}}}
+{{{ Tabulated text
+Tabulated text
+------------------
+  Several scripts are available for handling tabulated text.  These  apply  to
+  the entire buffer. To limit the scope of these scripts, abstract the section
+  containing the tabular data into a temporary buffer and apply the scripts in
+  there.
+  
+  The scripts are all based on the  tab  character  indicating  the  alignment
+  points.
+    - `retab` <string> - inserts tabs based on text content.
+      
+    - `retabhere` - inserts tabs based on position.
+      
+    - `autotab` - replaces the first instance of a tab with blanks  so  as  to
+      align the following text.
+      
+    - `autotabdp` - similar to autotab but aligns  decimal  points  in  column
+      following the first tab.
+      
+    - `autotabjust` - similar to autotab but aligns the following tabs  -  the
+      effect is to right-justify the column.
+      
+    - `transposetab` - this transposes a  table  with  tab-separated  columns,
+      columns become rows & vice versa.
+
+}}}
+}}}
+{{{ Running the editor
+Running the editor
+--------------------
+  Before you can run the editor a certain amount of system-dependent setup may
+  be necessary.
+
+{{{ Command-Line arguments
+Command-Line arguments
+--------------------------
+  The following command-line arguments are  allowed,  the  keywords  are  case
+  insensitive, the upper-case alphas indicate the minimum requirement:
+
+{{{ -New
+-New
+----------
+  -new - either the file does not exist or, if it does it will be ignored. The
+  editor starts with an empty buffer and the file will be created by a `%o` or
+  `%c` command.
+
+}}}
+{{{ -To
+-To
+----------
+  -to=<pathName> - sets the destination file name for `%o` and `%c`.
+
+}}}
+{{{ -STartup
+-STartup
+--------------
+  -startup=<pathName> - a pathName to a special startup sequence  (this  could
+  be /dev/null). If specified, this takes precedence over the  other  possible
+  startup-file locations - see `startup`. If -startup  is  specified  with  no
+  value argument then no startup is run.
+
+}}}
+{{{ -Init
+-Init
+-----------
+  -Init=<jotCommandString> - the commands  are  processed  after  running  the
+  normal startup sequence - this can be used to initialize the editor in  some
+  special way or for stream editing - see `stream-edit mode`.  This  qualifier
+  is also useful when jot is being driven by a shell script.
+
+}}}
+{{{ -Filter
+-Filter
+-------------
+  -filter=<jotCommandString> - The commends are used  to  filter  the  primary
+  file - see `filter commands`
+
+}}}
+{{{ -TAbleseparator
+-TAbleseparator
+---------------------
+  -tableseparator=<chr> - Defines the character to be used as a cell separator
+  for tabular text - defaults to VT (vertical Tab).
+
+}}}
+{{{ -Tty
+-Tty
+----------
+  -tty  -  teletype  mode,  for  use  in  environments   where    the   normal
+  screen-control operations won't work or, when jot is driven by a script.
+  
+  With -tty any window setup in the startup file has no effect, on  completion
+  of each command line, the current line is displayed,  the  position  of  the
+  current character is indicated by a carat ( ^ ) in the  following  line  and
+  the current substring by a string of tildes ( ~ ).
+
+}}}
+{{{ -Journal
+-Journal
+--------------
+  -journal specifies a directory to hold the journal files. The journal  files
+  are used to recover your work following a crash. See `About  Journal  Files`
+  for details.
+
+}}}
+{{{ -Quiet
+-Quiet
+------------
+  -quiet - suppresses all prompts and messages except  for  `P`  commands.  In
+  -tty mode it also suppresses any indication of substrings  and  the  current
+  character.
+
+}}}
+{{{ -SCreensize
+-SCreensize
+------------------
+  -screensize=<width>x<height> - sets  the  screen  size  -  only  useful  for
+  non-curses environments (e.g. android) where the editor can't determine  the
+  screen size for itself. The width and height are denominated in characters.
+
+}}}
+{{{ -HOld
+-HOld
+------------
+  -hold - On exit, this holds the curses screen until any  keyboard  character
+  is detected.
+
+}}}
+{{{ -History
+-History
+---------------
+  -History=<n> Sets the  size  of  the  internal  command-history  buffer,  by
+  default it's set to to 20 lines.
+  
+  This buffer holds the last few typed-in commands. You  cannot,  at  present,
+  edit history directly but you can only view  the  contents  of  the  history
+  buffer with the %q<buf>=history command - see `query history`.
+    
+  N.B. The size of this history buffer has no effect on the operation  of  the
+  journal history - see `about journal files`.
+
+}}}
+{{{ -Help
+-Help
+------------
+  -help - displays a brief description of these qualifiers.
+
+}}}
+{{{ -Back
+-Back
+------------
+  -Back - refers to the line numbering  scheme.  As  lines  are  inserted  and
+  deleted this changes the line numbers of other lines. The default scheme  is
+  like most text editors, preserving the first line  as  line  number  1.  The
+  alternative scheme, invoked by this qualifier, preserves the line number  of
+  the last line of the original file.
+  
+  This may not sound like an especially useful feature - inserting  new  lines
+  causes the first line number to go negative. It can be useful  when  running
+  through say, warnings in a compiler report, when each message  refers  to  a
+  specific  line  number.  While  working  through  the  list  with  a  normal
+  line-numbering scheme, it be necessary to remember how many lines have  been
+  added or deleted and then perform some arithmetic to find the next line in a
+  message using line numbers in the original report.
+
+}}}
+}}}
+{{{ Env setup
+Env setup
+-------------
+  These envs are referenced  by  either  the  main  editor  programme  or  the
+  scripts:
+    - JOT_HOME - points to the installation tree root
+    - JOT_JOURNAL - if set then all sessions create a journal.
+    - JOT_RESOURCES  -  used  by  some  scripts  (e.g.  `dic`.jot)  to  locate
+      resources such as dictionaries, the startup script uses  it  to  find  a
+      help-file tree. If this file exists ${JOT_RESOURCES}/help/help.hlp, then
+      this is taken to be the root help entry.
+     
+  The following setup is mandatory, this is normally performed by your  .cshrc
+  or whatever shell-initialisation script:
+	$ setenv JOT_HOME <jotInstallationDir>/
+	$ set path=(<jotInstallationDir>/bin $path)
+
+}}}
+{{{ X-windows setup
+X-windows setup
+-------------------
+  The mapping of keyboard function keys is dependent on  various  elements  of
+  operating system and it's setup. This is done in several stages, ultimately,
+  JOT picks up text characters, control codes and VT100-like escape sequences.
+  
+  Jot is implemented using functions from the curses library - these provide a
+  consistent mapping of most function keys to control codes which jot can  map
+  to your selected actions at setup time.
+  
+  In addition to function keys and other keys supported by  curses,  jot  will
+  recognize vt220-like generated in response to  numeric-keypad  actions.  The
+  mapping of these is not consistent  and  different  installations  may  give
+  different results.  Use  xev  and  xmodmap  manage  define  these  mappings.
+  sequences. See also `Keyboard functions defined at startup.`
+
+{{{ Read stdin
+Read stdin
+----------------
+  This is a useful alternative to more or less -  some  unix  utility  squirts
+  text that's piped into jot and, when an EOF is received,  the  text  becomes
+  visible as a text buffer.
+  
+  Examples: 
+	$ ls -laRF | jot man xterm | jot
+     
+  Subprocess examples:
+	> %e~= \ls -laRF
+	> %eq=\ls /usr/include
+
+}}}
+{{{ Filter commands
+Filter commands
+---------------------
+  In this mode, useful for filtering very large files or infinite  streams,  a
+  command sequence is applied to the buffer immediately  after  each  line  of
+  text is read. The advantage of this is that it can help avoid running out of
+  memory when handling very large files e.g. files bigger than the swap space.
+  
+  Filter-command sequences can be applied to the primary file  or  stream  via
+  the `-filter` qualifier, they can also be applied to the `%I` and  the  `%E`
+  commands.
+
+}}}
+{{{ stdout mode
+stdout mode
+-----------------
+  In this mode the records selected by the `P` command is sent off down stdout
+  where it can be piped off to some other process. This mode of  operation  is
+  used    in    the    99    bottles    of    beer     demonstration.     (see
+  `http://99-bottles-of-beer.net`)
+  
+  99 bottles of beer is a simple drinking song: 
+
+	99 bottles of beer on the wall, 99 bottles of beer.
+	Take one down and pass it around, 98 bottles of beer on the wall.
+	   ...   
+	2 bottles of beer on the wall, 2 bottles of beer.
+	Take one down and pass it around, 1 bottle of beer on the wall.
+	  
+	1 bottle of beer on the wall, 1 bottle of beer.
+	Take one down and pass it around, no more bottles of beer on the wall.
+	  
+	No more bottles of beer on the wall, no more bottles of beer.
+	Go to the store and buy some more, 99 bottles of beer on the wall.
+
+  The object of the exercise is to write some code in your favourite  language
+  to generate the lyrics correctly - this is one way of doing it in jot:
+  
+	$ echo '' | jot -tty -quiet -init='i/$ bottles of beer on the wall, $ bottles of beer./'\
+	?  'bi/Take one down and pass it around, $ bottles of beer on the wall./b2' \
+	?  'm-0nm2aaha100' \
+	?  'm-0ol99(f/$/o#oo/%d/)2 (ol1o-(f/$/o#oo/%d/)3)98 ' \
+	?  '(t-0/1 bottles/e-)3 (f/$/s/no/)3l0c' \
+	?  'mki/Go to the store and buy some more, 99 bottles of beer on the wall./m-0p0' \
+	?  '%a' | less
+
+}}}
+{{{ Stream-edit mode
+Stream-edit mode
+----------------------
+  Stream editing is a mode which is intended  to  allow  jot  commands  to  be
+  applied to records from files or streams  individually  as  each  record  is
+  read. To edit in this mode the editor input must be piped in from some  unix
+  command and the stdout is normally  piped  off  somewhere  and  the  -filter
+  qualifier must be given.
+  
+  This is useful for preprocessing outrageously large files, it  can  also  be
+  useful for awk-like filtering streams.
+  
+  In stream-edit mode the `-filter` qualifier is  mandatory,  it  specifies  a
+  command string which defines a sequence of commands to be  applied  to  each
+  record after it is read.
+  
+  The only strings sent to the stdout  stream  are  those  identified  by  `P`
+  commands in the -filter command string. Records are still accumulated  in  a
+  buffer - to prevent this the command string must  include  `K`  commands  as
+  appropriate.
+  
+  The stream-edit mode is entered automatically when the editor  detects  that
+  stdout is being piped somewhere - see `command-line arguments`.
+
+}}}
+}}}
+}}}
+{{{ Keyboard functions defined at startup.
+Keyboard functions defined at startup.
+----------------------------------------
+  The function-key layout of a  typical  Sun  keyboard  is  shown  below.  The
+  mapping  of  these  keys  to  editor  functions   is    determined   various
+  OS-determined mappings (see the man pages for xterm,  xmodmap,  termcap  ...
+  etc.) and, finally, by the editor startup file. See also `X-windows setup`
+  
+  The  OS-mappings  determine  the  escape  sequences  delivered  to  keyboard
+  applications, the editor startup file determines the mapping of these escape
+  sequences to editor functions. This  latter  mapping  is  described  in  the
+  following sections.
+  
+  Users with  laptops  or  keyboards  lacking  a  numeric  keypad  should  use
+  {Alt+0-9} instead of {KP_0-9} and {Esc e} instead of {KP_Enter}.
+ 
+  These  sections  look  at  the  functions  of  hotkeys   defined    in   the
+  ${JOT_HOME}/coms/startup.jot script (see `startup` and  `curses_keys`).  The
+  Shift, Ctrl and Alt keys modify some hot keys, in linuxland, the  {Mod}  key
+  is a modifier prefix  key  for  the  numeric-keyboard  -  see  `the  numeric
+  keypad`.
+  
+  These keys use dedicated buffers buffers as follows:
+    - The $ buffer is used as temporary text string, and for passing arguments
+      to command files and macros.
+      
+    - The _ buffer is used as a cut/paste buffer.
+    
+    - The % buffer is used as a dead-text (i.e. deleted text) buffer. 
+    
+  For functions dealing with paragraphs, JOT defines a paragraph as a block of
+  lines bounded by completely blank lines - i.e. a line which  does  not  even
+  contain whitespace.
+  
+  For functions dealing with code sections, a code section is deemed to  be  a
+  block of indented text, headed by an unindented line. The code  section  may
+  contain any number of blank lines.
+  
+  For functions dealing with words, JOT defines a word as a string  containing
+  upper and lower-case alpha characters, digits and underscores.
+  
+  In all cases where the hot-key function takes an argument this is entered in
+  the console area immediately before pressing the hot  key.  In  this  guide,
+  hitting the hot-key is written as <<hotKeyFunction>> e.g. for the  Find  key
+  and it's text-string argument:
+	> <string><<Find>>
+  This should be interpreted as:
+    - first type your search string into the console area
+    - then hit the Find key.
+    
+  These functions are mapped to  the  keyboard  by  the  `startup`  file,  the
+  functions are defined in a separate file `curses_keys`.
+    
+  In all cases the description refers  to  hot-key  function  and  the  normal
+  key-cap name. 
+  
+  Each box represents a key, with the key-cap symbol in the top  right  corner
+  followed by up to three symbolic editor functions.
+    - 1 the function of the unmodified key,
+    - 2 the function modified by the Shift key.
+    - 3 the function modified by the Ctrl key.
+    - 4 the function modified by the Alt key.
+  
+{{{ Function keys under DOS.
+Function keys under DOS.
+----------------------------
+  The mappings shown are for linux. In linuxland  the  kernel  intercepts  all
+  {Alt+<1-12>} keys and these are not available for application  use.  Whereas
+  in DOSland, the {Shift+Ctrl+FF<1-12>} do not return unique codes. Hence,  in
+  DOSland you must edit the startup.jot file to  run  curses_keys_dos  -  this
+  maps the functions shown for {Shift+Ctrl+F<n>} to {Alt+F<n>}.
+
+}}}
+{{{ - Misc functions.
+- Misc functions.
+---------------------
+	            ---------------------------------------------------------------------------  
+	           | F1               | F2               | F3               | F4               |
+	           |                  |                  |                  |                  |
+	           |   Help           |   Do             |   ParagraphUp    |   ParagraphDown  |
+	Shift      |                  |                  |   CodeSectionUp  |   CodeSectionDown|
+	Ctrl       |                  |                  |   IndentMatchUp  |   IndentMatchDown|
+	Shift+Ctrl |                  |                  |                  |                  |
+	            ---------------------------------------------------------------------------
+  
+  - [<helpKey>]<<Help>> {F1} - searches the help database for an entry with  a
+    name matching the helpKey - if no helpKey specified but the cursor is on a
+    help fold the fold is opened if not on a help fold then the  current  help
+    fold is closed.
+    
+  - [<pathName>]{F2} <<Do>> - Runs an jot command  file,  if  no  pathname  is
+    specified then the normal startup file is re-run.
+    
+  - <<ParagraphUp>> {F3} - searches for  the  previous  paragraph  start
+    i.e. a block of text with a totally blank line above it - lines containing
+    only whitespace are passed by.
+    
+  - <<CodeSectionUp>> {Shift+F3} - Searches back up the text for the start  of
+    the next code section. Code sections begin with a non-whitespace character
+    in column 1.
+     
+  - <<IndentMatchUp>> {Ctrl+F3} - Searches back up the text for  the  previous
+    line at the same indent level as the current line.
+   
+  - <<ParagraphDown>> {F4} - Searches down the text  for  the  next  paragraph
+    start - i.e. a block of text preceeded by a completely blank line -  lines
+    containing only whitespace are passed by.
+     
+  - <<CodeSectionDown>> {Shift+F4} - Searches down the text for the next  code
+    section - code sections begin with a non-whiespace character in column 1.
+     
+  - <<IndentMatchDown> {Ctrl+F4} - Searches down the text for the next line at
+    the same indentation level as the current line.
+  
+
+}}}
+{{{ F5-F8 - Find and substitute.
+F5-F8 - Find and substitute.
+--------------------------------
+  Arguably the most basic of all editor functions are  finding  and  replacing
+  text F5 to F8 are dedicated to these operations with a few special  flavours
+  obtained using the Shift, Ctrl and Alt keys.
+ 
+	            ---------------------------------------------------------------------------  
+	           | F5               | F6               | F7               | F8               |
+	           |                  |                  |                  |                  |
+	           |   Substitute     |   Insert         |   FindPrev       |   FindNext       |
+	Shift      |   Remove         |   InsertBack     |   SubsThenFindPv |   SubsThenFindNx |
+	Ctrl       |   OverwriteBack  |   Overwrite      |                  |                  |
+	Shift+Ctrl |   SubstituteBack |   SubstituteInd  |   FindPrevInd    |   FindNextInd    |
+	            ---------------------------------------------------------------------------
+  
+    - [<string>]<<Substitute>> {F5}
+        Replaces currently-selected substring with the specified string, if no
+        string is specified then the last-substituted or  inserted  string  is
+        used.
+        
+    - <<Remove>> {Shift+F5}
+        The previously-selected string (following a find, substitute etc.), is
+        removed altogether.
+        
+    - [<string>]<<OverwriteBack>> {Ctrl+F5}
+        The characters to the left of the current cursor are replaced  by  the
+        specified string. If no string is specified, then the last string used
+        in an insert or substitute operation is used. If  the  string  is  too
+        long, then the overflow characters are inserted at the  start  of  the
+        line.
+        
+    - [<string>]<<SubstituteBack>> {Shift+Ctrl+F5}
+        Replaces currently-selected substring with the specified string, if no
+        string is specified then the last-substituted or  inserted  string  is
+        used.
+        
+    - [<string>]<<Insert>> {F6}
+        Inserts specified text at the current-character position, if no string
+        is specified then the last-substituted or inserted string is used.
+        
+    - [<string>]<<InsertBack>> {Shift+F6}
+        Identical to Insert function except that the cursor  is  left  at  the
+        start of the inserted string.
+ 
+    - [<string>]<<Overwrite>> {Ctrl+F6}                                               
+        The characters under and to  the  right  of  the  current  cursor  are
+        replaced by the specified string. If no string is specified, then  the
+        last string used in an insert or substitute operation is used.
+        
+        N.B. there are also OverwriteUp and OverwriteDown functions see `other
+        key bindings`
+        
+    - <<SubstituteInd>> {Shift+Ctrl+F6}                                               
+        The currently-selected substring is replaced by the  current  line  in
+        the paste buffer ( '_' ).
+        
+    - [<string>]<<FindPrev>> {F7}
+        Find the previous occurrence of the specified string, if no string  is
+        specified then the string used in the last find is used.
+        
+    - <<SubsThenFindPv>> {Shift+F7}
+        Parameterless substitute  then  find  previous.  i.e  repeat  previous
+        substitution then find previous occurrence of last-found string.
+        
+    - <<FindPrevInd>> {Ctrl+F7}
+        Find the previous occurrence of the  string  defined  by  the  current
+        line of the _ buffer (paste buffer).
+        
+    - [<string>]<<FindNext>> {F8}
+        Find the next occurrence of the specified  string,  if  no  string  is
+        specified then the string used in the last find is used.
+        
+    - <<SubsThenFindNx>> {Shift+F8}
+        Parameterless  substitute  then  find  next.  i.e.   repeat   previous
+        substitution, then repeat last find.
+        
+    - <<FindNextInd>> {Ctrl+F8}
+        Find indirect - the string in the current line of the _ buffer  (paste
+        buffer).
+
+}}}
+{{{ F9-F12 Delete/Restore Word/Line 
+F9-F12 Delete/Restore Word/Line 
+----------------------------------- 
+  Deletion and restoration of text is another pretty basic requirement  of  an
+  editor. The JOT delete keys work by performing a cumulative abstraction into
+  the dead-text buffer (the % buffer), this allows  dead-text  restoration  by
+  reversing the process.
+ 
+  In the context of word deletion,  a  word  is  a  sequence  of  alphanumeric         
+  characters and underscores of any length, bounded by any other characters or         
+  line breaks. 
+  
+	            -------------------------------------------------------------------------------   
+	           | F9                | F10               | F11               | F12               |
+	           | --                | ---               | ---               | ---               |
+	           |                   |                   |                   |                   |
+	           |   RestoreChrLeft  |   RestoreChrRight |   DeleteChrLeft   |   DeleteChrRight  |
+	Shift      |   RestoreWordLeft |   ResoreWordRight |   ResoreWordLeft  |   RestoreWordRight|
+	Ctrl       |   RestoreLineLeft |   ResoreLineRight |   ResoreLineLeft  |   RestoreLineRight|
+	Shift+Ctrl |                   |                   |                   |                   |
+	            -------------------------------------------------------------------------------   
+ 
+  - [<n>]<<RestoreChrLeft>> {F9}
+      Restores n characters (defaults to 1) from the start  of  the  dead-text
+      buffer to the left of the cursor.
+  
+  - <<RestoreWordLeft>> {Shift+F9}     
+      Restores the first  word  in  the  dead-text  buffer  to  the  current
+      character position.
+  
+  - <<RestoreLineLeft>> {Alt F9} 
+      Restore text from beginning of first line of the dead-text buffer.
+  
+  - [<n>]<<RestoreChrRight>> {F10}
+      Restores n characters (defaults to 1) from  the  end  of  the  dead-text
+      buffer to the right of the cursor.
+  
+  - <<RestoreWordRight>> {Shift+F10}     
+      Restores last word in the dead-text buffer to  the  current  character
+      position.
+  
+  - <<RestoreLineRight>> {Alt F10}     
+      Restores last line in the dead-text buffer  to  the  current-character
+      position.
+        
+  - [<n>]<<DeleteChrLeft>> {F11}
+      Removes n characters  (defaults  to  1)  to  the  left  of  the  cursor,
+      appending them to the start of the dead-text buffer.
+    
+  - <<DeleteWordLeft>> {Shift+F11}     
+      Deletes text from the current character to the start  of  the  current
+      word, if the cursor is not above a valid word then  deletes  from  the
+      current character back to the start of the previous word, which  could
+      be on the previous line.
+  
+  - <<DeleteLineLeft>> {Alt F11} 
+      From cursor to start of current line, if the cursor is already at  the         
+      start of a line then delete back to the start of the previous line.            
+  
+  - [<n>]<<DeleteChrRight>> {F12}
+      Removes n characters (defaults  to  1)  to  the  right  of  the  cursor,
+      appending them to the end of the dead-text buffer.
+    
+  - <<DeleteWordRight>> {Shift+F12}     
+      Deletes text from the current character position to  the  end  of  the
+      current word, if the cursor is not over a  valid  word,  then  deletes
+      from the current character to the end of the next word, which could be
+      on the next line.
+  
+  - <<DeleteLineRight>> {Alt F12}     
+      Deletes text from the current character position to  the  end  of  the
+      current line, if the cursor is already at  the  end  of  a  line  then
+      deletes to the end of the next line.
+  
+  - [<string>]<<Help>> {Help} or {F1}     
+      Enters help menu. If text is entered  then  the  :  buffer  (help)  is
+      searched for the string, the help menu then shows entries matching the
+      string.
+  
+  - [<string>]<<FindHelp>> {Shift+Help} or {Shift+F1}     
+      Searches the currently-opened help documents in  the  help  repository
+      (the : buffer) for matches with string,  help  menu  is  set  up  with
+      matching entries. (see also `findhelp` script).
+      
+  - <<RemoveHelpFold>> {Ctrl+Help} or {Ctrl+F1} 
+      The contents of the current fold is removed, if it's a file fold  then
+      the file-fold marker is restored.
+  
+  - [<pathName>]<<Do>> {F2}    
+      Run a command file.
+
+}}}
+{{{ The Mid Keypad
+The Mid Keypad
+------------------
+  The mapping of functions to the  mid  keypad  approximates  to  the  key-cap
+  functions - Delete and Insert become Cut and Paste respectively, End is  the
+  Note key,  Home  is  an  exact  find  function  and  Page  Up/Down  work  as
+  advertised.
+  
+  As with the {F<1-12>} keys, in DOSland, the Ctrl+Alt  combination  does  not
+  yield a unique keycode. This has been wriggled around as follows:
+    - for <<CmdEditInsert>> use {Alt+Home}
+    - for <<CmdEditDelete>> use {Alt+End}
+    - for <<CmdEditUp>>     use {Alt+UpArrow}
+    - for <<CmdEditDown>>   use {Alt+DownArrow}
+    - for <<CmdEditLeft>>   use {Alt+LeftArrow}
+    - for <<CmdEditRight>>  use {Alt+RightArrow}
+    - for <<CmdEditAgain>>  use {Alt+KP_Divide}
+    
+	          --------------------------------------------------------  
+	         | Insert           | Home             | PageUp           |
+	         | ------           | ----             | ------           |
+	         |                  |                  |                  |
+	         |  Paste           |  FindExactNext   |  PageUp          |
+	Shift    |                  |  FindExactPrev   |                  |
+	Ctrl     |                  |  SetFindString   |  ParagraphUp     |
+	Alt      |  PasteRectangle  |                  |  GotoFoldStart   |
+	Ctrl+Alt |  CmdEditInsert   |                  |                  |
+	          --------------------------------------------------------   
+	         | Del              | End              | PageDown         |
+	         | ---              | ---              | --------         |
+	         |                  |                  |                  |
+	         |  Cut             |  Note            |  PageDown        |
+	Shift    |  Copy            |                  |                  |
+	Ctrl     |  CumulitiveCopy  |                  |  ParagraphDown   |
+	Alt      |  CutRectangle    |                  |  GotoFoldEnd     |
+	Ctrl+Alt |  CmdEditDelete   |                  |                  |
+	          --------------------------------------------------------   
+	          
+	                             ------------------   
+	                            | UpArrow          |  
+	                            | -------          |  
+	                            |                  |  
+	                            |  Up              |  
+	Shift                       |  StraightUp      |
+	Ctrl                        |  ViewUp          |  
+	Ctrl+Alt                    |  CmdEditUp       |  
+	          --------------------------------------------------------   
+	         | LeftArrow        | DownArrow        | RightArrow       |
+	         | ---------        | ---------        | ----------       |
+	         |                  |                  |                  |
+	         |  Left            |  Down            |  Right           |
+	Shift    |  WordLeft        |  StraightDown    |  WordRight       |
+	Ctrl     |  LineLeft        |  ViewDown        |  LineRight       |
+	Ctrl+Alt |  CmdEditLeft     |  CmdEditDown     |  CmdEditRight    |
+	          --------------------------------------------------------   
+  
+  - <<Paste>> {Insert}
+      The contents of the paste buffer  is  inserted  into  the  text  at  the
+      current character position.
+   
+  - <<PasteRectangle>> {Shift+Insert}
+      The paste buffer is assumed to contain some graphical  text  (i.e.  some
+      lines of text  where  both  the  horizontal  and  vertical  sequence  of
+      characters is significant). The  picture  is  inserted  at  the  current
+      character position and in the same column of succeeding lines,  text  to
+      the right of the inserted block  retains  it's  original  position.  The
+      <<CutRectangle>> function can be used to extract the block of text.
+     
+  - [<string>]<<FindExactNext>> {Home}
+      The buffer is searched until the next exact-match occurrence of the word
+      is found - in  this  context  an  exact  match  is  where  the  matching
+      substring is bounded by non-alphanumeric characters.
+    
+  - [<string>]<<FindExactPrev>> {Shift+Home}
+      Similar to above, except that it searches backwards.
+  
+  - <<SetFindString>> {Ctrl+Home}
+      The word below the cursor is picked up and defines the find  string  for
+      the next find (or find exact) operation.
+   
+  - <<Cut>> {Delete}
+      Text from the last-defined  note  point  up  to  the  current  character
+      position is abstracted into the paste buffer.
+  
+  - <<Copy>> {Shift+Delete}
+      Text from the last-defined  note  point  up  to  the  current  character
+      position is copied to the paste buffer, and immediately  restored.  This
+      operation is permitted for Readonly buffers - see  `%b=readonly`.
+    
+  - <<CumulitiveCopy>> {Ctrl+Delete}
+      Text from the last-defined  note  point  up  to  the  current  character
+      position is appended to the end of the paste buffer. This  operation  is
+      permitted for Readonly buffers (see `%b=readonly`). If no note point was
+      set, then the complete line is copied to the paste buffer.
+      
+  - <<Note>> {End}
+      The current character  position  is  noted  for  a  later  cut  or  copy
+      operation.
+  
+  - [<n>]<<PageUp>> {PageUp}
+      The view changed to show the page above the previously-displayed page of
+      text, the current-line is changed according to the current  window  size
+      and the character pointer is set to the first character of the new line.
+      
+  - <<Home>> {Shift+PageUp}
+      The current line is set to the first  line  in  the  file,  the  current
+      character is the first character of the line.
+      
+  - <<GotoFoldStart>> {Ctrl+PageUp}
+      Find matching fold-start. In a file with fold marks, when at a fold end,
+      this will search back for the corresponding fold start.
+  
+  - [<n>]<<PageDown>> {PageDown}
+      The view is changed to the page  below  the  current page.
+    
+  - <<End>> {Shift+PageDown}
+      The view is change to the last page in the file, the current line is the
+      last line of  the  buffer,  the  current  character  becomes  the  first
+      character of this line.
+    
+  - <<GotoFoldEnd>> {Ctrl+PageDown}
+      Find matching fold end. In a file with {{{ and }}} fold marks, when at a
+      fold start, this will search for the corresponding fold end.
+  
+  - [<n>]<<Up>> {UpArrow}
+      Move up by n lines (defaults to 1) - the current line becomes the line n
+      lines above original current line, the current character  is  the  first
+      character.
+    
+  - <<StraightUp>> {Shift+UpArrow}
+      Moves to the same column in the line above the current line. If the  new
+      line is too short, additional padding characters (blanks) are  added  to
+      the end of the line, if the current line is the first then an additional
+      padding line is added at the start of the buffer.
+    
+  - [<n>]<<ViewUp>> {Ctrl+UpArrow}
+      Shifts the view up by n lines  (defaults  to  1)  without  changing  the
+      current line, character or selected substring.
+      
+  - [n]<<CmdEditUp>> {Alt+UpArrow}
+      Sets the command string to the n-1th. command, going back up the command
+      history.
+   
+  - [<n>]<<Down>> {DownArrow}
+      Move down by n (defaults to 1) lines  -  the  current  line  pointer  is
+      shifted down, the current character becomes the first character  of  the
+      new line.
+    
+  - <<StraightDown>> {Shift+DownArrow}
+      Moves to the same column in the line below the current line. If the  new
+      line is too short, additional padding characters (blanks) are  added  to
+      the end of the line, if the current line is the last then an  additional
+      padding line is added at the end of the buffer.
+    
+  - [<n>]<<ViewDown>> {Ctrl+DownArrow}
+      Shifts the view down by n lines (defaults to  1)  without  changing  the
+      current line, character or selected substring.
+    
+  - [<n>]<<Left>> {LeftArrow}
+      Move the cursor n (defaults to  1)  characters  left  of  it's  original
+      position.
+      
+  - [<n>]<<WordLeft>> {Shift+LeftArrow}
+      Moves to the start of the current word, if the cursor is  not  currently
+      above a word the goes to start of previous  word.  If  n  is  given  the
+      process is repeated that many times.
+  
+  - [<n>]<<LineLeft>> {Ctrl+LeftArrow}
+      Moves to the start of the current line, if the cursor is already at  the
+      start of a line then go to start of previous line. If  n  is  given  the
+      process is repeated that many times.
+  
+  - [<n>]<<Right>> {RightArrow}
+      Move the cursor n (defaults to 1)  characters  right  of  it's  original
+      position.
+       
+  - [<n>]<<WordRight>> {Shift+RightArrow}
+      Moves cursor to the end of the current word, if the cursor is not  above
+      a valid word then goes to end of next word. If n is given the process is
+      repeated that many times.
+  
+  - [<n>]<<LineRight>> {Ctrl+RightArrow}
+      Moves to the end of the current line, if the cursor is  already  at  the
+      end of a line then go to end of next line. If n is given the process  is
+      repeated that many times.
+      
+  - [<n>]<<CmdEditUp>> {Ctrl+Alt+UpArrow}
+      This moves up [one|<n>] entries in the command-history log.
+      
+  - [<n>]<<CmdEditDown>> {Ctrl+Alt+DownArrow}
+      This moves down [one|<n>] entries in the command-history log.
+      
+  - [<n>]<<CmdEditLeft>> {Ctrl+Alt+LeftArrow}
+      This moves left  [one|<n>]  characters  in  the  current  entry  of  the
+      command-history log.
+      
+  - [<n>]<<CmdEditRight>> {Ctrl+Alt+RightArrow}
+      This moves right [one|<n>]  characters  in  the  current  entry  of  the
+      command-history log.
+      
+  - <string><<CmdEditInsert>>
+    Inserts the string in the current position in the command-history log.
+    
+  - [<n>]<<CmdEditDelete>> Deletes [one|<n>] characters to  the  left  of  the
+    current position in the command-history log.
+    
+  - <<CommandEditAgain>>
+    Executes current command in the command-history log.
+
+}}}
+{{{ The numeric keypad
+The numeric keypad
+----------------------                    
+    For linux users, the Shifted function is obtained  by  first  hitting  the
+    {Mod} button once, the Ctrl functions  by  hitting  {Mod}  twice.  In  the
+    following map these are indicated by  the  X  prefix  and  the  XX  prefix
+    respectively. The unix xmodmap command can be used to set any key  as  the
+    mod key - in the sample xmodmap file this is assigned to {Mod} key on  the
+    numeric keypad.
+    
+    IN DOSland, most numeric-keypad buttons return unique codes for  the  Ctrl
+    and Alt combinations. Hence, for DOS, the Macro0-9X and XX  functions  are
+    mapped to {Ctrl+KP_...} and {Alt+KP_...}. Macro7, for example, is  {KP_7},
+    Macro7X is {Ctrl+KP_7} and Macro7XX is {Alt+KP_7}.
+    
+    Note  that  the  <<ParagraphUp>>,  <<CodeSectionUp>>,   <<IndentMatchUp>>,
+    <<JoinLineNext>> and <<JoinLinePrev>> functions are  actually  implemented
+    using Macro9, Macro9X, Macro9XX, Macro6 and Macro6X respectively.
+     
+	      ---------------------------------------------------------------------------
+	     | NumLock          | /      KP_Divide | *   KP_Multiply  | -   KP_Subtract  |
+	     | -------          |                  |                  |                  |
+	     |                  |                  |                  |                  |
+	     |                  |  LineRightUp     |  WordLeft        |  WordRight       |
+	X    |                  |                  |  LineLeft        |  LineRight       |
+	XX   |                  |                  |  ParenMatchLeft  |  ParenMatchRight |
+	      ---------------------------------------------------------------------------  
+	     | 7          KP_7  | 8          KP_8  | 9          KP_9  | +        KP_Add  |
+	     |                  |                  |                  |                  |
+	     |                  |                  |                  |                  |
+	     |  Macro7          |  Macro8       t  |  ParagraphUp     |  ParagraphDown   |
+	X    |  Macro7X         |  Macro8X         |  CodeSectionUp   |  CodeSectionDown |
+	XX   |  Macro7XX        |  Macro8XX        |  IndentMatchUp   |  IndentMatchDown |
+	      --------------------------------------------------------|                  | 
+	     | 4          KP_4  | 5          KP_5  | 6          KP_6  |                  |
+	     |                  |                  |                  |                  |
+	     |                  |                  |                  |                  |
+	     |  Macro4          |  Macro5          |  JoinLineNext    |                  |
+	X    |  Macro4X         |  Macro5X         |  JoinLinePrev    |                  |
+	XX   |  Macro4XX        |  Macro4XX        |  Macro6XX        |                  |
+	      ---------------------------------------------------------------------------  
+	     | 1          KP_1  | 2          KP_2  | 3          KP_3  | Enter  KP_Enter  |
+	     |                  |                  |                  |                  |
+	     | Macro1           |  Macro2          |  Macro3          |   Enter          |
+	X    | Macro1X          |  Macro2X         |  Macro3X         |                  |
+	XX   | Macro1XX         |  Macro2XX        |  Macro3XX        |                  |
+	      --------------------------------------------------------|                  | 
+	     | 0                             KP_0  | .    KP_Decimal  |                  |
+	     |                                     |                  |                  |
+	     |  Macro0                             |  Again           |                  |
+	X    |  Macro0X                            |  Break           |                  |
+	XX   |  Macro0XX                           |  Join            |                  |
+	      ---------------------------------------------------------------------------  
+  
+  - [<n>]<<LineRightUp>> {KP_Divide}
+      Goes to the end of the current line, if already at the  end  of  a  line
+      then goes to the end of the previous line. If n is given the process  is
+      repeated that many times.
+   
+  - [<n>]<<WordLeft>> {KP_MULTIPLY}
+      Moves to the start of the current word, if the cursor is  not  currently
+      above a word the goes to start of previous  word.  If  n  is  given  the
+      process is repeated that many times.
+  
+  - [<n>]<<LineLeft>> {Shift KP_MULTIPLY}
+      Moves to the start of the current line, if the cursor is already at  the
+      start of a line then go to start of previous line. If  n  is  given  the
+      process is repeated that many times.
+  
+  - <<ParenMatchLeft>> {Ctrl KP_MULTIPLY}
+      If the cursor is above a  parenthesis  close  character  ')',  then  the
+      cursor is moved to the corresponding parenthesis open.
+      
+      If the cursor is not above a  parenthesis  close,  then  the  buffer  is
+      searched back to find the previous  parenthesis  close  and  the  cursor
+      moved to the corresponding parenthesis open.
+   
+  - [<n>]<<WordRight>> {KP_Subtract}
+      Moves cursor to the end of the current word, if the cursor is not  above
+      a valid word then goes to end of next word. If n is given the process is
+      repeated that many times.
+  
+  - [<n>]<<LineRight>> {Shift KP_Subtract}
+      Moves to the end of the current line, if the cursor is  already  at  the
+      end of a line then go to end of next line. If n is given the process  is
+      repeated that many times.
+      
+  - <<ParanMatchRight>> {Ctrl KP_Subtract}    
+      If cursor is above a parenthesis open  '('  character,  then  cursor  is
+      moved to the corresponding parenthesis close ')'.
+      
+      If the current character is not above a parenthesis open character, then
+      it  searches  forwards  for  one  and  then  finds   the   corresponding
+      parenthesis close character.
+  
+  - <<ParagraphUp>> {KP_9}
+      Moves the cursor to the start of the current paragraph,  if  already  at
+      the start of a paragraph  then  moves  to  the  start  of  the  previous
+      paragraph.
+  
+  - <<CodeSectionUp>> {Shift KP_9}
+      Finds the start of the current code section - if already at the start of
+      a code section, then finds the start of the previous section.
+    
+  - <<IndentMatchUp>> {Ctrl KP_9}
+      Previous indentation match - searches back  through  the  text  for  the
+      previous line at the same indentation level.
+  
+  - <<ParagraphDown>> {+} 
+      Moves the cursor to the start of the next paragraph. 
+    
+  - <<CodeSectionDown>> {Shift +}
+      Moves to the start of the next code section.
+  
+  - <<IndentMatchDown>> {Ctrl +}
+      Searches forwards for a line  at  the  same  indentation  level  as  the
+      current line.
+   
+  - <<Macro4>>  {4}
+      Picks up any arguments into the $ buffer and invokes the macro in the  4
+      buffer. The startup script initially defines a default macro 4  as  page
+      up.
+  
+  - <<Macro5>> {5}
+      Picks up any arguments into the $ buffer and invokes the macro in the  5
+      buffer. The startup script defines a default macro 5 as page down.
+  
+  - <<JoinLineNext>> {6}
+      Joins text, from the current character to the end of the  current  line,
+      to the start of the next line. Mainly useful for adjusting line lengths.
+    
+  - <<JoinLinePrev>> {Shift 6}
+      Joins text, from current character to start of current line, to  end  of
+      previous line.
+  
+  - <<Macro1>> {KP_1}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro2>> {KP_2}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro3>> {KP_3}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro4>> {KP_4}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro5>> {KP_5}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro6>> {KP_6}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro7>> {KP_7}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro8>> {KP_8}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro9>> {KP_9}
+      Picks up any arguments into the $ buffer and invokes the macro.
+  
+  - <<Macro0>> {KP_0}
+      Picks up any arguments into the $ buffer  and  invokes  the  macro.  The
+      startup script defines macro 0 as being switch to type-into-screen mode.
+      Principal use of macro 0 is the get script.
+      
+  - <<TempInsertMode>> {Shift KP_0}
+      Temporarily enters  type-into-screen  mode,  mode  persists  until  next
+      hotkey operation.
+  
+  - <<Again>> {KP_Decimal}
+      Repeats last command or hotkey.
+  
+  - <<Break>> {Shift Decimal}
+      Breaks current line at current character position, the cursor is left at
+      the start of the second half-line.
+    
+  - <<Join>> {Ctrl KP_Decimal}
+      Joins the current line with the previous, the  cursor  is  left  at  the
+      join.
+   
+  - [<string>]<<Enter>> {KP_Enter}
+      The string is inserted as a new line with indent  level  inherited  from
+      previous line. If no string is given then creates a blank  line  at  the
+      same indent level as the line above.
+
+}}}
+{{{ Other key bindings
+Other key bindings
+----------------------
+  In addition to the various keypads, the  startup  script  also  defines  the
+  following escape sequences - in all cases the arguments are  entered  first,
+  then the escape key and finally the mapped keys.
+  
+  - [<string>]<<FindWild>> {Esc f}
+      This searches for the next occurrence of a string containing one or more
+      wildcards ( * ).
+   
+  - [<string>]<<FindWildPrev>> {Esc -f}
+      This searches for the previous occurrence of a string containing one  or
+      more wildcards ( * ).
+   
+  - [<string>]<<FindPhrase>> {Esc F}
+      The  editor  will  search  for  the  sequence  of  words  ignoring   any
+      non-alphanumeric delimiters including line breaks. One or more words can
+      be represented by the wildcard character (  *  ).  The  string  contains
+      words separated by any number of non-alphanumeric characters or a single
+      wildcard '*' character.  
+      
+      This is function is useful for locating sequences of  words  after  they
+      have been reformatted in some way, with wildcards it is also useful  for
+      locating expressions in programming code.
+   
+  - [<string>] <<FindPhrasePrev>> {Esc - F}
+      Similar to FindPhrase  except  that  it  searches  back
+      towards the start of the file.
+      
+  - <<CutRectangle>> {Esc cr}
+      This cuts out a rectangular block of text to the paste buffer. This  can
+      be reinserted using the <<pasteRectangle>> function.
+      
+      First note the top left corner of the rectangle with <<Note>>, then move
+      the cursor to the bottom right corner of the rectangle (n.b.  this  must
+      be on another line) then apply <<CutRectangle>>. The text is removed and
+      replaced with a blank rectangle, to restore the text  to  it's  original
+      position hit <<pasteRectangle>> before moving the cursor again.
+      
+      After moving the cursor your block of text can be inserted at any point,
+      the top left corner of the rectangle appears directly under the cursor.
+      
+  - [<string>]<<OverwriteUp>> {Esc u}
+      This inserts the string vertically, placing the last  character  at  the
+      current-character position and working towards the  first  character  at
+      the top of the column. If some lines are too  short  additional  padding
+      (blanks) are added at the end. If the  string  is  too  long  additional
+      padding characters lines are added to the start of the buffer.
+      
+  - [<string>]<<OverwriteDown>> {Esc d}
+      This inserts the string vertically, placing the first character  at  the
+      current-character position and working towards the last character at the
+      bottom of the column. If some lines are  too  short  additional  padding
+      characters (blanks) are added at the end. If the  string  is  too  long,
+      additional padding lines are added to the end of the buffer.
+
+}}}
+}}}

@@ -1,0 +1,40 @@
+%%Searches a subtree of the filing system.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g#
+%%Pick up arguments - the root path.
+%%z$m-0f/%%/-(v/ /r)0b 
+z$m-0(v/ /r)0b 
+%%Initialize the next-file pointer to the first file and clear out the + buffer.
+ol5 n.a+z+b
+
+( %%File loop - plods down the directory listing searching for more directories to read.
+  %%Read next directory then sort and remove ./ and ../ entries
+  %q$=dir '$; m-0b-2n.m3a++ %b=sort; m-0(r\k)0r-0(v"../"\m)0k(v"./"\m)0kz+h$
+  %%Go to next file pick it up and prepend the path.
+  ono-om((r\ m(v/dir /m,))0r0v-"/"\m)0 r-0n.r0a$&ono~z$r-0i"/"z+ (m-r)0mv/dir /r4n.r0a$-&
+  )0
+  
+z+m-0j2
+:
+'#

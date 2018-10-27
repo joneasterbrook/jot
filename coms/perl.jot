@@ -1,0 +1,111 @@
+%%Sets up buttons specific to editing perl scripts.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%g?
+  perl code-browser, the following functions have been assigned to
+  numeric-keypad buttons.
+  
+    1 - Go back to start of current block '{' or '['. 
+    2 - Go forwards end of current block '}' or ']', if at one, then search forwards in same line.
+  
+  Optional arguments: 
+    - -up <n> - exit at the n-th level parent block instead  of  the  matching
+      brace.
+    - -down <n> - stops  at  the  end  point  one  level  down  in  the  block
+      hierarchy.
+  
+  Buffer usage:
+    - 1 - backwards brace match.
+    - 2 - forwards brace match
+    - $ - temporary (used to find end of strings).
+  
+Oddities:
+  When the forwards and backwards block-matching macro start and the cursor is
+  not directly over or adjacent to the correct brace type, the macro  searches
+  the end of the current line, and then adjacent lines, for a starting  point.
+  When a starting point is found the macro stops to let you see  the  starting
+  point it's selected - if this is not correct then you can change it.
+  
+Perl-style requirements.
+  It's really *very* difficult to accurately  handle  comments  while  tracing
+  backwards through perl - this is because the  hashmark  '#'  can  appear  in
+  strings, $# is also used to get the length of arrays.  So,  to  make  things
+  easier for the scanner, only the following cases are recognized:
+    - hashmarks at the start of a line (may be indented with whitespace).
+    - hashmarks at the end of a line of  code  *only*  when  prefixed  with  a
+      whitespace,
+    - any string that needs to contain a hashmark after whitespace should have
+      the hashmark escaped with a backslash.
+      
+Got a curly-brace mismatch? - Then try this:
+  %d3=(v/sub /\m)0 (v/sub /wf1/{/'2m2)0
+  m-0'3
+  Then keep hitting '3 until you find the dodgy subroutine. 
+  
+:
+
+%%Find block-start for current level.
+%g1
+%%initialization - if not on a close-brace character, find next end-of-line close brace.
+ ( (q/}]/, (r-q/ 	/)0 ) q/}]/ol0, r0( ( (q-/ 	;/r-)0 q-/}]/\m- (f1/#/, r0) )0 q-/}]/r-?\)0
+  %x=Found a starting point
+  )
+%%if -up <n> or -down <n> arg is given, then adjust the starting count.
+obosz$m-0(f/-up /-(v/ /r)0 oido-, m-0f/-down /-(v/ /r)0 oido+, ) osoz
+( %%Main loop
+  %%If a '}/]' - decriment depth, if '{/[' depth is indexed and tested.
+  (q/}]/ ol1o-, q/{[/\, o~) 
+  %%index to previous chr, end of previous line or chr before comment in previous line 
+  %%N.B. When indexing to previous line, we must parse strings properly from left to right to avoid stopping at hashmarks in strings.
+  ( ( (r-, m-(q/	 /r)0 (v/#/\ (q.'"/. (v-/s/r-(q-/ 	/r-)0v-/~/ol-2(q/ 	/r)0v/s/r, ol-1) (v./., v/"/, v/'/)(f1//(q-/\/, o~)r )0ok)r, v/#/\r)0 ) q.{}[]"'/.\)0 
+    %%If a string then skip the string assume no valid braces between different strings on the same line.
+    (q.'"/. (v./., v/"/, v/'/)(ocr-0f1//q-/s/r-(q-/ 	/r-)0v-/~/r-2ok, r-0orr-(f-1//q-/\/r-)0 (v//, r) )) )0
+  %%Brace-search loop exists either at the previous valid brace or at the start of the bufffer.
+  (q/{}[]/, %x=Found start of buffer.
+    )
+  )0
+ok
+:
+
+%%Find block-end for current level.
+%g2
+%%initialization - if next nonblank is not on a open-brace character, find next end-of-line open brace.
+( (q/ 	/r)0q/{[/ol0, (q/}]/(r(q/ 	/r)0q/]}/), ((f1/#/, r0)(q-/ 	;/r-)0q-/{[/\m, r-?\)0)
+  %x=Found a startingpoint
+  )
+%%if -up <n> or -down <n> arg is given, then adjust the starting count.
+obosz$m-0(f/-up /-(v/ /r)0 oido-, m-0f/-down /-(v/ /r)0 oido+, ) osoz
+( %%Main loop
+  %%If a '{/[' - decriment depth, if '}/]' depth is indexed and tested.
+  (q/{[/ ol1o-, q/}]/\, o~) 
+  %%Find next brace or string delimiter.
+  ( ( (r, m(q/	 /r)0 ) (v/#/r0, ) q.{}[]"'/.\)0 
+    %%If a string then skip the string assume no valid braces between different strings on the same line.
+    (q.'"/. (v-/s/r-(q-/ 	/r-)0v-/~/ol-2(q/ 	/r)0v/s/r, ol-1) (v./., v/"/, v/'/)(f1//(q-/\/, o~)r )0ok) )0
+  %%Brace-search loop exists either at the next valid brace or at the end of the bufffer.
+  (q/{}[]/, %x=Found end of buffer.
+    )
+  )0
+ok
+:
+

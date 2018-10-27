@@ -1,0 +1,144 @@
+
+
+Some simple block diagrams
+--------------------------
+
+                 ------ 
+                | The  |
+   ------------>| first|
+  |          i1 | box  |           --------                            
+  |             |      |          | Another|                           
+  |             |      |          | box    |                           
+  |   --------->|      |o-------->|        |                           
+  |  |       i2 |      |       i1 |        |                           
+  |  |          |      |          |        |o----------------------->----
+  |  |          |      |          |        |                             |
+  |  |          |      |      --->|        |                             |
+  |  |      --->|      |     | i2 |        |                            /\
+  |  |     |    |      |     |    |        |                          /    \
+  |  |     |     ------      |     --------                         /        \
+  |  |     |                 |                                    /            \
+  |  |     |                 |                                  /                \
+  |  |     |                 |                                /                    \
+  |  |     |                 |                              /                        \   No  
+  |  |      -----------------*-------------------------<----\                        /--->---
+  |  |                                                 Yes    \                    /         |
+  |  |                                                          \                /           |
+  |  |                                                            \            /             |
+  |  |                                                              \        /               |
+  |  |                                                                \    /                 |
+  |  |                                                                  \/                   |
+  |  |                                                                   |                   |
+  |  |                                                                   v Maybe             |
+  |   -------------------------------------------------------------------                    |
+  |                                                                                          |
+  |                                                                                          |
+   ------------------------------------------------------------------------------------------
+                                                                                        
+                                                                                      
+                                                                                    
+                                                                                  
+          ---------------------------------------------------------------------------
+         | NumLock          | /      KP_Divide | *   KP_Multiply  |     KP_Subtract  |
+         | -------          |                  |                  |                  |
+         |                  |                  |                  |                  |
+         |  Mod             |                  |                  |                  |
+Shift    |                  |                  |                  |                  |
+Ctrl     |                  |                  |                  |                  |
+Ctrl+Alt |                  |                  |                  |                  |
+          ---------------------------------------------------------------------------  
+         | 7          KP_7  | 8          KP_8  | 9          KP_9  | +        KP_Add  |
+         |                  |                  |                  |                  |
+         |                  |                  |                  |                  |
+         |  Macro7          |  Macro8       t  |  Macro9          |                  |
+Shift    |  Macro7X         |  Macro8X         |  Macro9X         |                  |
+Ctrl     |  Macro7XX        |  Macro8XX        |  Macro9XX        |                  |
+Ctrl+Alt |  LineNW          |  LineN           |  LineNE          |                  |
+          --------------------------------------------------------|                  | 
+         | 4          KP_4  | 5          KP_5  | 6          KP_6  |                  |
+         |                  |                  |                  |                  |
+         |                  |                  |                  |                  |
+         |  Macro4          |  Macro5          |  Macro6          |                  |
+Shift    |  Macro4X         |  Macro5X         |  Macro6X         |                  |
+Ctrl     |  Macro4XX        |  Macro4XX        |  Macro6XX        |                  |
+Ctrl+Alt |  LineE           |  BoxText         |  LineW           |                  |
+          ---------------------------------------------------------------------------  
+         | 1          KP_1  | 2          KP_2  | 3          KP_3  | Enter  KP_Enter  |
+         |                  |                  |                  |                  |
+         | Macro1           |  Macro2          |  Macro3          |   Enter          |
+Shift    | Macro1X          |  Macro2X         |  Macro3X         |                  |
+Ctrl     | Macro1XX         |  Macro2XX        |  Macro3XX        |                  |
+Ctrl+Alt | LineSW           |  LineS           |  LineSE          |                  |
+          --------------------------------------------------------|                  | 
+         | 0                             KP_0  | .    KP_Decimal  |                  |
+         |                                     |                  |                  |
+         |  Macro0                             |  Again           |                  |
+Shift    |  Macro0X                            |                  |                  |
+Ctrl     |  Macro0XX                           |                  |                  |
+Ctrl+Alt |                                     |                  |                  |
+          ---------------------------------------------------------------------------  
+
+
+
+
+Some examples for matching functions
+------------------------------------
+First round brackets:
+   ( level 1 start ( level 2 start
+     ( level 3 start
+       ( Level 4 start
+         ( level 5 start
+           This is the mid point.
+           This is more of the mid text.
+         Level 5 end )
+       Level 4 end )
+       ( Level 4a start
+         ( Level 5a start
+           ( Level 6 start
+           The deepest part.
+           Level 6 end )
+         Level 5a end )
+       Level 4a end )
+     Level 3 end )
+   level 2 end )
+ Level 1 end )
+
+Next curly brackets:
+   { level 1 start { level 2 start
+     { level 3 start
+       { Level 4 start
+         { level 5 start
+           This is the mid point.
+           This is more of the mid text.
+         Level 5 end }
+       Level 4 end }
+       { Level 4a start
+         { Level 5a start
+           { Level 6 start
+           The deepest part.
+           Level 6 end }
+         Level 5a end }
+       Level 4a end }
+     Level 3 end }
+   level 2 end }
+ Level 1 end }
+
+Then angle brackets:
+   < level 1 start < level 2 start
+     < level 3 start
+       < Level 4 start
+         < level 5 start
+           This is the mid point.
+           This is more of the mid text.
+         Level 5 end >
+       Level 4 end >
+       < Level 4a start
+         < Level 5a start
+           < Level 6 start
+           The deepest part.
+           Level 6 end >
+         Level 5a end >
+       Level 4a end >
+     Level 3 end >
+   level 2 end >
+ Level 1 end >

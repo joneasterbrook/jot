@@ -1,0 +1,437 @@
+%%Document-processing functions.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+           Command Summary:
+           ----------------
+          {Esc p a}   tops, tails and reformats current PAragraph
+          {Esc P a}   tops, tails and reformats tails All Paragraphs
+          {Esc b u}   makes current paragraph a BUllet
+             
+          {Esc c u}   Centres and Underlines text on current line.
+          {Esc u l}   UnderLines text on current line without affecting it.
+          {Esc r j}   Right-Justifies current line (lines left-justified by default).
+           
+[proforma]{Esc h e}  converts current line into a HEading, proforma indicates level, 
+                               heading inherits section numbers from previous heading.
+          {Esc h +}   converts current line into a heading at a next-higher heading level.
+          {Esc h -}   converts current line into a heading at a next-lower heading level.
+          {Esc h a}   rationalizes all headings - heading levels preserved, section-numbers updated.
+             
+          {Esc s p}   checks Spelling of current Paragraph.
+          {Esc s d}   checks Spelling of complete Document.
+     Word {Esc s w}   checks Spelling of a single word offerd as a parameter.
+          {Esc s i}   goes to next Instance of misSpelled word.
+          {Esc s n}   goes to Next word in Spelling-errors list.
+          {Esc s f}   Fix misspelling - substitutes word with one from current line of ; buffer.
+          {Esc s s}   Spelling Suggestion - searches buffer for possible matches to current word.
+
+   [<RE>] {Esc l x}   grep for regular expression in LeXicon - the lexicon must be: ${JOT_RESOURCES}/lexicon.lis
+
+
+Conventions/Assumptions/Restrictions:
+  Section  headings  only contain digits and decimal points to delimit section
+  levels and terminated by at least one blank.
+   
+  The  bullet  string (initially set to '- ') must not contain leading blanks,
+  these will confuse anything that searches for bullets, pargraphs etc.
+
+Paragraph types:
+  -  An  ordinary  paragraph,  one  or  more  lines, separated by one of the
+     following at the begining and end.
+      - Any other paragraph type (Bullet, heading, underlining or leave-alone).
+      - The begining or end of the document.
+      - A blank line.
+       
+  -  One  or more leave-alone lines, these are lines beginning with anything
+     other than a blank (leave-alone lines may begin with a tab) e.g:
+       - Headings (these typically begin with digits).
+       - Undeline strings - begin with hyphans ( - ).
+
+  Buffer assignments:
+   & - doc.jot constants:
+      Line 1: Left margin column no. and indentation rate (initialized to 2).
+      Line 2: Right margin column no. (initialized to 78).
+      Line 3: Bullet string (initialized to '- ').
+      Line 4: Max header level for underlined headings.
+   * - Temporary macro (setup-time only) formats current paragraph.
+   < - Temporary macro (setup-time only) finds start of current paragraph.
+   > - Temporary macro (setup-time only) finds end of current paragraph.
+   @ - Spelling errors reported by {Esc S} command.
+   $ - Temp storage.
+   _ - Temp storage.
+   # - Temp storage - at setup time only.
+   ! - Temp storage - at setup time only.
+   ? - Help.
+:
+
+%%define default properties.
+%g&
+2
+78
+- 
+4
+:
+
+%%Define document actions and add them to ^ buffer.
+%g@
+^[pa          %h'=call ReformatParagraph;
+^[Pa          %h'=call FormatAll;
+^[bu          %h'=call MakeParagraphIntoBullet;
+^[cu          %h'=call CentreAndUnderlineText;
+^[ul          %h'=call UnderlineThisLine;
+^[rj          %h'=call RightJustifyLine;
+^[he          %d$=##"Heading proforma> " -hereEndsThePercentCommand; %h'=call ConvertLineToHeading;
+^[h+          %h'=call DownHeadingLevel;
+^[h-          %h'=call UpHeadingLevel;
+^[ha          %h'=call PurgeAllHeadings;
+^[sr          %h'=call SpellingReset;
+^[sp          %h'=call SpellcheckParagraph;
+^[sw          %d$=##" Word > " -hereEndsThePercentCommand; %h'=call SpellcheckList;
+^[sd          %h'=call SpellcheckDocument;
+^[si          %h'=call NextInstanceOfMisspelling;
+^[sn          %h'=call NextMisspelling;
+^[sf          %h'=call FixSpelling;
+^[lx          %d$=##"Lexicon-search string> " -hereEndsThePercentCommand; %h'=call GrepLexicon;
+:
+obz^m-0h@boz
+%%  ^[ss          %h'=call SpellingSuggestion;
+
+%%Define document functions in @, these are later appended to the code repository
+%g@
+<<ReformatParagraph>>
+%%Reformat current paragraph.
+%%
+%%Get current indentation level (line 3 of & buffer is the bullet string).
+%s=system 1;
+r-0obz&m+3oz ((v/ /(v/ /r)0r)\m)0 mm-ol0(v/ /o~r)0 (v'&r-f1'&-okoc, )
+%%Find start of the paragraph - if it's a bullet-point paragraph allow for bullet string.
+(v-'&\m- (v/ / ol0(v/ /o~r)0 o=rm-)0 (v'&r-f1'&-oco=, m) , ) r-0o#orb2
+%%Find end of the paragraph.
+(mv/ / ol0(v/ /o~r)0 o=r)0 m-r0b-
+%%Get right endstop and subtract left margin.
+o#obosz&m+2oidoso-osoz
+%%Join up paragraph into one long line and remove double spacing.
+(m-r)0m(mrj-)0m-r-0 (f1/  /e)0 r0(v-/ /e-, )
+%%
+( %%Reform paragraph - record loop.
+  r-0r r-0o#or (rr-f-1/ /, )b- 
+  %%Calculate how many padding blanks are required to align right margin of each line.
+  o#ocoso- ocoeoso-o+
+  %%At this point the top items in the stack are:
+  %%  -(Number of additional blanks to be inserted).
+  %%  Right margin.
+  %%  Indent level.
+  %%  Original buffer key.
+  %%
+  %%Insert padding blanks.
+  ol0(o=\mrm-r0f-1/ / (i-/ /o~ (v-/ /r-)0 r-(f-1/ /\r0)0 )0, ) ok
+  %%Prepare for next record, exit if length of next record is less-than or equal right margin.
+  mrr-v/ /er0oc o<)0 ok
+%%Reindent.
+(m-r)0jj- ol0oso- (mrr-o# (i/ /o~)0 ok)0 ok
+%%Remove end line break delimiter.
+j-m
+%s=system 0;
+
+<<FormatAll>>
+%%Format all paragraphs.
+m-0
+( %%Paragraph loop.
+  %h'=call ReformatParagraph;
+  ((r\, r-(v/ /r)0r\, r-0v/ /\)m)0 %h'=call FindParagraphStart;  mm-w
+  )0
+
+<<FindParagraphStart>>
+%%Go to start of current paragraph, paragraphs being delimited by blank lines, change in indentation level, underlines or bullets.
+%%  Cursor is left at 1st. character of paragraph,
+%%    for ordinary paragraphs this is the first nonblank,
+%%    for bullets it is the character immediately after the bullet,
+%%    for headings and leave-alone lines it is the begining of the line and
+%%    for blank lines it is the last character.
+%%
+%%
+%%Check that it's a valid paragraph.
+r-0(v/ /, %X=Error in < macro - this is not a valid paragraph.;
+  )
+%%Get current indentation level.
+(v/ /r)0obz&m+3oz(v'&rr-f1//-,)oc
+(
+  %%Exit if bullet at current level.
+  (v-'&\, m-?\)
+  %%Exit if indentation level has gone up.
+  v/ /\
+  %%Exit if indentation level has gone down.
+  (v-/ /r-)0 r-\
+  %%Try first text column for current level of indentation of line above.
+  %%Exit if nonblank in column 1 - thats a don't touch line.
+  r-0(r\, r-(v/ /, m-?\))
+  %%Exit now if any bullet.
+  (v/ /r)0v'&\
+  %%Exit if line is blank.
+  rr-
+  m-
+  %%Index to current indentation level.
+  o#or
+)0
+m(v/ /r)0
+ok
+
+<<FindNextParagraphStart>>
+%%Go to start of line following paragraph, paragraphs are  delimited by blank lines, change in indentation level or bullets.
+%%
+%%Check that it's a valid paragraph.
+r-0(v/ /, %X=Error in > macro - this is not a valid paragraph.;
+  )
+%%Get the current indentation level.
+obz&m+3oz ((v/ /r)0r\m)0r- (v'&rr-f1//-,)oc
+(
+  %%Exit if a change in indentation level.
+  (v/ /r)0oco=
+  %%Exit if it's a next-level bullet.
+  v'&\
+  %%Exit if don't touch line.
+  r-0(r\, r-v/ /)
+  %%Exit if it's a blank line.
+  (v/ /r)0r
+  m
+)0r-0ok
+
+<<SpellcheckParagraph>>
+%%Checks spellings in current paragraph.
+%%Clear out any old popup data.
+ob z-m-0k0 oz
+%%Grab current paragraph
+ob((r\, r-(v/ /r)0r\, r-0v/ /\)m)0 %h'=call FindParagraphStart;  r-0n. %h'=call FindNextParagraphStart;  a$& m-%h'=call FindParagraphStart; 
+%%Output the paragraph.
+z$ %o=/tmp/spell.tmp;
+%%Acquire pathName for local spelling dictonary.
+o#oz%q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
+%%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
+z_n.a$z$ i"%e@=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+%%Sort and purge.
+%b=sort; (r\k, r-v/& /\k, m)0 m0r0b m-0(n.r2(f1/ /-q/0-9/\)0a$& m(v'$k)0)0
+%%Remove any words which appear in the spelling list.
+o#oz (%i$=spell.dic; (i/ /r0i//m)0m-0 z@m-0(rn.rf1/ /-a;& (z$m-0f';z@k, z@m))0, )
+%%Report number of spelling mistakes.
+z@m-0ol0(ro~m, k)0m-0 
+(ol0o= 
+  ok%m=Congratulations, there were no spelling mistakes.; oz
+, %%Some spellings to fix.
+  %m=Oh dear, there were '~ spelling mistakes.;
+  %%Add signpost to buffer ( @ ).
+  o#m-0b-oo/Spell-check report, original buffer: %c/b oz
+  %%Go to first misspelling.
+  (m-(v/ /r)0 r)0 %h'=call NextMisspelling; )
+
+<<SpellcheckWord>>
+%%Checks spellings of list of words.
+%%Output the paragraph.
+obz$ %o=/tmp/spell.tmp;
+%%Clear out any old popup data.
+ob z-m-0k0 oz
+%%Acquire pathName for local spelling dictonary.
+o#oz%q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
+%%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
+z_n.a$z$ i"%e@=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+%%Set up popup menu.
+k(f1/: /-n.r0a-& z-(f1/, /e2b)0 %h'=call PopupRestore; , %x=The spelling was correct.; ) oz
+
+<<SpellcheckDocument>>
+%%Checks spellings in complete document (sends errors to '@' buffer).
+%%Clear out any old popup data.
+ob z-m-0k0 oz
+%%Output the document.
+ob%o=/tmp/spell.tmp;
+%%Acquire pathName for local spelling dictonary.
+o#oz%q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
+%%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
+z_n.a$z$ i"%e@=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+%%Sort and purge.
+%b=sort; (r\k, r-v/& /\k, m)0 m0r0b m-0(n.r2(f1/ /-q/0-9/\)0a$& m(v'$k)0)0
+%%Remove any words which appear in the spelling list.
+o#oz (%i$=spell.dic; (i/ /r0i//m)0m-0 z@m-0(rn.rf1/ /-a;& (z$m-0f';z@k, z@m))0, )
+%%Report number of spelling mistakes.
+z@m-0ol0(ro~m, k)0m-0 
+(ol0o= 
+  ok%m=Congratulations, there were no spelling mistakes.; oz
+, %%Some spellings to fix.
+  %m=Oh dear, there were '~ spelling mistakes.;
+  %%Add signpost to buffer ( @ ).
+  o#m-0b-oo/Spell-check report, original buffer: %c/b oz
+  %%Go to first misspelling.
+  m-0 %h'=call NextMisspelling; )
+
+<<NextMisspelling>>
+%%Goes to next word in spelling-errors list, if at end of line move to next misspelling.
+%%
+%%First go back to start of document.
+z@onm-0f1/original buffer: /-oic osono-omozm-0
+obz@(m, oz%x=All done;)
+%%Place current misspelling in $ and suggested corrections in -
+( %%What type of report have we been given.
+  %%Maybe a new-style report with no suggestions.
+  v/# /r2n.f1/ /a$&
+, %%Maybe the old-style report, just pick up the misspelling.
+  v/& /\ n.r0a$& n.a-
+, %%It's a new-style Aspell report, hopefully with suggested corrections.
+  r2n.f1/ /a$& f1/: /-n.r0a-& z-m-0 (f1/, / e2b)0
+  %h'=call PopupRestore;
+  %%Announce.
+  z-m0m-onm-0 (ol1o=ok, %m=ASpell suggests '~ corrections - see buffer -;) )
+%%Go
+ozm-0 %h'=call NextInstanceOfMisspelling;
+
+<<SpellingReset>>
+%%Clears the popup buffer and resets mousemask.
+obz-m-0k0oz %s=mousemask 0; %l;
+
+<<NextInstanceOfMisspelling>>
+%%Goes to next instance of misspelt word, if none then move to next mis-spelling in @ buffer.
+%%
+obz@r-0(v/& /\n.r0a$&, r2n.f1/ /a$&) r0oz(v'$r, )
+( (f'$(q-/a-zA-Z/r?,rr-f1'$-q/a-zA-Z/))0f-1'$ 
+, %%Exact-match failed, index to next reported mis-spelling in @ buffer.
+  %h'=call NextMisspelling; )
+
+<<FixSpelling>>
+%%Substitutes current misspelled instance with word in current line of ; buffer.
+z;onm-0f1/original buffer: /-oicosono-om ozs';
+
+<<GrepLexicon>>
+%%Greps for string in lexicon.
+%%
+%%Construct the egrep command then do it.
+obz$r-0 i"%e$=\egrep -i '"r0i"' ${JOT_RESOURCES}/lexicon.lis" '$
+%%Display results.
+(ji-/ /)0 p oz
+
+<<MakeParagraphIntoBullet>>
+%%Makes current paragraph a bullet.
+obz&m+3oz onoc
+%%Condense paragraph to one line.
+%h'=call FindParagraphStart; on %h'=call FindNextParagraphStart; ono-b-(j-o~)0ok %h'=call FindParagraphStart; 
+%%Go back to start of previous paragraph and get it-s indentation level.
+on(m-(v/ /r)0r\)0 r-0(v/ / %h'=call FindParagraphStart; r-0ol0(v/ /ro~)0, ol2) 
+%%Return to our paragraph and copy in the indent level (defaults to level 2).
+osono-om(v/ /e)0 ol0oso-(i/ /o~)0 ok
+%%Add a bullet if required.
+(v'&, i'&) %h'=call ReformatParagraph; 
+m-r0(oco=(okono=m, ), ok)ok m
+
+<<CentreAndUnderlineText>>
+%%Centres and underlines text on current line.
+%%
+%%Strip out leading ant trailing whitespace.
+r-0(v/ /e)0r0(v-/ /e-)0
+%%Get length of line.
+ocobz&m+1r-0oidosozo#obz&m+2r-0oidosozoso-oco-ol-2o/oso-r-0
+%%Underline it.
+(o~i/ /)0okn.r-0a$h$r0bh$ol0oso-(i/-/o~)0okm(v/ /r)0(v/--/k,)
+     
+<<UnderlineThisLine>>
+%%Underlines text on current line without affecting it
+na$h$2m-(v/ /r, (v/  /\ ei/-/)0r)0m
+
+<<PurgeAllHeadings>>
+%%Purges all headings.
+on
+%%Find the first heading.
+m-0((q/0-9/\m)0q/0-9/((q/0-9/e)0i/1/v/./r)0(v/ /e)0i/ /)0
+%%Change it to all-the-zeros.
+n.a$obz$i/0/oz
+m-0
+( %%Heading loop.
+  %%Find next heading.
+  (q/0-9/\m)0q/0-9/obz$r-0
+  %%Strip out digits
+  ((q/0-9/r)0o#oz(q/0-9/e)0(v/./e,z$e0) z$v/./r)0oz
+  h$(v/ /(q-/0-9/r-)0n.oido~a%oo/%d/,i/./)
+  r-0f1/ /n.r-0a$h$
+m2m-)0
+ono-om
+
+<<InheritHeaderLevel>>
+%%Fetches last header level to current line.
+on
+%%Find last header.
+(m-q/0-9/\)0
+%%Pick it up.
+(q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+
+<<UnderlineHeader>>
+%%Underlines heading if level 4 or below.
+r-0ol0
+%%Count up heading levels.
+((q/0-9/r)0v/./ro~)0
+%%Kill off any pre-existing underlines.
+m(v/-/k,)m-r0
+%%If levels < Limit add new underlines.
+obz&m+4oidosozo-ol0o< (v-/ /e-)0ol0oco-b(i/-/o~)0okm,
+
+<<ConvertLineToHeading>>
+%%Converts current line into a heading.
+%%
+%%If a proforma header tag is given then use that.
+r-0(n.(q/0-9./r)0a$, )
+%%Locate and pick up previous heading.
+on (m-q/0-9/\)0 (q/0-9/n.f1/ /a$&, i-/0/n.ra$)
+%%Go back.
+ono-om
+%%If heading level is already defined accept that, otherwise inherit from predecessor.
+r-0(v/ /e)0 ol1
+( q/0-9./
+  %%Some heading-level structure exists - first count the levels.
+  ((q/0-9/r)0v/./ro~)0
+, %%No predefined header levels - inherit from predecessor.
+  obz$osr-0 ((q/0-9/r)0v/./ro~)0 osoz )
+%%Insert inherited heading level.
+r-0h$n.(q/0-9./r)0a$i/ /(v/ /e)0
+%%Adjust no. of levels - may be necessary to add or remove subsection numbers.
+ol-1oso- r-0 (o~ ( (q/0-9./(q/0-9/r)0(v/./r,), i/.0/), i/./) )0 (q/0-9./e)0
+%%Finally increment last level.
+(v-/./e-,) (q-/0-9/r-)0 oido~oo/%d/
+%%Add underlining code from ! buffer.
+%h'=call UnderlineHeader; 
+
+<<DownHeadingLevel>>
+%%Adds a new heading level.
+%h'=call InheritHeaderLevel;
+%%Now remove the last element of the heading level.
+i/.1 /(q/0-9. /e)0
+%h'=call UnderlineHeader;
+
+<<UpHeadingLevel>>
+%%Unwinds one heading level.
+%h'=call InheritHeaderLevel;
+%%Now increment the final element of the heading level.
+(((q-/ 0-9/r-)0v-/./r-)2r,)n.oida%o~oo/%d/i/ /(q/0-9. /e)0
+%h'=call UnderlineHeader; oz
+
+<<RightJustifyLine>>
+%%Right-justifies current line.
+r-0(q/	 /e)0r0(q-/	 /e-)0ocobz&m+2r-0oidosozo-r-0(i/ /o~)0okr0i/	/m
+
+:
+%h'=call AddNewFunctions;
+

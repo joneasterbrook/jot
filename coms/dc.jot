@@ -1,0 +1,153 @@
+%%Sets up buttons specific to editing dc_shell command files.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%g?
+  dc_shell code-browser, the following functions have been assigned to
+  numeric-keypad buttons.
+  
+  1 - Find next block-start in current parent block.
+  2 - Find previous block-start in current parent block.
+  3 - Find next compound-statement block-start keyword irrespective of depth.
+  4 - Find start of current block.
+  5 - Find end of current block.
+  
+Notes 
+  1/Block-start keywords recognized: if, foreach and while
+  2/Blocks deemed to start at the character following the '{' to before the '}'.
+  3/Button 3 compound-statement block-start keywords are if, foreach and while
+:
+
+%g1
+%% 1 - Find next block-start in current parent - or end of current parent.
+ocon
+%%Initialize depth count.
+(v/{/ol0, ol-1)
+( %%Character loop.
+  (r-, (m-, %X Found start of file.
+      )
+    f1/#/, r0)
+  %%Skip strings and c-style comments.
+  v/"/(r-f-1/"/v-/\/)0r-, v/'/f-1/'/r-, v-"*/"f-"/*"r-,
+  %%Count "{ ... }" nests. 
+  v/}/ ol1o-, v/{/\, 
+    (ol0o=\, okono-omor %X Found start of parent block.
+      )
+    o~)0
+okokok
+:
+
+%g2
+%% 2 - Find previous block-start in current parent or parent.
+ocon
+%%Initialize depth count.
+(v/{/ol0, ol-1)
+( %%Character loop.
+  (r, m, %X Found end of file.
+    ) 
+  %%Skip comments and white space.
+  ((q/ 	/r)0 v/#/m)0
+  %%Skip strings and c-style comments.
+  v/"/r(f1/"/v-/\/r)0r, v/'/(f1/'/-, r0), v"/*"f"*/"-,
+  %%Count "{ ... }" nests. 
+  v/}/ ol1o-
+    (ol-2o=\, okono-omor %X Found end of parent block.
+    ),
+    v/{/\, o~)0
+okokok
+:
+
+%g3
+%% 3 - Find next compound-statement block-start keyword.
+%%If already at a block start then move on.
+( ( v/if/r2, v/foreach/r7, v/while/r5), (rr-q/a-zA-Z0-9_/\, m))
+( %%Search loop.
+  (v/ /r)0
+  %%Test for block-start statement.
+  ( ( v/if/r2, v/foreach/r7, v/while/r5, v/else/r4)\, rr-q/a-zA-Z0-9_/)
+  %%Not a block-start - move to next word.
+  (q/a-zA-Z_/r)0 ((r, (m, r0?\)) q/a-zA-Z/\)0 q//)0
+f/{/r, %X Found end of file.
+:
+
+%g4
+%% 4 - Find start of current block.
+%%Initialize depth count.
+ol-1
+( %%Character loop.
+  (r-, (
+    (m-, %X Found start of file.
+      )
+    f1/#/, r0))
+  %%Skip strings and c-style comments.
+  v/"/(r-f-1/"/v-/\/)0r-, v/'/(f-1/'/r-, m-r0), v-"*"v"/"f-"/*"r-,
+  %%Count "{ ... }" nests. 
+  v/}/ ol1o-, v/{/\, o~)0
+rok
+:
+
+%g5
+%% 5 - Find end of current block.
+%%Initialize depth count.
+ol-1
+( %%Character loop.
+  (r, m, %X Found end of file.
+    ) 
+  %%Skip comments and white space.
+  ((q/ 	/r)0 v/#/m)0
+  %%Skip strings and c-style comments.
+  v/"/r(f1/"/v-/\/r)0r, v/'/(f1/'/-, r0), v"/*"f"*/"-,
+  %%Count "{ ... }" nests. 
+  v/{/ ol1o-, v/}/\, o~)0
+(r-, m-r0)ok
+:
+
+%%Test file (for a real example look at
+%%  /net/fiscal/export/cm10_2/xl5/fas/compile1 ):
+%%   {
+%%      {
+%%         {
+%%            {
+%%            }
+%%            {
+%%            }
+%%         }
+%%      }
+%%      {
+%%         {
+%%         }
+%%      }
+%%      {
+%%         {
+%%            {
+%%            }
+%%            {
+%%            }
+%%         }
+%%      }
+%%      {
+%%         {
+%%         }
+%%      }
+%%   }
+

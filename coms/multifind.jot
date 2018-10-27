@@ -1,0 +1,103 @@
+%%Finds a line containing all the search strings in arg2, delimited by arg1.
+%%Substrings must appear in the same order as in argument list.
+%%Key strings must be wrapped up by valid delimiter characters.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+%g?
+multifind locates line containing sequences of substrings.
+The search substrings are specified as arguments to multifind delimited in by 
+the usual characters (one of /.:;"'= ), see note on the -Whitespace qualifier.
+Qualifiers:
+    -Any_order  - Accepts substrings in any order.
+    -Exact      - match with case sensitivity switched on.
+    -Whitespace - following arguments separated by whitespace.
+:
+%%
+%%
+%%Macro ! resets to start of line if -Any_order qualifier present.
+%d@=
+
+%%Macro '# tests for validity of delimiter characters and reads qualifiers.
+%%The stack looks like this while scanning the argument list.
+%%  1 = 0 or 1 if -Whitespace.
+%%  2 = 0 or 1 if -Exact.
+%%  3 = Buffer to be searched.
+%g#
+%%Initial tidy up the argument list.
+%%obz$m-0f/%%/-e-0(m-k-0,) 
+obz$m-0
+%%Set tag for case insensitivity.
+ol0
+%%Set tag for normal argument delimiters
+ol0
+  ( %%Main argument/qualifier capture loop.
+    (v/ /e)0 v/-/r
+    ( %%Its a qualifier.
+      ( ( q/Aa/ %%It's the -Any_order qualifier.
+          %d@=l0
+        , q/Ee/ %%It's the -Exact qualifier.
+          %s=case 1
+          osol1o+os
+        , q/Ww/ %%It's the -Whitespace qualifier.
+          ol1o+
+        , %% Else - unknown qualifier.
+          p ok ol0(o=,
+            %s=case 0
+            ) okoz
+          %x Unknown qualifier
+          )
+        %%Remove the qualifier from the search list.
+        (q/ 	/\r)0 (q/ 	/r)0 e-0 (m-jrr-b,) ) )
+    , %% Its a substring argument.
+      (ol1(o=(q/ 	/\r)0, 
+          %%No -W qualifier - test for normal delimiter characters.
+          (q`/.:;"'=`n.ra!f1'!e, p ok ol0(o=, %s=case 0
+              )
+            okoz
+            %x Invalid delimiter string use one of the following: /.:\;"=
+            ) )
+        %%Remove trailing whitespace and break if more arguments.
+        (q/ 	/e)0 rr-b ) 
+    )0 r\,
+:
+
+%%Check and prepare argument strings, and rearrange the stack.
+'# jm-0 okoso#oz
+%%
+%%
+%%Macro # does the searching. 
+%%The stack looks like this while scanning the argument list.
+%%  1 = Buffer to be searched.
+%%  2 = 0 or 1 if -Exact.
+%g#
+('@ 
+  (f1'$
+    (z$mo#oz, oz ol0(o=,
+        %s=case 0
+        ) ok
+      %X Found your strings.
+      )
+    ,z$m-0o#ozm)
+  )0
+:
+'# okok

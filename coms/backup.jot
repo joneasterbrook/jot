@@ -1,0 +1,87 @@
+%%Creates a backup copy of the current buffer - if a backup directory exists at the same level as the file the backup copy is sent there.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%%%History:
+
+%g?
+Buffer usage:
+  $ - Comment taken either from the command line or last entry in README_backup file.
+  ! - temporary, ultimately contains the pathname for the backup file, also used to hold %e command strings.
+  @ - Temporary copy of current buffer.
+  # - Main macro.
+  
+Usage;
+  backup [-a | <comment>] 
+   
+Qualifiers:
+  - <commentry> - Added to the README_backup entry.
+  - -a (another) Use this after backing up the first of a series if file which should all be given the same datestamp and comment.
+:
+
+%g#
+%%Make a working copy of the buffer.
+oconobm-0n.m0r0a@&z@ ozono-omorob
+
+%%Check for existance of either a comment or -a qualifier.
+z$m-0((v/ /r)0 rr-, oz%x=backup.jot requires either a comment or the -a qualifier.; )
+ 
+%%Get the pathName. 
+o#oz
+%q~=buffer
+f/pathname = /-b(f1"\"s"/")0r-0
+ 
+%%If a backup directory exists then use that. 
+z~n.r0(f-1./.-, r-0)b-i"backup" z$ o# %q!=file '~;\ %x=No backup subdirectory;, (f/directory = 1/z~i"/", z~r-0f1"backup"e6)jr0
+
+%%if -a then pick up datestamp and comment from last entry in comment file. 
+z$(v/-a/
+  %% -a - Use last-entered datestamp and comment.
+  n.a!z!i/%e~=tail -1 / i'~r-r(f-1./.-, r-0)e0 i"README_backup" '!
+  f/	/n.f-1/_/2a! e-0 rn.r0a$
+  %%Add last datestamp to this filename.
+  z$okz~r0h!
+, %%Use current datestamp and given comment.
+  %%Add datestamp to name.
+  %q!=date
+  m (f1./.eb)2f1/, /e2b(f1/:/eb)2 m-3 z~i/_/ (z~i'!z!m-)3 z~i/_/z!m4 (z~i'!z!m)2 )
+ 
+%%Write it.
+z@o# %b=pathname '~; (%o; , %x=Write failed???; )
+   
+%%Make the backup version readonly if allowed by OS.
+( %q=windows;
+  %%There's no chmod in DOSland.
+  z$ ok
+, %%Make it readonly.
+  z$ z~r-0n.r0a!h!z!r-0i/ %e~=\chmod ugo-w /r0i/;/ z@('!,) z!r0e-f-1/ /-e-0 ok ok )
+  
+%%Add the comment to the README_backup file.
+z$m-0(v/ /e)0
+%%First split the pathName in !.
+z!r0(f-1./.-, r-0)b- i/README_backup/ mz$r-0i'!i/	/
+%%Now read/create the README_backup file.
+z!e0j- z$ %b=pathname '!; (%q=file '!; %i!; m0b-i'$,  )
+%o
+oz
+:
+'#
+ 

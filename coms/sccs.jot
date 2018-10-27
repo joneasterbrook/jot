@@ -1,0 +1,42 @@
+%%Applies sccs command (given as argument).
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+obonob
+m0n.r0a@h@
+%%z$m-0kv/%% /e3jj\i/ /
+z$m-0i/ /
+z@r0(f-./.r-0i/%e=cd /r0f-//s/ ; /,r-0i/%e=/)
+i"/usr/ccs/bin/sccs "h$r0i" 2>&1 | tee /tmp/sccs.lis"
+ozono-om
+%m If it goes all quiet it may be prompting for a delta comment.
+'@
+%i@=/tmp/sccs.lis
+%e=rm /tmp/sccs.lis
+%l
+%%Pick line count and display it with the first line of reply.
+m0one0m-0p n.a$z$
+ol1o-o#oo/%d/r-0 
+i/That generated /r0i/ line/(ol1o=,i/s/) i/, see /(ol1o=i/it/,i/them/)ok
+i/ in buffer '@./
+p-1 oz
+

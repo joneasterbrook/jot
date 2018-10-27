@@ -1,0 +1,203 @@
+%%Defines mapping of hot-key functions onto escape sequences.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%N.B. This file was not mapped using a real vt100 - this was derived on a Fedora-27 with XTERM set to vt100.
+%%
+%%Ensure that the function names start in column 12 or after:
+%%Code  <<functionName>>     -- {Description}
+%%Code xxxxxxxx indicates that the key is pre-assigned by the system or otherwise unavailable.
+%%Code ???????? indicates that the key requiresre-mapping with xmodmap or sonething.
+%% The function <<Null>> is a placeholder.
+%% Entries marked as system shortcuts were found to be so on a Fedora-27 linux
+
+%g@
+
+test                          -- {UnescapedTest} - test for commandmode = 0008
+
+--Mouse events
+^[M0001                       -- {Button1Up}
+^[M0002                       -- {Button1Down}
+^[M0004                       -- {Button1Click}
+^[M0008                       -- {Button1DoubleClick}
+^[M0040                       -- {Button2Up}
+^[M0080                       -- {Button2Down}
+^[M0100                       -- {Button2Click}
+^[M0200                       -- {Button2DoubleClick}
+^[M1000                       -- {Button3Up}
+^[M2000                       -- {Button3Down}
+^[M4000                       -- {Button3Click}
+^[M8000                       -- {Button3DoubleClick}
+
+--
+--For function keys etc., some of these numbers are defined in /usr/include/ncurses.h
+--Some combinations of modifiers and function keys seem to work beyond {Shift+Alt+F3}
+--Also, ncurses.h says nothing about modified mid or numeric-keypad keys.
+--Most keyboards don't have delete-line, insert-line, ... keys so it all seems to work
+--and if it works don't fix it. If it doesn't work then the user has to remap the dodgy
+--keys using define_keymap.jot
+--
+--Top-row function keys - OK, I know ... VT100s never had such a thing, but were into emulationland here.
+^[X0109                       -- {F1}
+^[X010A                       -- {F2}
+^[X010B                       -- {F3}
+^[X010C                       -- {F4}
+^[X010D                       -- {F5}
+^[X010E                       -- {F6}
+^[X010F                       -- {F7}
+^[X0110                       -- {F8}
+^[X0111                       -- {F9}
+^[X0112                       -- {F10}
+^[X0115                       -- {Shift+F1}
+^[X0116                       -- {Shift+F2}
+^[X0117                       -- {Shift+F3}
+^[X0118                       -- {Shift+F4}
+^[X0119                       -- {Shift+F5}
+^[X011A                       -- {Shift+F6}
+^[X011B                       -- {Shift+F7}
+^[X011C                       -- {Shift+F8}
+^[X011D                       -- {Shift+F9}
+^[X011E                       -- {Shift+F10}
+^[X011F                       -- {Shift+F11}
+^[X0120                       -- {Shift+F12}
+^[X0121                       -- {Ctrl+F1}
+^[X0122                       -- {Ctrl+F2}     
+^[X0123                       -- {Ctrl+F3}
+^[X0124                       -- {Ctrl+F4}
+^[X0125                       -- {Ctrl+F5}
+^[X0126                       -- {Ctrl+F6}
+^[X0127                       -- {Ctrl+F7}
+^[X0128                       -- {Ctrl+F8}
+^[X0129                       -- {Ctrl+F9}
+^[X012A                       -- {Ctrl+F10}
+^[X012B                       -- {Ctrl+F11}
+^[X012C                       -- {Ctrl+F12}
+xxxxxxxx                      -- {Alt+F1}     -- System shortcut.
+xxxxxxxx                      -- {Alt+F2}     -- System shortcut.
+xxxxxxxx                      -- {Alt+F3}     -- System shortcut.
+^[X013C                       -- {Alt+F4}
+^[X013D                       -- {Alt+F5}
+^[X013E                       -- {Alt+F6}
+^[X013F                       -- {Alt+F7}
+^[X0140                       -- {Alt+F8}
+^[X0141                       -- {Alt+F9}
+^[X0142                       -- {Alt+F10}
+^[X0143                       -- {Alt+F11}
+^[X0144                       -- {Alt+F12}
+^[X0145                       -- {Shift+Alt+F1}
+^[X0146                       -- {Shift+Alt+F2}
+^[[25;2~                      -- {Shift+Alt+F3}
+^[[26;2~                      -- {Shift+Alt+F4}
+^[[15;4~                      -- {Shift+Alt+F5}
+^[[17;4~                      -- {Shift+Alt+F6}
+^[[18;4~                      -- {Shift+Alt+F7}
+^[[19;4~                      -- {Shift+Alt+F8}
+^[[20;4~                      -- {Shift+Alt+F9}
+^[[21;4~                      -- {Shift+Alt+F10}
+^[[23;4~                      -- {Shift+Alt+F11}
+^[[24;4~                      -- {Shift+Alt+F12}
+^[X012D                       -- {Ctrl+Shift+F1}
+^[X012E                       -- {Ctrl+Shift+F2}
+^[X012F                       -- {Ctrl+Shift+F3}
+^[X0130                       -- {Ctrl+Shift+F4}
+^[X0131                       -- {Ctrl+Shift+F5}
+^[X0132                       -- {Ctrl+Shift+F6}
+^[X0133                       -- {Ctrl+Shift+F7}
+^[X0134                       -- {Ctrl+Shift+F8}
+^[X0135                       -- {Ctrl+Shift+F9}
+^[X0136                       -- {Ctrl+Shift+F10}
+^[X0137                       -- {Ctrl+Shift+F11}
+^[X0138                       -- {Ctrl+Shift+F12}
+xxxxxxxx                      -- {Ctrl+Alt+F1}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F2}  -- System shortcut.     
+xxxxxxxx                      -- {Ctrl+Alt+F3}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F4}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F5}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F6}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F7}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F8}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F9}  -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F10} -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F11} -- System shortcut.
+xxxxxxxx                      -- {Ctrl+Alt+F12} -- System shortcut.
+^[[1;8P                       -- {Ctrl+Shift+Alt+F1}
+^[[1;8Q                       -- {Ctrl+Shift+Alt+F2}
+^[[1;8R                       -- {Ctrl+Shift+Alt+F3}
+^[[1;8S                       -- {Ctrl+Shift+Alt+F4}
+^[[15;8~                      -- {Ctrl+Shift+Alt+F5}
+^[[17;8~                      -- {Ctrl+Shift+Alt+F6}
+^[[18;8~                      -- {Ctrl+Shift+Alt+F7}
+^[[19;8~                      -- {Ctrl+Shift+Alt+F8}
+^[[20;8~                      -- {Ctrl+Shift+Alt+F9}
+^[[21;8~                      -- {Ctrl+Shift+Alt+F10}
+^[[23;8~                      -- {Ctrl+Shift+Alt+F11}
+^[[24;8~                      -- {Ctrl+Shift+Alt+F12}
+
+
+-- Cursor keys.
+^[X0103                       -- {UpArrow}
+^[X0102                       -- {DownArrow}
+^[X0104                       -- {LeftArrow}
+^[X0105                       -- {RightArrow}
+^[[1;2A                       -- {Shift+UpArrow}
+^[[1;2B                       -- {Shift+DownArrow}
+^[[1;2D                       -- {Shift+LeftArrow}
+^[[1;2C                       -- {Shift+RightArrow}
+^[[1;5A                       -- {Ctrl+UpArrow}
+^[[1;5B                       -- {Ctrl+DownArrow}
+^[[1;5D                       -- {Ctrl+LeftArrow}
+^[[1;5C                       -- {Ctrl+RightArrow}
+^[[1;3A                       -- {Alt+UpArrow}
+^[[1;3B                       -- {Alt+DownArrow}
+^[[1;3D                       -- {Alt+LeftArrow}
+^[[1;3C                       -- {Alt+RightArrow}
+^[[1;6A                       -- {Ctrl+Shift+UpArrow}
+^[[1;6B                       -- {Ctrl+Shift+DownArrow}
+^[[1;6D                       -- {Ctrl+Shift+LeftArrow}
+^[[1;6C                       -- {Ctrl+Shift+RightArrow}
+^[[1;7A                       -- {Ctrl+Alt+UpArrow}
+^[[1;7B                       -- {Ctrl+Alt+DownArrow}
+^[[1;7D                       -- {Ctrl+Alt+LeftArrow}
+^[[1;7C                       -- {Ctrl+Alt+RightArrow}
+^[[1;4A                       -- {Shift+Alt+UpArrow}
+^[[1;4B                       -- {Shift+Alt+DownArrow}
+^[[1;4D                       -- {Shift+Alt+LeftArrow}
+^[[1;4C                       -- {Shift+Alt+RightArrow}
+^[[1;8A                       -- {Ctrl+Shift+Alt+UpArrow}
+^[[1;8B                       -- {Ctrl+Shift+Alt+DownArrow}
+^[[1;8D                       -- {Ctrl+Shift+Alt+LeftArrow}
+^[[1;8C                       -- {Ctrl+Shift+Alt+RightArrow}
+
+-- Another key that never existed on real vt100 keyboards.
+^[[29~                        -- {Menu}
+^[[29;2~                      -- {Shift+Menu}
+^[[29;5~                      -- {Ctrl+Menu}
+^[[29;3~                      -- {Alt+Menu}
+^[[29;6~                      -- {Ctrl+Shift+Menu}
+^[[29;7~                      -- {Ctrl+Alt+Menu}
+^[[29;4~                      -- {Shift+Alt+Menu}
+^[[29;8~                      -- {Ctrl+Shift+Alt+Menu}
+
+--xterm size adjust.
+^[X019A                       -- {SizeAdj}
+
+:

@@ -1,0 +1,312 @@
+%%Defines functions for a simple Integrated Development Environment (IDE) for gdb.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%g?
+  This is a very simple IDE for gdb and  winedbg,  it  can  edit,  launch  the
+  compiler and launch then interact with the relevant debugger and, er ... um,
+  that's about it.
+  
+  For simple single-source-file projects, the souce  file  should  be  in  the
+  primary buffer ( . ), for multi-file projects tha  source  must  be  indexed
+  with ctags and it is the tags file that must be in the primary  buffer.  For
+  multi-file projects use tags_indexjot to manage  the  source  files,  it  is
+  essential that tags_index.jot be run *after* ide.jot.
+  
+  Currently supported debuggers are gdb and winedb.
+  
+  Note the following internal constants:
+    - .=linCompile  - The command used to compile the source for linux.
+    - .=winCompile  - The command used to compile the source for windows.
+    - .=linExePath  - The linux executable's pathname.
+    - .=winExePath  - The windows executable's pathname.
+    - .=testArgs    - The arguments to be presented to the programme in windows, linux and debuggers.
+  
+Buffers used/defined:
+  - L - the logfile for interactive programmes and debuggers.
+  - - the menu buffer.
+  - $ Temporary and parameter passing.
+  - @ Temporary, used in setup and also in mouse-click handler.
+  - ! Temporary, used in setup and also in mouse-click handler.
+  
+Requirements:
+  - window must be wide enough to display drop-down menu and vertically split screen.
+  
+Functions and escape sequences defined:
+  <<LeftClick>>       - Left-button click handler dispatches calls to functions defined in the menu description.
+  <<ideWindows>>      - Redefines the window panes.
+  <<Compile>>         - Wrapper function called by the Compile button.
+  <<on_key_function>> - updates source-file's delimiter line.
+   
+  {Esc w g} - calls ideWindows
+  
+:
+
+%%Set up hashtable, data objects etc.
+%h.=create 100;
+%h=data .=winNotLin;     ol0                   ov/.=winNotLin/      %% (winNotLin==1) indicates compile with cl, run with wineconsole/winedbg
+%h=data .=term;          ol0                   ov/.=term/           %% (term==1) indicates target is run in a separate xterm/wineconsole
+%%
+%%The following compile options default as below but may be redefined by your personal startup script.
+%%first pick up the default source path from buffer ( . )
+z.%q~=buffer; f/ pathname = /-b-k-0mk0z.
+%h=data .=linCompile;    %d~=cd ~/ \; make lin;   ov/.=linCompile/     %%Compiles source file for linux.
+%h=data .=winCompile;    %d~=cd ~/ \; make win;   ov/.=winCompile/     %%Compiles source file for windows.
+%h=data .=linExePath;    %d~=~/bin/a.out;         ov/.=linExePath/     %%Executable pathname - linux.
+%h=data .=winExePath;    %d~=~/bin/exe.exe;       ov/.=winExePath/     %%Executable pathname - windows.
+%h=data .=testArgs;      %d~=;                    ov/.=testArgs/       %%Args to run the executable for testing.
+
+%g-
++ideM1_ "File"  "Save"  "Compile"  "Run"  "dbg_start"  "dbg_run"  "dbg_continue" "dbg_quit"  "dbg_break"  "dbg_command"
+  
+ideM1_File:
+-  "Reload"  "Abandon"  "Save"  "LinuxLand"  "WindowsLand"
+ 
+ideM1_Options:
+-  "wine" "term"
+  
+ideM1_Help:
+-  "Help"  "FindAllHelp"  "RemoveHelpFold"
+  
+:
+  
+
+%%Macro to analyse the user-defined menu and create the necessary functions etc.
+%g#
+%%First define the colour tag.
+z-  %b=tagtype Menu    colour     7  5;  %%Mauve colour tag for static menu.
+%%
+%%Analyze the menu options and set up colour tags, clickable regions and callbacks.
+z-m-0n.a@
+( %%Line loop
+  v/+/ %%It's a static menu item, this remains in the menu buffer, abstract function-name prefix to ( ! ) buffer.
+  m,
+  
+  f1/:/f-1/ /\r(v/ /r)0r\ %%It's a label, the label string will become a function name which had better not collide with any other function.
+  r-0n.f1/:/a$& z@m0(f-/<</m0m-r0bi|z-m0r0i/ / oz|, ) m0bi/<</h$i/>>/b i/%s=system 1; ob/b z-m,
+  
+  v/-/ %%It's a submenu item - add it to current function.
+  %%Pick up the function-name prefix.
+  rn.f1/ /a!e
+  %%Strip out minus sign and add some whitespace to the end - this prevents the colours running into the console area..
+  er0i/ /
+  %%Check that we have already identified at least one label.
+  (z@f-/<</, z- %x=Syntax: Encountered a submenu line before any valid label line.; )
+  %%Code to add line and insert tags to new submenu item.
+  m0i|z-m0r0bi`|i'-i|`r-0( f`"`eoco#n.f1`"`a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text=|h!i|'$; )0|b z-k,
+  
+  %%Ignore all other lines.
+  k)0
+z@m0m-r0bi|z-m0r0i/ / oz|
+z-m-0(v/+/m,k )0
+   
+%%Set up a function to define the static menu if required.
+z-m-0(r\, 
+  %%There are some static menu items.
+  z-n.f1/ /a!e
+  z@m0bi|<<ideWindows>>|b
+  i|z-m-0k0|b
+  (i|i/|i'-i|/r-0( f/"/eoco#n.f1/"/a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text='!'$; )0|b z-m z@i|r0b|)0
+  z@m0b-i|z-m0r0i/ /|b
+  i|%%Set window size to allow 1 line for the console area one for the static window and 10 for the debugger/compiler monitors.|b
+  i|%q$=window; f/screenHeight = /-oidol13o- f/screenWidth = /-oidol40o-ol40|b
+  i|%w;|b
+  i|%w-= -height=1 -menu;|b
+  i|%w@= -height=11 -width='~ -delim; %wl= -width='~+1 -delim;|b
+  i|%w= -height='~ -delim;|b
+ )
+  
+:
+'#
+
+%%Define mouse-click function for code repository.
+%g$
+<<on_key_function>>
+%%Called after every user command - currently only maintains the delimiter bar.
+%%
+ob zlm0 ozob
+( %q=samesinceio;  %%The text is either unmodified or has been saved.
+  %q$=buffer; f/ pathName = /-b oz %b=footer '$   [Unmodified];
+, %%The text has been modified.
+  %q$=buffer; f/ pathName = /-b oz %b=footer '$   [Modified]; )
+
+<<ideM1_Save>>
+%%Menu-driven replacementfor %O command.
+%%If using index.jot or tags_index.jot look up the buffers to be saved, otherwise save only ( . ) - the primary buffer.
+%q=samesinceio;?
+obz.
+( oq/.=Files/\ oz     %%Data buffer ".=Files" is not set up - just save the current buffer.
+  %o;
+  , %%Check each buffer registered in ".=Files" and save it if necessary.
+  z~ %q@=keys; okm2
+  %%Buffer loop - write out any modified source-code buffers.
+  ( f/key /-n.f/, (DataObj)/a$& z$r-0i/.=Files|/oq'$z~ ( %q=samesinceio;, %o; ) z@ok )0 )
+oz
+
+<<ideM1_Compile>>
+%%Abandon the compile operation if file image has not been saved - first count no. of unsaved files.
+obz. ( oq/.=Files/\ o#oz ( %q=samesinceio; ol0, ol1 )
+  , %%Check each buffer registered in ".=Files"
+  z~ %q@=keys; okol0m2
+  %%Buffer loop - write out any modified source-code buffers.
+  ( f/key /-n.f/, (DataObj)/a$& z$r-0i/.=Files|/oq'$z~ ( %q=samesinceio;, %o; ) z@ok )0 )
+(ol0o=ok, ok %x=One or more files require saving.; )
+%%
+%%Now run the correct compiler.
+(oq/.=winNotLin/ol0o=
+  %m=Compiling for linux.;   oq/.=linCompile/ z$m-0k0i/%e@=/h~okr0i/ 2>&1;?/ ,
+  %m=Compiling for windows.; oq/.=winCompile/ z$m-0k0i/%e@=/h~okr0i/ 2>&1;?/ )
+'$ okoz
+
+<<ideM1_Run>>
+%%Simply runs the executable as a subprocess.
+%m=Running directly in a subprocess.;
+ob (z' %q$=key ideRun;   %%The user-defined run function exists - call it now.
+  oz %h'=call ideRun;
+, %%No user-defined run function - use the default.
+  (oq/.=winNotLin/ ol0o=  %%A linux executable.
+    oq/.=linExePath/ z$m-0k0 i/%e@=/h~ok i/ / oq/.=testArgs/h~ok '$ 
+  , %%Windows - use wine.
+    oq/.=winExePath/ z$m-0k0i/%e@=wine /h~ok i/ / oq/.=testArgs/h~ok '$ 
+    ) )
+okoz
+
+<<ideM1_dbg_start>>
+%%Start the relevant debugger.
+%%
+%%If user a has defined ideDebug function then use that, otherwise use the default, below.
+%%
+ ob(z' %q$=key ideDebug;   %%The user-defined run function exists - call it now.
+  %h'=call ideDebug;
+, %%No user-defined run function - use the default.
+  (oq/.=winNotLin/ ol0o=  %%Use gdb.
+    ok %m=Running under gdb.;
+    %%If buffer ( L ) does not have an asynchronous gdb running then start one now.
+    zl %q$=buffer; (f/ InPipe = /, %el=&gdb; )
+    (o#oz %q$=buffer; f/ pathname = /-b-k-0mk0 r0(f-1"/"-, r-0) e0i/a.out/r-0i/file / %pl='$;
+  , %%Use winedb in windowsland.
+    ok %m=Running under winedb.;
+    %%If buffer ( L ) does not have an asynchronous winedbg running then start one now.
+    zl %q$=buffer; (f/ InPipe = /, %el=&winedbg; )
+    (o#oz %q$=buffer; f/ pathname = /-b-k-0mk0 r0(f-1"/"-, r-0) e0i/a.out/r-0i/file / %pl='$; ) ) ) )
+zlm0 oz
+
+<<ideM1_dbg_run>>
+%%Run executable under control of the debugger.
+%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
+(oq/.=winNotLin/ ol0o= ok %pl=run;, ok %pl=continue; )
+oz
+
+<<ideM1_dbg_continue>>
+%%Continue from breakpoint.
+%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
+(oq/.=winNotLin/ ol0o= ok %pl=continue;, ok %pl=continue; )
+oz
+
+<<ideM1_dbg_break>>
+%%Set breakpoint.
+%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
+ozon %pl=break '~;
+
+<<ideM1_dbg_command>>
+%%Prompt string: Debugger command> 
+%%Relay user-specified command to debugger.
+obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
+%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+oz %pl='$;
+
+<<LeftClick>>
+%%Defines the left-button-click mouse event handler.
+%%On a left-button click on tagged text in the menu buffer ( - ), query tags at the mouse-click point to pick up a function name
+%%then call the function.
+%%
+%%In system mode, users default strings are unaffected, get and check the mouse-click coordinates.
+%s=system 1; obopobos
+%%
+( z-obo=
+  %%It's the menu buffer alright, move to mouse-event point.
+  okokono-omor %q!=tags -here; 
+  %%Pick up the function name from the text tag.
+  ( f/Type text from chr /f1/ = "/-b(f1/<</-b, )(f1/>>/, f1/"/)b-
+  %%Clear all but static menu bars from menu buffer.
+  z-m-0 (v/+/\k, m)0
+  %%If the function takes a parameter, prompt and pick up value.
+  %h'=jump '!; m ( f1/%%Prompt string: /-n.r0a$& %s=prompt '$; z$m-0k0g1k- %s=prompt > ;, )
+  %%Call the function.
+  %s=system 0; oz (%h'=call '!;)? ob %s=system 1; )
+, %%Event was not on a valid clickable menu point - restore menu to original state.
+  (ok)4 z-m-0(v/+/\k, m)0 )
+  
+oz %s=system 0;
+
+%%Functions for the "ideM1_File" menu bar.
+<<Reload>>
+%%Re-reads the current buffer.
+%m=Re-reading the source file.;
+obo#n.a$z$oo/%%i%c/ oz'$
+
+<<Abandon>>
+%a=Session abandoned.;
+
+<<SaveAs>>
+%o='$;
+
+<<SaveAndExit>>
+%c;
+
+<<LinuxLand>>
+ol0 ov/.=winNotLin/
+
+<<WindowsLand>>
+ol1 ov/.=winNotLin/
+
+:
+z@m-0h$
+
+%%Disable {Button1Up}, {Button1Down} ... events.
+%g$
+{Button1Up}
+{Button1Down}
+{Button1Click}%h'=call LeftClick;
+{Button1Down}%d$=##; %h'=call LeftDown;
+{Button1Up}%d$=##; %h'=call LeftUp;
+wg          ob %h'=call ideWindows; oz
+:
+z^m-0h$b
+
+%h'=call AddNewFunctions;
+
+%%Enable left-button clicks.
+%s=mousemask 0004;
+
+%h'=call ideWindows;
+
+%%The on_key routine.
+%s=on_key %h\\'=call on_key_function\;;
+
+%%The top of stack is still pointing back to buffer ( s ), remove that now and replace with buffer ( . ).
+z.ok? n.a@&
+
+

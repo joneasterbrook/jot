@@ -1,0 +1,148 @@
+%%Command file to translate from BCPL to C.
+%%Changed I and S conventions 2/10/92
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Macro '*' traverses any white space and comments.
+%d*=(((v/ /r)0(r\m))0lv"//"m,v"/*"f"*/"-)0
+%% Macro '#' abstracts from the next '(', to the corresponding ')'.
+%d#=\\'*f/(/n.a%n.a_ (n.f/)/-a@obz_h@z%h@m-0f/)/s-/]/f-/(/s-/[/ lr0oz)0 oz
+%%
+%% Macro '$' abstracts from the previous ')', back to the corresponding '('.
+%d$=(lr,)f-/)/-n.a%n.a_ (n.f-/(/a@obz_m-0h@z%m-0h@m0r0f-/(/s-/[/f/)/s/]/ roz)0 oz
+%%
+%%Macro '!' traverses an expression.
+%d!=\\'*(q"-\"r,)((v/ /r)0\\'*(v/(/\\'#h_,v/\'/f1//-,v/"/(f/"/-v-/*"/rl)0,q"0-9a-zA-Z._"r(q""(r,m))0)(v/ /r)0(v/(/\\'#h_,)(q"+*/~|\!%#@<>=-"r(q""r,),v/OF/r2))0
+%w
+%T=2
+%w 10
+%w 0
+%%
+%%First check that case sensitivity is off.
+m-0i/Case sensitivity/v-/case SENSITIVITY/e-0
+%%
+%%Save filespec. 
+m0f1/.BCP/s/.C/n.r-0r-0as 
+%%
+%%Temporaraly change BCPL /* ... */ comment style to // ... 
+m-0(f./*.s-.//.(f1.*/.mi-.//.)0r2(v/ /r)0(rr-b,))0m\
+m-0(i-/ /r0i-/ /m)0m\
+%%Temporaraly change ( and ) in comments - to avoid confusing the
+%%  expression parser.
+m-0(f.//.(f1/(/s-/`[/)0r?)0m\
+m-0(f.//.(f1/)/s-/`]/)0r?)0m\
+
+
+%%Change BCPL MANIFESTs to C #define form.
+m-0(f/ MANIFEST /n.f/$(/-a_n.f/$)/a_e2obzam-0(f/=/e(v-/ /r-)0(q-/0-9a-zA-Z._/r-)0i-/#define /(f1/;/-,m))0ozh_)0m\
+
+%%Change declarations of Procedures, Functions and Variables. 
+%s=case 1 
+m-0((f1/ AND /\f1/ LET /\m)0s/ int /(q/0-9a-zA-Z._ /r)0v/=/i-/:/r2(v/ /r)0(v/?/e(q-/ :=/e-)0i-/;/,),(('#,)h_n.(q/= /r)0(f1/BE/-a@,f1/VALOF/-a@,)))0m\
+
+%%Change compiler-flag style - nb. $$ never translates to #undef
+m-0(f/$$/s-/#define /)0m\
+m-0(f/$</s-/#ifdef /)0m\
+m-0(f/$>/e0i-/#endif/)0m\
+
+%%Change BCPL $( and $) to { and }.
+m-0(f/$(/s-/{/)0 m-0(f/$)/s-/}/)0m\
+
+%%Add semicolon to any arithmetic assignments - before translating loops.
+m-0(f/:=/ (r0(v-/ /r-)0 q-"+-*/\~|&!%<>=(;"m)0r0i-/;/)0m\
+ 
+%%Change BCPL loops to C "for (...; ...; ...)" style.
+m-0(f/ FOR /s/ for (/n.f1/=/a:h:i-/:/r2'!v/TO/s/; /h:i/+:=1; /h:i/=/'!(v/BY /e3n.(q/-0-9a-zA-Z._/r)0a:(v-/ /r-)0i-/)/f-0/+:=1/e-h:,(v-/ /r-)0 i-/)/)n.f-/;/a:f-//h:)0m\
+m-0(f/ BREAK /s-/ break; /)0m\
+m-0(f/ LOOP /s-/ continue; /)0m\
+
+%%Change BCPL SWITCHON block to C switch ( ... )
+m-0(f/ SWITCHON /s/ switch (/'!(v/ /r)0v/INTO /s-/) /)0m\
+m-0(f/ DEFAULT: /s-/ default: /)0m\
+m-0(f/ CASE /s-/ case /)0m\
+
+%%Change BCPL "IF <expr> [THEN] <stmt1> [ELSE <stmt2>]" to C form.
+m-0(f/ TEST /s-/ IF /)0m\
+m-0(f/ IF /s/ if (/'!(v-/ /r-)0i/)/\'*(v/THEN/e4,))0m\
+m-0(f/ ELSE /s-/ else /)0m\
+
+%%Change BCPL "RESULTIS" to "return" - hopefully it's in a function.
+%%The unfortunate cases of SWITCHON blocks (not functions) are detected by the
+%%are detected by the untranslated VALOF command, these require hand re-coding.
+m-0(f/ RESULTIS /s/ return /'!i-/;/)0m\
+m-0(f/ RETURN /s-/ return; /)0m\
+
+%%Add a semicolon to each line which concludes a procedure call.
+m-0(f/(/'#n.(v-/ /r-)0a_-(q-/0-9a-zA-Z._/(v-/ if/h_,v-/ for/h_,h_r0r-i-/;/),h_))0m\
+
+%%%%Strip off any double semicolon (eg. when an assignment has a function call).
+%%m-0(r0v-/;;/e-mr0,mr0)0m\
+%%
+%%Change operator style.
+%%Pointers.
+m-0(f/@/s-/&/)0m\
+%%Plings
+m0(f-/!/s-/+/(v-/ /r-)0(v-/)/'$i/*(/h_r'!,(q-/0-9a-zA-Z._/r-)0i/*(/r'!)i-/)/)0m-\m0m\
+%%BCPL '\' logical negation operator to C '!'.
+m-0(f/\/(v-./.r,rv./.,e-i-/!/))0m\
+%%Percents
+%%First nobble any '%'s in WriteF format strings.
+m-0(f/"/n.(f/"/-v-/*"/rr-)0a@obz@(f/%/s-/~~/)0m-0(f/*/s-/\/)0ozh@)0m\
+%%Change any <string>%0 to strlen(<string>) - assuming <string> is either
+%%  a string identifier or an expression in brackets.
+m-0(f/%0/e2((v-/ /r-)0v-/)/rr-'$i/strlen/h_, i-/)/(q-/._0-9a-zA-Z/r-)0i-/strlen(/))0m\
+m0(f-/%/s-/+/r-(v-/ /r-)0(v-/)/'$i/(char*)(/h_'!,(q-/0-9a-zA-Z._/r-)0i/(char*)(/(q""r)0)r'!i-/)/)0m-\
+m-0(f/~~/s-/%/)0m\
+
+%%Change logical operators to C bitwise operators.
+m-0(f"/\"s-"&")0m\
+m-0(f"\/"s-"|")0m\
+m-0((f`NEQV`(q-/._A-Za-z0-9/r?,rr-f1//-q/._A-Za-z0-9/))0f-1//s-/^/)0m\
+%%Change conditional-operator style from
+%%  (<expr> -> <TRUEexpr>, <FALSEexpr>) to (<expr> ? <TRUEexpr>: <FALSEexpr>
+m-0(f/->/s/?/'!\'*v/,/s-/:/)0m\
+%%Change 'OF' operators
+(m-0f/ OF /r-0(f/ OF /e4(v-/ /e-)0n.(q-/0-9a-zA-Z._/r-)0a:'!i/-> /h:i-/ /))0m\
+%% '=' -Assignments style, not equals and logical equals style.
+m-0(f/=/(v-/:/e-,q-/~\/e-i/!/,q-/<>/,i/=/)r)0m\
+%% VEC (vectors from user stack) to C array form.
+m-0(f/ VEC /e5(q-/= /e-)0(v/ /e)0i/[/'!(v-/ /r-)0i-/]/)0m\
+%%Change Hex literal style.
+m-0(f/#X/s-/\x/)0m\
+%%Change *N string escape.
+m-0((f/*N/-q/a-zA-Z0-9._/r)0e-2i-/\n/)0m\
+
+%%From now on we don't need case sensitivity.
+%s=case 0 
+
+%%Capitalize TRUE/FALSE.
+m-0((f`true`(q-/._A-Za-z0-9/r?,rr-f1//-q/._A-Za-z0-9/))0f-1//s-/TRUE/)0m\
+m-0((f`false`(q-/._A-Za-z0-9/r?,rr-f1//-q/._A-Za-z0-9/))0f-1//s-/FALSE/)0m\
+%%Change comment style.
+m-0(f.//.s-./*.(m(v/ /r)0v.//.e2)0m-r0(v-/ /r-,)i-.*/.m)0m\
+%%Delete any double semicolons.
+m-0(f/;;/e)0m\
+%%Delete blank from begining, end of line and before semicolons.
+m-0((v/ /e,)r0(v-/ /e-,)m)0m\
+m-0(f/ ;/e)0m\
+%%Now restore the `[ and `] markers back to ( and ).
+m-0 (f/`[/s-/(/)0 m-0(f/`]/s-/)/)0m\
+m0e0hs

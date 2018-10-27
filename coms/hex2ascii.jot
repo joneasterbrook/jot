@@ -1,0 +1,34 @@
+%%Translates a hex dump to ascii.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%
+%%Do translation, skipping any control characters.
+m-0 (n.a$ (oixrobosz$r0(ol32o<oki/^/, ol255o=oki/^/, oo/%c/) oz)0 r0i/	/h$ m)0
+%%
+%%Find rightmost tab.
+m-0
+(f1/	/roc (o<okoc,) m)0 
+%%Resolve the first tabs.
+m-0
+(f/	/ei/ /o#oc (o> ocoso- (i/ /o~)0, ) ok m)0 ok
+m-0

@@ -1,0 +1,15 @@
+// hello.cpp : Defines the class behaviors for the application.
+//
+
+#include <stdio.h>
+#include <sys/stat.h>
+//  "t.t"
+//  "another_dir1"
+using namespace std;
+
+int main ()
+{
+cout << "Hello World!";
+return 0;
+}
+

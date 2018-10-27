@@ -1,0 +1,26 @@
+
+%%Create a fairly deep hashtable tree.
+%%
+z.o@
+%h=create 10 .=;                       %h=data .=a;                        %d~=Sub-buffer A; ov/.=a/
+%h=create 10 .=a;                      %h=data .=a|b;                      %d~=Sub-buffer B; ov/.=a|b/
+%h=create 10 .=a|b;                    %h=data .=a|b|c;                    %d~=Sub-buffer D; ov/.=a|b|c/
+%h=create 10 .=a|b|c;                  %h=data .=a|b|c|d;                  %d~=Sub-buffer E; ov/.=a|b|c|d/
+%h=create 10 .=a|b|c|d;                %h=data .=a|b|c|d|e;                %d~=Sub-buffer F; ov/.=a|b|c|d|e/
+%h=create 10 .=a|b|c|d|e;              %h=data .=a|b|c|d|e|f;              %d~=Sub-buffer G; ov/.=a|b|c|d|e|f/
+%h=create 10 .=a|b|c|d|e|f;            %h=data .=a|b|c|d|e|f|g;            %d~=Sub-buffer H; ov/.=a|b|c|d|e|f|g/
+%h=create 10 .=a|b|c|d|e|f|g;          %h=data .=a|b|c|d|e|f|g|h;          %d~=Sub-buffer I; ov/.=a|b|c|d|e|f|g|h/
+%h=create 10 .=a|b|c|d|e|f|g|h;        %h=data .=a|b|c|d|e|f|g|h|i;        %d~=Sub-buffer J; ov/.=a|b|c|d|e|f|g|h|i/
+%h=create 10 .=a|b|c|d|e|f|g|h|i;      %h=data .=a|b|c|d|e|f|g|h|i|j;      %d~=Sub-buffer K; ov/.=a|b|c|d|e|f|g|h|i|j/
+%h=create 10 .=a|b|c|d|e|f|g|h|i|j;    %h=data .=a|b|c|d|e|f|g|h|i|j|k;    %d~=Final sub-buffer L; ov/.=a|b|c|d|e|f|g|h|i|j|k/                       
+%h=create 10 .=a|b|c|d|e|f|g|h|i|j|k;
+%%
+%%Now add few more data objects at various points.
+%h=data .=a|b|New_int; ol999 ov/.=a|b|New_int/
+%h=data .=a|b|c|d|e|f|g|test_int; ol123456789 ov/a|b|c|d|e|f|g|test_int/
+%h=data .=a|b|c|d|e|f|g|test_float; ol123.456789 ov/a|b|c|d|e|f|g|test_float/
+%h=data .=a|b|c|d|e|f|g|test_buf; %d~=Test_buf; ov/a|b|c|d|e|f|g|test_buf/
+%h=data .=a|b|c|d|e|f|g|real_file; %i~=${JOT_RESOURCES}/t.t; z. ov/.=a|b|c|d|e|f|g|real_file/
+%h=data .=a|b|c|d|e|f|g|h|i|j|k|Another_int; ol123 ov/.=a|b|c|d|e|f|g|h|i|j|k|Another_int/
+
+

@@ -1,0 +1,30 @@
+Main help menu
+
+  To select a help category use the cursor-up/down buttons.
+  To get help hit the help button (this also reads in file folds).
+  To go back up the help hierarchy select exit (or any non-foldmark line).
+  
+  N.B. On IBM keyboards the help key is F1, on Tek it's usually 'print screen'. 
+
+[notes]notes        - Jons personal notes and jottings.
+[notes]ecce         - Help on this editor.
+[notes]reports      - Document and report preparation/generation systems
+[notes]programming  - Bits and bobs of notes for various languages.
+[rmc]rmc            - The RMC design manual and other bits.
+[ube]ube_appnote    - Richards application note on UBE flow.
+[ube]flow2.2        - Richards tutorial README for the demo flow2.2
+[sync]sync          - DesignSync notes.
+[cad]cad            - Help on misc. tools.
+[unix]unix          - Notes on a few unix commands.
+[unix]perl          - Notes on perl
+[epic]epic          - Notes on the epic suite.
+[mentor]mentor      - help with mentor system.
+[opus]opus          - Notes from selected highlights of the opus documentation.
+[opus]qr            - Skill quick-reference guide.
+[opus]qr443         - Opus 4.4.3 skill quick-reference guide.
+[synopsys]synopsys  - help with synopsys.
+[synopsys]primetime - help with primetime.
+[opnet]opnet        - opnet administration
+[ddts]ddts          - from the ddts manual.
+[ube]ube            - Steves CadMan notes on the ube flow (minus the piccies).
+[simplex]simplex    - Help with Simplex.

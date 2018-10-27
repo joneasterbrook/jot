@@ -1,0 +1,35 @@
+%%Detects next nonprinting character in buffer.
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g#
+%b=unicode 0;
+
+obz$m-0 (f/-mark/ %%Replace nonprinting characters with control-characters translation.
+  ozm-0ol0 (r\ m)0 ( ( (q/ -~/(r2r-, m))0 o~oicol255o&e- oo/~%2X/) )0
+  %x=Marked '~ nonprinting characters.;
+, %%Don't mark just stop at first nonprinting character.
+  oz (q/ -~/ (r2r-, (mr\)0r-))0
+  (q/ -~/%m=No nonprinting characters found in this buffer.;, ) )
+:
+'#
+
+ 
+ 

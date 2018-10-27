@@ -1,0 +1,57 @@
+%%Maintains a simple appointments diary.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Buffer assignments:
+    ! - Used to sort keys.
+    $ - Temporary.
+     
+  Macro 1 [<pathName>] - imports diary (in vCalendar format) from {<pathName>|~/diary.ics}
+  Macro 2 [<pathName>] - exports diary (in vCalendar format) to {<pathname>|/~/diary.ics}
+  
+  See 
+    http://en.wikipedia.org/wiki/ICalendar
+    http://tools.ietf.org/html/rfc5545
+  for a description of iCalendar files.
+:
+
+%g1
+%%Import from specified file [~/diary.ics>]
+%%
+%%Pick up path.
+r-0(v/ /e)0 (r, i"~/diary.ics")
+%%Translate twiddles.
+obr-0(v/~/%q~=env USER; mz$s'~i"/"r-0i"/home/", )oz
+  
+%%Parse the ics
+%%
+%%First count entries and create hashtable
+m-0 ol0 (f/BEGIN:VEVENT/o~)0 %h=create '~;
+%%Add hash-table tag using start time.
+m-0 (f/BEGIN:VEVENT/f/DTSTART;TZID/-f1/:/-n.r0a$& f-/BEGIN:VEVENT/(mv/DESCRIPTION:/\ v/SUMMARY:/\ v/END:VEVENT/\)0 %h=new '$;)0
+   
+%%Sort the datestamp keys with current datestamp and identify today's events and next event.
+ob%q$=date; kn.f1"/"a!ef1//h!en.r2a!r-0i/20/h!f1/, /s/T/(f1/:/e)2
+o#oz%q!=keys; kh$ (v/key      /e9f1/,/n.f1/Rec:/-a%+m)0 %s=sort; f'$k z$f1/T/b-z! (v'$m-, k-0)i/Today's events:/b (v'$m)0bi/Next-event day: /bmk0
+%l
+:

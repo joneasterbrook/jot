@@ -1,0 +1,2341 @@
+
+
+{{{ JOT User Guide
+1 JOT User Guide
+----------------
+  This is a guide aimed at those who just want to  find  out  how  to  use  an
+  editor that works. A more detailed technical guide  can  be  found  at  `jot
+  technical guide` or, for real-life examples, there's `jot walkthrough`.
+ 
+{{{ Description of the Editor
+1.1 Description of the Editor
+-----------------------------
+  - The basic language has  less  than  30  basic  commands  and  some  simple
+    structural constructs - their combined power is awesome.
+  - Absolute minimum of magic modes and similar trickery.
+  - Supports locks on buffers  e.g.  readOnly  or  writeIfChanged  -  prevents
+    normal close down until modified buffer has been written.
+  - Screen can be allocated between any number of viewing  areas  limited,  of
+    course, by the total screen size.
+  - Numerical values can be picked up,  arithmetic  operations  performed  and
+    numeric values can be written to text using C-style format statements.
+  - Has a journalling and post-crash recovery feature.
+  - Strong interaction with system environment.
+  - Customized startup - start up with any number of files ready  loaded  into
+    familiar buffers and redefinition of overload function-key assignments.
+  - Tidy handling of tabular text especially spreadsheets.
+  - Can recover an entire edit session, following a crash.
+  - Hash-table support - allows indexing and super-fast lookup.
+  - Good support for abnormally wide text.
+  - Supports UTF-8.
+  - Support for very large files.
+  - Filtering of files large files with points of interest.
+  - Easy construction of macro-commands  for  text  scanning  and  processing.
+    Language-specific script library for many programming and CAD languages.
+  - Interfaces, using external agents, for popular encoded formats, e.g.  PDF,
+    MS-word and MS-excel.
+  - A useful library of command scripts.
+  - A useful error reporting and debugging environment.
+  - Reasonably well behaved (i.e. crashes or lock-ups are rare events).
+  - Reasonably high capacity - the actual limit depends on system tuning.
+  - Has a handy document-processing facility - formats  paragraphs,  maintains
+    headings, interfaces to external spell-check agent.
+  - Can read and  send  mail,  using  external  MTA  and  MDA  processes.  Not
+    recommended as a general-purpose mailer it's handy for scanning mail text.
+  - Display can be colour tagged.
+
+}}}
+{{{ Backstory
+1.2 Backstory
+-------------
+  The jot editor owes much to the Edinburgh Compatible Context Editor  (ECCE).
+  ECCE was designed back in the days of teletypwriters and consequently has  a
+  somewhat old-fashioned look and feel compared to editors designed for modern
+  video terminals.
+   
+  What ECCE does have is a  terse,  easy  and,  above  all,  powerful  command
+  language. This language forms the basis of jot - see the  `Jot  Programming`
+  section for details.
+
+}}}
+{{{ What is a text editor and why do I need one?
+1.3 What is a text editor and why do I need one?
+------------------------------------------------
+  Modern computers have a filing system holding a great many  files.  Many  of
+  these files are binaries - meaningful to the computer  but  incomprehensible
+  gobbledygook to you and me but many files are plain text. Plain  text  files
+  are designed to be read by us humans and, in many cases, to be  written  and
+  altered by us. Even if we  have  no  intention  of  altering  one  of  these
+  computer-generated text files we often need to  examine  them  to  find  out
+  details of how the system is set up, identify  problems  and,  occasionally,
+  change the setup.
+  
+  A text editor is an essential tool for altering (i.e. editing)  these  plain
+  text files and a good one can be very  helpful  for  viewing  and  analysing
+  their inner meaning. Note that the text on the screen (and  in  the  editors
+  memory) is just an image of the text file. During  an  editing  session  the
+  original file usually remains unchanged until you decide to save your edited
+  version.
+  
+  A common feature of all modern editors is that they display text in a window
+  on the computer screen with a cursor showing the current  focus.  They  also
+  obey simple instructions to alter the text and to change the  focus  in  the
+  text - typically with the cursor-control keys (Up, Down Left, Right, Page Up
+  and Page Down). They can search  the  text  for  specified  combinations  of
+  characters (strings), insert new text strings, erase and substitute strings.
+
+}}}
+{{{ About the current character and substrings
+1.4 About the current character and substrings
+----------------------------------------------
+  The editor places a special marker, the cursor, in the text to indicate it's
+  current focus. This is the point where text might be inserted or  the  start
+  point for searches.
+  
+  On completion of a successful find, verify, substitution or  insertion  (see
+  `F`, `V`, `S` and `I` commands). The relevant substring  is  highlighted  on
+  the screen  and,  internally,  some  special  pointers  are  set  up).  Some
+  subsequent  substitute  command  can  then  replace  the  currently-selected
+  substring with some new  substring  -  see  also  `%U`.  Also  the  selected
+  substring can be set by the `ou` stack operation.
+  
+  Any command that involves moving the current character pointer  will  remove
+  this highlighting and reset the internal pointers.
+  
+  The current-character cursor is displayed  in  reverse  video.  This  cursor
+  reflects the state of internal current-record and current-character pointer.
+  This is allowed to go one character position past the end of  the  line.  At
+  this point there is no character to highlight. When this happens, a tilde  (
+  ~ ) is displayed at the end of lines to indicate this  situation.  
+  
+  Some may wonder why the cursor is allowed to go past the  end  of  the  real
+  text. Well fear not, it's all been thought about. By allowing the cursor  to
+  go past the line end, jot avoids  the  necessity  for  special  flavours  of
+  commands operating at and after the current character. Eg. jot has only  one
+  insert command ( `I` )  which  inserts  before  the  current  character  and
+  there's no need for a magic mode or another  command  to  insert  after  the
+  current character.
+  
+  When a substring has been selected (e.g. by a find  command)  the  substring
+  and the substring is displayed with underscores with the  current  character
+  in reverse video. Of the commands which define a substring, some  leave  the
+  cursor at the start of the substring (e.g. find - see `F`) others  leave  it
+  at the end. For these  commands  the  current  character  is  the  character
+  immediately following the substring (e.g. traverse `T` and insert `I`).
+  
+  In tty mode (see `-tty`) The current line is printed and below it the  carat
+  character ( ^ ) indicates the current character, and tildes ( ~  )  indicate
+  the currently-selected substring.
+
+}}}
+{{{ Command-mode vs. insert mode
+1.5 Command-mode vs. insert mode
+--------------------------------
+  Jot is essentially a command-driven editor. In other words, you  give  it  a
+  command and a parameter and it does something to your text. You  might,  for
+  example give it the command to  insert  text,  by  typing  something  in  or
+  pressing some  button,  and  the  parameter  would  be  the  text  you  want
+  inserting.
+   
+  Maybe typing-to-screen is OK for capturing a brain  dump  -  when  the  task
+  involves searching and doing several fiddly  tweaks  to  the  content  of  a
+  text-file image then you will need to exiting  and  re-entering  the  screen
+  mode to enter whatever search or command parameters are required. This is  a
+  real drag most of of the time and can  be  a  right-royal  pain  at  others.
+  Nevertheless, jot does offer a fully-functional insert-mode environment.
+  
+  In it's command mode, all  native  jot  commands  as  well  as  jot  editing
+  functions are available for use - jot functions are little bits of jot  code
+  attached to function keys etc. Typically, to invoke a function:
+    - First type in the parameter to the console area (if any) then
+    - hit the function hotkey.
+  
+  Jot also has a direct insert mode which also allows jot  functions  but  not
+  native jot commands. Also arrangements or passing parameters are different -
+  see `about command parameters`. In the insert mode, any typed-in  text  goes
+  directly to the screen but to invoke editor  functions  the  process  is  as
+  follows:
+    - hit the function key,
+    - type in the parameter then
+    - hit return.
+  
+  This is not the way most modern editors and word-processors work.  You  will
+  probably  be  accustomed  to  always  typing  directly  to  the   text   and
+  occasionally invoking editor functions via function keys and menus below the
+  banner bar. Typically there will be a strictly-defined set of functions that
+  *only* work in command mode and another set that *only* work in screen-entry
+  mode.
+
+}}}
+{{{ About help
+1.6 About help
+--------------
+  The jot help system is based on fold marks - a sequence of three open braces
+  ( { ) at the start of a line is a fold start,  a  sequence  of  three  close
+  braces ( } ) is a fold-end mark. Folds can be nested to any level.
+  
+  Another type of fold mark is the file-fold mark - these take  the  following
+  form:
+[<pathstub>]<filename>
+  The pathstub is a subpath in the filing system starting at the path  of  the
+  current file  fold  (typically  ${JOT_RESOURCES}/help/...  )  and  the  file
+  <filename>.hlp must exist in this directory. When opened the file is  merged
+  into the help repository.
+  
+  The <<Help>> function (normally attached to {F1}) looks at the current  line
+  in the display.
+    - If the current line begins with an open-fold  mark  '{{{'  it  uses  the
+      current line as a key and searches the help repository buffer ( : )  for
+      a matching entry. It copies the entry to the help view buffer ( ; )  for
+      viewing.
+    - If the current record does not have a fold mark but the  current  buffer
+      is the help viewing buffer ( ;  )  then  the  Help  function  exits  the
+      current fold, returning to the parent fold.
+    - If the current record contains a file-fold mark  (  [<subpath>]  at  the
+      beginning of the line) and the current buffer is the help viewing buffer
+      ( ; ) then the file is opened  and  it's  contents  added  to  the  help
+      repository buffer ( : ).
+    - In all other cases the Help function will open the top-level help entry.
+    
+    For details about the format and construction of  help  files  see  `About
+    help files`.
+
+}}}
+{{{ About command editing
+1.7 About command editing
+-------------------------
+  Jot is a command-driven text editor so, since it is probably most  used  for
+  editing scripts in the  command  language  for  other  text-driven  computer
+  applications, it should be pretty good at editing it's own command  language
+  right? Er ... well maybe.
+  
+  The problem is that it's not easy to define a syntax for commands to be used
+  for editing the same commands for the  same  command  console  of  the  same
+  system. Suppose,  for  example,  we  wanted  to  fix  up  the  sort  of  CLI
+  command-line editing we're all familiar with. Even limiting  it's  scope  to
+  just the four  cursor-control  keys  the  delete  key  reveals  some  pretty
+  horrendous syntactic problems for a text editor editing  the  text  requires
+  the same cursor-control operations as the command-editing operations.
+  
+  Jot gets over this by copying the current contents of  the  command  console
+  buffer into an editable buffer so that you can then correct and perfect your
+  code to achieve your desired result. When you think  you've  got  there,  it
+  copies the result of your labours back into the console buffer ready for you
+  to try again.
+   
+  The standard startup script defines two  functions  for  command  editing  -
+  `CmdEditStart` and `CmdEditGo`.
+  
+  CmdEditStart ( {Esc c e} ) acquires a list of recent commands  and  whatever
+  you've been typing to the console area and  displays  this  in  a  temporary
+  buffer. In this view you can use normal editing functions to select and,  if
+  required, modify a command string.
+  
+  When the selected command has been suitably modified, use `CmdEditGo` ( {Esc
+  c g} ) push your selected and edited command string back  into  the  console
+  buffer, ready for you to use in whatever way you fancy.
+  
+  The editor maintains  an  internal  history  log  containing  the  last  few
+  commands. By default this holds the last 20 commands but this limit  can  be
+  changed with the `-history` CLI qualifier.
+  
+  Note that the command history is viewed and edited in the ( ! ) buffer.  Now
+  one other function also uses the ( ! ) buffer - <<`AddNewFunctions`>>  hence
+  you avoid using this function  while  editing  commands.  In  practice  this
+  restriction should not prove overly burdensome since that function  is  only
+  used by scripts to add new functions to the code repository.
+
+}}}
+{{{ About not losing your work
+1.8 About not losing your work
+------------------------------
+  There are many and varied ways of mistakenly losing or corrupting work in an
+  editing session - jot offers a few methods of making this a bit less easy to
+  do:
+    - Setting the buffer attribute writeifchanged  (see  `%b=writeifchanged`),
+      if the buffer has been changed in any way the %c and  %A  commands  will
+      fail with a message telling you which buffers require writing.  When  an
+      editing session has many active  buffers  it's  not  all  that  easy  to
+      remember which have been  updated  -  this  tells  you.  To  unset  this
+      attribute use `%b=unrestricted`.
+    
+    - Setting the buffer attribute readonly (see `%b=readonly`), if  the  file
+      is only to be used as a reference - any attempt to change it will fail.
+      
+    - Request an optional journal file - this is part of the  journal-recovery
+      system  and  is  designed  to  protect  against  power  failures,   flat
+      batteries, crashes etc. (see `about journal files`)
+      
+  Where one of the attribute-setting approaches is relevant,  to  insure  this
+  *always* gets done, add these  commands  to  your  project-area  startup.jot
+  file - see `about project files`.
+
+}}}
+{{{ About multi-window working
+1.9 About multi-window working
+------------------------------
+  Jot allows the usable screen area to be allocated to  any  number  of  areas
+  known here as windows. The screen may be split horizontally or vertically to
+  create displays of some complexity by repeatedly using the `%W` command. The
+  range of window types available  using  functions  defined  in  the  startup
+  script is more limited - a simple one-window display, screen split into  any
+  number of equal-sized horizontal strips or the screen split into any  number
+  of equal-sized vertical slices.
+  
+  The  `WindowOne`  function  gives  a  simple  single-window   display,   the
+  `WindowHorizSplit` and `WindowVertSplit` will split  the  screen.
+  
+  Various functions operate on  specific  windows  eg:  `PageUp`,  `PageDown`,
+  `WindowReassign`, `WindowStretch` and `WindowShrink` - when  there  is  more
+  than one screen these functions need to identify the window to be adjusted.
+  
+  Windows are allocated a window  number  -  this  number  appears  in  `query
+  window` reports at the start of each window-description line. Alternatively,
+  you can just count windows from 0, starting from the top-left of the  screen
+  working from left-to-right and then top-to-bottom.
+
+}}}
+{{{ About jot debugging
+1.10 About jot debugging
+-----------------------
+  Jot supports a simple debugging environment. It is possible to  display  the
+  current state of the stack, the current record and breakpoint on a number of
+  predefined  conditions  -   see   `the   jot   debugger`,   `%S=trace`   and
+  `%s=tracedefault`.
+  
+  Typically, one might request a breakpoint, a stack dump and display  of  the
+  current record at each trace point. With a trace point at every  command  or
+  every new command line. It is also possible  to  put  an  explicit  debugger
+  request (the `T` command) in the command string.
+  
+  The debugger is controlled by the following commands:
+    - `%s=trace` - redefines the trace vector with immediate effect.
+      
+    - `%s=tracedefault` - defines the trace vector to be set by `T`  commands,
+      the command counter `%s=commandcounter` and (optionally - see  below)  a
+      {Ctrl+c} interrupt.
+      
+    - `T` - An explicit debugger request a T command can be  inserted  at  any
+      point in a macro or directly in the command line, this changes the trace
+      vector to the value defined by  `%s=tracedefault`.  To  exit  the  debug
+      prompt loop, reset the trace vector with %s=trace 0, or {Esc q}.
+      
+    - The normal behaviour for {Ctrl+c} interrupts is to exit all  macros  and
+      command files and return to  the  jot  prompt.  Setting  Trace_Int  (see
+      `%s=trace`) will cause it instead go to the interactive  debugger.  here
+      you can single-step and use any valid jot commands to investigate what's
+      going on. You exit this with the `QuitDebugger` function. In  order  for
+      Trace_Int to work properly  you  need  to  set  this  bit  in  both  the
+      trace-mode and the tracedefault-mode masks. e.g:
+> %s=trace 0020; %s=tracedefault F021;
+      
+    - Often, the explicit trace command is buried in a  complicated  loop  and
+      control structure which makes it necessary to  continue  many,  possibly
+      hundreds of times before reaching the iteration causing the problem. The
+      %s=commandcounter command (see  `%s=commandcounter`)  sets  the  initial
+      state of an internal counter  which  triggers  a  trace  point  when  it
+      reaches zero.
+      
+      The internal command counter is normally  reset  to  zero  as  each  new
+      command line is read from the console. The counter is unsigned long long
+      so it normally  takes  a  very  long  time  to  reach  zero  again.  The
+      %s=commandcounter command automatically calculates the correct value  to
+      stop at the specified point. Note that,  for  the  purposes  of  command
+      counting, the block and logical constructs " ( ) , ? and \ "  all  count
+      as commands.
+      
+    - Changing the verbosity level (see `%s=verbose`) may help - setting  this
+      to 2 causes more information about failures to be displayed. By default,
+      it only displays the messages from the outermost failing block,  level-2
+      verbosity displays all of them as it unwinds. e.g:
+$ jot t.t -in="(ol123)1000"
+{-init sequence failed. (line 1 of buffer i)} (ol123)1000
+      Clearly it's a stack  overflow  that's  the  problem  -  but  it's  only
+      reporting that the outer block failed - now try this:
+$ jot t.t -in="%s=verbose 2; (ol123)1000"
+{Stack overflow (line 1 of buffer i)} %s=verbose 2; (ol123)1000
+{-init sequence failed. (line 1 of buffer i)} %s=verbose 2; (ol123)1000
+  
+    - jot has a simple backtrace facility - see  `query  backtrace`,  `bt.jot`
+      and also the notes on Trace_Backtrace in `%s=trace`.
+
+}}}
+{{{ About block graphics
+1.11 About block graphics
+------------------------
+  Jot offers some limited support for  the  creation  of  simple  line-drawing
+  diagrams, flow-charts electrical schematics etc.
+  
+  The support consists of  functions  for  drawing  horizontal,  vertical  and
+  diagonal lines, some some cursor  positioning  functions  specific  to  line
+  drawings and a block move function.
+   
+  If, while drawing, an attempt is made to go  above  the  top  or  below  the
+  bottom boundary of the buffer or there is an attempt to draw past the end of
+  a line then additional lines and/or whitespace is automatically added.
+  
+  If the diagrams are to be  part  of  a  document  to  be  processed  by  the
+  `doc.jot` family of scripts (`doc.jot`, `doc2html.jot`,  `doc2fold.jot`  and
+  `html2doc.jot`) then it is important that the first character of  each  line
+  in the graphical section begins with  any  character  other  than  an  ascii
+  space -  an ASCII VT (tab) will do.
+  
+  It attempts to tidy corners when shifting between  horizontal  and  vertical
+  lines and similarly with diagonals. Hence a series of <<LineE>> followed  by
+  a <<LineS>> will  remove  the  last  hyphen  (  -  )  and  replace  it  with
+  whitespace. Diagonals join  up  tidily  without  extra  whitespace  but  the
+  drawing functions adjust the cursor position as appropriate e.g:
+                          
+	     ----      /\     \     ----                                  \
+	    |    |    /  \     \   |    |     \        /        /\          \
+	    |    |   /    \    /   |    |       \    /        /    \        /
+	     ---              /     ----          \/        /        \    /
+                                                                 
+  For details take a look at:
+    - `LineN`, `LineS`, `LineE`, `LineW` - functions for drawing north,  south
+      east and west, `LineNE`,  `LineNW`,  `LineSW`,  `LineSE`  functions  for
+      drawing simple diagonals.
+      
+    - `DSLineNE`, `DSLineNW`, `DSLineSW`, `DSLineSE` (Double Spaced) - similar
+      to the other diagonal-drawing  functions  except  that  they  add  extra
+      whitespace in order to get the diagonal at something more like 45deg. to
+      the horizontal.
+       
+    - `CutRectangle` and `PasteRectangle` - these deal with copying and moving
+      rectangular blocks of text.
+      
+    - `UpRegardless` and `DownRegardless` these  are  cursor-moving  functions
+      unconstrained  by  the  text  envelope.  They  add  more  lines   and/or
+      whitespace as they go.
+      
+    - The `Overwrite` function is also useful when handling block graphics  as
+      it preserves the position of succeeding characters on the line.
+
+}}}
+}}}
+{{{ Keyboard functions defined at startup
+2 Keyboard functions defined at startup
+---------------------------------------
+  The startup.jot script defines the  functions  described  in  the  following
+  sections.
+  
+  In the description of functions dealing  with  paragraphs,  a  paragraph  is
+  deemed to be a block of lines bounded by completely blank  lines  -  i.e.  a
+  line which does not even contain whitespace.
+  
+  In the description of functions dealing with code sections, a  code  section
+  is deemed to be a block of indented text, headed by an unindented line.  The
+  code section may contain any number of blank lines.
+  
+  In the description of functions dealing with words, JOT defines a word as  a
+  string  containing  upper  and  lower-case  alpha  characters,  digits   and
+  underscores. Unfortunately, at present, all unicode characters  are  treated
+  as non-alpha characters.
+  
+  The functions described here are defined by  the  `startup.jot`  file  which
+  also links then to the keyboard, the keycodes are are defined in a  separate
+  file `curses_keys_<TERM>.jot` and `WindowsNT_keys.jot`.
+
+{{{ Help functions.
+2.1 Help functions.
+-------------------
+  Jot help reads a top-level help menu at startup time. This is  displayed  on
+  the first call for help. A help category is  selected  by  navigating  to  a
+  line, using the cursor-control keys and hitting the  help  button  (normally
+  F1) once more.
+  
+  The initial help categories are file  folds  -  they  all  have  a  pathname
+  specification of the form [<path>]<name>, as the file folds are opened,  the
+  relevant file is read and it's top-level fold  headings  is  displayed.  The
+  internal fold headings begin with '{{{' at the start of the line. These  can
+  be opened and descended into by navigating the cursor to  them  and  hitting
+  the help button again.
+  
+  The help structure can be ascended by navigating to and  non-fold  line  and
+  hitting the help button once more.
+  
+  In addition to the `Help`, `FindAllHelp` and `RemoveHelpFold` the  following
+  scripts may be useful `updatehelp.jot`, `findhelp.jot` and `doc2help.jot`
+  
+{{{ Help
+2.1.1 Help
+----------
+> [<helpQuery>]{F1}
+  
+  Searches the help database for an entry with a name matching the  helpKey  -
+  if no helpKey specified but the cursor is on a help fold the fold is  opened
+  if not on a help fold then the current help fold  is  closed  -  see  `about
+  help`.
+    
+}}}
+{{{ FindAllHelp
+2.1.2 FindAllHelp
+-----------------
+>  [<string>]{Shift+F1}
+  
+  Searches the currently-opened help documents in the help repository  (the  :
+  buffer) for matches with string, help menu is set up with matching entries.
+  
+}}}
+{{{ RemoveHelpFold
+2.1.3 RemoveHelpFold
+--------------------
+> {Ctrl+F1}
+  
+  The contents of the current fold is removed, if it's a file  fold  then  the
+  file-fold marker is restored.
+
+}}}
+}}}
+{{{ Delete and Restore
+2.2 Delete and Restore
+----------------------
+  The functions to do with deletion of bits of text are all  attached  to  the
+  left/right keys.
+  
+  Text is deleted by moving it to the delete-bin buffer ( % ).  When  deleting
+  left it goes to the front of the buffer, when deleting right it is moved  to
+  the end of the delete-bin buffer. The distinction is important  because,  to
+  preserve the original order, text is restored character-by-character in  the
+  reverse direction.
+  
+  The restore functions all restore to the current character position  -  they
+  will effectively reinstate the original text provided:
+    - 1/ the cursor is in the same position as when the deletion finished,
+    - 2/ you don't overdo it and restore some other old junk from some earlier
+      delete operation
+  It is, of course, possible to use the select and restore functions  to  move
+  text by first deleting, moving the cursor and then restoring.
+  
+{{{ DeleteChrLeft
+2.2.1 DeleteChrLeft
+-------------------
+> {Alt+LeftArrow}
+  The character immediately to the left of the cursor is moved to  the  delete
+  bin. If the cursor is at the start of a line, the  current  line  is  joined
+  with the previous one.
+  
+}}}
+{{{ DeleteChrRight
+2.2.2 DeleteChrRight
+--------------------
+> {Alt+RightArrow}
+  
+  The character immediately below the cursor is moved to the  delete  bin.  If
+  the cursor is at the end of a line, the current  line  is  joined  with  the
+  next.
+  
+}}}
+{{{ DeleteWordLeft
+2.2.3 DeleteWordLeft
+--------------------
+> {Shift+Alt+LeftArrow}
+  
+  The word immediately to the left of the cursor is moved to the start of  the
+  delete bin. If the cursor is at the start of a line,  the  current  line  is
+  joined with the previous one and it's last word is deleted.
+  
+}}}
+{{{ DeleteWordRight
+2.2.4 DeleteWordRight
+---------------------
+> {Shift+Alt+RightArrow}
+   
+  The word immediately to the right of the cursor is moved to the end  of  the
+  delete bin. If the cursor is at the end of  a  line,  the  current  line  is
+  joined with the next and it's first word is deleted.
+  
+}}}
+{{{ DeleteLineLeft
+2.2.5 DeleteLineLeft
+--------------------
+> {Ctrl+Alt+LeftArrow}
+   
+  All of the line immediately to the left of the cursor is moved to the  start
+  delete bin. If the cursor is at the start of a line,  the  current  line  is
+  joined with the previous one.
+  
+}}}
+{{{ DeleteLineRight
+2.2.6 DeleteLineRight
+---------------------
+> {Ctrl+Shift+Alt+RightArrow}
+   
+  All of the line immediately to the right of the cursor is moved to  the  end
+  of the delete bin. If the cursor is at the end of a line, the  current  line
+  is joined with the next one.
+  
+}}}
+{{{ RestoreChrLeft
+2.2.7 RestoreChrLeft
+--------------------
+> {Ctrl+Shift+Alt+LeftArrow}
+   
+  The  first  character  in  the   delete-bin   buffer   is   moved   to   the
+  current-character position of the current buffer.
+  
+}}}
+{{{ RestoreWordLeft
+2.2.8 RestoreWordLeft
+---------------------
+> {Esc - r w}
+  
+  The first word in the delete-bin buffer is moved  to  the  current-character
+  position of the current buffer.
+  
+}}}
+{{{ RestoreLineLeft
+2.2.9 RestoreLineLeft
+---------------------
+> {Esc - r l}
+  
+  The first line in the delete-bin buffer is moved  to  the  current-character
+  position of the current buffer.
+  
+}}}
+{{{ RestoreChrRight
+2.2.10 RestoreChrRight
+----------------------
+> {Ctrl+Shift+Alt+RightArrow}
+   
+  The  last  character  in   the   delete-bin   buffer   is   moved   to   the
+  current-character position of the current buffer and becomes the new current
+  character.
+  
+}}}
+{{{ RestoreWordRight
+2.2.11 RestoreWordRight
+-----------------------
+> {Esc r w}
+  
+  The last word in the delete-bin buffer is  moved  to  the  current-character
+  position of the current buffer.
+  
+}}}
+{{{ RestoreLineRight
+2.2.12 RestoreLineRight
+-----------------------
+> {Esc r l}
+  
+  The last line in the delete-bin buffer is  moved  to  the  current-character
+  position of the current buffer.
+
+}}}
+}}}
+{{{ Find, substitute and insert
+2.3 Find, substitute and insert
+-------------------------------
+  Arguably the most basic of all editor functions are  finding  and  replacing
+  text F5 to F9 are used for these operations  with  a  few  special  flavours
+  obtained using the Shift, Ctrl and Alt keys.
+ 
+{{{ FindNext
+2.3.1 FindNext
+--------------
+> [<string>]{F8}
+  
+  Find the next occurrence of the specified string, if no string is  specified
+  then the string used in the last find is used.
+  
+}}}
+{{{ SubsThenFindNx
+2.3.2 SubsThenFindNx
+--------------------
+> {Shift+F8}
+  Parameterless,  repeats  last  substitution  then  find  next.  i.e.  repeat
+  previous substitution, then repeat last find.
+  
+}}}
+{{{ FindNextAgain
+2.3.3 FindNextAgain
+-------------------
+> {Ctrl+F8}
+  
+  In insert mode, the FindNext function will  always  prompt  for  the  search
+  string. FindNextAgain will just apply the last-used search-string  parameter
+  once again.
+  
+  This function is provided for the benefit of insert-mode users - repeats the
+  most recent search without  re-prompting.  It's  entirely  useless  when  in
+  command mode - these users need only dab F8 again to repeat the search.
+  
+}}}
+{{{ FindExactNext
+2.3.4 FindExactNext
+-------------------
+> [<string>]{F9}
+  
+  The buffer is searched until the next exact-match occurrence of the word  is
+  found - in this context an exact match is where the  matching  substring  is
+  bounded by non-alphanumeric characters.
+    
+}}}
+{{{ FindExactPrev
+2.3.5 FindExactPrev
+-------------------
+> [<string>]{Shift+F9}
+  
+  Similar to above, except that it searches backwards.
+  
+}}}
+{{{ SetFindString
+2.3.6 SetFindString
+-------------------
+> {Ctrl+F9}
+   
+  The word below the cursor is picked up and defines the find string  for  the
+  next find (or find exact) operation.
+  
+}}}
+{{{ FindPrev
+2.3.7 FindPrev
+---------------
+> [<string>]{F7}
+   
+  Find the previous occurrence of  the  specified  string,  if  no  string  is
+  specified then the string used in the last find is used.
+  
+}}}
+{{{ SubsThenFindPv
+2.3.8 SubsThenFindPv
+--------------------
+> {Shift+F7}
+  
+  Parameterless  substitute  then   find   previous.   i.e   repeat   previous
+  substitution then find previous occurrence of last-found string.
+  
+}}}
+{{{ FindPrevInd
+2.3.9 FindPrevInd
+-----------------
+> {Ctrl+F7}
+  
+  Find indirect - find the previous occurrence of the string  defined  by  the
+  current line of the _ buffer (paste buffer).
+  
+}}}
+{{{ FindPrevAgain
+2.3.10 FindPrevAgain
+-------------------
+> {Alt+F7}
+  
+  In insert mode, the FindPrev function will  always  prompt  for  the
+  search string. FindPrevAgain will just  apply  the  last-used  search-string
+  parameter once again.
+  
+  This function is provided for the benefit of insert-mode users - repeats the
+  most recent search without  re-prompting.  It's  entirely  useless  when  in
+  command mode - these users need only dab F7 again to repeat their search.
+  
+}}}
+{{{ FindWild
+2.3.11 FindWild
+--------------
+> [<string>]{Esc f w}
+  This searches for the next occurrence of a string  containing  one  or  more
+  wildcards ( * ). The argument list is parsed and held in buffer @.
+  
+  If no argument is given then it matches to whatever happens to be in  the  @
+  buffer.
+   
+}}}
+{{{ FindWildPrev
+2.3.12 FindWildPrev
+------------------
+> [<string>]{Esc - f w}
+  This searches for the previous occurrence of a string containing one or more
+  wildcards ( * ). The argument list is parsed and held in buffer @.
+  
+  If no argument is given then it matches to whatever happens to be in  the  @
+  buffer.
+   
+}}}
+{{{ FindInParaNext
+2.3.13 FindInParaNext
+--------------------
+> [<substring1>[ <substring2>[ <substring3>[ ...]]]{Esc f p}
+  
+  Locates the next paragraph containing all of the substrings in the  argument
+  list.
+  
+  The argument list is parsed and held in buffer @. If no  argument  is  given
+  then it matches to whatever happens to be in the @ buffer  -  hopefully  the
+  parsed argument list from the last such search.
+  
+  In this context, a paragraph is any number of lines separated by blank lines
+  or lines containing only whitespace.
+  
+}}}
+{{{ FindInParaPrev
+2.3.14 FindInParaPrev
+--------------------
+> [<substring1>[ <substring2>[ <substring3>[ ...]]]{Esc - f p}
+  
+  Locates the previous paragraph containing  all  of  the  substrings  in  the
+  argument list.
+  
+  The argument list is parsed and held in buffer @. If no  argument  is  given
+  then it matches to whatever happens to be in the @ buffer  -  typically  the
+  parsed argument list from the last such search.
+  
+  In this context, a paragraph is any number of lines separated by blank lines
+  or lines containing only whitespace.
+  
+}}}
+{{{ FindSequence
+2.3.15 FindSequence
+------------------
+> [<string>]{Esc f s}
+  The  editor  will  search  for  the   sequence   of   words   ignoring   any
+  non-alphanumeric delimiters including line breaks. One or more words can  be
+  represented by the wildcard character ( * ). The argument list is parsed and
+  held in buffer @.
+  
+  If no argument is given then it matches to whatever happens to be in  the  @
+  buffer.
+  
+  This is function is useful for locating sequences of words after  they  have
+  been reformatted in some way, with wildcards it is also useful for  locating
+  expressions in programming code.
+  
+}}}
+{{{ FindSequencePrev
+2.3.16 FindSequencePrev
+----------------------
+> [<string>] {Esc - f s} 
+  Similar to FindPhrase except that it searches back towards the start of  the
+  file.
+  
+}}}
+{{{ FdInLineOrd
+2.3.17 FdInLineOrd
+------------------
+> [<substr1>[ <substr2>[ ... ]]{Esc f o}
+  This finds the next  occurrence  of  a  line  containing  that  sequence  of
+  substrings in the order specified.
+  
+}}}
+{{{ FdInLineOrdPrev
+2.3.18 FdInLineOrdPrev
+----------------------
+> [<substr1>[ <substr2>[ ... ]]{Esc - f o}
+  This finds the previous occurrence of a line  containing  that  sequence  of
+  substrings in the order specified.
+  
+}}}
+{{{ FdInLineUn
+2.3.19 FdInLineUn
+-----------------
+> [<substr1>[ <substr2>[ ... ]]{Esc f u}
+  Very similar to `FdInLineOrd` except that it matches to  a  line  containing
+  the substrings in any order.
+  
+}}}
+{{{ FdInLineUnPrev
+2.3.20 FdInLineUnPrev
+---------------------
+> [<substr1>[ <substr2>[ ... ]]{Esc - f u}
+  Very  similar  to  `FdInLineOrdPrev`  except  that  it  matches  to  a  line
+  containing the substrings in any order.
+  
+}}}
+{{{ Substitute
+2.3.21 Substitute
+-----------------
+> [<string>]{F5}
+  
+  Replaces currently-selected substring  with  the  specified  string,  if  no
+  string is specified then the last-substituted or inserted string is used.
+  
+}}}
+{{{ Remove
+2.3.22 Remove
+-------------
+> {Shift+F5}
+  
+  The previously-selected string  (following  a  find,  substitute  etc.),  is
+  removed altogether.
+  
+}}}
+{{{ SubstituteAgain
+2.3.23 SubstituteAgain
+----------------------
+> {Alt+F5}
+  
+  In insert mode, the Substitute function will always prompt  for  the  search
+  string. SubstituteAgain will  just  apply  the  last-used  substitute-string
+  parameter once again.
+  
+  This function is provided for the benefit of insert-mode users as it repeats
+  a substitution without re-prompting. It's entirely useless when  in  command
+  mode - where it is only necessary to dab F5 again to repeat the substitution
+  at some new location.
+  
+}}}
+{{{ Insert
+2.3.24 Insert
+-------------
+> [<string>]{F6}
+  
+  Inserts specified text at the current-character position, if  no  string  is
+  specified then the last-substituted or inserted string is used.
+  
+}}}
+{{{ Overwrite
+2.3.25 Overwrite
+----------------
+> [<string>]{Shift+F6}
+  
+  The characters under and to the right of the current cursor are replaced  by
+  the specified string. If no string is specified, then the last  string  used
+  in an insert or substitute operation is used.
+  
+  The overwrite function is useful when editing tabular data.
+  
+}}}
+{{{ InsertAgain
+2.3.26 InsertAgain
+------------------
+> {Alt+F6}
+  
+  In insert mode, the Insert  function  will  always  prompt  for  the  insert
+  string. InsertAgain will just apply the last-used insert-string once again.
+  
+  This function is provided for the benefit of insert-mode users as it repeats
+  an insert without re-prompting. It's entirely useless when in command mode -
+  where it is only necessary to dab F6 again to repeat the insert at some  new
+  location.
+  
+}}}
+{{{ InsertWithBackTick
+2.3.27 InsertWithBackTick
+-------------------------
+> [<String>]{Esc ’}
+  
+  The `Insert` function can insert any string that does not contain the  ASCII
+  backtick (or grave) character ( ’ ). That's because the Insert function uses
+  this character as a delimiter to introduce the user-specified  string.  This
+  is not usually a problem but, if it is, the InsertWithBackTick  function  is
+  designed to fill that gap.
+  
+  InsertWithBackTick inserts the specified string, appends a backtick and then
+  sets the substring to cover the string and backtick. If the optional  string
+  arg is omitted, it inserts only the backtick.
+  
+ Note:
+  This section may not display properly, even if it does,  sharp-eyed  readers
+  will have noticed backtick-like character used here is not a backtick (ASCII
+  code 96) but unicode left-single-quote character (UTF-8 code  E2,  80,  9C).
+  This is because backticks are reserved for the introduction of hyperlinks in
+  these documents.
+
+}}}
+}}}
+{{{ Text Document Preparation
+2.4 Text Document Preparation
+-----------------------------
+  The `doc.jot` script offers  a  suite  of  basic  text-document  preparation
+  functions. These functions perform simple  shifting  of  text  across  lines
+  while  preserving  indentation   and   for   inheriting   indentation   from
+  neighbouring lines.
+  
+{{{ Enter
+2.4.1 Enter
+------------
+> [<string>]{KP_Enter}
+  or
+> [<string>]{Esc e}
+  
+  The string is inserted as a  new  line  with  indent  level  inherited  from
+  previous line. If no string is given then creates a blank line at  the  same
+  indent level as the line above. This function only useful in command mode.
+  
+}}}
+{{{ AppendLeftPrev
+2.4.2 AppendLeftPrev
+---------------------
+> {Alt+F9}
+  
+  Appends text to the left of the current character to the end of the previous
+  line, preserving indentation of both lines.
+  
+}}}
+{{{ AppendRightNext
+2.4.3 AppendRightNext
+----------------------
+> {Alt+F10}
+  
+  Appends text under and to the right of the current character, to  the  start
+  of the next line, preserving the indentation of both lines.
+    
+}}}
+{{{ JoinLeftPrev
+2.4.4 JoinLeftPrev
+------------------
+> {Shift+Alt+F9}
+  
+  Joins  current  line  to  end  of  previous  line,   excluding   indentation
+  whitespace. It also adds a gratuitous blank if it deems this necessary.
+  
+}}}
+{{{ JoinRightNext
+2.4.5 JoinRightNext
+-------------------
+> {Shift+Alt+F10} 
+  
+  Joins current line to the start of  the  next  line,  excluding  indentation
+  whitespace. It also adds a gratuitous blank if it deems this necessary.
+  
+}}}
+{{{ IndentFromPrev
+2.4.6 IndentFromPrev
+---------------------
+> {Ctrl+Shift+F9}
+  
+  Removes all indentation blanks from the current line and replaces them  with
+  those from the previous line.
+   
+}}}
+{{{ IndentFromNext
+2.4.7 IndentFromNext
+---------------------
+> {Ctrl+Shift+F10}
+  
+  Removes all indentation blanks from the current line and replaces them  with
+  those from the next line.
+  
+}}}
+{{{ Break
+2.4.8 Break
+-----------
+> {Shift+F10}
+  
+  This breaks the current line at the current character position. Text to  the
+  right of the break ends up on the next line, this inherits indentation  from
+  the original line.
+  
+}}}
+{{{ Join
+2.4.9 Join
+----------
+> {Ctrl+F10}
+  
+   This joins the current  line  with  the  line  immediately  below  it.  Any
+   trailing whitespace and the original indentation whitespace are replaced by
+   a single space.
+
+}}}
+}}}
+{{{ Copy Paste and Related Functions
+2.5 Copy Paste and Related Functions
+------------------------------------
+  The mapping of functions to the mid  keypad  approximates  to  most  of  the
+  key-cap functions but not, perhaps, the meaning IBM originally intended.
+    - Delete and Insert become Cut and Paste respectively,
+    - End is the Note key and
+    - Page Up/Down work as advertised.
+    
+  Users lacking the mid keypad need not despair, for the benefit of  them  and
+  their tiny laptops, the cut and  paste  operations  are  also  available  on
+  function keys. Users lacking a mid keypad need not despair,  most  of  these
+  functions are also available as escape sequences.
+  
+{{{ Note
+2.5.1 Note
+----------
+> {Ctrl+Shift+F1}
+  or
+> {Home}
+  or
+> {Esc n o}
+  
+  The current character position is noted for a later cut or  copy  operation.
+  
+}}}
+{{{ Cut
+2.5.2 Cut
+---------
+> {Ctrl+Alt+F2}
+  or
+> {Delete}
+  or
+> {Esc c u}
+  
+  Text from the last-defined note point up to the current  character  position
+  is moved the paste buffer - this the the _ buffer in jot.
+  
+}}}
+{{{ Copy
+2.5.3 Copy
+----------
+> {Ctrl+Shift+F3}
+  or
+> {End}
+  or
+> {Esc c o}
+  
+  Text from the last-defined note point up to the current  character  position
+  is copied to the paste buffer. This  operation  is  permitted  for  Readonly
+  buffers - see `%b=readonly` where the `Cut` operation is guaranteed to fail.
+    
+}}}
+{{{ Paste
+2.5.4 Paste
+-----------
+> {Ctrl+Shift+F4}
+  or
+> {Insert}
+  or
+> {Esc p t}
+  
+  The contents of the paste buffer is inserted into the text  at  the  current
+  character position.
+   
+}}}
+{{{ CumulativeCopy
+2.5.5 CumulativeCopy
+--------------------
+> {Shift+Alt+F3}
+  or
+> {Shift+End}
+  
+  Text from the last-defined note point up to the current  character  position
+  is appended to the end of the paste buffer. This operation is permitted  for
+  Readonly buffers (see `%b=readonly`). If no note point  was  set,  then  the
+  complete line is copied to the paste buffer.
+  
+}}}
+{{{ CutTabular
+2.5.6 CutTabular
+----------------
+> {Ctrl+Shift+Alt+F2}
+  or
+> {Ctrl+Delete}
+  
+  CutTabular removes the selected text to the paste buffer  but  the  text  is
+  replaced by blanks.  The  intention  is  to  preserve  the  structure  of  a
+  whitespace-separated table.
+  
+}}}
+{{{ CumulativeCut
+2.5.7 CumulativeCut
+-------------------
+> {Shift+Alt+F2}
+  or
+> {Shift+Delete}
+  
+  The CumulativeCut function removes the selected text, appending  it  to  the
+  end of the paste buffer.
+  
+}}}
+{{{ PasteOver
+2.5.8 PasteOver
+---------------
+> {Shift+Alt+F4}
+  or
+> {Ctrl+Insert}
+  
+  The contents of the paste buffer are written over the text to the  right  of
+  the cursor. If the paste  buffer  contains  more  than  one  line  of  text,
+  subsequent lines overwrite from the first character.
+  
+}}}
+{{{ CutRectangle
+2.5.9 CutRectangle
+------------------
+> {Shift+Alt+F2}
+  or
+> {Alt+Delete}
+  or
+> {Esc c r}
+  
+  First go to the top left corner of the rectangle and note the position  with
+  `Note`, then move the cursor to the bottom-right corner of the rectangle and
+  apply `CutRectangle`. The text is removed and replaced by blanks leaving the
+  current character at the original note point (the top-left corner of the cut
+  text).
+  
+  To restore  the  text  at  it's  original  position  apply  `PasteRectangle`
+  immediately after CutRectangle.
+  
+}}}
+{{{ PasteRectangle
+2.5.10 PasteRectangle
+--------------------
+> {Ctrl+Shift+Alt+F4}
+  or
+> {Alt+Insert}
+  or
+> {Esc p r}
+  
+  The paste buffer is assumed to contain some graphical or tabular text  (i.e.
+  some lines of text where both  the  horizontal  and  vertical  placement  of
+  characters is significant). The picture is inserted at the current character
+  position and in the same column of succeeding lines, text to  the  right  of
+  the inserted  block  retains  it's  original  position.  The  `CutRectangle`
+  function can be used to extract the block of text.
+
+}}}
+}}}
+{{{ Do Functions
+2.6 Do Functions
+----------------
+  This group of functions is about running jot command files. 
+  
+{{{ Do
+2.6.1 Do
+--------
+> [<pathName>]{F2}
+  
+  Run a command file. The default path is your current working  directory,  if
+  the  named  file  does  not  exist  there  then  it  searches  for   it   in
+  ${JOT_HOME}/coms, the default file extension is .jot
+     
+}}}
+{{{ ScriptByName
+2.6.2 ScriptByName
+------------------
+> [<string>]{Shift+F2}
+  
+  Searches all scripts in ${JOT_HOME}/coms and your pwd for those  with  names
+  matching the string. If no string given then lists  all  scripts  with  .jot
+  name extension.
+  
+}}}
+{{{ ScriptByFunc
+2.6.3 ScriptByFunc
+------------------
+> [<string>]{Shift+F2}
+  
+  Searches the first-line comments of all scripts in ${JOT_HOME}/coms and your
+  pwd for those with functions matching the string. If no  string  given  then
+  lists all scripts with .jot name extension and their first lines.
+
+}}}
+}}}
+{{{ Matching Functions
+2.7 Matching Functions
+----------------------
+  The simplest of these are simply to navigate to the  start  or  end  of  the
+  current paragraph  or  code  section.  Others  are  about  finding  matching
+  brackets of various kinds. e.g. Finding the closing  ')'  matching  the  '('
+  under the cursor.
+  
+{{{ ParagraphUp
+2.7.1 ParagraphUp
+-----------------
+> {F3}
+  Searches for the previous paragraph start  i.e.  a  block  of  text  with  a
+  totally blank line above it - it passes by lines containing only whitespace.
+    
+}}}
+{{{ ParagraphDown
+2.7.2 ParagraphDown
+-------------------
+> {F4}
+  Searches down the text for the next paragraph start - i.e. a block  of  text
+  preceeded by a completely blank line - it passes by  lines  containing  only
+  whitespace.
+     
+}}}
+{{{ CodeSectionUp
+2.7.3 CodeSectionUp
+-------------------
+> {Shift+F3}
+  Searches back up the text for the start  of  the  next  code  section.  Code
+  sections begin with a non-whitespace character in column 1.
+     
+}}}
+{{{ CodeSectionDown
+2.7.4 CodeSectionDown
+---------------------
+> {Shift+F4}
+  Searches down the text for the next code section - code sections begin  with
+  a non-whitespace character in column 1.
+     
+}}}
+{{{ IndentMatchUp
+2.7.5 IndentMatchUp
+-------------------
+> {Ctrl+F3}
+   
+  Searches back up the text for the previous line at the same indent level  as
+  the current line. Initially the cursor may  be  anywhere  in  the  line,  on
+  completion it is left on the first non-blank character of the line.
+   
+}}}
+{{{ IndentMatchDown
+2.7.6 IndentMatchDown
+---------------------
+> {Ctrl+F4}
+   
+  Searches forwards in the text for the next  line  at  the  same  indentation
+  level as the current line. Initially the cursor may be anywhere in the line,
+  on completion it is left on the first non-blank character of the line.
+  
+}}}
+{{{ ParenMatchLeft
+2.7.7 ParenMatchLeft
+--------------------
+> {Shift+Alt+F5}
+   
+  If the cursor is above a parenthesis close character ')', then the cursor is
+  moved to the corresponding parenthesis open. This  works  by  plodding  back
+  through the text, counting  open  and  close  braces  (  and  ),  until  the
+  corresponding parenthesis-open character is found.
+  
+  If the cursor is not above a parenthesis-close character, then the buffer is
+  searched back to find the previous parenthesis close and the cursor moved to
+  the corresponding parenthesis open.
+  
+}}}
+{{{ ParenMatchRight
+2.7.8 ParenMatchRight
+---------------------
+> {Shift+Alt+F6}
+   
+  If cursor is above a parenthesis open '(' character, then cursor is moved to
+  the corresponding parenthesis close ')'. This  works  by  plodding  forwards
+  through the text, counting  open  and  close  braces  (  and  ),  until  the
+  corresponding parenthesis-close character is found.
+  
+  If the current character is not above a parenthesis-open character, then  it
+  searches forwards for one and then finds the corresponding parenthesis close
+  character.
+   
+}}}
+{{{ CurlyMatchLeft
+2.7.9 CurlyMatchLeft
+--------------------
+> {Ctrl+Shift+Alt+F5}
+   
+  Similar to <<ParenMatchLeft>>, above, except matches { and }.
+  
+  Note, if intending to traverse C code, `c.jot` is preferable as this  script
+  will ignore any curly brackets in comments and strings.
+   
+}}}
+{{{ CurlyMatchRight
+2.7.10 CurlyMatchRight
+----------------------
+> {Ctrl+Shift+Alt+F6}
+   
+  Similar to <<ParenMatchRight>>, above, except matches { and }.
+  
+  Note, if intending to traverse C code, `c.jot` is preferable as this  script
+  will ignore any curly brackets in comments and strings.
+   
+}}}
+{{{ AngleMatchLeft
+2.7.11 AngleMatchLeft
+---------------------
+> {Ctrl+Shift+F5}
+  
+  Similar to <<ParenMatchLeft>>, above, except matches < and >.
+     
+}}}
+{{{ AngleMatchRight
+2.7.12 AngleMatchRight
+----------------------
+> {Ctrl+Shift+F6}
+  
+  Similar to <<ParenMatchRight>>, above, except matches < and >.
+   
+}}}
+{{{ MarkupMatchLeft
+2.7.13 MarkupMatchLeft
+----------------------
+> {Alt+F5}
+  
+  This is for use with HTML and XML. MarkupMatchLeft, working  back  from  the
+  current cursor position, first locates the previous "</" string - indicating
+  a block end in HTML and XML. It then picks up the block-type tag  and  finds
+  the corresponding block-start.
+   
+}}}
+{{{ MarkupMatchRight
+2.7.14 MarkupMatchRight
+-----------------------
+> {Alt+F6}
+  
+  This is for use with HTML and XML. MarkupMatchRight, working  forwards  from
+  the current cursor position, it first  locates  the  next  "<"  character  -
+  indicating a block start in HTML and XML. It then picks  up  the  block-type
+  tag and finds the corresponding block-end.
+
+}}}
+}}}
+{{{ The Cursor-control keys
+2.8 The Cursor-control keys
+---------------------------
+  In addition to navigating around the text,  there  are  also  functions  for
+  adjusting the view.
+  
+{{{ Up
+2.8.1 Up
+---------
+> [<n>]{UpArrow}
+  
+  Move up by n lines (defaults to 1) - the current line  becomes  the  line  n
+  lines above original current  line,  the  current  character  is  the  first
+  character.
+    
+}}}
+{{{ WordUp
+2.8.2 WordUp
+------------
+> {Shift+UpArrow}
+  
+  Moves up one column, for tab-separated tabular text, this moves to the  cell
+  immediately above the currently-selected cell, for normal text it  moves  up
+  in a column - see `NewWordUp`. If that line has insufficient characters then
+  the cursor is left at the end of the line (but see `UpRegardless`).
+
+   
+}}}
+{{{ NewWordUp
+2.8.3 NewWordUp
+--------------
+> {Ctrl+UpArrow}
+  
+  Sets the column for the `WordUp` function, subsequent invocations of  WordUp
+  will attempt to stay in the same column as the current character -  see  the
+  `Y` command.
+  
+}}}
+{{{ Home
+2.8.4 Home
+----------
+  Not currently assigned to any key.
+  
+  The current line is set to the first line in the file, the current character
+  is the first character of the line.
+  
+}}}
+{{{ ViewUp
+2.8.5 ViewUp
+------------
+> [<n>]{Ctrl+Shift+UpArrow}
+  
+  Shifts the view up by n lines (defaults to 1) without changing  the  current
+  line, character or selected substring.
+  
+}}}
+{{{ Down
+2.8.6 Down
+----------
+> [<n>]{DownArrow}
+  
+  Move down by n (defaults to 1) lines - the current line pointer  is  shifted
+  down, the current character becomes the first character of the new line.
+    
+}}}
+{{{ WordDown
+2.8.7 WordDown
+--------------
+> {Shift+DownArrow}
+  
+  Attempts to move down one column, for tab-separated tabular text, this moves
+  to the cell immediately below the currently-selected cell, for  normal  text
+  it moves down in a  column  -  see  `NewWordDown`.  If  the  next  line  has
+  insufficient characters then the cursor is left at the end of the line  (but
+  see `DownRegardless`).
+  
+}}}
+{{{ NewWordDown
+2.8.8 NewWordDown
+-----------------
+> {Ctrl+DownArrow}
+  
+  Sets the column for  the  `WordDown`  function,  subsequent  invocations  of
+  WordDown will attempt to stay in the same column as the current character  -
+  see the `Y` command.
+  
+}}}
+{{{ End
+2.8.9 End
+----------
+  Not currently assigned to any key.
+  
+  The view is change to the last page in the file, the  current  line  is  the
+  last line of the buffer, the current character becomes the  first  character
+  of this line.
+    
+}}}
+{{{ ViewDown
+2.8.10 ViewDown
+---------------
+> [<n>]{Ctrl+Shift+DownArrow}
+  
+  Shifts the view down by n lines (defaults to 1) without changing the current
+  line, character or selected substring.
+    
+}}}
+{{{ Left
+2.8.11 Left
+-----------
+> [<n>]{LeftArrow}
+  or
+> [<n>]{Ctrl+KP_4}
+  or
+> {Esc m w}
+  
+  Move the cursor n (defaults to 1) characters left of it's original position.
+  
+  The same function is attached to {Ctrl+KP_4} and {Esc m w}  for  consistency
+  and for the benefit of those navigating a line drawing. It's easier to  hold
+  the Ctrl key down while using the other line-drawing navigation functions on
+  {Ctrl+KP_2}, {Ctrl+KP_8} and {Ctrl+KP_6}
+  
+}}}
+{{{ WordLeft
+2.8.12 WordLeft
+---------------
+> [<n>]{Shift+LeftArrow}
+  
+  For tabular text, i.e. the current line contains Tab characters, this  moves
+  the cursor to the cell left of the current cell and, if  necessary,  adjusts
+  leftoffset to bring all of the cell into view.
+   
+  For non-tabular text, this moves the cursor to the start of  previous  word.
+  If the cursor is not currently above a word the cursor moves to the start of
+  the current word.
+   
+  If n is given the process is repeated that many times.
+   
+}}}
+{{{ LineLeft
+2.8.13 LineLeft
+---------------
+> {Ctrl+LeftArrow})
+  
+  Moves to the start of the current line, if already  at  the  start  of  line
+  moves to the start of the previous line.
+  
+}}}
+{{{ Right
+2.8.14 Right
+------------
+> [<n>]{RightArrow}
+  
+  Move the cursor  n  (defaults  to  1)  characters  right  of  it's  original
+  position.
+   
+}}}
+{{{ WordRight
+2.8.15 WordRight
+----------------
+> [<n>]{Shift+RightArrow}
+  
+  For tabular text, i.e. the current line contains Tab characters, this  moves
+  the cursor to the cell right of the current cell and, if necessary,  adjusts
+  leftoffset to bring all of the cell into view.
+   
+  For non-tabular text, this moves the cursor to the start of  next  word.  If
+  the cursor is not currently above a word the cursor moves to  the  start  of
+  the current word.
+   
+  If n is given the process is repeated that many times.
+   
+}}}
+{{{ LineRight
+2.8.16 LineRight
+----------------
+> [<n>]{Ctrl+RightArrow}
+  
+  Moves to the end of the current line, if already at the end  of  a  line  it
+  move to the end of the next line.
+  
+}}}
+{{{ PageUp
+2.8.17 PageUp
+-------------
+> [<n>]{PageUp}
+  or
+> [<n>]{Page Up}
+  
+  The view changed to show the page above  the  previously-displayed  page  of
+  text, the current-line is changed according to the current window  size  and
+  the character pointer is set to the first character of the new line.
+  
+}}}
+{{{ PageDown
+2.8.18 PageDown
+---------------
+> [<n>]{Page Down}
+  
+  The view is changed to the page below the current page.
+    
+}}}
+{{{ GotoFoldStart
+2.8.19 GotoFoldStart
+--------------------
+  Not currently assigned to any key.
+  
+  Find matching fold-start. In a file with fold marks, when  at  a  fold  end,
+  this will search back for the corresponding fold start.
+  
+}}}
+{{{ GotoFoldEnd
+2.8.20 GotoFoldEnd
+------------------
+  Not currently assigned to any key.
+  
+  Find matching fold end. In a file with { { { and } } } fold marks, when at a
+  fold start, this will search for the corresponding fold end.
+
+}}}
+}}}
+{{{ Macros 0-to-9
+2.9 Macros 0-to-9
+-----------------                    
+  For users with no numeric keypad, typically those with  small  laptops,  the
+  basic functions 0-9 are  obtained  using  Escape  then  a  numeric  key  the
+  appropriate numeric key - e.g. for Macro 8 - hit the escape key followed  by
+  the 8 key - denoted by {Esc 8}.
+   
+  In windows, each key on the numeric keypad is uniquely identifiable by  it's
+  keycode. In linux/curses the keys map  to  identical  codes  to  the  normal
+  numeric keys or to those on the mid keypad according to the state of NumLock
+  see `X-windows setup`).
+
+}}}
+{{{ Line-drawing Functions
+2.10 Line-drawing Functions
+--------------------------
+  The following line-drawing functions are provided. Many are  driven  by  the
+  numeric keypad, unix users will have  to  set  these  up  -  see  `X-windows
+  setup`. 
+  
+  See `Graphical text - 1` ...
+  
+{{{ UpRegardless
+2.10.1 UpRegardless
+-------------------
+> {Ctrl+KP_8}
+  or
+> {Esc m n}
+  
+  This is intended for line-drawings. When editing these it is essential that,
+  as the cursor moves up or down, it remains  in  the  same  column.  This  is
+  achieve by adding extra whitespace to the end of lines too short to maintain
+  the cursor position.
+  
+  Also, if the original line was the first line in the  buffer,  a  new  blank
+  line is inserted and populated with whitespace.
+  
+}}}
+{{{ DownRegardless
+2.10.2 DownRegardless
+---------------------
+> {Ctrl+KP_2}
+  or
+> {Esc m s}
+  
+  This is intended for navigating around line-drawings. When editing these  it
+  is essential that, as the cursor moves up or down, it remains  in  the  same
+  column. This is achieve by adding extra whitespace to the end of  lines  too
+  short to maintain the cursor position.
+  
+  Also, if the original line was the last line in the buffer, a new blank line
+  is inserted and populated with whitespace.
+  
+}}}
+{{{ RightRegardless
+2.10.3 RightRegardless
+----------------------
+> [<n>]{Ctrl+KP_6}
+  or
+> {Esc m e}
+  
+  Moves the cursor one character to the right, if the cursor is already at the
+  end of a line  then  inserts  one  blank.  This  behaviour  is  designed  to
+  facilitate navigation around line drawings - see also <<`UpRegardless`>> and
+  <<`DownRegardless`>>.
+  
+}}}
+{{{ LineNW
+2.10.4 LineNW
+-------------
+> [<string>]{Ctrl+Alt+KP_7}
+  or
+> [<string>]{Esc \ u}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a north-westerly direction. If <string> is unspecified,  draws  a  single
+  backslash ( \ ).
+  
+  As with other drawing functions, <<LineNW>> always  creates  new  lines  and
+  inserts padding whitespace where necessary but will fail when the cursor  is
+  in column 1 (the first character of a line).
+  
+}}}
+{{{ LineN
+2.10.5 LineN
+------------
+> [<string>]{Ctrl+Alt+KP_8}
+  or
+> [<string>]{Esc l n}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a northerly  direction.  If  <string>  is  unspecified,  draws  a  single
+  vertical bar ( | ).
+  
+}}}
+{{{ LineNE
+2.10.6 LineNE
+-------------
+> [<string>]{Ctrl+Alt+KP_9}
+  or
+> [<string>]{Esc / u}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a north-easterly direction. If <string> is unspecified,  draws  a  single
+  slash ( / ).
+  
+}}}
+{{{ LineE
+2.10.7 LineE
+------------
+> [<string>]{Ctrl+Alt+KP_4}
+  or
+> [<string>]{Esc l e}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a easterly direction. If <string> is unspecified, draws a single hyphen (
+  - ).
+  
+}}}
+{{{ LineW
+2.10.8 LineW
+------------
+> [<string>]{Ctrl+Alt+KP_6}
+  or
+> [<string>]{Esc l w}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a westerly direction. If <string> is unspecified, draws a single hyphen (
+  - ).
+  
+}}}
+{{{ LineSW
+2.10.9 LineSW
+-------------
+> [<string>]{Ctrl+Alt+KP_1}
+  or
+> [<string>]{Esc / d}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a south-easterly direction. If <string> is unspecified,  draws  a  single
+  slash ( / ).
+  
+  As with other drawing functions, <<LineSW>> always  creates  new  lines  and
+  inserts padding whitespace where necessary but will fail when the cursor  is
+  in column 1 (the first character of a line).
+  
+}}}
+{{{ LineS
+2.10.10 LineS
+-------------
+> [<string>]{Ctrl+Alt+KP_2}
+  or
+> [<string>]{Esc l s}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a southerly  direction.  If  <string>  is  unspecified,  draws  a  single
+  backslash ( \ ).
+  
+}}}
+{{{ LineSE
+2.10.11 LineSE
+--------------
+> [<string>]{Ctrl+Alt+KP_3}
+  or
+> [<string>]{Esc \ d}
+  
+  A line-drawing function. Draws string, from the  current-character  position
+  in a south-easterly direction. If <string> is unspecified,  draws  a  single
+  backslash ( \ ).
+  
+}}}
+{{{ DSLineNW
+2.10.12 DSLineNW
+----------------
+> [<string>]{Esc \ n}
+  
+  A line-drawing function similar to  LineNE  except  that  it  inserts  extra
+  whitespace to draw at something like 45deg - the  actual  angle  depends  on
+  your font size.
+  
+}}}
+{{{ DSLineSE
+2.10.13 DSLineSE
+----------------
+> [<string>]{Esc \ s}
+  
+  A line-drawing function similar to  LineSE  except  that  it  inserts  extra
+  whitespace to draw at something like 45deg - the  actual  angle  depends  on
+  your font size.
+  
+}}}
+{{{ DSLineSW
+2.10.14 DSLineSW
+---------------
+> [<string>]{Esc / s}
+  
+  A line-drawing function similar to  LineSE  except  that  it  inserts  extra
+  whitespace to draw at something like 45deg - the  actual  angle  depends  on
+  your font size.
+  
+}}}
+{{{ DSLineNE
+2.10.15 DSLineNE
+----------------
+> [<string>]{Esc / n}
+  
+  A line-drawing function similar to  LineNE  except  that  it  inserts  extra
+  whitespace to draw at something like 45deg - the  actual  angle  depends  on
+  your font size.
+  
+}}}
+{{{ Box
+2.10.16 Box
+-----------
+> [<width> <height>]{Esc b x}
+  
+  This draws a box, using hyphens ( - ) and vertical bars  (  |  ),  with  the
+  top-left corner of the box at the current cursor position. If the dimensions
+  are not specified, the box size defaults to 10 characters wide  by  5  lines
+  high.
+  
+}}}
+{{{ Lozenge
+2.10.17 Lozenge
+---------------
+> [<size>]{Esc z 1}
+  
+  This draws a lozenge shape using slashes ( / ) and backslashes (  \  ).  The
+  size is the number of slashes down any side, and defaults to 5.
+  
+}}}
+{{{ DSLozenge
+2.10.18 DSLozenge
+-----------------
+> [<size>]{Esc z2}
+  Similar to the `Lozenge` function except that it uses double-spacing.
+  
+}}}
+{{{ BoxText
+2.10.19 BoxText
+---------------
+> <string>{Ctrl+Alt+KP_5}
+  or
+> <string>{Esc b t}
+  
+  This inserts text into an area bounded my line drawn with  Hyphens  (  -  ),
+  Vertical bars ( | ), or slashes ( / and \ ). It is intended to simplify  the
+  process of labelling boxes where the label requires more than  one  line  in
+  the box.
+
+}}}
+}}}
+{{{ Housekeeping Functions
+2.11 Housekeeping Functions
+---------------------------
+{{{ Again
+2.11.1 Again
+------------
+> [<n>]{F10}
+  
+  Repeats last command or hotkey once by default or n times if n is  specified
+  if n is zero then the command is repeated to exhaustion.
+  
+}}}
+{{{ InsertMode
+2.11.2 InsertMode
+----------------
+> {Esc I n}
+  
+  Enters insert mode, mode persists until {Ctrl+c} or next {Esc I n}.
+  
+}}}
+{{{ TempInsertMode
+2.11.3 TempInsertMode
+--------------------
+> {Esc i n}
+  Temporarily enters insert mode, mode persists until next escape-sequence  or
+  function-key operation.
+  
+}}}
+{{{ QuitDebugger
+2.11.4 QuitDebugger
+------------------
+> {Esc q}
+  
+  Exits the debugger prompt loop and continues to the next `T` command  -  see
+  also `About jot debugging`.
+  
+}}}
+{{{ CmdEditStart
+2.11.5 CmdEditStart
+-------------------
+> {Esc c e}
+  
+  Switches from your current view to a list of  recent  commands  followed  by
+  whatever you might have been typing to the console. By default only the last
+  20 commands are  saved  this  limit  can  be  changed  with  the  `-History`
+  command-line qualifier. 
+  
+  Select one of these command lines for re-execution  by  placing  the  cursor
+  anywhere in the line and invoking `CmdEditGo`. The line  can  be  edited  if
+  necessary using normal editing functions - see `about command editing`.
+   
+}}}
+{{{ CmdEditGo
+2.11.6 CmdEditGo
+----------------
+> {Esc c g}
+  
+  Returns from the command-edit screen (see `CmdEditStart`) to  your  original
+  context and leaves the selected command string in the console - (see  `about
+  command editing`).
+  
+}}}
+{{{ CmdString
+2.11.7 CmdString
+----------------
+> <JotCommandString>{Esc c s}
+  
+  This is only useful when the editor is being used in insert mode. It  offers
+  a route for manually-entered commands. In insert mode the escape sequence is
+  typed in first, then the command string is entered in response to a prompt -
+  see `about command parameters`.
+  
+}}}
+{{{ ViewLeft
+2.11.8 ViewLeft
+---------------
+> [<n>]{Ctrl+Shift+LeftArrow}
+  
+  Shifts the buffer view n columns leftwards, n defaults to 1.
+   
+}}}
+{{{ ViewRight
+2.11.9 ViewRight
+----------------
+> [<n>]{Ctrl+Shift+RightArrow}
+  
+  Shifts the buffer view n columns rightwards, n defaults to 1.
+  
+}}}
+{{{ WindowOne
+2.11.10 WindowOne
+----------------
+> {Esc w 1}
+  
+  Restores display to a simple window showing current buffer.
+  
+  Window height is calculated so as to leave 4 lines for the console  display.
+  The size of the window can be adjusted using the `WindowShrink` function, to
+  increase the size of the console area  at  the  expense  of  the  window  or
+  `WindowStretch` function, to increase the size of the window at the  expense
+  of the console.
+  
+  See also `WindowHorizSplit` and `WindowVertSplit` functions.
+  
+}}}
+{{{ WindowHorizSplit
+2.11.11 WindowHorizSplit
+------------------------
+> {Esc w h}
+  
+  Horizontal split display to one more window than is currently on display.
+  
+  This function counts the total number of windows <n> currently displayed  on
+  screen, irrespective of  their  current  configuration,  and  redefines  the
+  windows as <n+1> horizontal strips, leaving a 1-line console area. The  size
+  of a window can be adjusted using `WindowShrink` and `WindowStretch` -  note
+  the optional window-selection argument to these functions.
+  
+  The new-window focus is initially set to the current buffer -  this  may  be
+  displayed by some other window. Any focus-change operation (`Z`, `%I`,  `%Q`
+  etc. ) will affect the bottom window on the display.
+   
+  See also `WindowOne` and `WindowVertSplit` functions.
+  
+}}}
+{{{ WindowVertSplit
+2.11.12 WindowVertSplit
+-----------------------
+> {Esc w v}
+  
+  Vertical split of the display terminal into one more window slices  than  is
+  currently on display.
+  
+  This function counts the total number of windows <n> currently displayed  on
+  screen, irrespective of their current configuration, and creates slices  the
+  whole screen into <n+1> vertical slices. The slice width  is  calculated  to
+  give the correct number of equal-width slices. The width of the slice can be
+  adjusted using the `WindowShrink` and `WindowStretch` functions -  note  the
+  optional window-selection argument to these functions. The slice-heights are
+  designed to give a 1-line console area.
+  
+  Window height is calculated so as to leave 4 lines for the console  display.
+  To change the height of all slices in the slice group you must specify a new
+  height for the first (leftmost) slice in the group - see  `%W`  -  typically
+  this will be window 0, In this case, the command to change the height  would
+  be:
+> %w= -winno=0 -height=<newHeight>;
+  
+  See also `WindowOne` and `WindowHorizSplit` functions.
+  
+}}}
+{{{ WindowAlignTop
+2.11.13 WindowAlignTop
+----------------------
+> {Esc w t}
+  
+   Adjusts view to bring the current line to the top of the viewing window.
+  
+}}}
+{{{ WindowAlignCent
+2.11.14 WindowAlignCent
+-----------------------
+> {Esc w c}
+  
+   Adjusts view to bring the current line to the centre of the viewing window.
+   If the current character is not visible (ie. outside the window's left  and
+   right margins - see `about long lines`) then the left offset is adjusted to
+   bring the current character into view.
+  
+}}}
+{{{ WindowAlignBot
+2.11.15 WindowAlignBot
+----------------------
+> {Esc w b}
+  
+   Adjusts view to bring the current line to the bottom of the viewing window.
+  
+}}}
+{{{ WindowShrink
+2.11.16 WindowShrink
+-------------------
+> [<winno>]{Ctrl+Alt+UpArrow}
+  or
+> [<winno>]{Esc w -}
+  
+  Reduces the height of the specified [or current] window by 1 line. If the  window  ends  up
+  with a width of 0 or less, then the window is deleted.
+   
+  Normally there will be only one window, where there is more than one  window
+  and no window number is specified  then  the  first  window  displaying  the
+  current buffer is shrunk. Note that slices (vertically split screens) it  is
+  the width of the specified slice that is adjusted.
+  
+  See also `WindowStretch`.
+   
+}}}
+{{{ WindowStretch
+2.11.17 WindowStretch
+--------------------
+> [<winno>]{Ctrl+Alt+DownArrow}
+  or
+> [<winno>]{Esc w +}
+  
+  Increases the height of the specified [or current] window by 1 line.
+   
+  Normally there will be only one window, where there is more than one  window
+  and no window number is specified  then  the  first  window  displaying  the
+  current buffer is stretched. Note that slices (vertically split screens)  it
+  is the width of the specified slice that is adjusted.
+  
+  See also `WindowShrink`.
+  
+}}}
+{{{ WindowDown
+2.11.18 WindowDown
+------------------
+> {Esc w d}
+  
+   Shifts focus to the next window - windows are  ordered  left-to-right  then
+   top-to-bottom as they appear on the screen. If the current focus is already
+   in the last (rightmost, bottommost) window, then focus is switched  to  the
+   first (topmost and leftmost) window.
+  
+}}}
+{{{ WindowUp
+2.11.19 WindowUp
+----------------
+> {Esc w u}
+  
+  Essentially the same as `WindowDown`, above, except that  it  moves  through
+  the windows from right-to-left and from bottom-to-top.
+  
+}}}
+{{{ WindowReassign
+2.11.20 WindowReassign
+----------------------
+> <windowNo>[ <bufferKey>]{Esc w r}
+  
+  Changes the buffer binding for the specified window.  If  a  buffer  key  is
+  given then the window is bound to that buffer otherwise, the window  is  set
+  to be floating - it displays whatever happens to be the current buffer.
+  
+}}}
+{{{ ViewSave
+2.11.21 ViewSave
+----------------
+> [<viewName>]{Esc v s}  
+  
+  This function  sets  up  a  jump  object  and  a  data  object  (see  `about
+  hashtables`)  named  ViewJump_<viewName>  and  ViewJump_FirstLine_<viewName>
+  respectively in the code repository hashtable. Where <viewName> is the given
+  viewname - this name, rather imaginatively, defaults to "default". The  view
+  can be restored using the `ViewRestore` function.
+  
+  In the event of a non-unique viewname, the new view  replaces  the  original
+  view.
+  
+  Many different views can be held by assigning each a unique name, the actual
+  limit is set by the total capacity  of  the  code-repository-buffer  (  '  )
+  hashtable, normally set to 1000,  of  which  about  200  are  used  for  the
+  function names. View names may be of any length.
+  
+}}}
+{{{ ViewRestore
+2.11.22 ViewRestore
+-------------------
+> [<viewName>]{Esc v r}  
+  
+  This function  restores  a  previously-saved  view  answering  to  the  name
+  <viewName>, as with `ViewSave` the default view name is "default".
+  
+}}}
+{{{ AddNewFunctions
+2.11.23 AddNewFunctions
+-----------------------
+> %h'=call AddNewFunctions;
+  
+  This function is used by jot scripts  to  add  new  functions  to  the  code
+  repository. It assumes that the new functions have been  defined  in  the  @
+  buffer, it appends the contents of @ to the code repository  and  makes  the
+  correct hash-table entries.
+  
+  For an example of usage look at ${JOT_HOME}/coms/get.jot.
+
+}}}
+}}}
+{{{ Mouse-Event Bindings
+2.12 Mouse-Event Bindings
+-------------------------
+  In Linux, where X-windows  provides  useful  mouse  functions,  mouse-button
+  events are all ignored by jot allowing them to be picked up by X-windows. In
+  Windows, which has virtually no  useful  mouse  actions,  all  normal  mouse
+  events are picked up by jot. This behaviour is defined in the startup script
+  (see `startup.jot`) and can be changed by adopting a custom startup script.
+  
+{{{ NoteFromMouse
+2.12.1 NoteFromMouse
+-------------------
+> {Button2Down} ({Button1Down} in windows).
+  
+  This picks up and notes the the coordinates of the button-press and  sets  a
+  note point there.
+  
+}}}
+{{{ CopyFromMouse
+2.12.2 CopyFromMouse
+-------------------
+> {Button2Up} ({Button1Up} in windows).
+  
+  The note point is assumed to have been set by  the  Button-down  event  (see
+  `NoteFromMouse`).This  picks  up  and   notes   the   coordinates   of   the
+  button-release and abstracts from the current note  point  to  the  position
+  indicated by the mouse at Button-Up time.
+  
+}}}
+{{{ FocusToMouse
+2.12.3 FocusToMouse
+------------------
+> {Button2DoubleClick}
+  
+  This picks up and notes the coordinates of the  button-press  and  sets  the
+  editor focus point to the position indicated.
+  
+}}}
+{{{ InsertHereMouse
+2.12.4 InsertHereMouse
+---------------------
+> {Button3Click}
+  
+  This picks up and notes the the coordinates of the button-press and  inserts
+  the contents of the _ buffer there.
+
+}}}
+}}}
+{{{ Mouse-Event Bindings - Windows
+2.13 Mouse-Event Bindings - Windows
+-----------------------------------
+  One of the many crosses born by windows users is the lack  of  useful  mouse
+  actions. Especially selections and most particularly  in  windows  consoles.
+  The functions described below are not anything like as useful  as  X-windows
+  selections but there we are ... any port in a storm.
+  
+{{{ SelectionStart
+2.13.1 SelectionStart
+---------------------
+> {Button1Down}
+  
+  The mouse cursor position is noted - the real  action  takes  place  as  the
+  button is released.
+  
+}}}
+{{{ SelectionEnd
+2.13.2 SelectionEnd
+-------------------
+> {Button1Up}
+  
+  The new mouse cursor position is noted and, if it is on the same line as for
+  the {Button1Down} event the text between the  two  points  is  copied  to  a
+  selection buffer without affecting the editors cursor.
+  
+}}}
+{{{ SelectionFree
+2.13.3 SelectionFree
+--------------------
+> {Button1Click}
+  
+  Any text in the selection buffer is deleted.
+  
+}}}
+{{{ SelectionWord
+2.13.4 SelectionWord
+--------------------
+> {Button1DoubleClick}
+  
+  The mouse-cursor position is noted and, if it corresponds to a word  in  the
+  text, then that word is copied to the selection buffer. In  this  context  a
+  word is deemed to be any string consisting  of  alphanumeric  characters  or
+  underscores.
+  
+}}}
+{{{ SelectionPut
+2.13.5 SelectionPut
+-------------------
+> {Button2Click}
+  
+  The position of  the  mouse  cursor  is  irrelevant,  the  contents  of  the
+  selection buffer is dumped into the command line.
+
+}}}
+}}}
+{{{ The popup-menu functions
+2.14 The popup-menu functions
+-----------------------------
+  The  startup  script  defines  `PopupSearch`  and`PopupIncrementalSearch`  -
+  functions that search and list matching words in the popup menu.  The  popup
+  can be driven by other scripts  (eg  `doc.jot`  -  which  uses  it  to  pass
+  spelling corrections suggested by Aspell). See also `Using the  popup  menu`
+  for a quick tutorial on the popup.
+  
+  Clicking on a  popup-menu  item  launches  "PopupMouseSelect"  -  the  popup
+  callback function which pushes the selected item back into the console  area
+  where it can be used as a parameter to any jot function that takes a  string
+  argument. It also clears the popup from the screen to get it back again call
+  PopupRestore.
+  
+  The two search functions  "PopupSearch"  and  "PopupIncrementalSearch"  both
+  search the current buffer in different ways and report their results in  the
+  form of a popup menu. various functions defined by the `doc.jot` script also
+  handle popup menus.
+    
+  In the event of the popup menu being  longer  than  the  popup  window,  two
+  popup-scrolling functions are provided `PopupPageUp` and `PopupPageDown`.
+  
+{{{ PopupRestore
+2.14.1 PopupRestore
+-------------------
+> {Esc p r}
+  
+  This  restores  the  popup  menu  following   a   mouse-click   event   (see
+  `PopupMouseSelect`) or can be called directly by some script that has set up
+  something to be displayed as a popup menu.
+  
+  A new popup menu must be predefined in the ( - ) buffer, in the  form  of  a
+  list of menu items  with  each  item  on  a  new  line.  Items  may  contain
+  whitespace but any leading or trailing whitespace is removed before display.
+  
+  If no new popup is defined ( the ( - ) buffer is empty) then  the  last-used
+  menu is used, this is held in the data object "'=PopupMenu".
+  
+  The PopupRestore function is called by `PopupSearch` and  by  the  `doc.jot`
+  script, which offers suggested spelling corrections via the popup menu.
+  
+}}}
+{{{ PopupSearch
+2.14.2 PopupSearch
+------------------
+> <substring>{Esc p s}
+  
+  This searches the current  buffer  for  words  matching  the  given  string.
+  Matching words (any string consisting of ASCII alphanumeric  characters  and
+  underscores) are displayed in the popup menu and may be selected by a  click
+  of the left mouse button (see `PopupMouseSelect`).
+  
+}}}
+{{{ PopupIncrementalSearch
+2.14.3 PopupIncrementalSearch
+-----------------------------
+> {Esc p i}
+  
+  This performs an incremental search -  incremental  in  the  sense  that  it
+  prompts and picks up characters one at a time  updating  the  popup  as  the
+  search string grows.
+  
+  Each time a new character is entered it is appended to the search string and
+  the whole file is scanned for words containing the  revised  search  string.
+  The list of matching words is displayed in the popup.
+  
+  The function is UTF-8 friendly and respects the backspace key. Terminate the
+  incremental search with the {Return} key.
+  
+  As usual, with jot popups, clicking on a popup line feeds that word into the
+  console, where it can be used as an argument to any jot function that  takes
+  a text-string argument.
+  
+}}}
+{{{ PopupMouseSelect
+2.14.4 PopupMouseSelect
+-----------------------
+> {Left-click in popup menu}
+  
+  This function is  set  up  as  the  callback  for  a  left-click  event.  It
+  identifies the menu item and copy's it into the console command stream. Then
+  it can be used by any function that picks up an argument from  the  console.
+  It could be used to substitute the current word with {F5} - see `Substitute`
+  
+}}}
+{{{ PopupPageUp
+2.14.5 PopupPageUp
+------------------
+> {Esc p u}
+  or
+> {Ctrl+Alt+PageUp}
+  
+  Scrolls the popup window to reveal  the  page  above  the  currently-visible
+  page and reports current position.
+  
+}}}
+{{{ PopupPageDown
+2.14.6 PopupPageDown
+--------------------
+> {Esc p d}
+  or
+> {Ctrl+Alt+PageDown}
+  
+  Scrolls the popup window to reveal  the  page  below  the  currently-visible
+  page and reports current position.
+
+}}}
+}}}
+}}}

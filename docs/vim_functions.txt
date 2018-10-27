@@ -1,0 +1,101 @@
+From:  http://www.adp-gmbh.ch/vim/scripting/built_in_functions.html	
+
+1 VIM: built-in functions
+-------------------------
+  - Ascii Value of a Character : <code>char2nr()</code> ---- opposite: <code>nr2char</code>
+
+2 Cursor related
+----------------
+  - line("$") 
+  - line("'t") 
+  - line(".")
+
+  - col(...)
+
+2.1 Setting the cursor:
+-----------------------
+  - cursor(line, column)
+
+  See also getpos() (which returns a list)
+
+3 Asking the user
+-----------------
+  -echo confirm("is this ok?", "&Yes\n&No")
+
+  Make "No" the default choice
+  - echo confirm("is this ok?", "&Yes\n&No\n&Don't know", 2)
+
+4 List / Directory Commands
+---------------------------
+  - add()
+  - filter()
+  - empty()
+  - remove()
+  - copy()
+  - deepcopy()
+  - count()
+  - get()
+  - index()
+  - insert()
+  - items()   " dict only
+  - join()    " list only
+  - keys()    " dict only
+  - values()  " dict only
+  - len()
+  - map()
+  - max()
+  - min()
+  - range()   " list only
+  - remove()
+  - repeat()  " also for strings
+  - reverse()
+  - sort()
+  - split()   " returns a list
+
+5 Functions related to functions
+--------------------------------
+  - function()
+
+6 Functions related to buffers
+------------------------------
+  - getbufvar()   
+  - setbufvar()
+  - getline()     
+  - setline()
+  - getbufline()
+
+7 Functions related to interaction
+----------------------------------
+  - getchar()     "checks also for mouse clicks
+  - gecharmod()
+  - input()
+  - inputsecret()
+  - inputdialog()
+  - inputlist()
+  - inputsave()  
+  - inputrestore()
+
+8 Functions related to the commandline
+--------------------------------------
+  - getcmdline(),
+  - getcmdpos(),
+  - getcmdtype()
+  - setcmdpos()
+
+9 Functions related to to registers
+-----------------------------------
+  - getreg() 
+  - setreg()
+  - getregtype()
+
+10 Functions related to server
+------------------------------
+  - remote_expr()
+  - remote_foreground()
+  - remote_peek()
+  - remote_read()
+  - remote_send()
+  - server2client()
+  - serverlist()
+
+  

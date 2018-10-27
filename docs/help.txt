@@ -1,0 +1,1222 @@
+
+ 
+                               ECCE User Guide
+                               ---------------
+
+1 General Description of Editor
+-------------------------------
+  This is a command-driven text editor with a good set of  primitive  commands
+  and a simple command structure allowing the construction  of  powerful  text
+  manipulation procedures.
+  
+  Many commands return a Success/Failure condition  which  is  accessible  for
+  conditional execution of command substrings  or  blocks  of  commands.  Each
+  command is invoked by a single-character command  keyword,  these  keywords,
+  mainly letters of the alphabet, can be assembled into  long  strings.  These
+  command strings are scanned from left to right and the  conditions  left  by
+  one command (both in the text and  the  success/failure  state)  can  affect
+  later commands.
+  
+  Sequences of commands can be grouped together to form a 'Block', blocks  are
+  useful for repetitive or conditional execution of commands.
+
+1.1 About the cursor/current character
+--------------------------------------
+  The ECCE cursor is  displayed  as  a  rectangle  highlight  over  an  entire
+  character but, for some commands, V and B for example), it is  more  helpful
+  to think about the  cursor  as  being  the  space  between  the  highlighted
+  character and the character to it's left.
+
+1.2 About failures
+------------------
+  If a command fails for some reason then this  normally  raises  the  failure
+  flag - this is a logical flag  that  affects  the  execution  of  subsequent
+  commands. If no command is found to handle the failure, then  the  block  or
+  macro fails, if the failing command was not in  a  block  or  macro  then  a
+  message like this appears at the console:
+{Command-sequence failed.}...<failingcommand>...
+
+1.3 About line numbers
+----------------------
+  When a file is read in, line no. 1 is always the first line in the file.  As
+  the file is  modified  by  adding  and  removing  lines,  line  numbers  are
+  maintained in a contiguous sequence in such a way that the line  numbers  of
+  lines following the change remain as they were when the file was first read.
+  A counterintuitive outcome of this is that the first line in the file is not
+  maintained as line no. 1.
+   
+  This may sound like an odd way of doing it but it's all been thought  about.
+  Think about what happens when you're working your  way  through  a  list  of
+  error messages, fixing things by adding or removing lines  as  you  go,  the
+  policy ensures that the line numbers following the last change will continue
+  to match those in the error report.
+
+1.4 About text buffers
+----------------------
+  ECCE supports a finixed number of independat buffers, these  are  referenced
+  by a single character (typically an alphabetical character), and may contain
+  a file image, fragments of text or ecce command strings (macro commands).
+  
+    - When you start ecce, your file is placed in the . buffer.
+    
+    - As with  ECCE  commands,  the  buffer  key  identifier  is  always  case
+      insensitive.
+    
+    - The following buffers are generally available for text: A B ... Z 6 7  8
+      and 9
+    
+    - The buffers 1 2 3 4 and 5 are bound to the numeric-keypad  buttons  1-5,
+      and are avialable for you to define your own macros but note  that  some
+      ECCE command files redefine these buffers
+    
+    - The following buffers are dedicated to special  usees  by  the  standard
+      setup script: ! $ % ^ : ; @
+    
+    - The following buffers are dedicated to the  doc.ecc  script  -  sets  up
+      simple document-processing utilities [ ] < > - &
+    
+    - Many scripts define brief help information in the ? buffer.
+
+1.5 About parameters
+--------------------
+  Numeric parameters must be specified in decimal.
+  
+  String parameters  may  use  any  non-alphanumeric  delimiter  provided  the
+  delimiter does not occur in the string.
+  
+  Most commands that accept a string parameter will also accept a reference to
+  a buffer by replacing the string and delimiters with '<key> in  the  command
+  line (e.g. F'@ ) in this case the string used is the entire current line  of
+  the secondary buffer.
+  
+  If there is no further text on the command line then the string may be  left
+  unterminated. eg: F/Fred
+  
+   
+
+2 Editor commands
+-----------------
+  ECCE has the following commands, meta commands and modifiers:
+    - A - Abstract All Text From Note Point.
+    - B - Break Line At Current Character.
+    - C - Change Case.
+    - D - enter Debug (single-step) mode.
+    - E - Erase
+    - F - Find Substring
+    - G - Get (read) Some Lines From Terminal.
+    - H - Here (copy Text Buffer Here).
+    - I - Insert Substring
+    - J - Join This Line With Next/previous Line.
+    - K - Kill Current Line.
+    - L - Move Cursor Left
+    - M - Move To A New Line
+    - N - Note This Point In Text For A Later Abstract Operation.
+    - O - Stack Operations
+    - P - Print Lines
+    - Q - Qualify (tests For Existence Of Character In Substring)
+    - R - Move Cursor Right
+    - S - Substitute For Given Substring.
+    - T - Traverse Substring.
+    - V - Verify (tests That Immediate Text Matches Given Substring).
+    - Y - Move Cursor In Y Axis.
+    - Z - Zoom Into Another Buffer.
+    - ( - Block start.
+    - ) - Block end.
+    - , - Else clause.
+
+2.1 L - cursor Left
+-------------------
+  L[n] - Move current character pointer n[1] to left, it fails and raises  the
+  failure flag if there is an attempt to move left of the start of the line.
+
+2.2 R - cursor Right
+--------------------
+  R[n] - Move character pointer n[1] places to the right, it fails and  raises
+  the failure flag if there is an attempt to go past the end of the line.
+
+2.3 M - Move to a new line
+--------------------------
+  M[[+/-]n]|[*[-]] - Move to start of specified line.
+    - M moves forwards by one line.
+    - M<n> Moves forwards by n lines.
+    - M- moves back by 1 line.
+    - M-<n> moves back by n lines.
+    - M0 moves to last line of file.
+    - M-0 move to first line of file.
+    - M+<n> moves to absolute line no. n
+     
+  The command raises the failure flag if there is an attempt to move past  the
+  last line or before the first line of the file.
+
+2.4 Y - Move Cursor In Y Axis.
+------------------------------
+  Y[n] - move in the vertical (Y axis) by [n] lines. Again,  if  there  is  an
+  attempt to go beyond the boundaries of the current buffer, then the  failure
+  flag is raised.
+
+2.5 P - Print Lines
+-------------------
+  P[-][n] - Prints (displays in the console  area)  the  next[/previous]  n[1]
+  lines. If n is specified, and is greater than 1, or less than -1,  then  the
+  current line is set to the last line printed. If the value of n would  cause
+  it to go outside the range of the current buffer then the  failure  flag  is
+  raised.
+
+2.6 F - Find Substring
+----------------------
+F[-][range][<delim><string><delim>|'<key>][rpts]
+  Search text for specified string. If found the substring is highlighted  and
+  becomes the selected substring
+  
+  This is one of the substring search commands (see also T command), it  takes
+  parameters which specify the search string, a range and repeat  count.  ECCE
+  always starts off in it's case insenstive mode, this can be modified by  the
+  %S command.
+   
+  Parameters:
+  
+    - 1 Direction, a '-' will cause it to search back towards the start
+        e.g. f-/abc/
+  
+    - 2 Range  specifies  the  max.  no.  of  lines  to  search  (defaults  to
+      unlimited). e.g. f3/abc/ -  this  will  search  the  next  three  lines,
+      including any of the current line to the right of the cursor.
+  
+    - 3 The string can be a literal string delimited by  any  non-alphanumeric
+      character that does not appear in the string e.g. f"abc",  also,  the  '
+      character cannot be used - see the '<key> syntax below.
+      
+      The second delimiter may be ommitted is there are no further commands or
+      modifiers on the command line - e.g. f/monday
+      
+      Alternatively, the '<key> form will search for a match  to  the  current
+      line of the nominated buffer e.g. f'@
+  
+    - 4 The final parameter is used to repeat the search. e.g.  f/abc/23  will
+      stop at the 23rd. occurance of "abc".
+
+2.7 T - Traverse Substring.
+---------------------------
+  T[-][range][<delim><string><delim>|'<key>][rpts] -  Traverse  substring  and
+  leave cursor at end. Similar to F with two exceptions:
+  
+    - The cursor is left at the end of the matching string and
+  
+    - The default range is 1 (ie. expects to match on current line).
+
+2.8 Q - Qualify
+---------------
+  Q[-][<delim><string><delim>|'<key>] -  Qualify  -  tests  for  existence  of
+  character in substring.
+  
+  The character at [or before] the current character position  is  matched  to
+  the character set specified by the string parameter, if one of the specified
+  set of characters matches then the command returns  successfully,  otherwise
+  if reports a failure. The Q command is invariably case sensitive and has  no
+  effect on the text file image.
+  
+  If, instead of the <delim><string><delim> syntax, the '<key> syntax is used,
+  then the qualifying string is in the current line of the specified buffer.
+  
+  The string may be a simple list of all allowable characters, or may  specify
+  a sequence of ASCII codes generated by the '-' operator,  to  match  to  the
+  literal '-' character it should be the first  or  last  in  the  string  for
+  example:- Q/0123456789/ Will match to any digit. Q/0-9/ Will do the same but
+  saves typing. Q/0-9+-/ Will match to any digit or the '+' or '-' characters.
+  Q/0-9A-Fa-f/ Will match to any Hex digit.
+
+2.9 V - Verify
+--------------
+  V[-][string] - Does string match with next[prev] chrs.
+  
+  If the given string matches the substring to the right of  the  cursor  then
+  the substring is highlighted and becoms the selected substring. If not  then
+  the failure flag is raised. Correspondingly, V- verifies  the  text  to  the
+  left of the cursor.
+
+2.10 C - Change Case.
+---------------------
+  C[-][n] - Change case of next [/previous] n characters. If  n  is  specified
+  and would cause the cursor to go out of bounds the failure flag is raised.
+
+2.11 E - Erase
+--------------
+  E[-][n] - Erase next[/previous] n[1] characters. If n is specified and would
+  cause the cursor to go out of bounds the failure flag is raised.
+  
+  Starting  at  [/immediately  before]  the  current  character  position  the
+  next[/previous] n[defaults to 1] characters are removed from the text.
+
+2.12 I - Insert substring
+-------------------------
+  I[-][string][n] - Insert = Inserts string before current character.
+  
+  The optional '-' parameter only affects the position of  the  substring  end
+  pointer on completion - normally the cursor is immediately after the end  of
+  the inserted substring I- causes it to be at the start.
+
+2.13 S - Substitute for given substring.
+----------------------------------------
+  S[-][<delim><string><delim>|'<key>] - string replaces current substring.
+  
+  If a substitute  string  is  defined  then  this  is  replaces  the  current
+  substring, if no substitute  string  is  specified  then  the  last  defined
+  substitute string is used.
+  
+  When the '<key> syntax is used, the substituted string  is  taken  from  the
+  current line of the specified buffer.
+  
+  This command normally only fails when  there  is  not  a  currently-selected
+  substring (e.g. following a F, T V or a previous S command) - when it  fails
+  the failure flag is raised.
+
+2.14 B - Break line
+-------------------
+  B[-][n] - Break = Breaks line in two at current character.
+  
+  Breaks current line (into two) at current character position.
+  
+  Where n is an optional (defaults to  1)  repeat  count,  on  completion  the
+  character pointer is left pointing to the begining of the second line (ie it
+  still points to the same character), except if a negative  repeat  count  is
+  entered.
+  
+  A negative repeat count will break the line the same  number  of  times  but
+  will leave the character pointer at the end of the first half line.
+
+2.15 G - Get lines of text from terminal.
+-----------------------------------------
+  G[n] - Get n [1] lines from console.
+  
+  Use this to key in new text above the current line, the parameter  sets  the
+  number of lines to be input or you may terminate with a control+C or a colon
+  ':' at the begining of an otherwise empty line.
+  
+  You will not normally be prompted for the entry, but you may  define  prompt
+  message using the %P command.
+  
+  If you specify n and exit before you've typed in that many, then the failure
+  flag is raised.
+
+2.16 J - Join this and a neighbouring line.
+-------------------------------------------
+  J[-][n] - Join = joins current line with next[/previous] line.
+  
+    - J Joins the current line with the next line
+    - J- Joins the current line with the previous line
+    - J<n> joins the next n+1 lines
+    - J-<n> joins the previous n+1 lines
+    
+  If join runs out of lines (because it's at the start/end of the buffer) then
+  the failure flag is raised.
+
+2.17 K - Kill Current Line.
+---------------------------
+  K[-][n] - Kill (remove) next[/previous] n[1] lines.
+  
+  This completely removes lines, and there is no way of getting them back.  If
+  <n> is specified and finite and it runs out  of  lines  to  kill,  then  the
+  failure flag is raised.
+
+2.18 A - Abstract
+-----------------
+  A<key>[*][+|-|.] - Abstract = Move text from note point into buffer.
+  
+  Removes text from current buffer and creates a  new  buffer.  If  the  Whole
+  records abstraction flag is set (see G command), then only complete  records
+  are taken.
+  
+  The optional '+' qualifier places the abstracted  text  after  any  existing
+  text in the buffer,  '-'  places  before  and  '.'  places  at  the  current
+  character/line in the buffer. If none of these qualifiers are specified then
+  the buffer is cleared  before  the  new  text  is  abstracted.  The  current
+  character pointer of the buffer is always left at the begining of the of the
+  last line of abstracted text.
+  
+  The optional * qualifier replaces the abstracted  text  with  an  equivalent
+  number of spaces, this feature is useful when editing tables  and  pictorial
+  text.
+  
+  If the abstraction fails (typically because no note-point is set)  then  the
+  failure flag is raised.
+  
+  See also A and N commands.
+
+2.19 H - Here
+-------------
+  H<key>[*] - Here - copy buffer into current buffer.
+  
+  This command calls for a context image to be copied into current context. If
+  the whole records abstraction flag was set (by the last N command,  not  the
+  one responsible for the context being copied), then  the  text  is  inserted
+  above the current line. Otherwise the the  text  is  copied  in  before  the
+  current character.
+  
+  The effect of the optional * qualifier is to overlay the original text  with
+  the new.
+
+2.20 N - Note
+-------------
+  N[.] - Note = Note record [& character] for later abstract.
+  
+  This sets the start point of one or more lines of text  to  be  taken,  this
+  command also selects whether complete lines or parts  of  lines  are  to  be
+  taken, the default being complete records inclusive of the  current  records
+  at the time when the N and A commands were issued.
+  
+  The optional '.' parameter has the effect of noting the  character  position
+  for abstraction of subrecords. This is useful for relocation or  duplication
+  of words, phrases or complete sentences into new contexts.
+  
+  See also A and H commands.
+
+2.21 Z - Zoom
+-------------
+  Z<key> - Zoom = Switch context to identified buffer.
+  
+  The the key for the  current  buffer  is  displayed  in  the  editor  prompt
+  following the line number, it is also be displayed in the window  separators
+  (see %w command). If the tilde character ~ is supplied as a  buffer  key  to
+  the 'z' command, then the current buffer becomes the buffer when the command
+  line was first read.
+
+2.22 ( - Block start
+--------------------
+  The block must be terminated by a ')', it may contain any  number  of  valid
+  ecce commands, including sub blocks.
+
+2.23 ) - Block End
+------------------
+  )<n>
+   
+  This terminates the current block, if a repeat count is specified  then  the
+  block is repeated that many times or until the block fails,  if  the  repeat
+  count is zero then the block only exits when it fails.
+
+2.24 , - Failure handler
+------------------------
+  The commands following the comma are only executed when some earlier command
+  has failed. When a  command  fails,  control  is  transferred  to  the  code
+  following the comma - the failure handler. A single block can  containg  any
+  number of failure handlers, each picking up the failure condition  from  the
+  previous - this could be thought of as an if, elseif, elseif ... structure
+
+2.25 Blocks
+-----------
+  By binding the commands into a  block  you  control  the  way  failures  are
+  handled. If there is no failure-handler clause,  then  any  failing  command
+  causes the entire block to fail.
+  
+  Note that even if an individual command fails, the block only fails if there
+  is no failure handler.
+
+2.26 Stack Operations
+--------------------
+  The editor maintains an evaluation stack used for numerical  (integer  only)
+  and logical operations. The stack holds 100 items, overflows and  underflows
+  bring any macro command to an abrupt end.
+    - O+ - Add.
+    - O/ - Divide.
+    - O? - Dump contents of stack
+    - O# - Duplicate top of stack.
+    - O= - Fail if top two items on stack not equal, top item is destroyed.
+    - O~ - Increment - add 1 to item at top, fail if result=0.
+    - O* - Multiply.
+    - O% - Remainder
+    - O. - Set current line number to <top of stack>.
+    - O- - Subtract.
+    - O< - Test that item at top greater than next on down
+    - O> - Test that item at top less than next on down
+    - OB - Push pointer to current buffer onto stack.
+    - OC - Push current chr. no. onto stack.
+    - OD - Decimal conversion - pop stack, decimal to current chr.
+    - OF - From - Convert string at CurentChr of buffer as a decimal.
+    - OI - Index right (left if -ve) no. of chrs popped off stack.
+    - OK - Kill - delete top of stack.
+    - OL - Literal number to be pushed onto stack.
+    - OM - Move (backwards if -ve) no. of lines popped off stack.
+    - ON - Push current line no. onto stack.
+    - OO - Output - using nominated buffer as format string.
+    - OP - Push a numeric value onto stack from buffer, indexing current chr.
+    - OR - Reset stack
+    - OS - Swap 1st and 2nd items of stack.
+    - OT - To - Convert top of stack to decimal in buffer, preserving  current
+      chr.
+    - OZ - Zoom (change to buffer) pointer popped off stack.
+
+2.26.1 OP - Push
+---------------
+  The numeric value at cursor is converted and  pushed  onto  the  stack,  any
+  whitespace under or to the right of the cursor is skipped. If the cursor  is
+  initially part-way through a number, then digits to the left of  the  cursor
+  are ignored. On completion, the converted digits are the selected substring,
+  they may be substituted by a later OD operation.
+
+2.26.2 OD - Decimal
+------------------
+  The value at top of stack is converted to  digits  and  is  written  to  the
+  current cursor position. If there is a substring  currently  selected,  then
+  this is replaced by the converted digits, if no selected substring, then the
+  digits are inserted at the current cursor position. In both cases the cursor
+  is left to the right of the new digits.
+
+2.26.3 OL<val>  - push  Literal
+------------------------------
+  The specified value is placed on the top of the stack.
+
+2.26.4 O? - List contents of stack.
+----------------------------------
+  This is only useful for debugging - dumps the entire contents of  the  stack
+  to the console.
+
+2.26.5 OO<key> - formatted Output
+--------------------------------
+  Output the value at top of stack using a  format  string  in  the  nominated
+  buffer.
+
+2.26.6 O+ - Add
+--------------
+  Replace top two values with their sum.
+
+2.26.7 O- - Subtract
+-------------------
+  The value at the top of the stack is subtracted from the next value, the top
+  two items are replaced by the result.
+
+2.26.8 O* - Multiply
+-------------------
+  Replace top two values with their product.
+
+2.26.9 O/ - Divide
+-----------------
+  The top-but-one item on the stack is divided by the top item both items  are
+  replaced by the result.
+
+2.26.10 O% - remainder.
+----------------------
+  The top-but-one item on the stack is divided by the top item both items  are
+  replaced by the remainder.
+
+2.26.11 O= Test equals
+---------------------
+  The top two items are compared and the top item  is  removed,  if  they  are
+  equal the command status is Success, otherwise it's Fail.
+
+2.26.12 O> - Greater than.
+-------------------------
+  The top two items compared and the top item is removed, if the top  item  is
+  less than the next, then the command status is Success, otherwise it's Fail.
+
+2.26.13 OB - Buffer
+------------------
+  The ASCII value of the current buffer identification key is  placed  on  the
+  stack.
+
+2.26.14 OZ - Zoom
+----------------
+  The value at the top of the stack is removed and used to  specify  an  ASCII
+  code, this is used to specify the new current buffer.
+
+2.26.15 ON - line Number
+-----------------------
+  The current line number is placed on the stack.
+
+2.26.16 OM - Move
+----------------
+  The value at the top of the stack is removed and used to specify a  relative
+  move forwards (+ve.) or backwards (-ve) by no. of lines.
+  
+  If the move is out of bounds (i.e. before the start or after the end of  the
+  current buffer) then the cursor is left at the start of the  first  or  last
+  line as appropriate and the command fails.
+  
+  N.B. While ON puts an absolute line number onto the stack, OM is a  relative
+  move. Hence some aditional arithmetic is required to calculate  the  correct
+  relative move.
+
+2.26.17 O. - Set line no.
+------------------------
+  The value at the top of the stack is removed and used to  specify  the  line
+  no. of current line from top of stack.
+  
+  N.B. This has no effect on the cursor, it simply  changes  the  line  number
+  displayed in the ECCE prompt, and the line number in M+  operations  and  ON
+  etc.
+
+2.26.18 OC - Column no.
+----------------------
+  Place current column no. (i.e. no of characters right of begining  of  line)
+  onto the stack.
+
+2.26.19 OI - Index
+-----------------
+  Item at top of stack is removed and used to specify a new cursor position in
+  the same line. Cursor moves cursor right (+ve.) or left (-ve.) by no. places
+  at top of stack. If the move is out of bounds (before the start or after the
+  end of the current line) then the operation fails and the cursor is moved to
+  the start/end of the line as appropriate.
+
+2.26.20 OR - Reset
+-----------------
+  Destroys all items currently in the stack.
+
+2.26.21 OS - Swap
+----------------
+  The items in the top and next-but-one slots in the stack swap places.
+
+2.26.22 O# - Duplicate
+---------------------
+  The item at the top of the stack is copied and  placed  above  the  original
+  item.
+
+2.26.23 OK - Kill
+----------------
+  The item at the top of the stack is removed and ignored.
+
+2.27 Percent Commands
+---------------------
+  These commands must be the first and only command on a line:-
+    - %% - Comment line.
+    - %~ - Insert or display control character.
+    - %A - Exit without writing file.
+    - %C - Exit writing new file.
+    - %D - Define a buffer from console or last console command.
+    - %E - Execute following CLI command line.
+    - %F - Filing-system enquiry.
+    - %G - Get - but from current command file (or console).
+    - %H - Heap report.
+    - %I - Secondary input file.
+    - %L - set line Length.
+    - %M - Message.
+    - %O - Output current buffer as specified file.
+    - %P - set user Prompt for G command.
+    - %R - Run a command file.
+    - %S - Set case sensitivity.
+    - %T - set Trace, prefix with '+' to XOR with current value
+    - %U - Undo last substitution.
+    - %V - Display editor version no.
+    - %W - Set up a screen window.
+    - %X - Exit via a run-time error message.
+    - %Z - Zoom to buffer with name tag matching parm.
+
+2.28 %A - Abandon Edit.
+----------------------
+  %A - Abandon = Exit without writing file.
+  
+  This exits the editor image, no files are written out.
+
+2.29 %C - Continue
+-----------------
+  %C - Continue = Exit writing new file.
+  
+  The file spec. is determined by the arguments given to the editor image, put
+  file will have the same pathname as the original.
+  
+  The error flag is raised if there is an attempt to %C from any buffer  other
+  than the main buffer . - to write out some other buffer use %O.
+
+2.30 %D - Define a buffer.
+-------------------------
+  %D<key>[=<string>] - Defines the specified buffer directly from the console.
+  
+  The first parameter is the buffer identifier key - a single  character  used
+  to reference the buffer.
+  
+  If the second parameter is not given then the last edit  command  string  is
+  taken, thus if you've typed in some clever little  command  string  and  you
+  think you might like to do it again, show it off to your  friends  or  alter
+  it, you can use %D to make a copy of it.
+
+2.31 %G - Get.
+-------------
+  %G - Get = Reads in an buffer from current command stream (the console or  a
+  command file).
+  
+  This is similar to the G editing command, except that G always  takes  input
+  from the console, %G will take from whatever command input currently active.
+
+2.32 %I - Input A File.
+----------------------
+  %I<key>[=<pathName>] - Input a secondary file.
+  
+  This loads the file into a new buffer, referenced by the  buffer  identifier
+  key.
+  
+  The pathname defaults to the pathname of the currently-edited file.  If  the
+  new filename is incompletely specified then the missing fields are filled in
+  using the current pathname.
+
+2.33 %L - Set Line Length
+------------------------
+  %L[<width>] - Sets the line length, and the terminal line length.
+  
+  If the newly specified line length is  not  132  characters  then  the  line
+  length is set to the default value of 80 characters. This  only  works  when
+  the xterm attribute DECCOLM, allowing 80/132 switches, is enabled.
+  
+  more typically, in an xterm environment, %l can be used after  changing  the
+  xterm dimensions, without the width argument, it  then  determines  the  new
+  xterm size.
+
+2.34 %O - Output To File.
+------------------------
+  %O<pathname> - Output current buffer as specified file.
+  
+  The current buffer is written out using the given pathname.
+  
+  The pathname defaults to the pathname of the currently-edited file.  If  the
+  new filename is incompletely specified then the missing fields are filled in
+  using the current pathname.
+
+2.35 %R - Run A Command File.
+----------------------------
+  %R=[pathname] - Run a command file.
+  
+  If no path is explicitly specified, then ECCE first searches  your  PWD,  if
+  it's not in there, then it searches the directory specified by the EDIT_COMS
+  env. EDIT_COMS is set up by the ecce addtool script.
+  
+  The file contains editor commands, these are all executed in the same way as
+  with console input, the default pathname is startup.ecc.
+  
+  Command files may be nested to a depth of 20.
+
+2.36 %T - Trace.
+---------------
+  %T[+][x] - Trace = Set trace mode (hex).
+   
+  The  optional  +  qualifier  causes  the  existing  trace   value    to   be
+  Exclusive-Ored with the given value.
+  
+  The screen window is only redrawn when the breakpoint bit ( X80) is set.
+  
+  The trace mode flag has ten control bits which can be  ORed  together:-  Hex
+  Value Trace mode
+   0 No trace action 1 Display command block on exit or failure. 2 Trace  each
+   new command record (command files only). 4  Trace  on  Macro  call/exit.  8
+   Trace each new command.
+  10 Trace 'P' commands. 40 Set by a control+B  interupt.  80  Halts  on  each
+  trace step, type space to step or a Hex number
+            to specify a new trace mode.
+  1000 Turns on screen-edit mode. 2000 Temporarily  turns  on/off  screen-edit
+  mode. 4000 Turns on overtype mode (in screen-edit mode).
+
+2.37 %S - Case Sensitivity.
+---------------------------
+  %S=0 - case Sensitivity off (default). %S=1 - Case sensitivity on.
+  
+  Affects the case sensitivity for F, T and V commands.
+  
+  N.B. Q command is always case sensitive.
+  
+  A message confirms the new state.
+
+2.38 %U - Undo Last Substitution.
+---------------------------------
+  %U - Undo = Undo last substitution.
+  
+  The current substring (irrespective of whether selected by F, U, I or S)  is
+  replaced by the last specified search  string.  Normally,  of  course,  this
+  would have been set as a result of a S (substitute) command, following  a  F
+  (Find) command, hence the substitution is undone.
+  
+  If the original find substring had a different case pattern to the  replaced
+  substring (i.e. the find was done in case-insensitive mode)  then  the  undo
+  will not reflect the original case pattern.
+
+2.39 %W - Window.
+-----------------
+  %W[n[key]] - Window = Set up next n lines as a screen window.
+  
+    - If no parameters  follow  this  command  then  all  screen  windows  are
+      cleared.
+    
+    - n - Specifies the number of screen lines to allocate to the next window.
+      These are allocated sequentially starting from the top line.
+    
+    - The optional <key> parameter specifies which buffer is to be  associated
+      with the screen window, if this parameter is not given then the  current
+      buffer is displayed in the window.
+  
+  There is a 3-line guardband at the top and bottom of each window, the effect
+  of this guardband is to ensure that the next three lines above and below the
+  current line are visible. For windows of six, or less,  lines  there  is  no
+  guardbanding.
+  
+  The standard setup defines windows as follows: 
+ %w
+ %w 35
+ %w 0
+
+  If there are less than 37 lines in your xterm (that's 35 for the  main  view
+  and one each for the separator and the console - it is recommended  to  have
+  at least two lines for the  console),  then  the  window  will  not  display
+  correctly.
+
+2.40 %~ - Control Character
+---------------------------
+  %~ - Insert/Evaluate Control Character
+   
+  All control characters (ie characters having an ASCII code of less than X20)
+  are represented on the screen as a '~'. To evaluate such a character, the %~
+  command returns the ASCII code,in hex,  for  the  character  at  the  cursor
+  position. This command has an optional hex  parameter,  if  given  then  the
+  command will instead insert a control character of the specified  value,  at
+  the cursor position.
+
+3 ECCE Command Structure
+------------------------
+  ECCE commands are very primitive, the power of the editor derives  from  the
+  way they can be strung together into block and macro structures.
+
+3.1 Macros
+----------
+  Any buffer can hold sequence of commands, such a buffer can then be expanded
+  out into the command line and the commands executed in the usual way.
+  
+  To force the expansion of a macro place the context identifier character  in
+  the command string prefixed by a ' character for example:-
+  
+  %d$=f1/(/ru/,/i/ '$Arg1
+  
+  the commands '$ will  be  expanded  making  the  complete  command  string:-
+  f1/(/ru/,/i/Arg1
+
+3.2 Blocks
+----------
+  A string of commands bound together in parenthesis forms a block.
+  
+  A block can be executed repetitively, either a  fixed  number  of  times  (a
+  finite repeat block), or until the block fails (a conditional repeat block).
+  A finite repeat block is specified by adding the repeat count to the end.
+  
+  The Success/failure condition can be tested within a block; when  a  failure
+  is detected the command string is scanned for either the end of the  current
+  block or some failure-handling commands identified by a ','. If a  comma  is
+  found then the status is returned to Success and processing continues  until
+  the next failure occurs. If no comma is found and the block is  not  of  the
+  conditional repeat variety then  the  block  itself  fails,  and  returns  a
+  failure condition to any outer blocks which may contain  failure  processing
+  code.
+
+3.3 Failure handling
+--------------------
+  When a command fails the control flow is transfered to some failure-handling
+  commands:
+   
+    - if there is a comma within the current block then control is  transfered
+      to the code following the comma. The following code, for  example,  will
+      move the cursor to the right, if the cursor is already at the end  of  a
+      line, then it's moved to the start of the next line.  n.b.  R  can  only
+      fail if the cursor is already at the end of a line.
+        R, M
+      or
+        (R, M)
+ 
+    - If there is no comma in the current block, then the current block  fails
+      and if it's parent block has a  failure-handling  code  indicated  by  a
+      comma, then control transfers to that.
+      
+    - If a failing block is being repeated indefinitely, then the  error  flag
+      is lowered and the loop exits.
+
+3.3.1 Finite Repeat Block Example
+---------------------------------
+  (f/fred/s/bill/)23 - is  a  finite  repeat  block,  it  seeks  the  next  23
+  occurences of fred and substitutes bill. If there are less then 23 freds  in
+  the text then the F command fails and so to does the complete block.
+
+3.3.2 Conditional Repeat Block Example
+--------------------------------------
+  (f/fred/s/william/)0 - is a conditional repetitive block, the thing keeps on
+  finding freds and substituting williams until all  freds  have  been  found,
+  then the F command fails, the block exits but in this case the  block  exits
+  successfully.
+
+3.3.3 Status Checking Example
+-----------------------------
+  (f/fred/s/bill/,m-0f/jim/s/dave/) - This will find the next fred and  change
+  it to bill, if there are no freds left the first F will fail and the  second
+  F will take over and change jim to dave.
+
+4 The VT220 Keyboard
+--------------------
+  Keystroke editing  is  mechainized  by  substitution  of  the  VT220  escape
+  sequences by user-definable command strings. The translations are held in  a
+  text buffer normally set up by the standard startup file, but can be altered
+  or completely redefined by the user.
+  
+  Since there are no distinct command and  text  input  states,  all  text  is
+  entered in response to the command prompt. The 'Enter' and 'Insert' keys are
+  used to create new lines  of  text  and  insert  at  the  current  character
+  position. By convention, the shift key is PF4, hit this before the key to be
+  shifted. In command mode this procedure terminates the parameter string,  in
+  type-in mode the parameter is entered after the magic key sequence,  and  is
+  terminated by carriage return.
+  
+  The VT220 keyboard has the following keys available for assignment of editor
+  functions:
+   
+    - Top-row function keys 'F6' - 'F20', 'Help' and 'Do'  ('F1'  -  'F5'  are
+      normally OS-assigned to other functions).
+     
+    - Mid-keypad function keys 'Find', 'Insert Here', 'Remove', Select@,  Prev
+      Screen' and 'Next screen'
+       
+    - Mid-keypad cursor control left, right, up and down-arrow.
+     
+    - The programmed-function keys 'PF1' ... 'PF4' 
+     
+    - The numeric keypad '0' ... '9', '-', ',', '.' and 'Enter'
+
+4.1 Keyboard mapping
+--------------------
+  The escape sequences received  from  the  keyboard/OS  are  mapped  to  ECCE
+  command strings by searching for line in the ^ buffer with a matching escape
+  sequence.
+  
+  Each line of the ^ buffer consists of  an  eight-character  escape  sequence
+  followed by an ecce command of any length. Any trailing  whitespace  in  the
+  escape-sequence field is ignored. The PF1 key is normally the  Gold  button,
+  this returns Esc+OM. Now, the escape characters are always stripped  off  to
+  the 8-character escape-sequence field is long enough for all standard  VT220
+  escape sequences and up to 2 Gold-key hits.
+  
+  If an argument was typed in before hitting the hotkey, this can be picked up
+  by the ECCE command macro by substituting the special string '##'  with  the
+  argument. 
+  
+  Suppose, for example, the key for  a  forwards  search  returns  the  escape
+  sequence Esc[F, then we might see this sort of thing in the relevant line of
+  the ^ buffer:
+[F      f/##/
+  Here the first 8 characters are reserved  for  the  escape  sequence,  which
+  matches [F the command field, after column  8,  has  a  find  command,  it's
+  argument is ## - this is converted to the  user-specified  argument  as  the
+  escape sequence is identified and replaced with the command string.
+  
+  See also `X-windows setup` and `The VT220 Keyboard` 
+
+4.2 Function Keys
+-----------------
+  Function Keys have been assigned as follows for the VT220 keyboard:
+  
+     <string> F6  - Replaces currently-selected substring with <string>.
+     <string> F8  - Inserts <string> before cursor.
+     <string> F9  - Finds previous occurence of <string>.
+          PF1+F9  - Replaces currently-selected string with last-used 
+                    string and then repeats find previous
+     <string> F10 - Finds next occurence of <string>.
+          PF1+F10 - Replaces currently-selected string with last-used 
+                    string and then repeats find.
+ 
+       F11 - Deletes from cursor back to beginning of current line, if  
+             at beginning of line joins line with previous line.
+   PF1+F11 - Inserts word at end of delete buffer (undo delete line).
+       F12 - Deletes from cursor to beginning of current word (any 
+             alphanumeric characters).
+   PF1+F12 - Inserts text from delete buffer (undo delete prev line)
+       F13 - Deletes from cursor to end of current word.
+   PF1+F13 - Inserts word at end of delete buffer (undo delete word).
+       F14 - Deletes from cursor to end of line, if at beginning of line 
+             then joins line with previous line.
+   PF1+F14 - Inserts line at end of delete buffer (undo delete line).
+
+4.3 Mid Keypad
+--------------
+              Help - Runs help command file
+   [pathname] Do   - Runs user-specified command file.
+   
+       [word] Find - Finds a complete word to match parameter.
+       Insert Here - Copies buffer to current cursor position.
+            Remove - Abstracts text from note position to cursor.
+        PF1+Remove - Abstracts text from note position to cursor cumulatively.
+            Select - Notes cursor position for later abstraction.
+        PrevScreen - Moves window so top guardband moves off bottom of screen.
+        NextScreen - Moves window so bottom guardband moves off top of screen.
+
+4.4 Numeric Keypad
+------------------
+          PF2 - Moves cursor to end of line, if at end, then end of line above.
+          PF3 - Moves cursor to start of word.
+          PF3 - Moves cursor to start of word, if at word start then moves to
+                start of previous word.
+            7 - deletes previous character
+        PF1+7 - Restores previous character
+            8 - deletes current character
+        PF1+8 - Restores current character
+            9 - Goto start of paragraph, if already at a paragraph start, then 
+                goto start of previous paragraph
+            - - Goto end of paragraph, if already at a paragraph end, then 
+                goto end of next paragraph.
+            4 - Runs macro 4 - defaults to page up.
+            5 - Runs macro 5 - defaults to page down.
+            6 - Runs macro 6 
+            , - Joins current line, from cursor to end, to next line.
+        PF1+, - Joins current line, from start to cursor, to previous line line.
+            1 - Runs macro 1
+            2 - Runs macro 2
+            3 - Runs macro 3
+  <text>Enter - Creates a new line to follow current line, inherits indentation.
+            . - Repeats last command
+        PF1+. - Break current line at cursor.
+    PF1+PF1+. - Join current line with previous line.
+            0 - Runs macro 0 - defaults to Toggling type-into-screen mode, 
+                redefined by get command file.
+
+4.5 Escape sequences.
+---------------------
+  Complex  searches  -  location  of  a  sequence  of  words  irrespective  of
+  linebreaks and whitespace. The list argument must consist of complete  words
+  separated by at least on space. The list is held in the '@ buffer and can be
+  reused until some other button uses buffer @ to hold the list of words.
+   
+[<word list> ]Escape f      Locates the next occurence of the sequence
+[<word list> ]Escape -f     Locates the previous occurence of the sequence
+  In both cases, if the word list is not specified, then the  last  used  word
+  list (assumed to be in buffer @) is used again.
+
+4.6 Screen-edit mode
+--------------------
+  The screen-edit mode is  entered/exited  by  pressing  '0'  on  the  numeric
+  keypad. In this mode keyboard  input  from  the  user  terminal  is  entered
+  directly into the screen.
+
+5 Command file library
+----------------------
+  There are a lot of predefined ECCE command file in the  EDIT_COMS  area,  in
+  general these have a one-line description at the start of the command  file.
+  The most useful ones are described below.
+  
+  These are run by first typing the  name  of  the  script,  followed  by  any
+  arguments and then pressing the 'Do' button.
+  
+  There are currently about 250 ecce command files in  the  EDIT_COMS  area  -
+  many of these are quite old and some are useful only  for  files  associated
+  with obsolete CAD tools or computers (VAX, Fepos and Tripos).
+
+5.1 get
+-------
+  The get script picks up a path and lists  files  in  the  directory,  select
+  either a file or directory and the file will be loaded into a new buffer  or
+  the directory will be listed.
+  
+  By defauly, get picks up a pathname from the command line: 
+    e.g. get ~/fred.lis
+  If no path is given, then it picks up the  path  from  the  text  below  the
+  cursor.
+
+5.2 doc
+-------
+  The doc script sets up a  simple  document  formatting  system,  it  defines
+  several macros and escape sequences:
+    - Esc p - reformat the current paragraph, the paragraph is  deemed  to  be
+      the current line and all the adjacent lines with the same indent  level.
+      This adjusts  whitespace  between  words  to  align  line  endings,  the
+      line-lenght to aim for is in the ] buffer.
+      
+    - Esc P reformats all paragraphs in the current buffer.
+    
+    - Esc h - makes the current line into a section heading, the heading level
+      is determined by the previous heading.
+       
+    - Esc .h - resets the heading, the heading level  is  unchanged,  but  the
+      section number is corrected.
+       
+    - Esc H - resets all headings, the heading levels are unchanged,  but  the
+      section numbers are corrected.
+       
+    - Esc +h - makes the current line into a section heading, the heading level
+      is one higher than the previous heading.
+       
+    - Esc -h - makes the current line into a section heading, the heading level
+      is one lower than the previous heading.
+      
+    - Esc 1h, 2h, 3h, 4h or 5h - these all create a  new  section  heading  at
+      levels 1, 2, 3, 4 or 5.
+      
+    - Esc s - checks the spelling of  the  current  paragraph,  this  is  done
+      without any local spelling list.
+      
+    - Esc S - checks spelling of entire document, this is done with the  local
+      spelling list, it must be a file names spell.lis and must be in the same
+      directory as the file being checked.
+      
+    - Esc e - following a full spellcheck (Esc S) this goes to the next  error
+      in the spellcheck report, ignoring special words. Special wordshave some
+      abnormal case patten and are deemed to be be  reference  to  symbols  in
+      machine-readable code.
+      
+    - Esc n - following a full spellcheck  (Esc  S)  this  goes  to  the  next
+      instance of the currently-misspelled word, if there are  no  more,  then
+      moves on to the next word in the spellcheck report.
+
+5.3 comp
+--------
+  This sets up macros 4 and 5 to compare the contents of two buffers. It takes
+  one argument - the 'Ref' buffer.
+  
+  Button 5 will then compare the current buffer with the ref buffer,  starting
+  at the current character position in both progressing forwards  through  the
+  buffers.
+  
+  Button 4 is similar, except that it compares backwards. 
+  
+  If an ecce command string is entered before hitting buttons  4  or  5,  then
+  instead of running the comparison, the ecce command  string  is  applied  to
+  both buffers - this is designed to allow synchronization of the two buffers.
+
+5.4 multi_do
+------------
+  This script takes a CLI command  as  it's  argument  and  assumes  that  the
+  current buffer is a list of pathnames, the CLI command  is  applied  to  all
+  files in the list and the results are captured in the @ buffer.
+
+5.5 multi_ed
+------------
+  This script also assumes  that  the  current  buffer  is  a  list  of  valid
+  pathnames. It prompts you  for  a  series  of  ecce  commands,  when  you've
+  finnished entering the ecce commands, the complete set of ecce  commands  is
+  applied to every file in the list.
+
+5.6 sort
+--------
+  This applies the CLI sort to the current buffer, the  filename  is  appended
+  with the string '_sorted'.
+
+5.7 cal
+-------
+ cal [<year>]
+  This uses the unix cal command to create a calinder for the specified  year,
+  it then inserts week numbers into the calinder.
+
+5.8 perl
+--------
+  The perl script sets up the  macros  1  and  2  for  scanning  through  perl
+  programmes matching curly braces.
+  
+5.9 ecc
+-------
+  The ecc script sets up macros 1 and 2  for  scanning  through  ecce  command
+  files - it matces brackets parses commands and comments.
+
+5.10 csh
+--------
+  The csh command file sets up macros 1 and 2  for  scanning  through  c-shell
+  scripts.
+
+5.11 sh
+-------
+  The sh command file sets up macros 1 and 2 for scanning through Bourne-shell
+  scripts.
+
+5.12 skill
+----------
+  This one sets up macros 1, 2, 3, 4 and 5 for browsing through skill files.
+
+5.13 print
+----------
+  Checks then writes the current buffer to a temporary file and then prints it
+  using a2ps. If the file contains lines longer than 80 characters it  rejects
+  tbuffer unless you specify the -break qualifier - this breaks any long lines
+  and indents the remainder.
+
+5.14 wideprint
+--------------
+  Similar to print except that it is designed for printing vide-format text in
+  landscape, it also offers two options for lines over 132 characters:
+    - -break - automatically breaks and indents the line,
+    - -width option - you specify the maximum line width and  it  adjusts  the
+      font size to print the file without breaking.
+
+5.15 tab [<n>]
+--------------
+  Resolves all tabs in the current buffer by substituting  correct  number  of
+  blanks. If not specified n defaults to 8.
+
+5.16 retab <delim><string><delim>
+---------------------------------
+  This locates all occurrences  of  the  string  in  the  current  buffer  and
+  prefixes them with a tab character,  removing  any  preexisting  whitespace.
+  This script is only useful in conjunction with autotab and autotabjust which
+  then reformat the text into tabular form.
+
+5.17 autotab
+------------
+  This examines the position of the first tab character in  any  line,  noting
+  the rightmost tab. It then replaces all of the first tabs on any  line  with
+  the correct number of blanks to align the text that was originally  prefixed
+  by tabs.
+
+5.18 autotabjust
+----------------
+  This is very similar to autotab except that it inserts blanks to  align  the
+  decimal points in the field following the first tab.
+
+6 Help
+------
+  The normal ECCE startup script reads help files from a  directory  indicated
+  by the env HELP_DOCS, this must contain a file help.hlp - the top-level help
+  file. Help files are folded, and the help command respects  text  folds  and
+  file folds:
+   
+    - Text folds - text between matching {{{ and }}} fold marks.
+     
+    - File folds  [<subDir>]<subPathName>  -  the  subdir  field  indicates  a
+      subdirectory, below $HELP_DOCS, the subpathName indicates the  remaining
+      subpath
+      
+  There are two buffers involved with help. 
+    - The  help  collection  buffer  ':'  -  this  is    initially    set   to
+      $HELP_DOCS:/help.hlp
+    - The help view buffer ';' - contains the most recently opened fold.
+      
+  Help entries are selected by hitting the Help button with the cursor over  a
+  fold mark. For a text fold, the existing help buffer  is  redefined  by  the
+  contents  of  the  fold.For  file  folds,  the  file  is  read    into   the
+  help-collection buffer.
+      
+  The help files are read in when a file-fold entry is selected.
+  
+  The normal setup defines three hotkey functions: 
+    - 'Help' - if the current buffer is not the help  view  buffer  then  this
+      opens the top-level help fold otherwise opens/closes a help fold.
+      
+    - 'Gold'+'Help'  -  Shows  your  current  location  within  the  help-fold
+      hierarchy
+       
+    - 'Gold'+'Gold'+'Help' - closes the currently-selected file fold.
+
+6 Running the editor
+--------------------
+  Before you can run the editor a certain amount of system-dependent setup may
+  be necessary before editing can start.
+
+6.1 X-windows setup
+-------------------
+  The mapping of keyboard function keys is dependant on your operating  system
+  and keyboard. This is done in several  stages,  ultimately,  ECCE  picks  up
+  ASCII characters and VT100-like escape sequences.
+  
+  Some numeric-keypad keys are not mapped at all
+  
+  In most cases it will  be  necessary  to  alter  some  of  the  function-key
+  mappings - this is done with the xmodmap command,  which  normally  reads  a
+  special mapping file. The  sun_ibm_102_key  file,  supplied  with  the  ECCE
+  installation is suitable for the European-style Sun 102-key keyboards.
+  
+  Before running xmodmap, it is suggested that you might like to make  a  copy
+  of your original xmodmap so that you can safely revert to it:
+ \xmodmap -pke > original_xmodmap
+  
+  To set your key maps using the sun_ibm_102_key file: 
+ \xmodmap <ecceInstallationPath>/xmodmap/sun_ibm_102_key
+  Note that this affects all windows in the current xsession.
+  
+  If your keyboard does not match this then you can investigate  the  mappings
+  using xev - start up xev and then, with the X-cursor in the popup,  hit  the
+  keys that have not mapped correctly. Write your own xmodmap file  using  the
+  keycode number you get from xev.
+  
+  See also `keyboard mapping` 
+

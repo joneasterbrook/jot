@@ -1,0 +1,4 @@
+
+  Known bugs:
+    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+    

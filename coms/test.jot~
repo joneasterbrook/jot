@@ -1,0 +1,526 @@
+%%Test file to verify correct operation of editor.
+
+%%
+%%Copyright (C) 2013-2018 Jon. Easterbrook
+%%This programme, it's associated scripts and documentation is free software.
+%%It is distributed in case someone might find it useful,
+%%it can be modified and redistributed without restriction.
+%%No warrenty is given or implied for whatever purpose.
+%%
+ 
+%%Run this as a command file:
+%%       jot t.t
+%%       %r=test
+ 
+%w
+%w 12
+%w 0
+ 
+%%t+3
+
+%M=Preliminary easy tests (these assume Verify command is working properly):
+
+%M=Check Right and Left chr step.
+v/1 :abcdefghijklmnopqrstuvwxyz/
+r29
+v-/1 :abcdefghijklmnopqrstuvwxyz/
+l29
+v/1 :abcdefghijklmnopqrstuvwxyz/
+r0
+v-/1 :abcdefghijklmnopqrstuvwxyz/
+l0
+v/1 :abcdefghijklmnopqrstuvwxyz/
+
+%M=Check that these simple comands work in sequences.
+l0r29l29r0l0rlrlrlrlrlrlrlrlrlv/1 :abcdefghijklmnopqrstuvwxyz/
+%M=And how about the status-negation operator
+r0r\
+%M=and the status-reset operator
+r?
+%M=and finally the ELSE clause
+r,l0v/1 :abcdefghijklmnopqrstuvwxyz/
+
+%M=Check simple m (move) command:
+mmv/3 :1234567890/
+m-v/2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/
+%M=And other moves.
+m0r\
+m-0v/1 :abcdefghijklmnopqrstuvwxyz/
+m+5v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+m-2v/3 :1234567890/
+m2v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+
+%M=Y command. 
+m-0r20 yl20l\ yl13l\ yl20l\ mr10 yl10l\
+
+%M=Check Find
+m-0f/wonderful/v-/4 :Test file for jonathans /
+r0f-/wonderful/v-/4 :Test file for jonathans /
+m-0f3/wonderful/\
+f2/wonderful/v-/4 :Test file for jonathans /
+m4f-4/wonderful/\
+f-2/wonderful/v-/4 :Test file for jonathans /
+f/zzz/\ 
+
+%M=Check Qualify. 
+m-0m8r5v/c/
+%%Easy
+q/c/
+q/abcdef/
+q/a-b/\
+q/d-z/\
+q/b-d/
+q/C/\
+q/A-Z/\
+
+%M=Check Break and join.
+m-0f/Jonathan/b
+v/jonathans wonderful editor./
+l\
+m-v/4 :Test file for /
+r0v-//
+j
+v-/4 :Test file for /
+v/jonathans wonderful editor./
+ 
+b-
+r\
+v-/4 :Test file for /
+l0v//
+m
+v/jonathans wonderful editor./
+j-
+v-/4 :Test file for /
+v/jonathans wonderful editor./
+
+%M=Check simple Note, Abstract and Here commands:
+f/aaaaaaaa/
+n
+aa
+ha
+m-2
+v/4 :Test file for jonathans wonderful editor./r0v-
+m
+v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-
+m
+v/6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/r0v-
+
+%M=Check character Note Abstract and Here commands.
+f/qwer/
+n.
+f/[/
+ab
+l0
+v/7 :[]/
+f/[/
+hb
+l0
+v/7 :qwertyuiop[]/
+f/qwer/
+n.
+f/zxcv/
+ac
+l0
+v/7 :zxcvbnm,./
+f/zxcv/
+hc
+l0
+v/9 :zxcvbnm,./
+m-
+v/8 :asdgfghjkl;'/
+m-
+v/7 :qwertyuiop[]/
+
+%M=Check Zoom command.
+zc
+v/qwertyuiop[]/
+m
+v/8 :asdgfghjkl;'/
+m
+v/9 :/
+z.
+
+%%Check the fancy flavours of abstract.
+%%
+%m=Check a. - abstract to current character position of destination buffer.
+m-0n.m0aahazam-0f/jon/ z.m-0f/jon/ n. t/ /2 aa.
+m-v/3 :1234567890/r0v-
+mv/4 :Test file for editor./r0v-
+mv/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-
+zam-v/3 :1234567890/r0v-
+mv/4 :Test file for jonathans wonderful jonathans wonderful editor./r0v-
+mv/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-
+z.m-0f/for editor./s/for jonathans wonderful editor./
+%%Check the first line number.
+zam-0ol1ono=ok
+z.m-0ol1ono=ok
+
+%m=Now try abstracting remainder of first line then several complete lines. 
+m-0n.m0aahazam-0f/jon/
+z.m-0f/jon/n.m3aa.
+m-v/3 :1234567890/r0v-// 
+mv/4 :Test file for 7 :qwertyuiop[]/r0v-//
+mv/8 :asdgfghjkl;'/r0v-//
+zam-4v/3 :1234567890/r0v-//
+mv/4 :Test file for jonathans wonderful editor./r0v-//
+mv/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-//
+mv/6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/r0v-// 
+mv/jonathans wonderful editor./r0v-//
+mv/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-//
+mv/6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/r0v-// 
+mv/7 :qwertyuiop[]/r0v-//
+%%Restore the original text.
+f-/jonathans wonderful editor./
+z.t-5/4 :Test file for / zan.m3    a..
+%%Check the first line number.
+zam-0ol1ono=ok
+z.m-0ol1ono=ok
+
+%m=Check Now try abstracting some complete lines up to the mid point of the end line.
+z.m-0n.m0aahazam-0f/jon/ z.m-0mn.f/jon/aa.
+m-v/1 :abcdefghijklmnopqrstuvwxyz/r0v-//
+mv/jonathans wonderful editor./r0v-//
+mv/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-//
+zam-3v/3 :1234567890/r0v-//
+mv/4 :Test file for 2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/r0v-//
+mv/3 :1234567890/r0v-//
+mv/4 :Test file for jonathans wonderful editor./r0v-//
+mv/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/r0v-//
+%%Restore the original text.
+z.m-0m zaf-/2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/2n.f//a..
+
+%m=Check a+ Next.
+m-0n.m0aphpzpn.aa(n.maa+)10zam-0
+v`1 :abcdefghijklmnopqrstuvwxyz`r0v-``m
+v`2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ`r0v-``m
+v`3 :1234567890`r0v-``m
+v`4 :Test file for jonathans wonderful editor.`r0v-``m
+v`5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`r0v-``m
+v`6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`r0v-``m
+v`7 :qwertyuiop[]`r0v-``m
+v`8 :asdgfghjkl;'`r0v-``m
+v`9 :zxcvbnm,./`r0v-``m
+v`10:<>\|~!@#$%^&*()_+-=`r0v-``m
+%%Check the first line number.
+zam-0ol1ono=ok
+z.m-0ol1ono=ok
+
+%m=Check a- next.
+zam-0n.ab(n.mab-)10zbm-0
+v`10:<>\|~!@#$%^&*()_+-=`r0v-``m
+v`9 :zxcvbnm,./`r0v-``m
+v`8 :asdgfghjkl;'`r0v-``m
+v`7 :qwertyuiop[]`r0v-``m
+v`6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`r0v-``m
+v`5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`r0v-``m
+v`4 :Test file for jonathans wonderful editor.`r0v-``m
+v`3 :1234567890`r0v-``m
+v`2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ`r0v-``m
+v`1 :abcdefghijklmnopqrstuvwxyz`r0v-``m
+  
+z.n.aam-0f/jon/n.f/[]/aa-ham-0
+v`1 :abcdefghijklmnopqrstuvwxyz`r0v-``m
+v`2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ`r0v-``m
+v`3 :1234567890`r0v-``m
+v`4 :Test file for jonathans wonderful editor.`r0v-``m
+v`5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`r0v-``m
+v`6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`r0v-``m
+v`7 :qwertyuiop[]`r0v-``m
+v`8 :asdgfghjkl;'`r0v-``m
+v`9 :zxcvbnm,./`r0v-``m
+v`10:<>\|~!@#$%^&*()_+-=`r0v-``m
+%%Check the first line number.
+zam-0ol1ono=ok
+z.m-0ol1ono=ok
+
+%m=Check a. now
+m-0f/jon/n.l0aat/jonathan/n.r0 aa+l0n.r0aa.hal0
+v`4 :Test file for jonathans wonderful editor.`r0v-``z.
+%%Check the first line number.
+zam-0ol1ono=ok
+z.m-0ol1ono=ok
+
+%M=Now try replacing with blanks.
+m-0f/jon/
+n.f1/ /aa*
+v-/4 :Test file for /
+v/          wonderful editor./
+ha*
+v-/4 :Test file for /
+v/jonathans wonderful editor./
+%%Check that it does not extend the line.
+mr40ha*l0v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaajonathansaaaaaaaaaaaaaaaaaaa/r0v-//
+s/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+%%Check at the begining of a line.
+mha* l0v/jonathansbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/r0v-//
+s/6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
+%%Check at the end of the line (no overhang).
+mr0l9ha* l0v/7 :qwejonathans/r0v-// s/7 :qwertyuiop[]/
+%%Check at the end of the line (1 chr overhang).
+mr0l8ha* l0v/8 :asdgjonathans/r0v-// s/8 :asdgfghjkl;'/
+%%Check the first line number.
+zam-0ol1ono=ok
+z.m-0ol1ono=ok
+
+%M=Hashtables.
+m-0 r3
+%h=create 30
+%h=add one
+mr3
+%h=add two
+mr3
+%h=add three
+m0
+%h=find three
+v/1234567890/v-/3 :/
+%h=find two
+v/ABCDEFGHIJKLMNOPQRSTUVWXYZ/v-/2 :/
+%h=find one; p
+v/abcdefghijklmnopqrstuvwxyz/v-/1 :/
+
+%m=Check a few easy cases of %q queries.
+%%Query keys
+%qb=keys; v/keys/m 
+  v/key                three, buf ., line no.    3, chr no.   3, Rec:3 :1234567890/m
+  v/key                  two, buf ., line no.    2, chr no.   3, Rec:2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/m
+  v/key                  one, buf ., line no.    1, chr no.   3, Rec:1 :abcdefghijklmnopqrstuvwxyz/m
+   
+%%Query version
+%qa=version;v/version/mv/jot /
+
+%%Query wd
+%qa=version; f1/linux/ (%qa=wd; %eb=pwd; zav/wd/ mv'b, %x=Failed in linux wd test; ), 
+
+%%Query heap
+%%heap
+
+%%Query history
+%%history
+
+%%Query buffer
+%qa=buffer; v/buffer/m f1/key = A/m f1/pathName = (null)/m f1/SameSinceIO = FALSE/m f1/SameSinceIndexed = FALSE/m f1/SameSinceCompiled = FALSE/m f1/SameFlag1 = FALSE/m 
+ 
+%%%%Query window
+%%%qa=window; v/window/m f1/ screenHeight = /m f1/screenWidth = /m f1/win:0  = current buffer, 12 lines, followed by a delimiter line/m f1/ unallocated = /
+
+%%Query case
+%q=case;\  %s=case 1; %q=case; %s=case 0; %q=case;\
+
+%%Query date 
+%qa=date; v/date/m f1./.2f1..\ f1/,/ f1/:/2f1//\
+
+%m=Query inview and leftoffset setting
+%b=leftoffset 0; %q=inview; ok zal0e0ol0oso- (i/./o~)0 
+%q=inview;\ o!l %q=inview; ok %b=leftoffset '~; r0i-/+++++/  %q=inview; l %q=inview;\ o!
+%m=Now try it with a unicode character ( ™ ).
+%b=leftoffset 0; %q=inview; ok zal0e0ol0oso- (i/./o~)0 l10eol-94 ol-124 ol-30 oo/%c/rloo/%c/rloo/%c/r0
+%%Unicode not working properly in windowsland.
+%q=inview;\ l %q=inview; ok %b=leftoffset '~; r0i-/+++++/  %q=inview; l %q=inview;\ (ok)10
+%m=Now try it with a simple tabstops configuration.
+%b=leftoffset 0; zam-0k0b100m-0 
+(i/abc	def	ghi	jkl	mno	pqr	stuvwxyz	qwertyuiop	asdfghjkl/m)20
+m-0m10i/123456789	?	111	222	333	444	555	666	777/b 
+%b=tabstops 10 14 18 22 26 30 39 50
+%m=Test the inview left-margin logic by moving the leftoffset across the columns.
+m-r5%q=inview; %b=leftoffset 6; %q=inview; l %q=inview;\
+%m=Now test at the screens right margin
+%%Fist get the screen size.
+%qb=window; f/screenWidth = /-b za
+%b=tabstops 10 14 18 22 26 30 39 'b
+%b=leftoffset 39; f1/777/r %q=inview;\ l %q=inview;
+
+%m=Now test %q=inview with unicode characters.
+%%N.B. it has been known to crash while constructing the unicode characters in debug mode - O.K. when run normally.
+%b=tabstops 10 14 18 22 26 30 39 50
+%b=leftoffset 0
+%%l0(ol-94 ol-124 ol-30 oo/%c/rloo/%c/rloo/%c/f1/	/r)0
+d%b=tabstops; l0(ol-94 ol-124 ol-30 oo/%c/rloo/%c/rloo/%c/f1/	/r)0  %b=tabstops 10 14 18 22 26 30 39 50;
+%%Test the inview left-margin logic by moving the leftoffset across the columns - linux only.
+l0r10%q=inview; %b=leftoffset 10; %q=inview; l %q=inview;\ (ok)9
+%%Now test at the screens right margin - linux only
+%%Fist get the screen size.
+%qb=window; f/screenWidth = /-b za
+%b=tabstops 10 14 18 22 26 30 39 'b
+%%( %q~=version; mf1/linux/\za, za %q=inview;\ %b=leftoffset 2; f1/777/r %q=inview;\ l %q=inview; ) ok
+d%q=inview;\ %b=leftoffset 2; f1/777/r %q=inview;\ l %q=inview;
+
+%m=Query samesinceio
+z.%iq; %q=samesinceio; i/zzz/ %q=samesinceio;\
+
+%m=Query samesinceindexed
+z.%iq; %h=create 10; %h=add fred; %q=samesinceindexed; i/zzz/ %q=samesinceindexed;\
+
+%m=Query sameflag1
+z.%iq; %b=sameflag1; %q=sameflag1; i/zzz/ %q=sameflag1;\
+
+%m=Query env
+%%%qa=env PATH; m (%q~=version; mf1/Linux/ %eb=echo $PATH;, %eb=echo %PATH%;) v'a
+
+%m=Query dir 
+%qb=dir ${JOT_HOME}/docs; f"jot_ug.txt"
+
+%m=Query file
+%qa=env JOT_HOME; mr0i"/coms/test.jot" %qb=file 'a; mf1/  Name = "/r0v-|/coms/test.jot"|
+
+%m=Query stack
+o! zaobl0e0i-/1234.56789/oif ol1234 %q~=version; %qa=stack; 
+v/stack/m
+v/Stack currently holds 4 items:/m
+v/Item      Dec      Hex      Chr/m
+v/   3      Buffer -> "version"/m
+v/   2     1234      4D2        /m
+v/   1 1234.567871/m
+v/   0       65       41        A/
+
+%M=Check that all various percent-command terminations and indirect references are all in full working order.
+%%Simple case
+z. %da=abcdef; zav/abcdef/r0v-//
+%%Now try escaping internal semicolons.
+z. %da=abcdef\;123456789; zav/abcdef;123456789/
+%%
+%%Now try terminating with -hereEndsThePercentCommand
+( %qa=version -hereEndsThePercentCommand; mf1/Linux/     ( %ea=(cd ${JOT_RESOURCES} ; ls -l ) -hereEndsThePercentCommand; f/ t.t/, %x=FAIL: ; ) , )
+( %qa=version -hereEndsThePercentCommand; mf1/WindowsNT/ ( %ea=echo abc;def;ghi -hereEndsThePercentCommand; f/abc;def;ghi/,        %x=FAIL: ; ) , )
+
+%m=Some basic tests on the operation of the stack.
+%m=Check ol, ok, or and oq~
+o!
+ol1 ok
+(ol1)99 ol1
+(ok)100
+ol0 ol1 ol2
+%%%q~=wd
+ol4 ol5 ol6
+ 
+%m=Check o=
+ol6o= ol7o=\
+ 
+%m=Check o+ o- o* o/ o%
+ol100 ol23 o+ ol123 o=
+ol1234 ol234 o- ol1000 o=
+ol100 ol100 o* ol10000 o=
+ol100 ol25 o/ ol4 o=
+ol1234 ol1000 o% ol234 o=
+  
+%m=Check o< and o> 
+ol100 ol99o> ol100o>\ ol101o>\  ol101o< ol100o<\ ol99o<\
+  
+%m=Check ob oz
+z.ob za ol46 o= oz ob ol46 o=
+  
+%m=Check oc on 
+m-0f/jon/ onol4 o= 
+oc ol17 o=
+  
+%m=Check o. 
+m-0f/jon/ ol10 o. m-0m+10 f1/jon/ 
+m-0ol1o.
+  
+%m=Check oid 
+m2r3 oid ol1234567890 o=
+  
+%m=Check o~ 
+ol-2 o~ o~\
+  
+%m=Check o# 
+ol123456789 o# o- ol0 o=
+  
+%m=Check oid, oof/<formatString>/
+f/jon/rl ol123 oo/%d/ l0v/4 :Test file for 123jonathans wonderful editor./ ol1000 
+f1/123/ oo/%d/ %q=verify; l0v/4 :Test file for 1000jonathans wonderful editor./ 
+f1/1000/ ol255 oo/%8x/ l0v/4 :Test file for       ffjonathans wonderful editor./ f1/      ffjon/s/jon/
+  
+%m=Check or (move right, left if -ve), om (move down, up if -ve)
+m-0f/jon/ ol9 or v/ wonderful editor/
+ol-4omv/1 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/
+  
+%m=os 
+ol123 ol456 os ol123 o= 
+  
+%%%m=o^[FLZE]
+%%m-0 o^f m o^f\ 
+%%m0 o^l m- o^l\
+%%or o^e ol123 o^e\ 
+%%olz
+  
+%M=Stack, basic floating-point arithmetic and conversions. 
+o!ol1000
+%da=123.456
+zaoif
+o*
+o#
+ol123456
+o=
+%m=FP divide. 
+ol1000 o/
+ol123 o? o=
+ok ok
+%m=Check FP o< and o> top floating and next integer quantity
+l0e0i/100.000/l0oif ol99o> ol100o>\ ol101o>\  ol101o< ol100o<\ ol99o<\ ok
+l0e0i/100.001/l0oif ol99o> ol100o> ol101o>\  ol101o< ol100o<\ ol99o<\ ok
+l0e0i/99.999/l0oif ol99o> ol100o>\ ol101o>\  ol101o< ol100o< ol99o<\ ok
+%m=Check FP o< and o> top integer and next floating quantity
+l0e0i/100.000/l0oif o#ol99oso>\ok o#ol100oso>\ok o#ol101oso>ok  o#ol101oso<\ok o#ol100oso<\ok o#ol99oso<ok ok
+l0e0i/100.001/l0oif o#ol99oso>\ok o#ol100oso>\ok o#ol101oso>ok  o#ol101oso<\ok o#ol100oso<ok o#ol99oso<ok ok
+l0e0i/99.999/l0oif  o#ol99oso>\ok o#ol100oso>ok o#ol101oso>ok  o#ol101oso<\ok o#ol100oso<\ok o#ol99oso<ok ok
+z.
+ 
+o?z.o!
+
+%m=Check OU (set substring length) then OE - Extent of record/substring with unicode, tabstops and both.
+%%First OU.
+f/jon/rf1/ /ocf-1/ /roco-ou %qa=buffer; f/CurrentChr = 17/ f/SubstringLength = 9/
+%%Test OE, first with plain old ASCII characters.
+z.l0 f/jon/oeol3o=ok l0f//-oeol-3o=ok rloeol44o=ok
+%%Next with a unicode character (unicode enabled).
+%b=unicode 1; l0f1/jon/-lr ol-94ol-124ol-30oo/%c/rloo/%c/rloo/%c/ f1/ /n.f-1//-a$&f-1'$oe ol10o=ok rloe ol45o=ok 
+%%Ditto with unicode disabled.
+%b=unicode 0; l0f1'$oeol12o=ok rloeol47o=ok l0f1/jon/- e3
+%%
+%%Tabstops will have to wait.
+
+%M=Check indirect numeric parameter passing. 
+%%A numeric value to a string command ( I ).
+m-0ol1234567890 m4i'~ l0v/12345678905 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ l0e10
+%%A Buffer ~ to a string command ( I again)
+m-0 %q~=file t.t; z.m4i'~l0v/file t.t5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/ l0e8 
+%%A numeric value to a percent command.
+%iq; ol1234 %b=pathname '~; %qa=buffer; f/pathName = /-v/1234/ z.
+%%A buffer ~ to percent command.
+m %q~=date; zq %b=pathname '~; %qa=buffer; f/PathName = /- v/date/
+z.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%File starts changing after here.
+%m=Check Check Insert and Substitiute
+m-0f/wonderful/i/supposedly /
+v-/4 :Test file for jonathans supposedly /
+v/wonderful editor./
+f1/editor/s/implementation of jot./
+v-/4 :Test file for jonathans supposedly wonderful implementation of jot./
+
+%m=Check the various commands taking indirect string arguments.
+%m=Check v
+l0n.r0aahal0v'a
+%m=Check f
+m-0f'a
+%m=Check s
+f/jonathans/s'av-'as/jonathans/l0
+
+%M=Check erase:
+f/jon/e10l0v/4 :Test file for supposedly wonderful implementation of jot./
+f/for/e-5l0v/4 :Test for supposedly wonderful implementation of jot./
+f/impl/e0l0v/4 :Test for supposedly wonderful /
+f/won/e-0l0v/wonderful /
+
+%M=Check change using q (which is case sensitive) and V in case sensitive mode.
+%s=case 1
+m-0c0l0r3
+(q/A-Z/r)0v-/1 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/
+mc0l0r3
+(q/a-z/r)0v-/2 :abcdefghijklmnopqrstuvwxyz/
+%s=case 0
+c-0
+v-//\
+ 
+%M=Sign off
+m0b6b-6i-/Successfully completed all tests/ p m4wm-4

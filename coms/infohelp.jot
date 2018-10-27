@@ -1,0 +1,63 @@
+%%Converts an info document to help format.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?= 
+  Extracts info page and displays it as a jot help entry.
+  
+Usage:
+> infohelp <page>{F2}
+   
+Buffers used or changed:
+  - $ - info-entry name parameter and also used as temporary storage,
+  - : - The help repository - appends infor text,
+  - ; - Current help page and temporary storage,
+  - ! - temporary.
+:
+
+%g#
+%%Pick up info document, if it's been gzipped then unzip.
+( %q=file /usr/share/info/'$.info;
+  %%Info entry exists - read it now.
+  %i@=/usr/share/info/'$.info;
+, %q=file=/usr/share/info/'$.info.gz;
+  %%It's been gzipped.
+  z$r-0i"%e@=gunzip /usr/share/info/"r0i".info.gz --stdout;" '$
+, %x=Error: Can not find info entry for '$ in /usr/share/info; )
+  
+%%Locate sections (marked by US chr. - that's 31, or 1F in hex)'
+%%Set up search string and process first section.
+n.a;z;ol31oo/%c/z@ f'; (mq/0-9/\)0 na!h!2 m-2i/{{{ /m2
+( %%Section loop.
+  f'; (mq/0-9/\)0 na!h!2 m-2i/}}}/bi/{{{ /m2 )0
+%%Add final end-fold mark.
+b-i/}}}/
+%%Pick up top-fold name.
+%q!=buffer; f/ pathname = /- b
+%%Create top fold at end of help repository.
+z:m0i/{{{ /i'!bh@i/}}}/ f-'!
+%%Now show the new top-level help page.
+n.a$ %h'=call Help;
+
+  
+:
+'#

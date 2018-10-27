@@ -1,0 +1,68 @@
+%%Reformats a backtrace report to give line numbers as offsets in original file.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+  
+%%Adds the bt function to the code repository.
+
+ob
+%g$
+
+<<AdjustedBacktrace>>
+%%Gets a backtrace report in @ buffer and adjusts linenumbers to match source file.
+%%
+%%Identify original file - assume it's in ${JOT_HOME}/coms
+%%
+%%Pick the last function in the code repository and get it's line number.
+obz'm0 %h=jump AdjustedBacktrace; m- (f-"<<"r-)0 on r2n.r0r-2a$& z$r-0i"%e$=grep -n "r0i" ${JOT_HOME}/coms/*.jot;" '$
+%%
+( %%Extract the line number in the original file, removing all other references to the function name.
+  ((f''v-/:/r0v-/>>/)\ k)0r-0  f1/:/-oido~ f-/:/e0o- (mk0, ) m-
+  %%
+  %%Get a backtrace report and adjust the line numbers for the code-repository buffer ' .
+  osoz %q@=backtrace; 
+  r0i/ - line numbers adjusted for file /h$
+  z$r0f-1"/"-e-0
+  ( %%Function loop.
+    f/ of macro ':/s/ of file /i'$i/:/ f-1/Line/-
+    %%Find name of calling function and line offset.
+    oidz'ono-omon (v/<</\m-)0 ono-z@mb-i/    (/i''r-roo/  +  %d Lines)/
+    %%Now adjust the line number.
+    o#m-r6oidoso-oo/%5d/m
+    )0 ok
+  %%Finally, align the colons.
+  m-0(f/:/i/	/m)0
+  %r=autotab;
+, %%Failed to locate definition of function '';
+  okoz %q@=backtrace; )
+
+<<RawBacktrace>>
+%q@=backtrace;
+
+:
+z'm0h$
+m0 f-/<<AdjustedBacktrace>>/ %h=new AdjustedBacktrace;
+m0 f-/<<RawBacktrace>>/ %h=new RawBacktrace;
+%h=fix;
+%%
+z^m-0i/abt     %h'=call AdjustedBacktrace;/b
+z^m-0i/bt      %h'=call RawBacktrace;/b
+oz
+

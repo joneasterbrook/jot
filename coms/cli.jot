@@ -1,0 +1,47 @@
+%%Applies CLI command and arguments supplied to current filespec.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%Make a note of current position.
+oboconobob
+%%Pick up arguments.
+%%z$m-0kv/%% /e3jj\i/ /
+z$m-0j\i/ /
+%%Return to the original buffer.
+oz
+%%Get the filespec
+%q~=buffer; f/pathName = /- n.r0a@h@ z@ok
+%%Make the command line
+n.a#z#r-0i/%e@=/h$i/ /h@
+%%Return to original position.
+ozono-omor 
+
+%m=If it goes all quiet and hangs up it may be prompting for data.
+'#
+%l
+%%Pick line count and display it with the first line of reply.
+p0one0m-0p n.a$z$
+ol1o-o#oo/%d/r-0 
+i/That generated /r0i/ line/(ol1o=,i/s/) i/, see /(ol1o=i/it/,i/them/)ok
+i/ in buffer '@./r0
+p-1 oz
+

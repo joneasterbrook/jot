@@ -1,0 +1,38 @@
+%%Lists first comment line of every jot command file in JOT_HOME/coms directory.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%Get directory listings:
+%e@=\ls $JOT_HOME/coms
+
+%%Create command macro: 
+m-0(r0v-/.jot/i" >> /tmp/jotlist.lis" r-0i/%e=echo /m,k)0
+m-0(na$h$2 m-f1/echo /s"grep %% ${JOT_HOME}/coms/"f1/>>/i" | head -1 "m2m-)0 m\e0
+m-0f/>>/e
+'@
+
+%%Read in and tidy up.
+%i\;=/tmp/jotlist.lis
+%e=rm -f /tmp/jotlist.lis
+(r0v-/.jot/e-4 m(f1/%%/, m-?\) j-i/	/m2m-, m)0 m\e0
+%r=autotab
+

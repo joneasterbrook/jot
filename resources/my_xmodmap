@@ -1,0 +1,29 @@
+
+!! PrintScreen == {F1} <<Help>>Help
+keycode 107 = Help
+ 
+!! NumLock -> {Mod}
+keycode  77 = KP_Equal
+
+!!ScrollLock == {F2} <<Do>>
+keycode  78 = F2
+ 
+
+!! Make the numeric keypad keys unique.
+keycode  63 = KP_Multiply
+keycode  82 = KP_Subtract
+keycode  86 = KP_Add
+keycode  91 = KP_Decimal
+keycode 108 = KP_Enter
+keycode  79 = KP_7
+keycode  80 = KP_8
+keycode  81 = KP_9
+keycode  83 = KP_4
+keycode  84 = KP_5
+keycode  85 = KP_6
+keycode  87 = KP_1
+keycode  88 = KP_2
+keycode  89 = KP_3
+keycode  90 = KP_0
+
+

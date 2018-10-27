@@ -1,0 +1,217 @@
+%%Sets up buttons specific to editing C source files.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+  
+%%%g?
+%%  c code-browser, the following functions have been assigned to
+%%  numeric-keypad buttons.
+%%
+%%  Also sets env GetDefaultPath to "/usr/include/"
+%%  
+%%  {Kp_1}, {Esc 1} - Go back to start of current block '{' using hastables. 
+%%                    If not at a start-block character '{' then advances to next one.
+%%  {Kp_2}, {Esc 2} - Go forwards end of current block '}' using hastables.
+%%                    If not at an end-block character '}' then advances to previous one.
+%%  4 - Go back to start of current block '{' by counting curly brace pairs.
+%%  5 - Go forwards end of current block '}' by counting curly brace pairs.
+%%  
+%%Valid qualifiers:
+%%  -tag[comments] - adds cyan foreground-colour tags to comments.
+%%  -all - indexes all functions at c.jot time.
+%%:
+  
+%%This setup will quite probably require changing.
+%g#
+%%GetDefaultPath setup.
+ob %q~=version; m
+( f1/mingw/     %s=setenv GetDefaultPath /MinGW/include/;, 
+  f1/cygwin/    %s=setenv GetDefaultPath /cygwin/usr/include/;, 
+  f1/WindowsNT/ %s=setenv GetDefaultPath C:\Program Files\Microsoft Visual Studio 10.0\VC\include;, 
+                %s=setenv GetDefaultPath /usr/include/; ) 
+osozok
+:
+'#
+
+%g#
+<<CSetupHashtables>>
+%%Hashtable setup
+%%
+%%Indexing works by placing the line no. and chr no. on the stack for each '{' encountered.
+%%When a '}' is found the positions of the start and end points are at the top of the stack, these are then
+%%logged into the hashtable giving the forwards link, The backwards link is made later using the forwards links.
+%%Uses buffer $ as a temporary text stack for pending keys - as values are popped they are not destroyed, 
+%%they will be used later to build the reverse index.
+%%
+  
+%%Does the hashtable exist and is it up to date
+( %q=samesinceindexed;, 
+  %%Code has been changed since index was built - destroy the old index.
+  %m=Rebuilding the hashtable. 
+  %%
+  %h=destroy;
+  %m=Rebuilding index.
+  %%Create a hashtable of roughly the right size.
+  oconol0m-0 (f/{/o~)0 ol2o* %h=create '~ -adjust; ono-omor )
+%%
+oconob
+%%Plod back to the start of the function and check/register it's name.
+r-0((q/A-Za-z/\m-)0 (q/A-Za-z0-9_ /r)0v/:/m-)0
+( %%If the function is already registered then skip remainder of indexation.
+  on %h=new FunctionStart_'~;\, on %m=Adding FunctionStart_'~; p
+  %%
+  %%Clear the text stack. 
+  n.a$& z$b- o#oz
+  ( %%Main loop.
+    %%If a '{' Add entries to stack.
+    (v/{/oconz$r0bi/blockStart_/r-roo/%d/i/_/r-roo/%d/o#oz)?
+    %%If a '}' make the key using the start-point on the stack then add the entry.
+    (v/}/o#oz %h=new '$; z$ (m- (m-m, %m=end of code section.; ), o#ozon %m=Surplus end brace ( } ) at line '~; pm) o#oz)?
+    %%If a comment skip to end.
+    (v"/*" f"*/"-, v"//"r0)?
+    %%If a string then skip to end.
+    (v/"/\, r(v/\/(r2, m), v/"/\r)0)
+    %%Similar for a character.
+    (v/'/\, r(v/\/r2, r) v/'/)
+    %%If end of file or a new-function start is detected, terminate current function.
+    (r, mq/A-Za-z/\, (q/A-Za-z0-9_ /r)0v/:/r)
+    )0
+     
+  %%Add key for last line.
+  m-on %h=new FunctionEnd_'~;
+  %%Now construct the reverse index using the list of keys in $ buffer.
+  z$m-0mo#ozn.a;& 
+  ( %%Reverse-index loop.
+    %h=jump '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=new '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
+  %%Check for unmatched block-starts.
+  (z;m-0rr- (f/blockStart_/s/ '{' at line no. /f/_/s/ chr no. /m)0m-0 %x=Error the listed curly braces could not be matched;, ) o#oz )
+  
+%%Restore original focus.
+ozono-omor
+:
+ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=add '#; oz
+
+%g1
+%%Searching back, match next valid '}' with it's start-point '{' from hashtable.
+%%
+%h'=call CSetupHashtables;
+%%
+%%Identify current position and prepare list of keys to find the next end point in the hashtable.
+( %%If we're already at a block end-point then just launch a hashtable lookup to go back to the start point.
+  obocon n.a$&z$oo/blockEnd_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
+, %%Not at an end point search back for next one.
+  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
+  %%First delete all entries after current line then all those before start of current code block.
+  m0m- (f1/	/-\k-, oido<k-)0 f-/ functionStart_/k-0
+  %%Search back for block-end point by matching line numbers and chr positions in blockStart entries.
+  ( m0m-\ %%No block-end points found - exit now.
+    okokoz
+  , %%Find correct end point.
+    ((f1/ blockStart_/\k)0(f/	/-oido<m-)0 r-4oido=os f1/	/-oido<osk-)0
+    %%Refocus to block-end point.
+    okok (m?m- r-0f1/	/-oidos f1/	/-oidos ozosono-omor, okoz) )
+  )
+:
+
+%g2
+%%Searching forwards, match next valid '{' with it's end-point '}' from hashtable.
+%%
+%h'=call CSetupHashtables;
+%% 
+%%Identify current position and prepare list of keys to find the next start point in the hashtable.
+( %%If we're already at a block start-point then just launch a hashtable lookup to go to the end point.
+  obocon n.a$&z$oo/blockStart_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
+, %%Not at a start point search for next one.
+  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
+  %%First delete all entries before current line then all those after end of current code block.
+  m-0 m-0(f1/	/-\k, oido>k)0 (f/ functionEnd_/k0,)
+  %%Search for next block-start point by matching line numbers and chr positions in blockEnd entries.
+  ( m-\ %%No block-start points found - exit now.
+    m-0okokoz
+  , %%Find correct start point.
+    m-0 ((f/	/-oido>k)0 r-4oido=os f1/	/-oido>osk)0
+    %%
+    %%Refocus to block-start point.
+    okokr-0 (f1/	/-oidos f1/	/-oidos ozosono-omor, okoz)
+    )
+  %%
+  )
+:
+
+%%Find block-start for current level.
+%g4
+ol0
+( %%Main loop
+  %%If a '}' - decriment depth.
+  (v/}/ ol1o-,)
+  %%If a '{' depth is indexed and tested.
+  (v/{/\, (ol0o= (r-, (m-f1.//., r0)) ok %X Found a "{" while searching for initial "}"
+    , o~)) 
+  %%If a comment skip to start.
+  (v"*/" f-"/*", )
+  %%If a string then skip to start.
+  (v/"/r- (f-1/"/v-/\/r-)0, )
+  (v/'/r- (f-1/'/v-/\/r-)0, )
+  (r-, (m-f1.//., r0), ok %X Reached start of buffer.
+    )
+)0
+ok
+:
+
+%%Find block-end for current level.
+%g5
+ol0
+( %%Main loop.
+  %%If a '{' - decriment depth.
+  (v/{/ ol1o-,)
+  %%If a '}' depth is indexed and tested.
+  (v/}/\, (ol0o= rok %X Found a "}" while searching for initial "{"
+    , o~))
+  %%If a comment skip to end.
+  (v"/*" f"*/"-, v"//"r0, )
+  %%If a string then skip to end.
+  (v/"/r (v/\/(r2, m), v/"/\r)0, )
+  (v/'/r (v/\/(r2, m), v/'/\r)0, )
+  (r, m, ok %X Reached end of buffer.
+    )
+)0
+ok
+:
+
+%%Set up # macro to tag comments
+%g#
+m-0
+( %%Character loop - search for comments.
+  (v"/*" (f1"*/"-\oco#r0ocoso-osr-0orou %b=addtag comment; m, oco#r-0ou %b=addtag comment; or\)0, v"//"oco#r0ocoso-osr-0orou %b=addtag comment;)?
+  (r, m)
+  )0
+:
+
+%%Do qualifiers.
+obz$m-0i-/ /
+%%
+%% -tag sets up some colour tags.
+(f1/ -tag/ ozoconobm-0 %b=tagtype comment colour 6 0;o#oz '# ozono-omor, )
+%% -all qualifier indexes all functions as c.jot runs.
+(f1/ -all/ ozoconobm-0 (f/{/v-/$/r2)0 '2)0
+oz
+

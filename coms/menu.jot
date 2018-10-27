@@ -1,0 +1,513 @@
+%%Defines a simple menu-driven environment ... for those who enjoy menus.
+%%
+%%
+%%    Copyright (C) 2017-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+Buffers used/defined:
+  - - the menu buffer.
+  - $ Temporary and parameter passing.
+  - @ Temporary, used in setup and also in mouse-click handler.
+  - ! Temporary, used in setup and also in mouse-click handler.
+  
+Requirements:
+  - window must be wide enough to display drop-down menu - about 120 columns for the verbose option.
+  
+Optional arguments:
+  -opt=<name> - selects which of the various standard menus is required, default is "standard"
+    - -opt=standard (the default) simple menu with just function names.
+    - -opt=verbose - a deeper menu structure but with more desription of the functions.
+  
+Functions and escape sequences defined:
+  <<LeftClick>> - Left-button click handler dispatches calls to functions defined in the menu description.
+  <<HoldSubMenu>> - The currently-displayed submenu is locked in view.
+   
+  {Esc m f} - Menu Freeze - freezes the menu bars in the display
+  {Esc m i} - Menu Initialize - Removes frozen menus.
+  
+:
+
+%%There are several possible menus defined here, these are selected by matching the -opt=<name> CLI parameter.
+%%Where <name> is one of "standard", "verbose", "tutorial" or "test".
+%%
+%g@
+%%standard
++M1_ "File"  "Find"  "Subs."  "Edit"  "Blocks"  "Break"  "View"  "Delete"  "Lines"  "Misc."  "Help"
+  
+M1_File:
+-  "Reload"  "Abandon"  "Save"  "SaveAs"  "SaveAndExit"  "Do"  "ScriptByName"  "ScriptByFunc"
+  
+M1_Find:
+-  "FindPrev"       "FindNext"        "FindPrevAgain"   "FindNextAgain"   "FindExactPrev"     "FindExactNext"
+-  "SetFindString"  "SubsThenFindPv"  "SubsThenFindNx"
+-  "FindWildPrev"   "FindWild"        "FindInParaPrev"  "FindInParaNext"  "FindSequencePrev"  "FindSequence"
+  
+M1_Subs.:
+-  "Substitute"  "SubstituteAgain"  "Remove"  "Insert"  "InsertAgain"  "Overwrite"
+  
+M1_Edit:
+-  "Note"  "Cut"  "Copy"  "Paste"  "CumulativeCut"  "CumulativeCopy"  "PasteOver"  "CutTabular"  "CutRectangle"  "PasteRectangle"
+  
+M1_Blocks:
+-  "ParagraphUp"     "ParagraphDown"    "CodeSectionUp"    "CodeSectionDown"  "IndentMatchUp"  "IndentMatchDown"
+-  "ParenMatchLeft"  "ParenMatchRight"  "MarkupMatchLeft"  "MarkupMatchRight"
+-  "CurlyMatchLeft"  "CurlyMatchRight"  "AngleMatchLeft"   "AngleMatchRight"
+  
+M1_Break:
+-  "Join"  "Break"  "JoinLeftPrev"  "JoinRightNext"  "AppendLeftPrev"  "AppendRightNext"  "IndentFromPrev"  "IndentFromNext"
+  
+M1_View:
+-        "Up"                         "WordUp"                             "PageUp"                       "ViewUp"
+-                                     "NewWordUp"                                                         "ShrinkWindow"     
+-  "Left"      "Right"      "WordLeft"          "WordRight"        "LineLeft"    "LineRight"     "ViewLeft"           "ViewRight"
+-                                     "WordDown"                                                          "StretchWindow"                   
+-        "Down"                       "NewWordDown"                        "PageDown"                     "ViewDown"                   
+        
+M1_Delete:
+-  "DeleteWordLeft"  "DeleteLineLeft"   "DeleteChrLeft"    "RestoreChrLeft"
+-  "DeleteChrRight"  "DeleteLineRight"  "DeleteWordRight"  "RestoreChrRight"
+  
+M1_Lines:
+-                    "LineN"                          
+-        "LineNW"               "LineNE"                     "UpRegardless"
+-        "DSLineNW"            "DSLineNE"                   
+-  "LineW"                             "LineE"          "Left"             "RightRegardless"
+-        "LineSW"                "LineSE"                    
+-        "DSLineSW"            "DSLineSE"                     "DownRegardless"  
+-                    "LineS"                                
+-  "BoxText"  "Box"  "Lozenge"  "DSLozenge"
+  
+M1_Misc.:
+-  "InsertMode"  "TempInsertMode"  "Again"  "Enter"
+-  "CmdEditStart"  "CmdEditGo"  "ViewSave"  "ViewRestore"
+  
+M1_Help:
+-  "Help"  "FindAllHelp"  "RemoveHelpFold"
+
+%%verbose
++M1_ "File"  "Find"  "Subs."  "Edit"  "Blocks"  "Break"  "Nav"  "View"  "Delete"  "Lines"  "Misc."  "Help"
+  
+M1_File:
+-  "Reload"  "%a<<Abandon>>"  "%o <<Save>>"  "%o=<pathName> <<SaveAs>>"  "%c <<SaveAndExit>>"  "%r<name> <<Do>>"  "{Shift+F2} <<ScriptByName>>"  "{Ctrl+F2} <<ScriptByFunc>>"
+  
+M1_Find:
+-  "{F7} <<FindPrev>>"  "{Ctrl+F7} <<FindPrevAgain>>"  "{Shift+F7} <<SubsThenFindPv>>"  "{Shift+F9} <<FindExactPrev>>"
+-  "{F8} <<FindNext>>"  "{Ctrl+F8} <<FindNextAgain>>"  "{Shift+F8} <<SubsThenFindNx>>"  "{F9} <<FindExactNext>>"
+-  "{Ctrl+F9} <<SetFindString>>"
+-  "{Esc - f w} <<FindWildPrev>>"  "{Esc - f p} <<FindInParaPrev>>"  "{Esc - f s} <<FindSequencePrev>>"
+-  "{Esc f w} <<FindWild>>"        "{Esc f p} <<FindInParaNext>>"    "{Esc f s} <<FindSequence>>"
+  
+M1_Subs.:
+-  "{F5} <<Substitute>>"  "{Ctrl+F5} <<SubstituteAgain>>"  "{shift+F5} <<Remove>>"
+-  "{F6} <<Insert>>"      "{Ctrl+F6} <<InsertAgain>>"      "{shift+F6} <<Overwrite>>"
+  
+M1_Edit:
+-  "{Ctrl+Shift+F1} <<Note>>"            "{Ctrl+Shift+F2} <<Cut>>"               "{Ctrl+Shift+F3} <<Copy>>"        "{Ctrl+Shift+F4} <<Paste>>"
+-  "{Shift+Alt+F2} <<CumulativeCut>>"    "{Shift+Alt+F3} <<CumulativeCopy>>"     "{Shift+Alt+F4} <<PasteOver>>"
+-  "{Ctrl+Shift+Alt+F2} <<CutTabular>>"  "{Ctrl+Shift+Alt+F3} <<CutRectangle>>"  "{Ctrl+Shift+Alt+F4} <<PasteRectangle>>"
+  
+M1_Blocks:
+-  "{F3} <<ParagraphUp>>"                "{Shift+F3} <<CodeSectionUp>>"         "{Ctrl+F3} <<IndentMatchUp>>"
+-  "{F4} <<ParagraphDown>>"              "{Shift+F4} <<CodeSectionDown>>"       "{Ctrl+F4} <<IndentMatchDown>>"
+-  "{Shift+Alt+F5} <<ParenMatchLeft>>"   "{Shift+Alt+F5} <<MarkupMatchLeft>>"   "{Ctrl+Shift+Alt+F5} <<CurlyMatchLeft>>"   "{Ctrl+Shift+F5} <<AngleMatchLeft>>"
+-  "{Shift+Alt+F6} <<ParenMatchRight>>"  "{Shift+Alt+F6} <<MarkupMatchRight>>"  "{Ctrl+Shift+Alt+F6} <<CurlyMatchRight>>"  "{Ctrl+Shift+F6} <<AngleMatchRight>>"
+  
+M1_Break:
+-  "{Ctrl+F10} <<Join>>"                "{Shift+F10} <<Break>>"
+-  "{Shift+Alt+F9} <<JoinLeftPrev>>"    "{Alt+F9} <<AppendLeftPrev>>"    "{Ctrl+Shift+F9} <<IndentFromPrev>>"
+-  "{Shift+Alt+F10} <<JoinRightNext>>"  "{Alt+F10} <<AppendRightNext>>"  "{Ctrl+Shift+F10} <<IndentFromNext>>"
+  
+M1_Nav:
+-  "{UpArrow} <<Up>>"        "{Shift+UpArrow} <<WordUp>>"      "{Ctrl+UpArrow} <<NewWordUp>>"      "{Alt+UpArrow} <<PageUp>>"
+-  "{DownArrow} <<Down>>"    "{Shift+DownArrow} <<WordDown>>"  "{Ctrl+DownArrow} <<NewWordDown>>"  "{Alt+DownArrow} <<PageDown>>"
+-  "{LeftArrow} <<Left>>"    "{Ctrl+LeftArrow} <<LineLeft>>"
+-  "{RightArrow} <<Right>>"  "{Ctrl+RightArrow} <<LineRight>>"
+  
+M1_View:
+-  "{UpArrow} <<ShrinkWindow>>"           "{DownArrow} <<StretchWindow>>"
+-  "{Ctrl+Shift+UpArrow} <<ViewUp>>"      "{Ctrl+Shift+DownArrow} <<ViewDown>>"
+-  "{Ctrl+Shift+LeftArrow} <<ViewLeft>>"  "{Ctrl+Shift+RightArrow} <<ViewRight>>"
+-  "{Esc v s} <<ViewSave>>"               "{Esc v r} <<ViewRestore>>"
+  
+M1_Delete:
+-  "{Alt+Shift+LeftArrow} <<DeleteWordLeft>>"       "{Alt+Ctrl+LeftArrow} <<DeleteLineLeft>>"      "{Alt+LeftArrow} <<DeleteChrLeft>>"
+-  "{Alt+RightArrow} <<DeleteChrRight>>"            "{Alt+Ctrl+RightArrow} <<DeleteLineRight>>"    "{Alt+Shift+RightArrow} <<DeleteWordRight>>"
+-  "{Ctrl+Alt+Shift+LeftArrow} <<RestoreChrLeft>>"  "{Ctrl+Alt+Shift+LeftArrow} <<RestoreChrRight>>"
+  
+M1_Lines:
+-  "{Ctrl+KP_8} <<UpRegardless>>"  "{Ctrl+KP_2} <<RightRegardless>>"  "{Ctrl+KP_6} <<DownRegardless>>"
+-                                        "{Shift+Ctrl+KP_8} <<LineN>>"
+-                  "{Shift+Ctrl+KP_7} <<LineNW>>"               "{Shift+Ctrl+KP_9} <<LineNE>>"
+-  "{Shift+Ctrl+KP_4} <<LineW>>"                                                 "{Shift+Ctrl+KP_6} <<LineE>>"
+-                  "{Shift+Ctrl+KP_1} <<LineSW>>"                "{Shift+Ctrl+KP_3} <<LineSE>>"
+-                                        "{Shift+Ctrl+KP_8} <<LineS>>"
+-  "{Esc b t} <<BoxText>>"  "{Esc b x} <<Box>>"  "{Esc z 1} <<Lozenge>>"  "{Esc z 2} <<DSLozenge>>"
+  
+M1_Misc.:
+-  "{Esc I n} <<InsertMode>>"  "{Esc i n} <<TempInsertMode>>"  "1 <<Again>>"  "{Esc e} <<Enter>>"
+-  "{Esc c e} <<CmdEditStart>>"  "{Esc c g} <<CmdEditGo>>"
+  
+M1_Help:
+-  "{F1} <<Help>>"  "{Shift+F1} <<FindAllHelp>>"  "{Ctrl+F1} <<RemoveHelpFold>>"
+
+%%tutorial
++M1_ "File"  "Find"  "Subs."  "Edit"  "Blocks"  "Break"  "Nav"  "View"  "Delete"  "Lines"  "Misc."  "Help"
+  
+M1_File:
+-  " <<Reload>> Discard your edits and re-read the file."
+-  "%a <<Abandon>> Abandon the session, discarding your edits."
+-  "%o <<Save>> Save your changes to the current file image"
+-  "%o=<pathName> <<SaveAs>> Save your changes to some other file"
+-  "%c <<SaveAndExit>> Exit the session, saving your changes to the primary file"
+-  "%r <<Do>> Run some jot script, path defaults to $JOT_HOME}/coms"
+-  "<string> {Shift+F2} <<ScriptByName>> Search the names of files in $JOT_HOME}/coms"
+-  "<string> {Ctrl+F2} <<ScriptByFunc>> Search the descriptions of files in $JOT_HOME}/coms"
+  
+M1_Find:
+-  "[<string>]{F7}  <<FindPrev>> Searches text behind the cursor"
+-  "{Ctrl+F7} <<FindPrevAgain>> Searches for last-given search string in text behind the cursor"
+-  "[<string>]{Shift+F7}  <<SubsThenFindPv>> Replaces current substring with given string then searches back for last-given search string"
+-  "[<string>]{Shift+F9}  <<FindExactPrev>> search back from cursor for a complete word matching the string."
+-  "[<string1 string2 ...>]{Esc - f p}  <<FindInParaPrev>> Locates previous paragraph containing all of the strings in the list"
+-  "[<string1*string2*...>]{Esc - f w}  <<FindWildPrev>> Searches back from the cursor for line containing the substrings in sequence"
+-  "[<string1 string2 ...>]{Esc - f s}  <<FindSequencePrev>> Locatesthe strings in sequence separated by linebreaks or non-alpha characters"
+-  "[<string>]{F8}  <<FindNext>> Search forward, from the cursor, for the given string"
+-  "{Ctrl+F8} <<FindNextAgain>> Search forward, from the cursor, for the last-given given string"
+-  "[<string>]{Shift+F8} <<SubsThenFindNx>> Replaces current substring with given string then searches forwards for last-given search string"
+-  "[<string>]{F9} <<FindExactNext>> Search forwards from cursor for a complete word matching the string"
+-  "[<string>]{Ctrl+F9} <<SetFindString>> The word at the cursor position defines the search string"
+-  "[<string1*string2*...>]{Esc f w} <<FindWild>> Searches forward from the cursor for line containing the substrings in sequence"
+-  "[<string1 string2 ...>]{Esc f p} <<FindInParaNext>> The strings are separated by blanks, locates next paragraph containing all of the strings in the list"
+-  "[<string1 string2 ...>]{Esc f s} <<FindSequence>> Locates the strings in sequence separated linebreaks or by non-alpha characters"
+  
+M1_Subs.:
+-  "[<string>]{F5} <<Substitute>> Replace the currently-selected substring with the string"
+-  "{Ctrl+F5} <<SubstituteAgain>> Replace the currently-selected substring with the most-recently used string"
+-  "{shift+F5} <<Remove>> Remove the currently-selected substring"
+-  "[<string>{F6}] <<Insert>> Insert the string at the current cursor position"
+-  "{Ctrl+F6} <<InsertAgain>> Insert the most-recently inserted string at the current cursor position"
+-  "[<string>]{shift+F6} <<Overwrite>> The string overwrites text to the right of the cursor, extending the line if necessary"
+  
+M1_Edit:
+-  "{Ctrl+Shift+F1} <<Note>> Sets a note point (a start or end point) for text abstraction."
+-  "{Ctrl+Shift+F2} <<Cut>> Abstract text destructively"
+-  "{Ctrl+Shift+F3} <<Copy>> Abstarct text without changing the original"
+-  "{Ctrl+Shift+F4} <<Paste>> Copy the contents of the cut/paste buffer here"
+-  "{Shift+Alt+F2} <<CumulativeCut>> Destructively abstract, accumulating removed text in the cut/paste buffer"
+-  "{Shift+Alt+F3} <<CumulativeCopy>> Abstract without changing the original, accumulating removed text in the cut/paste buffer"
+-  "{Shift+Alt+F4} <<PasteOver>> The contents of the paste buffer overwrites the text following the cursor"
+-  "{Ctrl+Shift+Alt+F2} <<CutTabular>>Destructively abstracts replaceing text with whitespace"
+-  "{Ctrl+Shift+Alt+F3} <<CutRectangle>> Cuts a rectangular section of table or block diagram"
+-  "{Ctrl+Shift+Alt+F4} <<PasteRectangle>> pastes a rectangle, overwriting an area of a table or block diagram"
+  
+M1_Blocks:
+-  "{F3} <<ParagraphUp>> Go back to the start of the current paragraph"
+-  "{Shift+F3} <<CodeSectionUp>> Go back to the start of the current section of code"
+-  "{Ctrl+F3} <<IndentMatchUp>> Go back to the previous line with the same level of indentation"
+-  "{F4} <<ParagraphDown>> Go to the end of the current paragraph"
+-  "{Shift+F4} <<CodeSectionDown>> Go to the end of the current section of code"
+-  "{Ctrl+F4} <<IndentMatchDown>> Go forwards to the next line with the same level of indentation"
+-  "{Shift+Alt+F5} <<ParenMatchLeft>>  Find previous ) character, then locate matching ("
+-  "{Shift+Alt+F5} <<MarkupMatchLeft>> Find previous </, then locate matching <"
+-  "{Ctrl+Shift+Alt+F5} <<CurlyMatchLeft>>  find previous ) character, then locate matching {"
+-  "{Ctrl+Shift+F5} <<AngleMatchLeft>>  find previous ) character, then locate matching <"
+-  "{Shift+Alt+F6} <<ParenMatchRight>>  find next ( character, then locate matching )"
+-  "{Shift+Alt+F6} <<MarkupMatchRight>> find next < character, then locate matching </"
+-  "{Ctrl+Shift+Alt+F6} <<CurlyMatchRight>> find next { character, then locate matching }"
+-  "{Ctrl+Shift+F6} <<AngleMatchRight>> find next < character, then locate matching >"
+  
+M1_Break:
+-  "{Ctrl+F10} <<Join>> Joins the current line with the following line"
+-  "{Shift+F10} <<Break>> Breaks the current line, at the current cursor position, into two separate lines"
+-  "{Shift+Alt+F9} <<JoinLeftPrev>> Joins current line to the end of previous line, skipping indentation"
+-  "{Alt+F9} <<AppendLeftPrev>> Text to the left of the cursor (excluding indentation) is moved to the end of the previous line"
+-  "{Ctrl+Shift+F9} <<IndentFromPrev>> Current line inherits indentation level of previous line"
+-  "{Shift+Alt+F10} <<JoinRightNext>> Joins current line to the start of next line, skipping indentation"
+-  "{Alt+F10} <<AppendRightNext>> Text to the right of the cursor (excluding indentation) is moved to the start of the next line"
+-  "{Ctrl+Shift+F10} <<IndentFromNext>> Current line inherits indentation level of next line"
+  
+M1_Nav:
+-  "{UpArrow} <<Up>> Moves to beginning of previous line"
+-  "{Shift+UpArrow} <<WordUp>>  Moves up to previous line, holding a previously-defined column"
+-  "{Ctrl+UpArrow} <<NewWordUp>>  Moves up to previous line in same column, redefining the column"
+-  "{Alt+UpArrow} <<PageUp>> Moves up the text image by one screenful"
+-  "{DownArrow} <<Down>> Moves to beginning of next line"
+-  "{Shift+DownArrow} <<WordDown>> Moves to next line, holding a previously-defined column"
+-  "{Ctrl+DownArrow} <<NewWordDown>> Moves to next line in same column, redefining the column"
+-  "{Alt+DownArrow} <<PageDown>> Moves down the text image by one screenful"
+-  "{LeftArrow} <<Left>> Moves left, if at the start of a line, moves to end of previous line"
+-  "{Ctrl+LeftArrow} <<LineLeft>> Moves to start of line, is already at start of the line, moves to start of previous line"
+-  "{RightArrow} <<Right>> Moves left, if at the beginning of a line moves to the start of the next line"
+-  "{Ctrl+RightArrow} <<LineRight>> Moves to the end of line, if already at a line end, moves to end of next line"
+  
+M1_View:
+-  "{Ctrl+Alt+UpArrow} <<ShrinkWindow>> The current viewing window is reduced in size by one line"
+-  "{Ctrl+Alt+DownArrow} <<StretchWindow>> The current viewing window is increased in size by one line"
+-  "{Ctrl+Shift+UpArrow} <<ViewUp>> Without changing the cursor, the view is shifted upwards on the screen, fails when already at the top"
+-  "{Ctrl+Shift+DownArrow} <<ViewDown>> Without changing the cursor, the view is shifted downwards on the screen, fails when already at the bottom"
+-  "{Ctrl+Shift+LeftArrow} <<ViewLeft>> Without changing the cursor, the view is shifted leftwards"
+-  "{Ctrl+Shift+RightArrow} <<ViewRight>> Without changing the cursor, the view is shifted rightwards"
+-  "{Esc v s} <<ViewSave>> Details of your current view are saved to stack for restoration later"
+-  "{Esc v r} <<ViewRestore>> Restores some earlier view from details on the stack"
+  
+M1_Delete:
+-  "{Alt+Shift+LeftArrow} <<DeleteWordLeft>> Characters to the left of the cursor are removed until a non-alphanumeric character is encountered"
+-  "{Alt+Ctrl+LeftArrow} <<DeleteLineLeft>> All text left of the cursor is removed"
+-  "{Alt+LeftArrow} <<DeleteChrLeft>> Deletes character immediately left of the cursor"
+-  "{Alt+RightArrow} <<DeleteChrRight>> Deletes character below of the cursor"
+-  "{Alt+Ctrl+RightArrow} <<DeleteLineRight>> All text below and right of the cursor is removed"
+-  "{Alt+Shift+RightArrow} <<DeleteWordRight>> Characters below and right of the cursor are removed until a non-alphanumeric character is encountered"
+-  "{Ctrl+Alt+Shift+LeftArrow} <<RestoreChrLeft>>"
+-  "{Ctrl+Alt+Shift+LeftArrow} <<RestoreChrRight>>"
+  
+M1_Lines:
+-  "{Ctrl+KP_8} <<UpRegardless>> Move up in column from current character, adds whitespace if necessary"
+-  "{Ctrl+KP_2} <<RightRegardless>> Moves right, adds whitespace if necessary"
+-  "{Ctrl+KP_6} <<DownRegardless>> Move down in column from current character, adds whitespace if necessary"
+-  "[<string>]{Shift+Ctrl+KP_8} <<LineN>> Draws a | up in column, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_7} <<LineNW>> Draws a \ up and left, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_9} <<LineNE>> Draws a / up and right, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_4} <<LineW>> Draws a - leftwards in line, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_6} <<LineE>> Draws a - rightwards in line, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_1} <<LineSW>> Draws a / down and leftwards, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_3} <<LineSE>> Draws a \ down and rightwards, if string is given draws all characters"
+-  "[<string>]{Shift+Ctrl+KP_8} <<LineS>> Draws a |  down in column, if string is given draws all characters"
+-  "[<width> <height>]{Esc b x} <<Box>> Draws a box of specified size with its top-left corner at the current cursor position"
+  "<string>{Esc b t} <<BoxText>> Inserts text string into box enclosing cursor position"
+-  "[<size>]{Esc z 1} <<Lozenge>> Draws a lozenge shape with the top corner at the current cursor position"
+-  "[<size>]{Esc z 2} <<DSLozenge>> Draws a broader lozenge shape with the top corner at the current cursor position"
+  
+M1_Misc.:
+-  "{Esc I n} <<InsertMode>> Tuggle type-to-screen mode, persists until exit explicitly requested"
+-  "{Esc i n} <<TempInsertMode>>Enter type-to-screen mode until next hotkey operation"
+-  "1 <<Again>> Perform the last command onece more, may be repeated any number of times"
+-  "<string>{Esc e} <<Enter>> Create a new line containing the string after current line, inheriting current line's indentation"
+-  "{Esc c e} <<CmdEditStart>> Command history is displayed in a temporary buffer, commands may be edited using normal editor functions"
+-  "{Esc c g} <<CmdEditGo>> Push the edited command line into the command buffer - you then hit return to execute the command"
+  
+M1_Help:
+-  "[<string>]{F1} <<Help>> Displays help menu, if already in the help menu, selects a help item to descend, or exits help item"
+-  "[<string>]{Shift+F1} <<FindAllHelp>> Searches all open file folds for simple match to string"
+-  "{Ctrl+F1} <<RemoveHelpFold>> Closes current file fold in help system"
+
+%%test
++M1_ "File"  "Find"  "Subs."  "Edit"  "Blocks"  "Break"  "Nav"  "View"  "Delete"  "Lines"  "Misc."  "Help"
+  
+M1_File:
+-  "Reload"  "Abandon"  "Save"  "SaveAs"  "SaveAndExit"  "Do"  "ScriptByName"  "ScriptByFunc"
+  
+M1_Find:
+-M2_  "FindForwards" "FindBackwards"
+  
+M2_FindBackwards:
+-  "FindPrev"       "FindPrevAgain"   "FindExactPrev"
+-  "SetFindString"  "SubsThenFindPv"
+-  "FindWildPrev"   "FindInParaPrev"  "FindSequencePrev"
+  
+M2_FindForwards:
+-  "FindNext"       "FindNextAgain"   "FindExactNext"
+-  "SetFindString"  "SubsThenFindNx"
+-  "FindWild"       "FindInParaNext"  "FindSequence"
+  
+M1_Subs.:
+-  "Substitute"  "SubstituteAgain"  "Remove"  "Insert"  "InsertAgain"  "Overwrite"
+  
+M1_Edit:
+-  "Note"  "Cut"  "Copy"  "Paste"  "CumulativeCut"  "CumulativeCopy"  "PasteOver"  "CutTabular"  "CutRectangle"  "PasteRectangle"
+  
+M1_Blocks:
+-  "ParagraphUp"  "ParagraphDown"  "CodeSectionUp"  "CodeSectionDown"  "IndentMatchUp"  "IndentMatchDown"
+-  "ParenMatchLeft"  "ParenMatchRight"  "MarkupMatchLeft"  "MarkupMatchRight"
+-  "CurlyMatchLeft"  "CurlyMatchRight"  "AngleMatchLeft"  "AngleMatchRight"
+  
+M1_Break:
+-  "Join"  "Break"  "JoinLeftPrev"  "JoinRightNext"  "AppendLeftPrev"  "AppendRightNext"  "IndentFromPrev"  "IndentFromNext"
+  
+M1_View:
+-        "Up"                         "WordUp"                             "PageUp"                       "ViewUp"
+-                                     "NewWordUp"                                                         "ShrinkWindow"     
+-  "Left"      "Right"      "WordLeft"          "WordRight"        "LineLeft"    "LineRight"     "ViewLeft"           "ViewRight"
+-                                     "WordDown"                                                          "StretchWindow"                   
+-        "Down"                       "NewWordDown"                        "PageDown"                     "ViewDown"                   
+        
+M1_Delete:
+-  "DeleteWordLeft"  "DeleteLineLeft"  "DeleteChrLeft"  "DeleteChrRight"  "DeleteLineRight"  "DeleteWordRight"
+-  "RestoreChrLeft"  "RestoreChrRight"
+  
+M1_Lines:
+-                    "LineN"                          
+-        "LineNW"               "LineNE"                     "UpRegardless"
+-        "DSLineNW"            "DSLineNE"                   
+-  "LineW"                             "LineE"          "Left"             "RightRegardless"
+-        "LineSW"                "LineSE"                    
+-        "DSLineSW"            "DSLineSE"                     "DownRegardless"  
+-                    "LineS"                                
+-  "BoxText"  "Box"  "Lozenge"  "DSLozenge"
+  
+M1_Misc.:
+-  "InsertMode"  "TempInsertMode"  "Again"  "Enter"
+-  "CmdEditStart"  "CmdEditGo"  "ViewSave"  "ViewRestore"
+  
+M1_Help:
+-  "Help"  "FindAllHelp"  "RemoveHelpFold"
+
+
+:
+  
+%g#
+%%Analyze optional arguments.
+%%
+%%If no predefined menu, use the default menu, defined above, in buffer ( @ ).
+obz-((r\ m), %%There is no predefined menu proforma in buffer ( - ) - use one of the ones defined above.
+  z-h@
+  %%Extract requested menu option name.
+  obz$m-0 (f/ -opt=/-b(f1/ /, r0)b-, z$m-0b-i/standard/)
+  %%Delete all but requested menu.
+  z-m-0 n.((v/%%/\m)0r2v'$\m)0 k-0m (v/%%/\m)0 k0 )
+%%
+:
+'# oz
+
+%%Now run the default startup script.
+%r=startup
+
+%%Define colour tags.
+z-
+%b=tagtype Menu    colour     7  5;  %%Mauve colour tag for static menu.
+%b=tagtype Option  colour     7  6;  %%Magenta colour tag for the secondary drop-down menu.
+
+%%Macro to analyse the user-defined menu and create the necessary functions etc.
+%g#
+z-m-0n.a@
+( %%Line loop
+  v/+/ %%It's a static menu item, this remains in the menu buffer, abstract function-name prefix to ( ! ) buffer.
+  m,
+  
+  f1/:/f-1/ /\r(v/ /r)0r\ %%It's a label, the label string will become a function name which had better not collide with any other function.
+  r-0n.f1/:/a$& z@m0(f-/<</m0m-r0bi|z-m0r0i/ / oz|, ) m0bi/<</h$i/>>/b i/%s=system 1; ob/b z-m,
+  
+  v/-/ %%It's a submenu item - add it to current function.
+  %%Pick up the function-name prefix.
+  rn.f1/ /a!e
+  %%Strip out minus sign and add some whitespace to the end - this prevents the colours running into the console area..
+  er0i/ /
+  %%Check that we have already identified at least one label.
+  (z@f-/<</, z- %x=Syntax: Encountered a submenu line before any valid label line.; )
+  %%Code to add line and insert tags to new submenu item.
+  m0i|z-m0r0bi`|i'-i|`r-0( f`"`eoco#n.f1`"`a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text=|h!i|'$; )0|b z-k,
+  
+  %%Ignore all other lines.
+  k)0
+z@m0m-r0bi|z-m0r0i/ / oz|
+z-m-0(v/+/m,k )0
+  
+%%Set up a function to define the static menu if required.
+z-m-0(r\, 
+  %%There are some static menu items.
+  z-n.f1/ /a!e
+  z@m0bi|<<TopMenu>>|b
+  i|z-m-0k0|b
+  (i|i/|i'-i|/r-0( f/"/eoco#n.f1/"/a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text='!'$; )0|b z-m z@i|r0b|)0
+  z@m0b-i|z-m0r0i/ /|b
+  i|%%Set up the menu window as a popup with one dummy line at the top.|b
+  i|%q$=window; f/screenHeight = /-oidol2o- %w; %w?= -height=1; %w= -height='~ -delim; f/screenWidth = /-oid %w-= -popup -height=10 -width='~; w|b )
+
+:
+'#
+
+%%Define mouse-click function for code repository.
+%g$
+<<LeftClick>>
+%%Defines the left-button-click mouse event handler.
+%%On a left-button click on tagged text in the menu buffer ( - ), query tags at the mouse-click point to pick up a function name
+%%then call the function.
+%%
+%%In system mode, users default strings are unaffected, get and check the mouse-click coordinates.
+%s=system 1; obopobos
+%%
+( z-obo=
+  %%It's the menu buffer alright, move to mouse-event point.
+  okokono-omor %q!=tags -here; 
+  %%Pick up the function name from the text tag.
+  ( f/Type text from chr /f1/ = "/-b(f1/<</-b, )(f1/>>/, f1/"/)b-
+  %%Clear all but static menu bars from menu buffer.
+  z-m-0 (v/+/\k, m)0
+  %%If the function takes a parameter, prompt and pick up value.
+  %h'=jump '!; m ( f1/%%Prompt string: /-n.r0a$& %s=prompt '$; z$m-0k0g1k- %s=prompt > ;, )
+  %%Call the function.
+  %s=system 0; oz (%h'=call '!;)? ob %s=system 1; )
+, %%Event was not on a valid clickable menu point - restore menu to original state.
+  (ok)4 z-m-0(v/+/\k, m)0 )
+  
+oz %s=system 0;
+
+<<HoldSubMenu>>
+%%Currently-displayed menu is frozen.
+obz-m-0(v/-/s/+/m, m)0 oz
+
+%%Functions for the "M1_File" menu bar.
+<<Reload>>
+%%Re-reads the current buffer.
+obo#n.a$z$oo/%%i%c/ oz'$
+
+<<Abandon>>
+%a;
+
+<<Save>>
+%o;
+
+<<SaveAs>>
+%o='$;
+
+<<SaveAndExit>>
+%c;
+
+:
+z@m-0h$
+
+%%
+%%Somthing someone might like to try is allowing the mouse to hover over a menu with the button down.
+%%This could be done by seting the mousemask to 003 and specifying a {Button1Down} handler that adds floating menu items
+%%and a {Button1Up} handler that only calls normal editing functions.
+%%
+%%Setting mousmask to 0004 doesn't seem sufficient to disable {Button1Up} and {Button1Down} events - nobble their key translations here.
+%g$
+{Button1Up}
+{Button1Down}
+{Button1Click}%h'=call LeftClick;
+{Button1Down}%d$=##; %h'=call LeftDown;
+{Button1Up}%d$=##; %h'=call LeftUp;
+mh          %h'=call HoldSubMenu;
+mi          ob %h'=call TopMenu; oz
+:
+z^m-0h$b
+
+%h'=call AddNewFunctions;
+
+%%Enable left-button clicks.
+%s=mousemask 0004;
+
+%h'=call TopMenu;
+
+oz
+
+
+

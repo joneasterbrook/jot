@@ -1,0 +1,129 @@
+%%Performs a binary search to identify the minimum set of commands for a jot soak_test file to display a valgrind error.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Command-line arguments:
+    - -script=<pathName> - pathName of script to be processed (this is copied to <pathName>_orig).
+    - [ --failif=<jotCommands to detect a specific valgrind error - defaults to "f/ ERROR SUMMARY: /-v/0 /\"
+    
+  Example usage (first generate the test script, then minimize it with valg_search):
+$ ./jot_dev t.t -in='%r=valg_search ./jot_dev t.t -in="%r=soak_test -script=./test611115913.jot; %a"'
+
+$ ./jot_dev t.t -st -in="%r=soak_test -seed=107152346 -tests=1000 -trace=0 -exit"
+$ ./jot_dev t.t -in="%r=soak_test -script=./test107152346.jot -failif=f/Invalid read of size/"
+  
+Demo:
+  First generate the script if necessary:
+$ ./jot_dev t.t -st -in="%r=soak_test -seed=107152346 -tests=1000 -trace=0 -exit"
+  Now run valg_search
+$ ./jot_dev t.t -in="%r=soak_test -script=./test107152346.jot -failif=f/Invalid read of size/"
+  
+  Buffers usage:
+    $ - args and temp workspace.
+    # - Main command macro.
+    . - soak-test script.
+    b - bin (destination for all removed test lines.
+    c - Command line.
+    f - failure comparitor - a string whose presence in the logfile indicates failure.
+    p - Progress monitor buffer.
+    t - pass start date/time.
+    _ - holds last-removed block.
+:
+
+%g#
+%%%df=f/ ERROR SUMMARY: /-v/0 /\
+%df=f/ERROR SUMMARY: 0 errors from 0 contexts/-v/0 /\
+%%
+%%First pick up command line args - must have -script=... -failif=<commands> is optional.
+z$m-0n.r0ac& r-0(f1/-script=/-e-0f1/.jot/-b (f1/-failif=/-n.r0af&, ), %x=No -script=<pathname> - you must specify a test script.; ) z$m-
+
+%%Verify existance of the test script.
+( %q=file '$;, %x=Test script '$ does not exist, bye.;)
+%%Rename script
+%i.='$; z$r0i/_pruned/z. %b=pathname '$; (%f=;, %o='$; )
+
+%%Initialize progress monitor etc.
+z.m0on n.apzp n.ab
+i/Progress monitor:/b
+i/-----------------/b
+ol1o-o#
+oo/%6d - original size of test script./b
+o#
+oo/%6d - current size of test script./b
+ol1
+oo/%6d - current line number in test script./b
+ol0
+oo/%6d - current size of rubbish bin./b
+o#
+oo/%6d - current delete-block size./b
+ol0
+oo/%6d - blocks removed this pass./b
+i/Comparator command: /hfb
+
+%qt=date; mzpm0b2i/Progress summary (Pass 0 checks that the script really does generate errors)/b
+i/Pass  0, start time /i'tb m-0w
+
+%%Check that this script really does display valgrind errors.
+n.a@z@i/%e@=\valgrind --leak-check=full --track-origins=yes jot_dev l99.t -init="%r=/i'$i/ -asConsole; %a;" 2>&1 -hereEndsThePercentCommand;/ '@
+('f %x=This script does not generate valgrind errors.;, )
+
+%%Set up pass counter.
+ol1os
+( %%Main loop - remove a block of commands, re-run tests.
+  %%If it exits normally restore block, if it fails put end of block in rubbish bin.
+  %%
+  %%Exit when block size reaches 1.
+  ol1o=\
+  %%Reset script and set up new block size.
+  z.m-0 zpm+7okoid o~ol2o/o#oo/%6d/
+  %%Reset blocks-removed-this-pass counter.
+  zpm+8e6ol0oo/%6d/
+  %%Get start time.
+  %qt=date; mzpm0 oso#oo/Pass %2d, start time /i't o~os 
+  
+  ( %%Block loop - keep removing blocks until block-size is 1 and we've reached the end of the command script.
+    %%
+    %%Display progress monitor while testing.
+    zpm-0w
+    %%Remove next block.
+    z.n.o#om?a_ %o
+    %%re-run tests.
+    n.a@z@i/%e@=\valgrind --leak-check=full --track-origins=yes jot_dev l99.t -init="%r=/i'$i/ -asConsole; %a;" 2>&1 -hereEndsThePercentCommand;/ '@
+    %%Did it fail?
+    ('f  z.h_, zbh_zpm+8oido~oo/%6d/)
+    %%Update progress monitor.
+    ( z. onm0onol1o-zpm+4e6oo/%6d/z.ono-om onzpm+5e6oo/%6d/ zbm0onol1o-zpm+6e6oo/%6d/, )
+    %%exit if at end of test script.
+    z.mm- )0
+  %%Stop now if previous loop exited early.
+  z.(m %x=Forced or error exit;, m-)
+  %o
+  
+  %%Add summary for this pass.
+  zpm0r0m+8oidm0r0oo/, removed %5d blocks / m+7oidm0r0oo/of %6d lines/ m+4oidm0r0oo/, script size now %6d lines/b
+ )0
+ok ok zpm-0
+:
+
+'#
+

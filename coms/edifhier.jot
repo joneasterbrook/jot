@@ -1,0 +1,87 @@
+%%Finds an instance/net from a pathname in an edif netlist.
+%%This is in the form:  <InstName1>/<InstName2>/<InstName3>/<LastInstName>
+%%  e.g.                core/byte_3/mux0/I41/MP6/pmos
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Usage
+    edifhier <InstName1>/<InstName2>/<InstName3>/<LastInstName>
+    
+  N.B.
+    The last element in a synopsys name is the cellName of the last object.
+    This means that you will see a message like:
+      Fatal:Can not find instance "dp" in definition of cell "dp".
+    
+  Buffer usage:
+    $ - the instance path, exploded to one instance name/line
+    @ - the master name for the current instance.
+    
+:
+%g#
+%%Initialization 
+%%
+%%Pick up path arg.
+obz$m-0(f/%%/-, %X=Must specify a path as argument to edifhier.
+  )
+(v/ /r)0e-0(m-k-0,)(mk0,)j-r-0(q"|"e,)((q"|/."\r)0eb)0m-0oz
+%%
+%%Find top-cell and pick up it's name.
+m0f-/(Cell /-(v/ /r)0n.(q/ )/\r)0a@h@m0
+  
+( %%Main loop - take each instance name off the argument string
+  %%and locate the next master.
+  %%
+  %%Go back and find the master.
+  (f-/(Cell /-(v/ /r)0 v'@\m-, f1'@-rr- q/ )/\m)0
+  %%
+  %%Note the position of the master.
+  on
+  %%Find the correct instance - allow any object if we're at the end of the path.
+  obz$(mm-oz
+    %%More path elements left - accept only instances.
+    (f/(instance /-v'$\, r-rf1'$-rr-q/ )/\)0 w
+    %%Check that we're still in the right cell.
+    onf-/(Cell /-(v/ /r)0(v'@r-rf1'@-q/ )/, 
+      %%Return to the last-located master and give up.
+      okono-om obz@r-0i/%X=Fatal:Can not find instance "/i'$i/" in definition of cell "/r0i/"./oz'@
+      )
+    %%Go back to the instance and get the master name.
+    ono-omok f/(cellRef /-(v/ /r)0n.(q/ )/\r)0a@h@
+  , oz
+    %%Last path element - allow any old object (normally nets).
+    (f'$q-/ ("/\r, f1'$-rr-q/ )<[/\)0 w
+    %%Check that we're still in the right cell.
+    onf-/(Cell /-(v/ /r)0(v'@r-rf1'@-q/ )/, 
+      %%Return to the last-located master and give up.
+      okono-om obz@r-0i/%X=Fatal:Can not find object "/i'$i/" in definition of cell "/r0i/"./oz'@
+      ) 
+    %%Go back to the object.
+    ono-omok n.a@)
+  %%
+  %%Annotate the instance name with the master name then index to next instance.
+  obz$r0i/	/h@moz
+  )0
+z$r-0n.f1/	/a@h@
+ozf1'@
+:
+'#

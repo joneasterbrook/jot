@@ -1,0 +1,99 @@
+%%Performs a binary search to identify the minimum set of commands for a jot soak_test file to crash.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Example usage:
+$ jot_dev t.t -in='%r=crash_search ./jot_dev t.t -in="%r=soak_test -script=./test609061315.jot"'
+
+  N.B. This script relies on the existance of core dumps to detect crashes - ensure that your coredumpsize env. is nonzero
+
+  Buffers usage:
+    $ - args and temp workspace.
+    # - Main command macro.
+    . - soak-test script.
+    b - bin (destination for all removed test lines.
+    c - Command line.
+    p - Progress monitor buffer.
+    _ - holds last-removed block.
+:
+
+%g#
+%%First pick up command line and the soak_test script.
+%%z$m-0f/%%/-n.r0ac& l0f1/-script=/-e-0f1/.jot/-e0 z.%i.='$
+%%z$m-0f/%%/-n.r0ac& l0f1/-script=/-n.f1/.jot/-a.& l0f1"-script=./test"-e-0i/ -tests=10000 -trace=0  -exit -seed=/f1/.jot/e0 z.l0%i.='.;
+z$m-0n.r0ac& r-0f1/-script=/-n.f1/.jot/-a.& r-0f1"-script=./test"-e-0i/ -tests=10000 -trace=0  -exit -seed=/f1/.jot/e0 z.r-0%i.='.;
+%%Save command line as ./crash_search.sh
+zci"#!/bin/sh"b2r0b %o=crash_search.sh; %e=\chmod u+x crash_search.sh
+%%
+%%Check that this script really does crash - if the original crash was just a random hiccup we could be waiting for a *very* long time.
+%e=\rm -f core;
+( %e=\xterm -geometry 80x40 -fg white -bg black -e ./crash_search.sh;  %q=file core;\ )1?
+%%Did it crash?
+( %q=file core;, %x=This script does not crash.; )
+
+%%Save original script.
+z$r0i/_orig/z. %o='$
+
+%%Initialize progress monitor etc.
+z.m0on n.apzp n.ab
+i/Progress monitor:/b
+i/-----------------/b
+o#ol1o-oo/%6d - original size of test script./b
+o#oo/%6d - current size of test script./b
+ol1oo/%6d - current line number in test script./b
+ol0oo/%6d - current size of rubbish bin./b
+o#oo/%6d - current delete-block size./b
+
+( %%Main loop - remove a block of commands, re-run tests.
+  %%If it exits normally restore block, if it crashes put end of block in rubbish bin.
+  %%
+  %%Reset script and set up new block size.
+  z.m-0 zpm+7okoid ol2o/o#oo/%6d/
+  %%Exit when block size reaches zero.
+  ol0o=\
+  
+  ( %%Block loop - keep removing blocks until block-size is 1 and we've reached the end of the command script.
+    %%
+    %%Display progress monitor while testing.
+    zpm-0w
+    %%Remove next block.
+    z.n.o#om?a_ %o
+    %%Remove any old coredump.
+    %e=\rm -f core;?
+    %%re-run tests.
+    ( %e=\xterm -geometry 80x40 -fg white -bg black -e ./crash_search.sh;   %q=file core;\ )1?
+    %%Did it crash?
+    ( %q=file core; zbh_, z.h_)
+    %%Update progress monitor.
+    z. onm0onol1o-zpm+4e6oo/%6d/z.ono-om onzpm+5e6oo/%6d/ zbm0onol1o-zpm+6e6oo/%6d/
+    %%exit if at end of test script.
+    z.mm- )0
+  %%Stop now if previous loop exited early.
+  z.(m %x=Forced or error exit;, m-)
+  %o
+ )0
+ok
+:
+
+'#
+

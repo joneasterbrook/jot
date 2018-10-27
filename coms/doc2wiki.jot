@@ -1,0 +1,75 @@
+%%Turns current doc-style document into a wiki page.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Revision history.
+
+%g? 
+  Converts a plaintext document in jot's doc format into markdown text suitable for a wiki entry.
+  The final text is pushed into the paste buffer for easy uploading to a wiki site.
+  
+  To do:
+    - links and anchor points. 
+    
+  Buffer usage:
+    - @ - working copy of original text, on completion it's the final markdown text.
+    - $ - temporary.
+:
+
+%%%%Check that doc.jot has been loaded.
+%%obz<m-0(f1/'<' Goes to paragraph/oz, oz %x=ERROR:doc.jot has not been run.; ) 
+%r=doc.jot
+ 
+%%Take a working copy in buffer.
+m-0n.m0r0a@& z@
+
+%%Change headings. 
+m-0 (q/0-9/\m, ol1((q/0-9/e)0v/./o~e)0v/ /e ol0oso- o#(i/#/o~)0ok r0(i/#/o~)0ok m(v/-/(v/-/e)0j-, )m )0
+%%%%Now turn headings into wikiWords.
+%%m-0((v/#/\m)0 (v/#/r)0 (q/A-Z/c, r) (v/ /e (q/a-z/c, r), q/A-Z/c, q/-/ei-/ /, r)0 (q-/./e-)0 m)0
+
+%%Form all paragraphs into single lines, removing any empty lines.
+m-0 (((v/ /\m)0 (v/ /r)0r\k)0 r-(v'-rr-f1'--,)oc n.(m(v/ /r)0rr-oco=v'-\)0okm-r0a$ obz$m-0j0r-0 (f/  /e)0 ozh$ r-0(v/ /r)0(v/-/, i"<P>"r0i"</P>")bm)0
+
+%%Code etc. 
+m-0 (v/	/\m, s/~~~~~~/b m(v/	/(v/	/em)0, (v/ /r)0r\m)0 r-0i/~~~~~~/b )0
+%%No - indentation of code generates more confusion and errors elswere.
+%%m-0 (v/	/\m, s/    /m)0
+
+%%Square brackets. 
+m-0 (f/[/i/\/r2)0 m-0 (f/]/i/\/r2)0
+
+%%Angle brackets. 
+m-0 (f/</s/&lt;/)0 m-0 (f/>/r-rei/&gt;/, r)0
+
+%%%%Change indentation of all bullet paragraphs to match previous paragraph.
+%%m-0 ((v/ /r)0v/- /\m, (m-(v/ /r)0r\)0l0n.(v/ /r)0a$h$ (m(v/ /r)0r\)0 l0(v/ /e)0h$m )0
+
+%%Do hyperlinks. 
+m-0 (f/`/s/[/f/`/s/]/)0
+
+%%Write to temporary file. 
+%o=/tmp/wiki.txt
+%%Pick it up in the paste buffer.
+%e=\cat /tmp/wiki.txt | \xsel
+
+%m=All done, the wiki page is now in the paste buffer. 
+

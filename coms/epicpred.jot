@@ -1,0 +1,49 @@
+%%Finds predecessor terminal of a net (e.g. an it (input terminal) a Z, Q or QN term.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Assumptions:
+%%  - the name of the parent terminals of interest are Q, QN or Z.
+%%  - The parent name immediatly preceeds the netname (no whitespace etc.)
+%%  - the parent name is prefixed by whitespace.
+%%
+
+%g#
+%%Are we part-way through a series of searches?
+( v'@,
+  %%Take a copy of net name.
+  (q-/A-Za-z0-9_/r-)0n.(q//r)0a@h@
+  m-0
+  )
+%%Start search. 
+( %%Loop - find next appearence of net name.
+  (f'@(q-/ (,=/\, f1'@-q/ ,)/\) )0
+  %%If its a "Q(" , "QN(" or a "Z(" terminal then exit.
+  f-1'@ (v-/ /r-)0 (v-/Q(/\v-/QN(/\v-/Z(/\, rr-f-1//q-/ =/\,
+    f1'@
+    %XFound net.
+    )
+  (q-/=,/ f1'@ %XFound terminal.
+   ,)
+  %%Not a terminal or Z/D inst term, bypass this appearence of netname.
+  f1'@ )0
+:
+'#

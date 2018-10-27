@@ -1,0 +1,109 @@
+%%Sets up editor for epic session (for files from the new opus2epic interface).
+%%Assumes the home buffer '.' is the runepic file.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+The editor has been configured for browsing in epic pathmill files.
+Buffer assignments:
+  config.com (or first config)    - to buffer l
+  config.io                       - to buffer k
+  config.cells                    - to buffer j
+  config.flips (optional)         - to buffer h
+  netlist.epic (or spice netlist) - to buffer n
+  <designName>.out                - to buffer g
+  <designName>.err                - to buffer f
+  <designname>.ignore (optional)  - to buffer i 
+  
+The following jot command files are available: 
+  epic - Sets up editor for epic session (This file).
+   
+  epichier <path> - locates a net/instance in the netlist hierarchy
+
+  epicnet - Finds a net in a netlist hierarchy. Finds a transistor in a nelist
+    from an epic-style  expanded  instance  name.  Point  the  cursor  at  the
+    expanded pathname (dots  used  as  separators).  Finds  the  lowest  level
+    instance (typically a transistor) in the epic netlist.
+   
+  epicpred - finds predecessor inst-term of the net name at the cursor (Only
+    works for flat designs where all children are lib cells  and  have  output
+    names Z or Q).
+              
+  epicargno - Tells you the argument no. for an epic argument list. point the
+    cursor at a signal and it will return the arg number, and push it onto the
+    editor stack.
+       
+  epicarg - Locates an argument in an epic netlist. Pount the cursor to any
+    part of an epic-netlist argument list and it finds  the  nth  arg,  if  no
+    explicit numeric value given it takes the arg number from the top  of  the
+    editors stack.
+     
+  epiccarg - Goes to arg no. (from stack or given) in epic c code file. Similar
+    to epicargno, but for epic c models.
+     
+  epiccargno - Tells you the argument no. for a signal in an epic c-code file.
+    Similar to epicarg, but for epic c models.
+    
+:
+
+%g#
+%m=Check that we are looking at a pathmil run file.
+(z.m-0 f/pathmill \/l\f10/ -c /, 
+  %X=The file in buffer "." does not appear to be a pathmill run file.
+  )
+%m=config.com - if none then take first -c file.
+(z.m-0(f/.com/-v/ /n.lf-1/ /-, m-0f/ -c /-(v/ /r)0n.(f1/ /, r0))a$h$z$
+%il
+  ,)
+%m=config.io
+(z.m-0f/.io/-(v/ /, r\)n.lf-1/ /-a$h$z$
+%ik
+  ,)
+%m=config.cells
+(z.m-0f/.cells/-(v/ /, r\)n.lf-1/ /-a$h$z$
+%ij
+  ,)
+%m=config.flips - optional
+(z.m-0f/.flips/-(v/ /, r\)n.lf-1/ /-a$h$z$
+%ih
+  ,)
+%m=netlist.epic or spice netlist
+(z.m-0(f/ -n /-, m-0f/ -nspice /-)(v/ /r)0n.(f1/ /, r0)a$h$z$
+%in
+  ,)
+  
+%m=Set up to read .err and .out
+( z.m-0m f/cd /-n.r0a!h! f/pathmill \/f/ -f /-(v/ /r)0n.(q/A-Za-z0-9_/r)0a$h$
+  z$h!i./.r0i/.out/
+  %ig
+  (%if=.err; , %m=Something went wrong - either no -f <name> or no .out file.; )
+  %eg=/bin/ls -1 *.out | head -1
+  ( %if=.err; , )
+  )
+
+%m=Set up to read ignore file (powermill/spice-parser???).
+( zg %ii=.ignore
+  , )
+z.
+:
+'#
+z?

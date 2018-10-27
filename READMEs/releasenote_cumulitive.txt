@@ -1,0 +1,551 @@
+  - 05/11/12 All static names prefixed with s_
+  - 05/11/12 Bugfix - jot -help was complaining of no file to edit and exiting.
+  - 05/11/12 Bugfix - %h=add/new failing to add complete key if it contained whitespace.
+  - 06/11/12 Bugfix - ExpandDeferredString was attempting to do nested expansion of substrings containing a '
+  - 06/11/12 Added Trace_Fails, reassigned other trace bitmasks.
+  - 06/11/12 Bugfix - nm-aa was abstracting nothing.
+  - 07/11/12 Added %y=TraceCount functionality. 
+  - 07/11/12 Changed the way VersionString is set up in edlib.c
+Release version v0.20 Wed Nov  7 12:59
+
+  - 07/11/12 v0.20 released.
+  - 07/11/12 Bugfix - command:  %i;=t.t  was failing because semicolon was terminating command.
+  - 07/11/12 Revisited Break/Trace point logic. 
+  - 08/11/12 Fixed error in WriteIfChanged handling.
+  - 08/11/12 Ctrl+C handling now seems to be OK for interactive, normal scripts and -forgiveErrors scripts.
+  - 08/11/12 This used to hang up (OK now): ./a.out t.t -init="z-z.m4f-'-0"
+  - 10/11/12 ErrorExit was (unsuccessfully) trying to unwind comm-file and macro call frames - now much better and we also get a backtrace.
+  - 10/11/12 In break-prompt loop, now gives indication of command success/failure status
+Release version v0.21 Sat Nov 10 15:31
+
+  - 11/11/12 On exit from running a macro, the ActiveMacro state is now reset in Run_Sequence (was formerly done by ErrorExit().
+  - 11/11/12 Message now ignores % characters in message text.
+  - 12/11/12 When a buffer (say a) contains an empty string - v-'a now deemed to be a match at the end of the line, similarly v-'a at the start.
+  - 13/11/12 %D<bufferKey> was not setting buffer to previous command.
+  - 13/11/12 Fixed bugs in test.csh
+  - 14/11/12 Abolished vax-style logical names, now only recognizes env variables. 
+  - 14/11/12 ${JOT_HOME}/coms scripts dic, jothelp, findhelp and thes now set up for ${JOT_HOME/RESOURCES}
+Release version v0.22 Wed Nov 14 06:19 
+
+  - 11/11/12 Message() was passing formatted string to Propmt() - if the expanded string contained a % (e.g. %s in message) this would crash in sprintf.
+  - 11/11/12 Unwinding macros sets their ActiveMacro to FALSE. 
+  - 11/11/12 Fixed some mystery typo in get.jot - last line of macro 0
+  - 15/11/12 Changed trace again.
+  - 16/11/12 get.jot can now deal with compressed and archive files.
+  - 16/11/12 doc.jot was referring to $JOT_HOME/resources - now correctly uses $JOT_RESOURCES
+  - 16/11/12 date.jot - now uses %q=date query.
+  - 16/11/12 jot_ug now has a section on help files.
+  - 18/11/12 Bugfix - SearchString behaviour now correct when search string is empty
+Release version v0.23 Sun Nov 18 08:06:34 GMT 2012
+
+18/11/12 UpdateWindow now restores original view when returning to a buffer in a floating window.
+18/11/12 Replaced original revision history with copyright notice in ed*.c and coms/*.jot.
+18/11/12 Trace now stops *before* displayed command - Trace_Fail still broken.
+18/11/12 Bugfix %d<key> now OK for catching previous command line. 
+18/11/12 ced Now has -toStick (upload to uSB memory stick) and -fromStick.
+18/11/12 thes.jot now does simple searches.
+18/11/12 %o now writes the last line of a buffer but with no \n.
+18/11/12 Bugfix - was only displaying the first line of a new buffer after reading.
+19/11/12 %d<key> no longer defines buffer from previous command - use %q=history query now - impossible to detect a null argument to macro call.
+19/11/12 manhelp.jot now works ... sort of.
+20/11/12 %B and %Q=buffer now support LeftOffset and TabSets.
+21/11/12 Redefined curses_keys for suse v12.2 ( 3.1.0-1.2 ).
+22/11/12 Fixed bugs in DisplayRecord - affecting behaviour for overlong lines.
+22/11/12 Removed NewScreenLine() call from Prompt() - was introducing unnecessary linefeeds, but may require restoration with improvements to logic?
+22/11/12 Now seems to support LeftOffset - still some flakyness somewhere though.
+22/11/12 TabSets - basic functions OK, auto TabSets seems OK.
+Release version v0.24 Thu Nov 22 21:29:24 GMT 2012
+
+23/11/12 Bugfix - "%w 1 s" was ignoring the s.
+23/11/12 Bugfix - DisplayDiag was displaying crap following any line.
+23/11/12 Bugfix - was failing to remove cursor in lines 1 and 2 of screen when CurrentChr was 0.
+23/11/12 Bugfix - Gold, + and Gold, Gold, + unrecognized.
+23/11/12 Bugfix - DisplayDiag was displaying random crap after the correct section of an overlong record.
+01/12/12 TabStops now OK.
+04/12/12 Bugfix - Error messages were all suppressed.
+04/12/12 Bugfix in the 'Deferred sequence block' of ed.c, the CommandBuffer->CurrentRec->text is somtimes corrupted causing a crash - worked around but not yet fixed.
+06/12/12 BugFix Tabstops and LeftOffset can now coexist.
+06/12/12 DisplayDiag now writes long lines correctly.
+Release version v0.25 Thu Dec 6 12:52:22 GMT 2012
+
+06/12/12 Bugfix - UpdateWindow was inserting blank lines at bottom of window when a new line inserted immediately above the lower guardband.
+06/12/12 Now supports user-defined cell delimiter character for tabular text (still defaults to Tab). 
+07/12/12 journal_recover.jot - fixed bugs in file names, can now do repeated commands (command line is just a number).
+07/12/12 Bugfix - AnalyzeTabs and %q buffer were leaving out the last TabStop.
+08/12/12 New-style journal history contains, more or less, original escape sequences and recovery from journal is now a single-step process.
+08/12/12 DebugBreak now temporarily suspends -asConsole when debugging these scripts so it can then interact via g_EditorConsole.
+08/12/12 %w now accepts indirect arguments (e.g. '~ ).
+08/12/12 startup.jot now sets window height to screen height minus 4. 
+08/12/12 Fixed all known problems with journal_recover.jot - suppression of %O caused spelling check to fail.
+Release version v0.26 Sat Dec 8 19:20:50 GMT 2012
+
+12/12/12 Fixed bugs in ReadCommand - was not respecting LeftOffset in screen mode, Rubout behaviour wrong in screen mode.
+13/12/12 Split ReadCommand into Readommand and TransEscapeSequence.
+14/12/12 Journal and recovery script now, apparently, fully working - even in type-to-screen mode.
+15/12/12 Bugfix - now maintains line numbers correctly for line breaks in type-to-screen mode.
+15/12/12 Bugfix - several scripts had %e commands with no equals sign, previously optional but now mandatory.
+Release version v0.27 Sat Dec 15 21:09:42 GMT 2012
+
+16/12/12 Bugfix - Simple failures were exiting the editor.
+16/12/12 Redefined stack operations (or -> o!, oi -> or and of -> oi), added new one ou (sUbstring length) 
+Release version v0.28 Sun Dec 16 20:30:58 GMT 2012
+
+17/12/12 Changed obsolete stack command op to oid in 19 jot scripts.
+17/12/12 Changed startup.jot and curses_keys - all numeric buttons now launch macros, including those with predefined functions.
+17/12/12 jot.jot Now parsing terminating semicolon correctly for percent commands.
+17/12/12 jot.jot Now handles f/.../- corretly.
+17/12/12 Jot.jot now handles escaped semicolons better for percent commands.
+17/12/12 CutRectangle now works properly.
+17/12/12 Bugfix - H command, with the * qualifier, was not restoring CurrentChr of destination buffer for 2nd. and subsequent records.
+19/12/12 Y- and Y move up and down in column, respectively, when TabStops are active.
+20/12/12 Now detects and fails when request for window exceede screen height-2.
+Release version v0.29 Thu Dec 20 11:53:34 GMT 2012
+
+20/12/12 oi{o|d|x|f} now leaves current character at end of substring (as for old command op).
+20/12/12 There were some old op commands etc. lurking in doc.jot - fixed.
+22/12/12 Bugfix - '\n' at end of every recovery-script line count as blank commands, not good if user is repeating commands.
+22/12/12 journal_recover.jot now dealing with secondary files correctly, also suppresses <<InsertMode>>.
+22/12/12 %b=TabStops now checks that the list of tabStops is ascending.
+23/12/12 In TabStops mode, now truncates over-wide cells to preserve nice neat columns.
+23/12/12 Added a crude command editing environment - <<CmdEditLeft/Right/Up/Down/Insert/Delete/Again>>.
+23/12/12 Added CellUp/Down/Left/Right - for tabulated text.
+23/12/12 Bugfix %b=TabStops was occasionally failing - dependant on state of a malloced struct.
+23/12/12 Bugfix - now does a clrtoeol() after writing header line.
+Release version v0.30 Sun Dec 23 18:33:35 GMT 2012
+
+24/12/12 <<CmdEdit*>> now using $ buffer
+24/12/12 Abolished -obey - now use -init="...; %a"
+24/12/12 %y=CommandMode was not respecting the + prefix - OK now.
+24/12/12 y command was broken for non TabStops case - OK now also added Y test to test.ecc.
+25/12/12 Bugfix - FindBuffer now fails on a reference to buffer '~' if top of stack is not a buffer.
+25/12/12 Now accepts implied decimal conversion for indirect references of the form '~
+25/12/12 %C and %A now send an optional exit message to stdout.
+Release version v0.31 Tue Dec 25 22:33:00 GMT 2012
+
+26/12/12 Pop now deletes buffer for StackBufFrame, after checking for duplicated frame pointing to same buffer.
+Release version v0.32 Thu Dec 27 11:39:35 GMT 2012
+
+27/12/12 doc.jot - Fixed bug in spemming macros Esc+s and Esc+S.
+28/12/12 Added %q=case - fails if case sensitivity is off.
+02/01/13 Bugfix - j0 was failing if at end of buffer, j-0 failing at start of buffer.
+02/01/13 Bugfix - Was occasionally reading empty files - ReadStream now resets s_IntReceived on entry.
+04/01/13 Bugfix - A failure in a macro is now passed back to calling sequence.
+Release version v0.33 Fri Jan 4 07:27:07 GMT 2013
+
+04/01/13 Indirect string references (e.g. f'_) are now checked for over-long strings.
+04/01/13 Bugfix - %h=add and %h=new were not first testing for the existance of a hashtable.
+05/01/13 Bugfix - there were lots of messages like this "<origial command string not available for display.>" - now fixed.
+05/01/13 Bugfix - h<key>* was crashing when subsequent lines were shorter than the currentChr point of the first destination line.
+06/01/13 Added %y=setenv
+06/01/13 c.jot now sets GetDefaultPath
+06/01/13 Get now seems to work as advertised.
+07/01/13 Bugfix - It is possible for commands to delete the original command text, this was resulting in a crash when an exit message tried to access the string.
+07/01/13 Changed all %Y and %B qualifiers to lower-case only.
+Release version v0.34 Tue Jan 8 10:53:29 GMT 2013
+
+08/01/13 'Exiting macro' and 'Exiting script' messages now gives correct line number.
+08/01/13 %q=dir/file now OK with filenames containing whitespace.
+10/01/13 Bugfix - various %Q queries were not testing the destination buffer and would crash - e,g, %q=stack.
+10/01/13 Bugfix jot.jot was sometimes going int an endless loop at the end of a buffer.
+10/01/13 Bugfix get.jot was not appending the given path to the current file's path. 
+10/01/13 Bugfix doc.jot {Esc+s} (the single-paragraph spelling checker) was failing if there was no local spelling list.
+11/01/13 Bugfix <<Do>> function was failing when current buffer was $.
+11/01/13 Bugfix thes.jot was failing on single-word searches, now also reports with a summary in $ buffer.
+11/01/13 Bugfix p<n> was adding extra blank lines for 1<n
+11/01/13 Bugfix g_Verbose now also controls exit message.
+11/01/13 Bugfix - %qa=dir now works with mtime etc., syntax changed to -mtime, ...
+11/01/13 Bugfix - %qa=dir was writing crap in the second record of the report.
+Release version v0.35 Fri Jan 11 21:34:13 GMT 2013
+
+12/01/13 Bugfix - get.jot was failing to pick up include files from text, now defaults to * if no command-line arg.
+Release version v0.37 Sat Jan 12 17:38:12 GMT 2013
+
+14/01/13 Bugfix - Failed to set file extention when given extn was empty but default was set.
+14/01/13 Bugfix - hashtables now working in cygwin.
+14/01/13 Bugfix - OpenFile now fails is path points to a directory. 
+14/01/13 Bugfix - get.jot was using # as a dustbin - this is likely to mess up error messages.
+15/01/13 Radical rethink for get.jot - new prioritization behaviour.
+Release version v0.38 Tue Jan 15 14:31:01 GMT 2013
+
+15/01/13 Now treats tabs (VT - ascii code 0x09) as any other character.
+15/01/13 ReadNewRecord now saves control characters with codes over 255 as two separate characters MSByte then LSByte.
+16/01/13 Bugfix - stack formatted character-input (oic) was failing to set the substring length.
+18/01/13 Bugfix - ExpandDeferredString was failing to resolve two consecutive indirect reverences - e.g: z.n.a&n.a@ z&i./usr/include. z@i/stdio.h/ %m='&/'@ 
+18/01/13 doc2fold now takes a working copy in buffer @.
+20/01/13 copy.jot and paste.jot restored and improved.
+20/01/13 Script findhelp.jot now searches below ${JOT_RESOURCES}/help
+20/01/13 More bugs in get.jot - was failing on: %d4=o! z. n.a$ %r=get;  -hereEndsThePercentCommand; '4
+22/01/13 Added %q=inview - pushes LeftOffset onto stack and fails if current chr is off the screen.
+22/01/13 Added <<ViewLeft/Right>> to startup
+22/01/13 Bugfix - UpdateWindow only reprinted line in console area if it was two or more characters beyond the right edge of the screen
+23/01/13 Added mc.jot - multicolumn a buffer and defines viewer keys in macro 1 and 2.
+Release version v1.1 Wed Jan 23 14:30:31 GMT 2013
+
+01/02/13 Get.jot - can now do ~/wor
+11/02/13 get.jot - When descending a directory (after user selects ../) returns to item following original subdir in parent dir list.
+13/02/13 get.jot - Now does get ~/ OK, Was passing "\ " in paths, now removes backslashes.
+13/02/13 age.jot - Now works when file is over 1 year old.
+01/03/13 edio.c - Now compiles properly with edhdr.h include *after* all the system includes.
+01/03/13 ed*.c - now compiles (by VC) and runs (in -tty mode only) under wine.
+08/03/13 edio.c - bugfix - in -tty mode, was placing the cursor 2 characters to the right of actual current character.
+13/03/13 ed*.c - compiled by VC - now passes test.jot, no hashtables no interrupts and has scrolling bug, runs under wine and windows.
+15/03/13 edio.c - restored printing of error messages.
+15/03/13 Introduced curses_keys_3.7.10.jot, changed startup.jot and renamed curses_keys.jot to curses_keys_3.4.6.jot, following installation of SuSE 12.3 on new laptop.
+15/03/13 Bugfix - in -tty mode p0 was printing additional blank line above each printed line. 
+21/03/13 Swapped hotkey designation - CmdEdit... now Alt+..., cut/pasteRectangle now Ctrl+Alt+...
+22/03/13 Bugfix h<key>* was inserting (not overtyping) when inserting into 2nd half of the line, added a test to test.jot.
+27/03/13 curses_keys_3.7.10.jot - Restored ViewUp/Down/Left/Right to be Ctrl+Shift+Up/Down/Left/Right
+30/03/13 curses_keys_3.7.10.jot now defines keymappings in @, startup.jot also changed - allows the key mappings to be picked up by other scripts. 
+30/03/13 curses_keys_3.7.10.jot - Added keycodes for various hitherto unmapped Shift/Ctrl/Alt+key combinations, especially Ctrl+Alt+... and Shift+Alt+...
+09/04/13 get.jot - Now defaults to reading files of unknown type (\file reporting some text files as type 'data').
+13/04/13 startup.jot, jot_ug - Changed names of JoinLineNext and JoinLinePrev to JoinLineRight and JoinLineLeft respectively, added function JoinLine {Ctrl+KP_6}.
+14/04/13 edio.c - Changed behaviour of OpenFile, when current buffer pathname was x.lis, %o would write to x, not x.lis, if there was a file named x in the same directory.
+23/04/13 Merged edhdr.h, edmain.c, ed.c, edlib.c and edio.c into jot.c
+Release version v1.1.2 Tue 14 May 12:50:54 BST 2013
+
+14/05/13 Abolished curses for windows version.
+15/05/13 Fixed bugs in H<key>* (overwrite mode), added new tests to test.csh
+15/05/13 %A now exits with (optionally user-specified) error status.
+15/05/13 Now prints current record in console area if current buf is not displayed by UpdateJotWindow.
+16/05/13 Bugfix %C was refusing to exit when current buffer was modified and writeifchanged.
+16/05/13 Fixed now bugs in Ctrl+C interrupt handling.
+Release version v1.1.3 Thu 16 May 19:38:13 BST 2013
+
+23/05/13 Hashtables now working in windows - requires separate compilation of routines calling system hashtable functions.
+23/05/13 Fixed loads of bugs in floating-point arithmetic operations (o< o> o= os o#).
+25/05/13 Now resolves ${<env>} expressions in dir and file queries.
+27/05/13 Bugfix - on macro exit verbose level 2 message referred to the innermost macro call.
+29/05/13 Bugfix - Ctrl+C now seems to be well behaved for both windows and linux.
+30/05/13 Bugfix - was crashing on %e~=uname -sr, in startup.jot, also fixed bad GetRecord call in ExpandDeferredString()
+31/05/13 Bugfix - %E pathnames to journal files did not match history if command contained a '/'.
+31/05/13 %i~=... now creates a buffer on the stack.
+01/06/13 Bugfix DisplayDiag was not showing cursor in -quiet mods - especially noticable in the jot debugger.
+02/06/13 Bugfix - after abolution of longjumps, RunError and SynError return after setting g_Failure - this was not being picked up in all instances.
+02/06/13 Added Trace_Int to intercept Ctrl+C interrupts.
+05/06/13 Bugfix - when writing to the last character before the right margin, in curses, the screen would scroll up leaving a blank line.
+06/06/13 In windows version DisplayDiag was wrapping on final column.
+06/06/13 CellLeft/Right now working reasonably well.
+06/06/13 Fixed serious bugs in window management - only noticable in windows version - was re-writing entiere display after scroll down.
+06/06/13 OW now scrolls display to avoid redrawing it all.
+Release version v1.2 Thu 6 Jun 22:40:20 BST 2013
+
+08/06/13 Bugfix %X was failing to exit scripts, macros etc.
+08/06/13 %q=dir was giving incomplete directory listings in windows - now uses msdn routines, also added tabs to header line.
+16/06/13 AnalyzeTabs() was completely broken, now fixed and also takes header record's tabs into account.
+20/06/13 Now unwinds sequence/macro/command-file stack correctly after an error.
+20/06/13 Bugfix O! was wrong.
+20/06/13 %q=dir query now strips trailing slashes from path - to prevent windows version from failing.
+21/06/13 Reunified jothdr.h and hash.c into jot.c
+21/06/13 Bugfix -to=<pathName> was crashing it (laptop only). 
+Release version v1.3 Fri 21 Jun 23:32:31 BST 2013
+
+24/06/13 Bugfix - JotDebug() was ignoring status returned by ReadNewRecord() - resulting in hangups after Ctrl+c interrupts.
+24/06/13 get.jot now uses xls2csv if available (first preference) otherwise xlio for spreadsheets
+24/06/13 %l now clears the screen properly.
+25/06/13 startup.jot - CellLeft and CellRight now working properly.
+26/06/13 %q=inview was returning incorrect results.
+26/06/13 Bugfix - %q=dir . (i.e. pass/fail check that . is a directory) was crashing both linux and windows.
+26/06/13 Bugfix OW was crashing it in -tty mode.
+27/06/13 Bugfix -journal was crashing the windows version, added default VersionString, was ignoring EOFs and looping endlessly at end of a -asConsole script.
+04/07/13 Bugfix - Was failing to read from stdin to primary buffer when redirected in and -obey was failing in windows.
+17/07/13 Added %q=verify - verifies the integrity of the current buffer and displays the command sequence by calling DumpSequence.
+18/07/13 Bugfix - SubstituteString was failing to include the string-terminator ( = '\0') in the length calculation, with the result that it was under-allocating the record.
+23/07/13 New feature - %e now supports piping of current buffer to child-process's stdin
+01/08/13 Revisited 27/06/13 bugfix - linux version was killing session when Ctrl+C hit while in ReadCommand wait loop - was OK in windows.
+02/08/13 Bugfix - SubstituteString() was using wrong string length to insert string-end mark.
+03/08/13 Bugfix Windows version was being given /dev/null for the null stream.
+03/08/13 Bugfix -new was crashing it.
+07/08/13 Bugfix - in windows, in jot < t.t, was ignoring all console input.
+09/08/13 Bugfix - When some script is called, ultimately, by an -asConsole script g commands were still directed to the console, now -asConsole scripts may not be nested.
+10/08/13 Bugfix - For the windows version, in -tty mode, %qa=buffer was choping the last character of each line of the report. 
+10/08/13 Bugfix - In windows, %e commands were undersizing the destination records.
+10/08/13 Bugfix - In windows, overlong pathname crashed it when attempting to display the pathname in the delimiter line of the window. 
+Release version v1.4 Sun 11 Aug 06:54:59 BST 2013
+
+21/08/13 Bugfix -new was crashing it.
+22/08/13 Bugfix commands failing at console level were not reported by RunError() (e.g. r9999).
+22/08/13 Linux version now displays unicode characters correctly - still can't type them in though.
+22/08/13 Bugfix - %b=tabstops with no tab-stop arguments was crashing it.
+25/08/13 New feature - Linux window manager can now correctly display unicode characters - but not yet reading unicode from keyboard.
+Release version v1.5 Sun 25 Aug 20:05:56 BST 2013
+
+28/08/13 Can now handle unicode characters in command string.
+28/08/13 No longer complains about untranslated command strings - these are now assumed to be unicode sequences and are just added to the command line.
+28/08/13 Redefined OU, now sets substring length from stack, added oe - adds (sub)string length in bytes and string/substring length to stack.
+30/08/13 Rewritten doc.jot and redefined the internal structure - now correctly reformatting paragraphs containing unicode.
+01/09/13 doc2fold.jot, doc2html.jot, doc2mif.jot, doc2tex.jot, doc2wiki.jot, epicman.jot, fold2doc.jot, frame2doc.jot, html2doc.jot, mail.jot and mif2doc.jot adapted for jew doc.jot.
+01/09/13 %q=inview now takes unicode character length into account.
+03/09/13 <<FindExactPrev>> Was hanging up when, for example, searching for oo and it passes a string containing 'ooo'.
+04/09/13 %q commands were, in some cases, failing to insert the original query at the top of the report - this broke the  command-edit buttons.
+04/09/13 Certain failures in -init sequence were crashing it.
+04/09/13 Added %s=commandstring - reintroduces text back into command stream.
+06/09/13 Fixed various bugs in commandmode 2 (type-into-screen mode).
+07/09/13 Windows version was failing to add '~' when cursor at end of line.
+21/09/13 Bugfix - -Quiet was not suppressing current-character or substring indication in -tty mode.
+14/10/13 Bugfix - %s=setenv would only copy characters up to first blank in the value string (e.g. this would set the env to "abc : %s=setenv fred "abc def ghi").
+27/10/13 Changed unicode approach, the windows version seems to be brightening up with this.
+27/10/13 Ctrl+C now interrupts the windows piped %e wait loop.
+29/10/13 Y and Y- were failing to hold the last column in tabular text, would move to the next-left column
+07/11/13 Guardbands now only optional, -NoUnicode qualifier is abolished and replaced by %b=unicode command.
+26/12/13 Major reworking of WriteString() and JotUpdateWindow() functions, added OX command X command now shifts in X axis, old X command reassigned to U, OE now returns byte and character counts.
+Release version v1.6 Mon 30 Dec 11:38:08 GMT 2013
+
+14/01/14 Bugfix - Many display bugs in windows, it seemed OK in wine though - future pre-release tests will be done using genuine windows.
+Release version v1.6.1 Tue 14 Jan 16:34:55 GMT 2014
+
+14/01/14 Bugfix - Many display bugs in windows, it seemed OK in wine though - future pre-release tests will be done using genuine windows.
+23/01/14 Changed get.jot - now uses tika to extract text from pdf, doc and docx files.
+24/01/14 Added CurlyMatchLeft/Right and AngleMatchLeft/Right
+25/01/14 Bugfix - Typing a command-repeat number to the command prompt was crashing it at the start of a session.
+26/01/14 Bugfix %W was not counting previous windows befor checking window size.
+27/01/14 Bugfix - was crashing on very long %E command strings.
+30/01/14 Defined and implemented revised get.jot relative-path convention - paths begining "./" are relative to PWD.
+31/01/14 Folded WordLeft/Right into CellLeft/Right and StraightUp/Down into CellUp/Down all on Shift+Up/Down/Left/RightArrow.
+02/02/14 Added %q=tabstops query - simplifies detection of buffer set for tabular text.
+
+14/01/14 Bugfix - Many display bugs in windows, it seemed OK in wine though - future pre-release tests will be done using genuine windows.
+23/01/14 Changed get.jot - now uses tika to extract text from pdf, doc and docx files.
+24/01/14 Added CurlyMatchLeft/Right and AngleMatchLeft/Right
+25/01/14 Bugfix - Typing a command-repeat number to the command prompt was crashing it at the start of a session.
+26/01/14 Bugfix %W was not counting previous windows befor checking window size.
+27/01/14 Bugfix - was crashing on very long %E command strings.
+30/01/14 Defined and implemented revised get.jot relative-path convention - paths begining "./" are relative to PWD.
+31/01/14 Folded WordLeft/Right into CellLeft/Right and StraightUp/Down into CellUp/Down all on Shift+Up/Down/Left/RightArrow.
+02/02/14 Added %q=tabstops query - simplifies detection of buffer set for tabular text.
+Release version v1.6.2 Sun 2 Feb 17:27:52 GMT 2014
+
+
+15/02/14 Bugfix, G command was failing on unicode.
+23/02/14 Bugfix G command now updates window after reading every line.
+25/02/14 Bugfix OID, OIO, OIX and OIF now fail if no valid text found.
+25/03/14 Now forces a refresh() after P and %M commands.
+27/03/14 OID, OIX, OIC and OIF were prone to crashing.
+02/04/14 Redefined Esc h (doc.jot) - now accepts proforma from current or Arg line while inheriting level numbers from previous section head.
+03/04/14 Bugfix - Setting %b=writeifchanged was not preventing a normal %a exit.
+03/04/14 Bugfix - if Setting %b=writeifchanged caused %C or %A failure, the "<original command string not available for display.>" message appeared.
+07/04/14 -Guardband now replaced with %s=guardband, guardbands now working as advertised.
+12/04/14 O! replaced by O@ - future versions might use this for bitwise NOT
+14/04/14 Added backtrace query.
+15/04/14 Rationalized stack housekeeping behaviour for '~ references - all numeric types are now deleted, all buffer types are left on the stack.
+21/04/14 Redefined Y command - now updates s_LastCurrentCharacter each Y except when at the end of a line.
+23/04/14 %T command abolished and trace vector now set with %S=trace
+30/04/14 Abolished -tab, added %s=tab <chr> and %q=system now reports actual tab character.
+16/05/14 Slight change to H-command behaviour, now leaves currentRec/Chr unchanged. 
+18/05/14 Redefined all block-graphic and line-drawing functions.
+14/07/14 Redefined htab security system - no longer relying on readonly buffers, now usees tags on records.
+26/07/14 Added colour tags.
+14/08/14 Debugger now supports normal function-key and hotkey editing.
+28/08/14 In all command files, changed all OR commands to OX, all T// commands to F//- , and all D commands to T, Y command now respects unicode.
+29/08/14 Reassigned commands - T, now starts debugger, D now deletes characters, added new OY command.
+Release version v1.7 Mon 1 Sep 11:11:51 BST 2014
+
+15/02/14 Bugfix, G command was failing on unicode.
+23/02/14 Bugfix G command now updates window after reading every line.
+25/02/14 Bugfix OID, OIO, OIX and OIF now fail if no valid text found.
+25/03/14 Now forces a refresh() after P and %M commands.
+27/03/14 OID, OIX, OIC and OIF were prone to crashing.
+02/04/14 Redefined Esc h (doc.jot) - now accepts proforma from current or Arg line while inheriting level numbers from previous section head.
+03/04/14 Bugfix - Setting %b=writeifchanged was not preventing a normal %a exit.
+03/04/14 Bugfix - if Setting %b=writeifchanged caused %C or %A failure, the "<original command string not available for display.>" message appeared.
+07/04/14 -Guardband now replaced with %s=guardband, guardbands now working as advertised.
+12/04/14 O! replaced by O@ - future versions might use this for bitwise NOT
+14/04/14 Added backtrace query.
+15/04/14 Rationalized stack housekeeping behaviour for '~ references - all numeric types are now deleted, all buffer types are left on the stack.
+21/04/14 Redefined Y command - now updates s_LastCurrentCharacter each Y except when at the end of a line.
+23/04/14 %T command abolished and trace vector now set with %S=trace
+30/04/14 Abolished -tab, added %s=tab <chr> and %q=system now reports actual tab character.
+16/05/14 Slight change to H-command behaviour, now leaves currentRec/Chr unchanged. 
+18/05/14 Redefined all block-graphic and line-drawing functions.
+14/07/14 Redefined htab security system - no longer relying on readonly buffers, now usees tags on records.
+26/07/14 Added colour tags.
+14/08/14 Debugger now supports normal function-key and hotkey editing.
+28/08/14 In all command files, changed all OR commands to OX, all T// commands to F//- , and all D commands to T, Y command now respects unicode.
+29/08/14 Reassigned commands - T, now starts debugger, D now deletes characters, added new OY command.
+Release version v1.7 Mon 1 Sep 11:23:26 BST 2014
+
+22/10/14 Added %s=paste for windows and linux versions and %s=copy for windows only.
+26/10/14 Added two new system queries %q=windows and %q=linux
+Release version v1.7.1 Sat 8 Nov 00:43:11 GMT 2014
+
+18/12/14 Linux version now has a working cut and paste - unfortunately, it's only using the X cut buffer not selections.
+11/12/14 Arithmetic range of stack increased: int to long long and float to double, rationalized stack packing.
+11/12/14 Added -STAcksize=<n> qualifier - sets operand stack size, still defaults to 100.
+Release version v1.8 Sat 3 Jan 20:59:15 GMT 2015
+
+18/12/14 Linux version now has a working cut and paste - unfortunately, it's only using the X cut buffer not selections.
+11/12/14 Arithmetic range of stack increased: int to long long and float to double, rationalized stack packing.
+11/12/14 Added -STAcksize=<n> qualifier - sets operand stack size, still defaults to 100.
+Release version v1.8 Sat 3 Jan 21:25:29 GMT 2015
+
+09/01/15 Fixed various deathtraps detected by valgrind.
+Release version v1.8.1 Sat 10 Jan 11:47:08 GMT 2015
+
+26/01/15 Bugfix - %q=dir was failing in wine/windows when path had a trailing slash or backslash.
+26/01/15 Bugfix - get.jot was failing in windows if path contained just the drive letter.
+Release version v1.8.2 Tue 27 Jan 11:22:15 GMT 2015
+
+08/02/15 Now supports -filter commands as advertised.
+Release version v1.8.3 Mon 9 Feb 09:06:26 GMT 2015
+
+17/02/15 Some I/O errors were crashing it.
+19/02/15 Added -text=<string> modifier to %B=addtag command and added -here qualifier to  tags query.
+09/03/15 Added linkdocs.jot and bookings.jot
+14/03/15 Added %b=remove_tags command.
+15/03/15 Added %h<bufferKey>=call <routineName>; - calls a subroutine in repository indicated by buffer key.
+26/03/15 Fixed bugs in mouse-events handling in windows, out-of-area mouse events now ignored for windows and linux.
+Release version v1.8.4 Wed 22 Apr 11:23:49 BST 2015
+
+26/04/15 Redfined colour tags internal data structure - new tags are functional identical.
+Release version v1.8.5 Thu 30 Apr 14:18:51 BST 2015
+
+08/05/15 Fixed various problems with display - still known bug affecting display of buffers with negative line numbers.
+10/05/15 Fixed various problems to do with backtrace, Trace_Backtrace now works as advertised (see %s=trace).
+Release version v1.8.6 Fri 15 May 07:58:25 BST 2015
+
+08/05/15 Fixed various problems with display - still known bug affecting display of buffers with negative line numbers.
+10/05/15 Fixed various problems to do with backtrace, Trace_Backtrace now works as advertised (see %s=trace).
+Release version v1.8.6 Fri 15 May 09:07:46 BST 2015
+
+25/05/15 Now better at displaying buffers with negative linenumbers.
+08/06/15 %R now collects script args and copies them to $ buffer.
+Release version v2.0 Tue 25 Aug 17:18:50 BST 2015
+
+22/12/16 Reorganized key maps in favour of users with short keyboards - no important assignments to F11/12 mid or function keypad.
+23/12/16 Abolished many keymap file variants, replaced by curses_keys_<version>.jot and WindowsNT_keys.jot
+04/01/17 Added OF command - adds line no. of first line in window.
+09/01/17 Added %b=footer <string> replaces default text in window-separator line with given text.
+11/01/17 Replaced %s=tracecounter with %s=commandcounter and associated functionality - sets trace trap after defined no. of commands.
+12/01/17 Added query time (e.g. %s$=time) adds seconds start of unix epoch to stack.
+17/01/17 Abolished %P command, replaced with %s=prompt command.
+17/01/17 Changed the single-character escape sequences in doc.jot to two-characters to avoid conflicts with new curses_keys keymap file.
+30/01/17 Improved the reliability of session recovery by logging various system queries eg %q=dir.
+10/02/17 Changed internals of window manager - window size givemn to %W command now includes delimiter line.
+13/02/17 Added -seek -limit -append and -insert options to %I command.
+18/02/17 Added %h=data, oq and ov commands.
+22/02/17 Added -append option to %O command.
+24/02/17 Added -section option to %I command, added %h=setseek command.
+19/03/17 Changed behaviour of K command - now fails after deleting last record *only* when going forwards, fails after deleting first record when going backwards.
+Release version v2.1 Mar 26 21:37
+
+19/03/17 Bugfix - windows version was failing to do %eq=|wc and similar.
+03/04/17 Fixed various forms of misbehaviour detected by valgrind.
+03/04/17 Bugfix - windows version was crashing in recover.jot
+06/04/17 Fixed bug in windows version - %Q=file and %Q=dir incorrectly reporting size of large files.
+07/04/17 Fixed bugs in age.jot and startup.jot (in <<CmdEditStart>>)  - due to new K command behaviour - since v2.1.
+09/04/17 Added big_file.jot - a general-purpose replacement for cdl.jot and cdl.jot abolished.
+Release version v2.1.1 Sun  9 Apr 17:50:25 BST 2017
+
+12/04/17 Scripts age.jot and ls2list.jot now working in windowsland.
+13/04/17 Mouse events incorrectly coded in curses_keys_6_0_20160709.jot
+13/04/17 Added some simple text-selection mouse functions for windows users.
+14/04/17 Added %q=key <keyString>; query - queries details of a specific entry.
+15/04/17 Abolished -filter For %I this is entirely superseded by the -hold and -limit options.
+17/04/17 Simplified Tracing, improved readability of backtrace.
+22/04/17 OL now accepts floating-point literals.
+12/04/17 - 23/04/17 Fixed several valgrind-detected bugs.
+Release version v2.1.2 25/04/17
+
+29/04/17 Fixed a few more bugs.
+29/04/17 Added -records=<n> qualifier to %I command.
+29/04/17 Change to behaviour of -append when combined with -block - now every block on a new record.
+29/04/17 OL now accepts floating-point literals.
+30/04/17 Changed -limit=<byteLimit> qualifier of %I command to -bytes=<byteLimit>
+09/05/17 Changed %h=create behaviour - Previously it would destroy any preexisting hashtable and all objects, it now copies the objects to the new hashtable.
+Release version v2.1.3 Fri 12 May 07:49:51 BST 2017
+
+Release version v2.2 Wed 31 May 15:22:52 BST 2017
+21/05/17 %h=setseek replaced by %h=setsect
+23/05/17 Added %h=setfsect - similar to setseek except that it includes the pathname.
+26/05/17 Added multi_file.jot - see "About large collections of files" in jot_tech.txt
+27/05/17 Bugfix - v2.1.3 was sometimes failing to scroll correctly. See test_103 in test_visual.jot 
+31/05/17 Various other bugs fixed - mainly in the newest additions %h=setsect and %h=setfsect.
+03/06/17 Fixed another bug in screen-scrolling behaviour see test_104 of test_visual.
+05/06/17 <<CmdEditGo>> was failing to add -hereEndsThePercentCommand; - sometimes required for percent commands.
+06/06/17 Checked and revised jot_tech.txt
+09/06/17 Checked and revised jot_walkthrough.txt and jot_coms.txt
+09/06/17 Redefined line-drawing mappings - now all on the numeric keypad, added <<NewWordUp/Down>>
+10/06/17 Checked and revised jot_ug.txt
+
+Release version v2.2.1 Sat Jun 10 15:57:28 BST 2017
+03/06/17 Fixed another bug in screen-scrolling behaviour see test_104 of test_visual.
+05/06/17 <<CmdEditGo>> was failing to add -hereEndsThePercentCommand; - sometimes required for percent commands.
+06/06/17 Checked and revised jot_tech.txt
+09/06/17 Checked and revised jot_walkthrough.txt and jot_coms.txt
+09/06/17 Redefined line-drawing mappings - now all on the numeric keypad, added <<NewWordUp/Down>>
+10/06/17 Checked and revised jot_ug.txt
+
+Release version v2.2.2 Thu Jun 22 15:44:40 BST 2017
+14/06/17 Automatic tabstops (see %b=tabstops in jot_tech guide) were miscalculating window size when buffer has a header or footer. 
+16/06/17 There were a few holes in the recovery process for sessions involving {Ctrl+c} interrupts - see Test_13 of test.sh for details.
+17/06/17 Fixed a bug in FreeAnyObj() - was taking forever to destroy large hashtables.
+22/06/17 Linux executables are now statically linked to ncurses and do not require X11 libs (%s=copy and %x=paste are disables).
+
+Release version v2.2.3 Thu 13 Jul 16:40:57 BST 2017
+28/06/17 Bugfix - %I would return failure status after successfully reading a zero-length file.
+01/07/17 Bugfix - test.jot and test.sh were failing if there was no t.t or l99.t in PWD.
+06/07/17 Pruned Sourceforge files tree to just jot.zip and jot.tz
+11/07/17 Renamed soak_test.jot to monkey_test.jot (monkeys and typewriters) to reflect usual terminology.
+
+Release version v2.3 Sun 11 Mar 18:45:32 GMT 2018
+04/08/17 Now has a simple menu-driven interface option.
+19/08/17 Added %s=system - controls the storage of default search, replace and insert strings.
+24/08/17 Now accepts sequences of control characters as well as escapes as valid hot-key keycodes, expanded maximum escape-sequence length to 12 characters.
+25/08/17 Added a simple emacs emulation script.
+02/09/17 Overtype mode (%s=commandmode 4;) had never been implemented - it is now.
+03/09/17 Bugfix - was crashing in insert mode when a function key with no translation was pressed.
+29/09/17 Can now display ordinary tabbed text (ie not spreadsheet-type tables).
+29/09/17 Bugfix - some loops don't exit on {Ctrl+C} - a second {Ctrl+C} now exits anything.
+08/10/17 Now allows escaping of apostophies and semicolons in percent commands.
+14/10/17 Added path syntax for hashtable trees eg: .=Fred|Jim|Brian
+13/11/17 Now supports vertical window slicing.
+21/11/17 Added -delim to %W command - replacement for, now depricated, %w 0; variant.
+11/03/17 Added -popup to %W for popup windows.
+11/12/17 Added -winno=<n> -delete, -insert and -key=<Key> to %w to facilitate modification of window attributes.
+07/01/18 Added -freeze option to %w.
+21/01/18 Added %s=console <n>; to allow temoprary expansion of console area.
+18/02/18 OL now does Hex and Octal constants.
+19/02/18 %L now takes <width>x<height> arg.
+26/02/18 G command does not prompt if s_PromptString is empty.
+06/03/18 Added OG command, abolished U command.
+10/03/18 Added %s=commandmode Command_EscapeCtrl - any control character can initiate an escape sequence.
+
+  Known bugs:
+    - Tabstops is completely broken, tabcells OK though.
+    - Some problems with the display of over-log lines in the windows version.
+    - In insert mode it displays the wrong character while erasing typed-in text.
+    
+Release version v2.3.1 Sun 22 Apr 10:31:54 BST 2018
+01/04/18 Fixed various bugs, in particular bugs affecting the display of tabstops buffers.
+20/04/18 Windows version now 64-bit.
+
+  Known bugs:
+    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+
+Release version v2.3.2 Sat 21 Jul 14:38:20 BST 2018
+19/05/18 Added ( & ) qualifier to %E command - allows jot to emulate an interactive session.
+22/06/18 Added %s=console and the window-lines borrowing behaviour thus making single-line consoles practical.
+  
+  Known bugs:
+    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+Release version v2.3.3 Thu 26 Jul 16:14:46 BST 2018
+25/07/18 Fixed bugs affecting output to stdout with -tty option set.  
+  
+  Known bugs:
+    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+    
+Release version v2.3.4 Wed 26 Sep 09:49:23 BST 2018
+11/08/18 Bugfix - was incorrectly calculating X coordinate of mouse event for popups on the left side of the screen.  
+19/08/18 {Ctrl+c} interrupt no longer enters debugger by default -need to set Trace_Interrupt.
+26/08/18 -locale=<...> was not working properly. 
+08/09/18 Fixed bugs: a memory leak affecting %s=create and crash after repeating of overlong lines with certain complicated window setups.
+19/09/18 Bugfix - OP was miscalculating mouseclick coordinates and not displaying highlights correctly with leftoffset set.
+
+  Known bugs:
+    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+    
+    
+Release version v2.3.4 Thu 18 Oct 14:54:59 BST 2018
+
+  Known bugs:
+    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+    

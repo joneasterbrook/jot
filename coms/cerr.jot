@@ -1,0 +1,83 @@
+%%for working with gnu C-compiler error reports.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+
+%g?
+Buffer usage:
+  @ - Holds compiler report, modified by addition of buffer key and original length of source file.
+  3 - Macro - goes to next error or warning message in compiler report.
+  4 - Macro - goes to previous error or warning message in compiler report.
+:
+
+%g3
+%%Macro 3 finds the next warning or error message and changes focus. 
+%%Pick up next error/warning message, add line number and character numbers to stack.
+z@onm-0oidosr oidosom
+( %%Message loop.
+  f1/: error: / %%gcc error message.
+    r-0f1/:/-oidoso- osv/:/r(oid, ol1) osozosm0omw orr- obz@poz wol-3owol3ow %x=gcc error;, 
+  f1/: error / %%cl error message.
+    r-0f1/(/-oidoso- osozm0omw obz@poz wol-3owol3ow %x=cl error;, 
+  f1/: warning: / %%gcc warning message.
+    r-0f1/:/-oidoso- osv/:/roid osozosm0omw orr- obz@poz wol-3owol3ow %x=gcc warning;, 
+  f1/: warning / %%cl warning message.
+    r-0f1/(/-oidoso- osozm0omw obz@poz wol-3owol3ow %x=cl warning;, 
+  m)0
+%x=No more Errors or Warnings;
+:
+
+%g4
+%%Macro 4 finds the previous warning or error message and changes focus. 
+%%Pick up previous error/warning message, add line number and character numbers to stack.
+z@onm-0oidosr oidosom m-2
+( %%Message loop.
+  f1/: error: / %%gcc error message.
+    r-0f1/:/-oidoso- osv/:/roid osozosm0omw orr- obz@poz wol3owol-3ow %x=gcc error;, 
+  f1/: error / %%cl error message.
+    r-0f1/(/-oidoso- osozm0omw obz@poz wol3owol-3ow %x=cl error;, 
+  f1/: warning: / %%gcc warning message.
+    r-0f1/:/-oidoso- osv/:/roid osozosm0omw orr- obz@poz wol3owol-3ow %x=gcc warning;, 
+  f1/: warning / %%cl warning message.
+    r-0f1/(/-oidoso- osozm0omw obz@poz wol3owol-3ow %x=cl warning;, 
+  m-)0
+%x=No more Errors or Warnings;
+:
+
+%%Read the compiler report. 
+%%first get original length of source file and buffer.
+m0on ob
+%%Read messages file.
+%i@=./.lis
+%%Add the buffer key and original length to the start of the compiler-message file.
+b-oo/%d /r0oo/%d/
+%%Change the fancy unicode quotes to old-fashioned ASCII.
+ol152 ol128 ol226 n.a$& z$oo/%c/r0oo/%c/r0oo/%c/
+z@m-0(f'$s/'/)0 
+ol153 ol128 ol226 n.a$& z$oo/%c/r0oo/%c/r0oo/%c/
+z@m-0(f'$s/'/)0
+m-0oidr-0oz
+
+%%Kick off with the first message. 
+'3
+ 
+ 

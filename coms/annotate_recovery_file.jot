@@ -1,0 +1,56 @@
+%%Annotates the escape sequences in a recover_now.jot or any -asConsole script.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%  ob
+%%  %%Read the appropriate key map.
+%%  ( %q=windows; %r=WindowsNT_keys;, %q@=version; mf1/ chrome / %r=curses_keys_chrome;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$ )
+%%  
+%%  %%Do annotation.
+%%  z@m-0 (z@ f/<</n.r-0a$&n.r0a!& o#ozm-0 ( (f'$r-\m)0r0i/%%/h!m)0 )0
+
+%g#
+ob
+%%Read the startup file to get the functions map - buffer ( ! )
+o#ozm-0f/startup.jot/r-0n.r0a$& %i!='$; f/%g!/k-0(v/:/\m)0k0
+  
+%%Read the key-codes map to buffer ( @ ).
+( %q=windows;
+  %i@=${JOT_HOME}/coms/WindowsNT_keys.jot;
+, %%Assume it's some flavour of unix then.
+  %i@=version; mf1/ chrome / %i@=${JOT_HOME}/coms/curses_keys_chrome.jot;
+, %%Not chrome
+  %q$=env TERM; k %i@=${JOT_HOME}/coms/curses_keys_'$.jot;
+  )
+f/%g@/k-0 (v/:/\m)0k0
+  
+%%Transform escape-character tokens
+z@m-0 (f/^/eoicol64o-oo/%c/)0
+%%Make ( @ ) into a direct keycodes to functions map hashtable.
+z! %h=create 1000;
+z!m-0 (z!(f1/{/\k)0n.r0f-1/}/-a$f-1/>>/-e0r-0 z@m-0f'$r-0n.f1/ /a$& z! %h=add '$; m)0
+  
+%%We're now ready to go - annotate recovery file with functions now.
+ol27z@m-0k0oo/%c/ o#ozm-0f/<<DEL>>/m (f'@n.f1/ /a$& %h!=jump '$; o#ozr0i'! m)0
+:
+'#
+

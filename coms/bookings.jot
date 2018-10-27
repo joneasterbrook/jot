@@ -1,0 +1,415 @@
+%%Maintains a bookings register.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  This script maintains a bookings register for one resource which can be booked for a number of days.
+  
+  Usage:
+$ jot ${JOT_RESOURCES}/resources.txt -in="%r=bookings -mail=${JOT_RESOURCES}/mail -resource=The House"
+
+  Script options:
+     -mail=<pathName> - specifies the name of the mail spool (defaults to /var/spool/mail/<userName>)
+     -resource=<resourceName> - identifies a resource - name must match a resource in the resources.txt file. 
+     -query=<jotCommands> - jot commands string used to detect a query.
+     -changeover=<DayofWeek> - sets the changeoverday - defaults to Saturdays.
+     -calendar=yyyy-yyyy - the start and end years for the calendar.
+     
+  Buffer usage - first the main visible buffers:
+    . - resources - an image of the ~/resources.txt file read in at the start of the session.
+    C - the Calender created and tagged by the bookings.jot script.
+    M - the current Mail spool file.
+    I - The mail index - a list of message-summary headlines.
+    S - The mail-search results buffer.
+    E - Error messages accumulated while setting up.
+    B - the static Button-box buffer.
+    O - The Options button-box (a button box that changes according to current view).
+    $ - command-line args and temporary storage.
+    @ - Temporary storage.
+    & - Temporary storage.
+    * - Mail-messages and temporary storage.
+    ! - Parameters:
+      Line  1 - mail spool pathname.
+      Line  2 - the bookings query detector.
+      Line  3 - the resource name.
+      Line  4 - the requested changeover day (defaults to Saturdays).
+      Line  5 - The start year and number of years for calendar.
+      Line  6 - The month-name to month no. lookup table.
+      Line  7 - the current booking ID (yyyymmdd-yyyymmdd)
+      Line  8 - the current-booking's payment status - { NoPayment, PartPaid, PaidUp or Cancalled }
+      Line  9 - the current-booking's old payment status - used when deleting tags (DeleteCalendarTag).
+      Line 10 - the days/months section of the calendar heading.
+      
+  Security:
+    It's important to prevent accidental corruption of the resources file  and
+    also to ensure that the resources are written before the session  exits.
+      - The resources.txt image is set to WriteIfChanged to prevent  accidental
+        exits.
+      - the resources.txt  image  has  a  ReadOnly  lock  applied  to  prevent
+        accidental corruption. The script unlocks and relocks it when it makes
+        changes.
+      - It is recommended that the jot session be  opened  with  the  -journal
+        qualifier - see `About Journal Files`.
+      
+  Booking-ID:
+    Within a resource each booking is identified by a text  tag  of  the  form
+    yyyymmdd-yyyymmdd where yyy is the year, mm the month (1-12) and dd is day
+    of month (1-31). and the first date is the start date and  the  second  is
+    the end date. You will see these tags quite a  lot  -  especially  if  you
+    start delving into the bookings metadata.
+  
+  Creation of new booking entries:
+    On {Esc B} the script will check that a substring has been selected in the
+    calendar, if it has then this defines the booking start and stop dates. It
+    then checks that there ar no preexisting  bookings  in  the  new  booking
+    period. A suitable booking ID is generated from the start  and  end  dates
+    and the booking period is tagged as booked but unpaid in the calendar.
+    
+    A new entry is made in the accounts  spreadsheet  and  links  are  created
+    between the spreadsheet, the calendar and the boolings.log image.
+    
+    Note that, in the event of it being necessary  to  delete  a  booking  the
+    should only be done with the {Esc D} action.
+  
+  Mail:
+    Note that the POP mail spool file is read but not updated by the  bookings
+    script. Most likely, you will be using some sort of webmail mailer reading
+    from a remote imap server e.g. gmail, yahoo mail, hotmail etc.  To  get  a
+    local POP mail spool, you need to set up a mail retrieval agent (MRA) e.g.
+    fetchmail to interact with your mail provider and a  mail  delivery  agent
+    (MDA) e.g. procmail to deliver mail to your mail  spool.  You  can  use  a
+    local mailer (e.g. mutt) to edit and maintain the mail spool.
+    
+  Structure of ~/resources.txt file:
+    This file contains details of each resource (e.g.  property  to  let)  and
+    within each property section there's an accounts table and any  number  of
+    bookings subsections. Each booking subsection  contains  a  mailthread  (a
+    list of mail message headlines) for mail messages relaiting to the booking
+    and a list of notes relating to the booking.
+    
+    The resource section begins with the keyword:
+RESOURCE: <resourceName>
+    this must be at the start of a line and is followed by  the  name  of  the
+    resource. The accounts subsection is similarly introduced by  the  keyword
+ACCOUNTS:
+    The accounts table must be structured as  a  tab-separated  table  with  a
+    header line which must be the first line of  the  table.  The  table  must
+    contain the following columns:
+      - "Booking-ID" - the tags used to identify each booking,
+      - "due" - the total cash due and
+      - "paid" - cash paid to date.
+    In addition to these, the user may wish to add other columns e.g.:
+      - "name" - client name,
+      - "email" - client's email,
+      - "phone" - client's phone number,
+      - "ad1", "ad2", "ad3" and "postcode" - client's address.
+      
+    Within the resource section there will be any number of bookings, normally
+    one for each row of the accounts table. Each booking is intrduced with the
+    keyword:
+BOOKING: <Booking-ID>
+    This must begin at the start of a line, each booking  section  contains  a
+    list of email headers introduced by this keyword:
+MAILTHREAD:
+    This is followed by a list of notes relating to the booking - these are introduced with this keyword:
+NOTES:
+    this must begin at the start of a new line. Each one-line entry  is  added
+    to the calendar entry for the booking.
+    
+    There are sample  resources  and  mail-spool  files  in  the  jot  default
+    installation resources area.
+        
+  Views:
+    - The calendar view - a list of booking weeks tagged with colours indicating
+      booking status.
+    - The accounts view - displays the accounts table.
+    - The bookings view - displays the selected booking entry.
+    - The mail index - a list of all messages currently in the mail file.
+    - The mail-message view - the currently-selected message.
+  
+  Sequence of events:
+    jot starts up with a resources.txt file  in  the  primary  buffer  (  .  )
+    bookings.jot first verifies that this is so.
+    
+    By default, the bookings.jot selects the first resource in your  resources
+    file, the -resource=<name> selects some other resource in  the  file.  The
+    script now creates and tags a bookings calendar for the resource
+    
+    The app constructs the calendar in buffer  C.  It  adds  hash-table  links
+    between the relevant calendar days, the  accounts  entries  and  the  mail
+    threads. These are colour-coded indicating the payment status:
+      - Green - fully paid,
+      - Mauve - part paid (normally a booking deposit) and
+      - Red - no payment. Typically there had better be a cheque in the post.
+    Clicking on a  colour-tagged  entry  in  the  calendar  sets  the  current
+    Booking-ID to the relevant booking. It also changes the heading at the top
+    of  the  calendar  -  it  shows  basic  information  like  resource  name,
+    Booking-ID and the client name.
+      
+    It reads your mail log and prepares a list of message headlines in  the  I
+    buffer. Clicking on message  headlines  here  will  immediately  open  the
+    message and display it. After opening a message {Esc d} (Down)  will  open
+    the next message in the message index and {Esc u} (Up) opens the  previous
+    message.
+    
+    Similarly, clicking on the mail headlines listed in a mailthread will open
+    the message and {Esc u} and {Esc d} index Up and Down the mailthread.
+    
+    The mail messages, if relevant to bookings must be added  to  the  correct
+    mail thread. First make sure you have selected the  correct  Booking-ID  -
+    this is displayed in the calendar header. Then {Ctrl T} adds  the  message
+    to the top of the mail thread for that booking.
+    
+  The current booking:
+    You select a booking by clicking on a highlighed entry in  the,  say,  the
+    calendar. Clicking on highligthed tex in  the  booking-ID  column  of  the
+    accounts table or in a BOOKING:<...> line will also do this.
+    
+    With a booking selected, switching between views will aways focus to  this
+    booking. Also, while reading a mail message,  the  "Add  to  mail  thread"
+    button (or {Esc T} ) willadd a link to the current  mail  message  to  the
+    current-booking's mail thread.
+    
+  Button box and menus:
+    At the top of the screen are two lines with mauve-tagged text  -  clicking
+    on these has the following effects:
+      - "Save and Exit" - saves the resources file and terminates the session.
+      - "Abandon" - terminates the session without savng anything.
+      - "Save resources" - saves resources without terminating the session.
+      - "Calendar" - switches focus to the calendar for the current booking.
+      - "Account" - switches to the accounts line for the current booking.
+      - "Booking" - switches to the booking entries for the current booking.
+      - "Errors" - switches view to the list of error messages.
+      - "Previous" opens the previous mail message.
+      - "Current" re-opens the current mail message.
+      - "Next" - opens the next mail message.
+      - "List" - returns to the main mail index.
+      - "Search" - prompts for a search string then  returns  a  list  of  all
+        messages containing the string.
+      - "Results" - returns to the list of messages from last message search.
+      
+    The "Options:" menu, below, changes according to view:
+      - In the Bookings view, it displays one option "Note", this prompts  for
+        a note-text message with the prompt "Note text> " The note is added to
+        the list of notes in the booking,  and  the  notes  appear  after  the
+        booking on the calendar.
+        
+      - In the  Account  view,  it  displays  "Set  cell",  this  prompts  for
+        "Column-name Values> " you should respond with an  exact  column  name
+        followed a blank and by any number of values, each separated by either
+        a semicolon or a tab. This causes the specified cell to  be  set  i.e.
+        the cell where the booking-ID line intersects the specified column. If
+        more than one value is given, suceeding  cells  are  set  using  these
+        values.
+        
+      - In the mail view there are two options offered:
+        - "Add to mail thread" - this adds a pointer, to the  currently-viewed
+          mail, to the mailthread for the current booking.
+        - "Find more from sender" - this searches the  mail  archive  for  all
+          messages from the sender of the current message - the list  includes
+          the current message.
+    
+  Mouse and keyboard actions:
+    In any view, position the cursor onto  some  colour-tagged  text  and  the
+    following actions are defined:
+      - Left-button click - refocus to indicated point
+      - Left-button drag - set paste buffer from selected text.
+      - [<pathName>]{Esc R} - (re)Read mail - Either re-read the mail spool or append specified mail archive then re-index the messages.
+      - {Esc A} - Abandon - exits session without writing resources.txt
+      - [<Booking ID>]{Esc B} - Booking - creates a new booking entry.
+      - {Esc D} - Delete booking - removes currently-selected booking.
+      - {Esc S} - Save - saves the revised resources.txt
+      - <column> <value>{Esc s} - Set - sets specified cell in booking table.
+      - {Esc a} - Accounts - refocus to relevant row of the accounts
+      - {Esc c} - Calendar - refocus to relevant week in the calendar.
+      - {Esc b} - Booking - refocus to current booking section in resources.
+      - {Esc n} - Notes - Adds a text note to the booking - these sow up at the end of the booking line of the calendar.
+      - <name>{Esc r} - Resource - selects a named resource in resources.txt
+      - {Esc t} - add to mail Thread - add current mail message to mail thread for the current booking.
+      - {Esc m} - return to current [or first] mail message.
+      - {Esc u} and {Esc d} - Up/Down - moves up, to previous mail or down, to next mail message in the mail spool.
+      - {Esc o} Owners-direct - read bookings directly from an Owners-direct mail archive file.
+      
+  N.B. For {Esc a}, {Esc b} or {Esc c},  which  switch  between  views  for  a
+  booking, if the jot  cursor  is  on  colour-tagged  then  it  picks  up  the
+  Booking-ID from the tagged text and sets the current Booking-ID. If  not  on
+  colour-tagged text it uses the current Booking-ID.
+  
+:
+
+%%Define booking functions.
+%%
+%g@
+
+<<IndexResource>>
+%%Function to index the selected resource.
+%%
+%h'=call Initialize;
+%%
+z.m-0z!m+3
+%%
+( %%Find the nominated (or first) resource.
+  r z.(f'!\m ,(v-/ /r-)0v-/RESOURCE:/\m, r0(v-/ /r-)0v-'!\m)0 (v-'! , %X=Error resources file does not contain the resource named '!; ) ,
+  z.f/RESOURCE:/-n.r0a$&)
+%%Create the hashtable with sufficent entries.
+%h=create 10000 -delete; %h=new Resource; %hc=create 10000 -delete;
+%%Add text tags and links to original bookings;
+(m(v/BOOKING:/
+  r8n.r0a$&r-17 %h=new '$; m
+  %%Tag the notes section - create it if it doesn't exist.
+  z.%h=jump '$; ((v/NOTES:/ v/BOOKING:/\)\m)0(v/BOOKING:/b-2i/NOTES:/, ) %h=new N_'$;
+  %%Tag the mailthread section - create it if it doesn't exist.
+  z.%h=jump '$; ((v/MAILTHREAD:/ v/BOOKING:/\)\m)0(v/BOOKING:/b-2i/MAILTHREAD:/, ) %h=new MT_'$;
+, %%Not a new booking section - exit if it's a new resource.
+  v/RESOURCE:/\))0 %h=jump Resource;m
+%%
+%%Index the ACCOUNTS section.
+z.%h=jump Resource;m
+((v/ACCOUNTS:/\ v/RESOURCE:/\)m)0
+( v/ACCOUNTS:/
+  %h=new Accounts; %b=tabcells -1; (mf1/	/\)0 (v/	/ r-0n.r0a$& %b=header '$;, %x=Resource '! does not have a spreadsheet header line in the ACCOUNTS section.;) 
+  %%Add tags for Accounts table Headings.
+  r-0 (v/"/rn.f1/"	/a$&r-f-1/"/- %h=new H_'$; f1/"	/-)0
+  %%Now run down the Booking-ID column tagging the bookings for accounts.
+  %h=jump H_Booking-ID; (yv/"/r (q/0-9/r)8?v/-/?r(q/0-9/r)8?v/"/n.r-17a$&r-17 ol17ou %h=new A_'$; %b=addtag -text='$;)0
+, %%Something's gone wrong - probably an invalid resources.txt file.
+  %x=Error: Resource '! does not contain an ACCOUNTS: section.; )
+%%
+%%
+%%Are we working from a POP email file or an Owners-direct mail archive?
+zmm-0 ((v/ /r)0r\m)0r-
+( v/from / %%A POP file.
+  %%Find the calendar range - push the number of years and the first year for the calendar.
+  ( z!m+5r, %%Range already defined.
+    ( z.n.a$& %h=jump H_Booking-ID; yv/"/ (rn.f1/"/a$-&z$bz.yv/"/ )0
+      %%Now sort the Booking-IDs to find the first year and how many years to span.
+      z$ %b=sort; kr4i/ /r-0oid m0r4i/ /r-0oid
+    , %%If no preexisting bookings in resource file, just take this year and next.
+      ol-1 %q$=date; mf1"/"-2oidol2000o+o#o~ )
+    %%Enter the calender range to ! buffer.
+    z!m+5e0oo/%d/r-0 oo/%d-/ )
+  %%
+  %h'=call MakeCalendar;
+  %h'=call TagAndLinkOldBookings;
+  %h'=call IndexEmails;
+, %%Maybe an Owners-direct email archive.
+  %%In their raw form OD mail archives are sorted anyway - but there may have been some post-hoc noodling so sort now.
+  m-0n.m0a$&z$ m-0(v/Arrival date/m, k)0 m-0(f1"/"-2e-0m)0 %b=sort; m-0(r\m)0r-oido# m0oid o~o-os
+  %h'=call MakeCalendar;
+  %h'=call TagAndLinkOldBookings;
+  %h'=call IndexODArchive;
+  %h'=call OwnersDirectArchive;
+, %%Missing or unrecognixed mail file.
+  %x=Error: Could not open your mail archive file.;
+  )
+%%Stop with view of errors or, if none, the calendar.
+ze(onol1o=okm-0bi/Congratulations: there were no errors in initial setup./b2 %m='e; m-0zc
+, m-0ol4o/ ol1o=
+  ok%m=Oh dear there was an error - better check it now.;
+, %m=Oh dear there were '~ errors - better check them now.; )
+
+
+<<TagAndLinkOldBookings>>
+%%For each old booking read from accounts section, create the links and calendar entry.
+z. %h=jump H_Booking-ID; y
+( %%Booking-ID loop.
+  %%Pick booking-ID tag.
+  v/"/rn.f1/"/a$&z!m+7e0h$
+  %h'=call CheckPendingBooking;
+  ( z!m+7r
+    %%Available for all requested days.
+    %h'=call SetPaymentStatus;
+    %h'=call LinkAndTagBooking;, )
+  %%Add any notes to the calendar.
+  z!m+7z. %h=jump N_'!; m
+  (z.rr-n.r0a$&m zc %h=jump '!; r0i/  /h$)0
+  %%Index to next booking-ID.
+  z!m+7z. %h=jump A_'!; y
+)0
+
+<<OwnersDirectBooking>>
+%%Scans normal mail message and, after checking, makes appropriate booking.
+%%
+%%Basic sanity checks.
+z*
+( %%The following Owners Direct tags are recognized.
+  m-0m2f/Enquiry for Owners Direct property ref /-n.r0a$&,
+  m-0m2f/Owners Direct - Enquiry for property ref: /-n.r0a$&,
+  m-0m2f/Vacation Rental Inquiry Notification/ f/Listing #:	/- rr-n.(f1/ /, r0)a$&)
+z.m-0(f'$(v-/ /r-)0v-/RESOURCE:/ z!m+3e0i'$z*, z*%x=Resource "'$" does not exist in resources file.;)
+%%OK - go for it.
+%%
+%%Pick up booking-start date and munge it down to the first half of a booking tag and a more easily searchable form.
+( m-0f/Arrival date:/-
+  (v/	/roidv/-/rn.f1/-/a$&roid, oidv/ /rn.r3a$&f1/ /-oid) z!m+6f1'$ocol3o/os z$r0o#oo/%4d/ z!m+7e0oo/%4d/r-r oo/%02d/ r-roo/%02d/ r0i/-/r-3oidz$r0boo/ %d /
+  %%Find start day in calendar.
+  z$m-0zcm-0f'$ r-0f/ 1 /rr- z$mzc f'$ ocon
+  %%Pick up no. of nights and advance to that date in calendar - avoid infinate loop if invalid no. of nights is given.
+  z*m-0(f/Number of nights/-r, m-0f/# of Nights:	/-) (oid (ol0o> ol-1oso- zc((v/ /r)0(q/0-9/r)0o~(v/ /r)0(q/0-9/\mol1o-(v/ /r)0, ))0 , )ok , ) zcocon
+  %%Construct the booking-ID tag.
+  %h'=call GetBookingIdFromCalendar;
+  %h'=call CheckPendingBooking;
+  ( z!m+7r
+    %%Those days are available.
+    %%Proposed booking does not collide with any others.
+    %h'=call NewBooking;
+    %%Copy booking details to accounts.
+    z*m-0(((f/Sender's name/r-m)0r-0f1//-, m-0(f/Name:/r-m)0r-0f1//-) (q/	 /r)0 n.r0a$& z$r-0i/name / %h'=call SetCell;, )
+    z*m-0(((f/Sender's telephone/r-m)0f1//-, m-0(f/Telephone: /r-m)0f1//-, m-0(f/Phone:/r-m)0f1//-) (q/	 /r)0 n.r0a$& z$r-0i/phone / %h'=call SetCell;, )
+    z*m-0(((f/Sender's email/r-m)0f1//-, m-0(f/Email:/r-m)0f1//-) (q/	 /r)0 n.r0a$& z$r-0i/email / %h'=call SetCell;, )
+    %%Attach message to mailthread.
+    z* %h'=call AddToMailThread;, )
+, %%Invalid arrival date.
+  )
+
+<<OwnersDirectArchive>>
+%%Reads bookings directly from an Owners-direct mail archive.
+%%
+zim0m-
+( %%Message loop - pick up next message.
+  ziw%q$=tags -here; m3f1/Type text from/f1/"/-bf1/"/b-zm %h=jump '$; n.(mr)0m(mr)0a*&z* m-0i'iocbol0oso- (i/-/o~)0 okb2
+  %%Pick up booking-start date and munge it down to the first half of a booking tag and a more easily searchable form.
+  ( m-0f/Arrival date/-rn.r0a$& z!m+7e0 z$n.f1"/"a!.&eb n.f1"/"a!.&eb n.r0a!.& m-0(v/0/e,)i/ /r0i/ / moid z$mz!m+6ol3o*orn.r3a$.&
+    %%Find start day in calendar.
+    zcm-0f'$ r-0f/ 1 /rr-z$m+1zc f'$ ocon
+    %%Pick up no. of nights and advance to that date in calendar - avoid infinate loop if invalid no. of nights is given.
+    z*m-0f/Number of nights/-r (oid (ol0o> ol-1oso- zc((v/ /r)0(q/0-9/r)0o~(v/ /r)0(q/0-9/\mol1o-(v/ /r)0, ))0 , )ok , ) zcocon
+    %%Construct the booking-ID tag.
+    %h'=call GetBookingIdFromCalendar;
+    %h'=call CheckPendingBooking;
+    ( z!m+7r
+      %%Those days are available.
+      %%Proposed booking does not collide with any others.
+      %h'=call NewBooking;
+      %%Copy booking details to accounts.
+      z*m-0(f/Sender's name/-rn.r0a$& z$r-0i/name / %h'=call SetCell;, )
+      z*m-0(f/Sender's telephone/-rn.r0a$& z$r-0i/phone / %h'=call SetCell;, )
+      z*m-0(f/Sender's email/-rn.r0a$& z$r-0i/email / %h'=call SetCell;, )
+      %%Attach message to mailthread.
+      z* %h'=call AddToMailThread;, zc)
+  , %%Invalid arrival date.
+    )
+  
+  zim-)0
+
+<<Initialize>>
+%%Called at the very start

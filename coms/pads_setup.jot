@@ -1,0 +1,123 @@
+%%Sets up editor session for pads tool using a pads-tool-generated file as a starting point.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Revision history
+
+%g?
+  Buffer usage
+    g - The top pads-tool description file.
+    h - The macro file, if more than one then a concatination of any file containing an 'endmacro' command.
+    j - The top spreadsheet in csv form.
+    l - The cell-properties file, if more than one then a concatination of all files containing cell properties.
+    # - Temporary command macro.
+    $ - Pads_setup arguments.
+    ! - Temporary list of files.
+    @ - Temporary macro.
+  
+  Usage
+    z<buffer containing a pads-tool generated file>
+    pads_setup - Set up buffers as above.
+    pads_setup -tar - sets up a tar command to assist with getting a design over to Bristol.
+:
+
+%g#
+onm-0
+(
+  f"file creation date/time    path."mn.(rm)0a!h!ono-omz!m-0f1/:/-2r6yy-(e-0y)0
+, %%No pads-tool header found - maybe it's a logfile?
+  ono-omon (v/Reading /\m)0n.((f/Read /-(q/0-9/r)0v/ files/)\m)0 a!h!ono-om z! m-0(f1/Reading /m,k)0m-0(f1/"/-e-0f1/"/e0m, kmm-)0 e0 )
+   
+%m=Read the top file.
+z!m-0n.r0aghgzg %ig
+
+z$m-0(f/ -tar/ %%Prepare a tar command.
+  %%Identify the common path and remove it.
+  z!r-0n.r0f-1"/"-a$h$ (m-0(f1'$m)0 mm- z$r0f-1"/"-2e0z!m-0)0 z!m-0(f'$s/  /m)0
+  %%Top and tail. 
+  z!m0m-0i"tar zcfh /tmp/pads.tz \"b (m2m-2r0i/ \/m)0
+  m-0i/( cd /h$i/ ; /m0m-r0i/ )/
+  %x=Tar commands complete. 
+  , )
+ 
+%m=Read the macro files
+z!m-0n.m0a@h@z@ m-0i"grep -c 'endMacro ' " m0m-r0i" > /tmp/pads_macros.lis" (m-r0i/ \/)0 %o=/tmp/pads_macros_search
+%e=chmod u+x /tmp/pads_macros_search
+( %e=/tmp/pads_macros_search
+  %%Ignore any errors due to missing files.
+  , )
+%i@=/tmp/pads_macros.lis
+%%trim
+(r0v-/:0/k, f-1/:/e0m)0 m0e0
+  
+%m=If only one macro file then read into buffer h, otherwise concatinate and read into h
+m-0m(r
+  %%Concatinate all matching files and read into h.
+  %e=rm -f /tmp/pads_macros.lis
+  m-0(r0i" >> /tmp/pads_macros.lis"r-0i/%e=\echo ------------------------------------ From File /n.r0ahhhbi/%e=\cat /hhm2m-)0 
+    '@
+    %ih=/tmp/pads_macros.lis
+    (f/------------------------------------ From File /b3r0b)0 m-0
+    %e=rm /tmp/pads_macros_search /tmp/pads_macros.lis 
+    m0e0m-0 
+  , %%Only one file - read it into buffer h.
+    j-e0%ih
+    )
+  
+%m=read the top csv file - assume it is the first spreadsheet without any of the following qualifiers -incremental -designProps -cellProps -assigns -bsdlModel 
+%%First make a list of all secondary files.
+zgm-0n.m0a@h@m-0 z@(f/#/e0)0 m-0(f1/readXls/m, f1/readCsv/m, k)0  
+m-0(f/-incremental/k)0 
+m-0(f/-designProps/k)0 
+m-0(f/-cellProps/k)0 
+m-0(f/-assigns/k)0 
+m-0(f/-bsdlModel/k)0 
+m-0f1/read/-f1/;/(v-/ /r-)0(v-/"/r-,)n.f-1/ /-(v/"/r,)ajz!m-0f'jr-0n.r0ajhjzj%ij
+  
+%m=Read the cell-property definition files
+z!m-0n.m0a@h@z@ m-0i"egrep -c '(cell|configuration)_property ' " m0m-r0i" > /tmp/pads_cell_props.lis" (m-r0i/ \/)0 %o=/tmp/pads_cell_props_search
+%e=chmod u+x /tmp/pads_cell_props_search
+( %e=/tmp/pads_cell_props_search
+  %%ignore errors due to missing files. 
+  , )
+%i@=/tmp/pads_cell_props.lis
+%%trim
+(r0v-/:0/k, f-1/:/e0m)0 m0e0
+  
+%m=If only one cell-property definition file then read into buffer h, otherwise concatinate and read into h
+m-0m(r
+    %%Concatinate all matching files and read into h.
+    %e=rm -f /tmp/pads_cell_props.lis
+    m-0(r0i" >> /tmp/pads_cell_props.lis"r-0i/%e=\echo ------------------------------------ From File /n.r0alhlbi/%e=\cat /hlm2m-)0
+    '@
+    %il=/tmp/pads_cell_props.lis
+    (f/------------------------------------ From File /b3r0b)0 m-0
+    %e=rm /tmp/pads_cell_props_search /tmp/pads_cell_props.lis 
+    m0e0m-0
+  , %%Only one file - read it into buffer l.
+    j-e0%il
+    )
+  
+%%
+:
+'#
+zg w
+ 

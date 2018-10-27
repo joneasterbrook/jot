@@ -1,0 +1,229 @@
+%%Compare two similar buffers - typically they are different versions of the same file.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+Usage:
+> comp [<key>][ -backup][ -nosplit]
+  Compares the contents of current buffer with some other (reference) buffer or file.
+  By default, the screen is split into two equal-width slices (see -nosplit).
+  The script defines the following macros:
+    - Macro 4 - compares lines working back towards the start of the buffer.
+    - Macro 5 - compares lines working forwards towards the end of the buffer.
+    
+      Both macros 4 and 5 take an optional argument - this is a command string
+      which will be applied to both buffers  instead  of  running  the  normal
+      comparison  function  -  typically  these  commands  will  be  used   to
+      re-syncronize the two buffers.
+  
+  - <key> is a single-character buffer key, identifying the reference buffer.
+  - The -backup[=<name>] takes the nominated backup file as a reference
+    this file is first read into buffer ( ! ).
+  - The -nosplit option requests that the screen is not split into two slices.
+> comp <key>{f2}  -- Compares current buffer with the nominated buffer.
+or
+> comp{f2}  -- Compares current buffer, must be a file image with it's 
+               pathname set,  with the current version of the file.
+or
+> comp -backup[ date/time stamp>]{f2}  -- Compares current buffer with the 
+               latest/[or specified] backup version of the file.
+  
+  Arg1 - the 'ref' buffer to be compared with the current buffer (the current
+  buffer at the time the comp script was run).
+   
+  If arg1 unspecified then the file is compared with the  current  version  of
+  itself in buffer ';' if buffer '; currently has a  copy  of  that  file  and
+  we're not at the end of the file then comparison continues.
+  
+  Numeric-keypad-keys 4 and 5 (and buffers 4 and 5)  perform  comparison  5  -
+  forwards, and 4 backwards from  lines,  comp  only  ever  comperes  complete
+  lines. Comparison normally begins with the current line of the 'current' and
+  the current line of the 'ref'  buffer.  If  the  current  character  of  the
+  'current' buffer buffer is at the end of the line then comparison begins  at
+  next line. Similarly for the reverse comparison, if the current buffer is at
+  the end of the line then comparison starts at the previous line.
+  
+  In the event of a failure both lines are printed, and the current  character
+  in the 'current' buffer is left at the end of the failing line. Pressing the
+  comparison button again will continue with the next line - or previous  line
+  for reverse comparison.
+  
+  To skip the current lines in both buffers, e.g. after a failure,  place  the
+  cursor at the end of the reference buffer.
+  
+  Pressing the 1 button on the  numeric  keypad,  with  no  arguments,  causes
+  comparison to continue.
+  
+  Pressing 5 with an argument causes the argument to be taken as a command, to
+  be applied to both buffers.
+  
+  Buffer usage: 
+    $ - Command picked up from button  1  argument,  to  be  applied  to  both
+        comarison buffers. Also used as a temporary format string when setting
+        up the buffers.
+    @ - temporary, used at setup time only. directory list and format string
+    ! - The reference buffer is comparing to filing-ststem version.
+    4 - The reverse-comparison macro.
+    5 - The forwards-comparison macro.
+
+:
+
+%g5
+%%Search forwards through buffers to find the next non-matching pair of lines. 
+z$(rr-
+  %%command is given execute it in both buffers.
+  (z<ReferenceBuffer>'$ )? ( z<PrimaryBuffer>'$ )? 
+, %%No command argument given - compare normally.
+  %%
+  %%If cursor is at the end of a line then skip to the next line in both buffers.
+  z<ReferenceBuffer>(rr-, mz<PrimaryBuffer>mz<ReferenceBuffer>)
+  %%
+  %%Test each line.
+  z<PrimaryBuffer> (v'<ReferenceBuffer>r0v-'<ReferenceBuffer>(mz<ReferenceBuffer>m, ?\) z<PrimaryBuffer>)0
+  %%
+  %%Failure detected - highlight and print both lines.
+  z<PrimaryBuffer>r-0p z<ReferenceBuffer>r-0pr0
+  %%
+  %%A line-match failure occured.
+  %%Add primary and reference buffers to stack.
+  oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/
+  ( %%Buffer loop - pass 1: ReferenceBuffer, pass 2: PrimaryBuffer - remove colour tag from any previously-highlighted lines.
+    o#ozonos %q$=tags; 
+    (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag colour CurrentLine;)?)0
+    %%Apply new colour tag unless we're at the last line.
+    ozono-om (mm- oeou %b=addtag CurrentLine; )
+    %%Leaving the cursor at the end of the line indicates that the next pass should start at the next line.
+    r0)2
+  %%If the new line is out of view shift view up a bit - first pick up the first linenumbers in the windows.
+  oq/'=PrimaryBuffer/ozof oq/'=ReferenceBuffer/ozof os
+  %%Now refresh the display.
+  w
+  %%Now, if necessary, tweak the views to 5 lines up in the display.
+  oq/'=ReferenceBuffer/oz (ofo=ok, okwol5oww) 
+  oq/'=PrimaryBuffer/oz (ofo=ok, okwol5oww) )
+:
+
+%g4
+%%Search back through buffers to find the previous non-matching pair of lines.
+z$(rr-
+  %%command is given execute it in both buffers.
+  (z<ReferenceBuffer>'$ )? ( z<PrimaryBuffer>'$ )? 
+, %%No command argument given - compare normally.
+  %%
+  %%If cursor is at the end of a line then skip to the previous line in both buffers.
+  z<ReferenceBuffer>(rr-, m-z<PrimaryBuffer>m-z<ReferenceBuffer>)
+  %%
+  %%Test each line.
+  z<PrimaryBuffer> (v'<ReferenceBuffer>r0v-'<ReferenceBuffer>(m-z<ReferenceBuffer>m-, ?\) z<PrimaryBuffer>)0
+  %%
+  %%Failure detected - print both lines.
+  z<PrimaryBuffer>r-0p z<ReferenceBuffer>r-0pr0
+  %%
+  %%A line-match failure occured.
+  %%Add primary and reference buffers to stack.
+  oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/
+  ( %%Buffer loop - pass 1: ReferenceBuffer, pass 2: PrimaryBuffer - remove colour tag from any previously-highlighted lines.
+    o#ozonos %q$=tags; 
+    (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag colour CurrentLine;)?)0
+    %%Apply new colour tag unless we're at the last line.
+    ozono-om (mm- oeou %b=addtag CurrentLine; )
+    %%Leaving the cursor at the end of the line indicates that the next pass should start at the next line.
+    r0)2
+  %%If the new line is out of view shift view up a bit - first pick up the first linenumbers in the windows.
+  oq/'=PrimaryBuffer/ozof oq/'=ReferenceBuffer/ozof os
+  %%Now refresh the display.
+  w
+  %%Now, if necessary, tweak the views to 5 lines up in the display.
+  oq/'=ReferenceBuffer/oz (ofo=ok, okwol5oww) 
+  oq/'=PrimaryBuffer/oz (ofo=ok, okwol5oww) )
+:
+
+%g6
+%%Repeat macro - either repeats last interactive command on the other window
+%%or, if previous command was a macro-6 call, apply command to both buffers.
+%%Begin with a history report.
+ob %q$=history; m0m-2 
+( f1/'6/ %%Previous command was itself a macro-6 call - apply the original command to both buffers.
+  oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/ (oz '@? )2
+, %%Previous command was not a macro-6 call.
+  n.r0a@& 
+  %%Apply to the other buffer.
+  oq/'=PrimaryBuffer/ (o= oq/'=ReferenceBuffer/,  oq/'=PrimaryBuffer/) oz'@? )
+:
+
+%g#
+%%Check for optional parameters.
+obz$m-0(v/ /r)0 
+( r(r\, v-/ /r-)  %%A single-character value given - assumed to be a buffer key, alphas must be upper case.
+  r- (q/a-z/cr-, ) oic
+, %%No buffer key - check for -backup qualifier.
+  o#ozm-0z$ ol33os r-0f/-backup/  %%Process the -backup qualifier later.
+  %%Obtain a list of backup versions.
+  o#ozos %q!=buffer; f/pathname = /-br0(f-1./.e, r-0)b- %q@=dir '!/backup;
+  %%Extract only backups of current buffer.
+  z!mz@ m(v'!m,k)0
+  ( %%Was backup version specified?
+    z$r-0f/-backup/-v/=/rb(f1/ -/b-,)r0(v-/ /e-)0 %%Yes - take specified version.
+    z@m-0m(f1'$m, k)0 
+    %%Check that the specified version exists.
+    m-0(m, okoz %x=Version of '@ matching '$ does not exist.;)
+    %%Check uniqueness of backup-version specification
+    (mm-0okoz %x=More than one valid backup version for '@ matches '$ (see buffer ( @ ) for a full list);, m-)
+    %%Pick up the only matching version.
+    m-0e4i/%i!=/ji./.r0i/;/ '@ o#ozm-0
+  , %%No backup version specified - use the most recent version.
+    z@m-0e4n.r0a! k(rr-h!i./.m)0 %b=sort; m0r0b- (m-k-0,) r-0i/%i!=/r0i/;/ '@ )
+, %%No buffer key or qualifiers - set reference buffer to ! (ASCII code 33) and read the current version.
+  o#oz %i!; os )
+  
+%%Set up the two data objects if necessary.
+o# (z' %q@=key PrimaryBuffer; m, z' %h=data PrimaryBuffer; %h=data ReferenceBuffer; ) oz
+%%Assign values - the keys of the buffers for comparison.
+ov/'=ReferenceBuffer/  ov/'=PrimaryBuffer/
+%%Check uniqueness of Reference and Current buffers.
+(oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/ o=ok %x=Refrerence and comparison buffers are the same,;, ok)
+%%  
+%%Check for -nosplit qualifier
+( z$m-0f/-nosplit/ %%Don't split the screen.
+  ok
+, %%Set up the split screen.
+  %%Define the highlight colour pair if not yet defined.
+  oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/
+  %%Pass 1 checks and defines colour pair for ReferenceBuffer, Pass 2 for PrimaryBuffer.
+  (o#oz%q@=buffer; f/TagType = Name  CurrentLine,/ok, oz %b=tagtype CurrentLine colour 4 7; )2
+  %q$=window; f/ screenWidth = /-oidol3o-ol2o/ m-f1/ screenHeight = /-oidol4o-
+  %%Set up left screen.
+  m-0k0 i/%w;/b oq/'=PrimaryBuffer/oo/%%w%c= /r0oo/-height=%d/r0 o#oo/ -width=%d -delim;/r0b
+  %%Set up right screen.
+  oq/'=ReferenceBuffer/oo/%%w%c= /r0oo/-width=%d+3 -delim;/
+  '$, )
+
+:
+'#
+
+%%Customize the comparison macros 4 and 5.
+z4m-0 oq/'=PrimaryBuffer/ (f/<PrimaryBuffer>/o#oo/%c/)0  z5m-0(f//o#oo/%c/)0 ok
+z4m-0 oq/'=ReferenceBuffer/ (f/<ReferenceBuffer>/o#oo/%c/)0  z5m-0(f//o#oo/%c/)0 ok
+  
+%%Clean up and go.
+oq/'=PrimaryBuffer/ozn.a$&
+  
+'5

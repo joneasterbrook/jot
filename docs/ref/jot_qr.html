@@ -1,0 +1,526 @@
+<! Made with jot using doc2html >
+</UL><H1><A NAME="JOT QUICK-REFERENCE">Jot quick-reference</H1>
+<P>Note: This document is designed to be viewed with the linkdocs.jot script - fire it up thusly:</P>
+
+<PRE>
+$ jot /dev/null -st=qr
+</PRE>
+<PRE>
+Any green-background text is a link (red-background text - broken links)
+</PRE>
+<UL><P><LI>left-button-click on links to follow link,</P></LI>
+
+<P><LI>left-button-click anywhere else to return to previous view.</P></LI>
+
+<P><LI>If you're lacking a mouse or touchpad, navigate the cursor using the cursor-control keys and simulate a left-button click with &#123;Esc 1&#125;</P></LI>
+
+</UL><H2><A NAME="IBM 102-KEY MAP">IBM 102-key map</H2>
+
+</UL><H3><A NAME="FUNCTION KEYS">Function keys</H3>
+<PRE>
+  |--------------|------------------|------------------|------------------|------------------|
+  |              |&#123;F1&#125;              |&#123;F2&#125;              |&#123;F3&#125;              |&#123;F4&#125;              |
+  |              |                  |                  |                  |                  |
+  |              | `Help`           | `Do`             | `ParagraphUp`    | `ParagraphDown`  |
+  |Shift         | `FindAllHelp`    | `ScriptByName`   | `CodeSectionUp`  | `CodeSectionDown`|
+  |Ctrl          | `RemoveHelpFold` | `ScriptByFunc`   | `IndentMatchUp`  | `IndentMatchDown`|
+  |Alt           |                  |                  |                  |                  |
+  |Ctrl+Shift    | `Note`           | `Cut`            | `Copy`           | `Paste`          |
+  |Shift+Alt     |                  | `CumulativeCut`  | `CumulativeCopy` | `PasteOver`      |
+  |Ctrl+Shift+Alt|                  | `CutTabular`     | `CutRectangle`   | `PasteRectangle` |
+  |--------------|------------------|------------------|------------------|------------------|
+  
+  |--------------|------------------|------------------|------------------|------------------|
+  |              |&#123;F5&#125;              |&#123;F6&#125;              |&#123;F7&#125;              |&#123;F8&#125;              |
+  |              |                  |                  |                  |                  |
+  |              | `Substitute`     | `Insert`         | `FindPrev`       | `FindNext`       |
+  |Shift         | `Remove`         | `Overwrite`      | `SubsThenFindPv` | `SubsThenFindNx` |
+  |Ctrl          | `SubstituteAgain`| `InsertAgain`    | `FindPrevAgain`  | `FindNextAgain`  |
+  |Alt           |                  |                  |                  |                  |
+  |Ctrl+Shift    | `AngleMatchLeft` | `AngleMatchRight`|                  |                  |
+  |Shift+Alt     | `ParenMatchLeft` | `ParenMatchRight`| `MarkupMatchLeft`|`MarkupMatchRight`|
+  |Ctrl+Shift+Alt| `CurlyMatchLeft` | `CurlyMatchRight`|                  |                  |
+  |--------------|------------------|------------------|------------------|------------------|
+  
+  |--------------|------------------|------------------|------------------|------------------|
+  |              |&#123;F9&#125;              |&#123;F10&#125;             |&#123;F11&#125;             |&#123;F12&#125;             |
+  |              |                  |                  |                  |                  |
+  |              | `FindExactNext`  | `Again`          |                  |                  |
+  |Shift         | `FindExactPrev`  | `Break`          |                  |                  |
+  |Ctrl          | `SetFindString`  | `Join`           |                  |                  |
+  |Alt           | `AppendLeftPrev` | `AppendRightNext`|                  |                  |
+  |Ctrl+Shift    | `IndentFromPrev` | `IndentFromNext` |                  |                  |
+  |Shift+Alt     | `JoinLeftPrev`   | `JoinRightNext`  |                  |                  |
+  |Ctrl+Shift+Alt|                  |                  |                  |                  |
+  |--------------|------------------|------------------|------------------|------------------|
+</PRE>
+
+</UL><H3><A NAME="MID KEYPAD">Mid keypad</H3>
+<P>Mainly, but not exclusively cut/paste and navigation functions. |---------------|------------------|------------------|------------------| | |&#123;Insert&#125; |&#123;Home&#125; |&#123;Page Up&#125; | | | | | | | | <A HREF="jot_ug.html#PASTE">Paste</A> | <A HREF="jot_ug.html#NOTE">Note</A> | <A HREF="jot_ug.html#PAGEUP">PageUp</A> | |Shift | | | | |Ctrl | <A HREF="jot_ug.html#PASTEOVER">PasteOver</A> | | | |Alt | <A HREF="jot_ug.html#PASTERECTANGLE">PasteRectangle</A> | | | |Ctrl+Shift | | | | |Ctrl+Alt | | | | |Shift+Alt | | | | |Ctrl+Shift+Alt | | | | |---------------|------------------|------------------|------------------| | |&#123;Delete&#125; |&#123;End&#125; |&#123;Page Down&#125;&#125; | | | | | | | | <A HREF="jot_ug.html#CUT">Cut</A> | <A HREF="jot_ug.html#COPY">Copy</A> | <A HREF="jot_ug.html#PAGEDOWN">PageDown</A> | |Shift | <A HREF="jot_ug.html#CUMULATIVECUT">CumulativeCut</A> | <A HREF="jot_ug.html#CUMULATIVECOPY">CumulativeCopy</A> | | |Ctrl | <A HREF="jot_ug.html#CUTTABULAR">CutTabular</A> | | | |Alt | <A HREF="jot_ug.html#CUTRECTANGLE">CutRectangle</A> | | | |Ctrl+Shift | | | | |Ctrl+Alt | | | | |Shift+Alt | | | | |Ctrl+Shift+Alt | | | | |---------------|------------------|------------------|------------------|</P>
+
+
+<UL><P>|------------------| |&#123;UpArrow&#125; | | | | <A HREF="jot_ug.html#UP">Up</A> |</P>
+
+</UL><P>|Shift | <A HREF="jot_ug.html#WORDUP">WordUp</A> | |Ctrl | <A HREF="jot_ug.html#NEWWORDUP">NewWordUp</A> | |Alt | | |Ctrl+Shift | <A HREF="jot_ug.html#VIEWUP">ViewUp</A> | |Ctrl+Alt | <A HREF="jot_ug.html#WINDOWSHRINK">WindowShrink</A> | |Shift+Alt | | |Ctrl+Shift+Alt | | |---------------|------------------|------------------|------------------| | |&#123;LeftArrow&#125; |&#123;DownArrow&#125; |&#123;RightArrow&#125; | | | | | | | | <A HREF="jot_ug.html#LEFT">Left</A> | <A HREF="jot_ug.html#DOWN">Down</A> | <A HREF="jot_ug.html#RIGHT">Right</A> | |Shift | <A HREF="jot_ug.html#WORDLEFT">WordLeft</A> | <A HREF="jot_ug.html#WORDDOWN">WordDown</A> | <A HREF="jot_ug.html#WORDRIGHT">WordRight</A> | |Ctrl | <A HREF="jot_ug.html#LINELEFT">LineLeft</A> | <A HREF="jot_ug.html#NEWWORDDOWN">NewWordDown</A> | <A HREF="jot_ug.html#LINERIGHT">LineRight</A> | |Alt | <A HREF="jot_ug.html#DELETECHRLEFT">DeleteChrLeft</A> | | <A HREF="jot_ug.html#DELETECHRRIGHT">DeleteChrRight</A> | |Ctrl+Shift | <A HREF="jot_ug.html#VIEWLEFT">ViewLeft</A> | <A HREF="jot_ug.html#VIEWDOWN">ViewDown</A> | <A HREF="jot_ug.html#VIEWRIGHT">ViewRight</A> | |Ctrl+Alt | <A HREF="jot_ug.html#DELETELINELEFT">DeleteLineLeft</A> | <A HREF="jot_ug.html#WINDOWSTRETCH">WindowStretch</A> | <A HREF="jot_ug.html#DELETELINERIGHT">DeleteLineRight</A>| |Shift+Alt | <A HREF="jot_ug.html#DELETEWORDLEFT">DeleteWordLeft</A> | | <A HREF="jot_ug.html#DELETEWORDRIGHT">DeleteWordRight</A>| |Ctrl+Shift+Alt | <A HREF="jot_ug.html#RESTORECHRLEFT">RestoreChrLeft</A> | | <A HREF="jot_ug.html#RESTORECHRRIGHT">RestoreChrRight</A>| |---------------|------------------|------------------|------------------|</P>
+
+
+</UL><H3><A NAME="NUMERIC KEYPAD">Numeric Keypad</H3>
+<P>For linux systems, these are helpfully mapped to either digits 0-9 etc. or the various cursor-control functions (depending on the the num-lock state). Hence, to work as described here, these must be set up with the xmodmap command - see <A HREF="jot_tech.html#X-WINDOWS SETUP">X-windows setup</A>. </P>
+
+<P>Windows users should find that it works as advertised without any special setup.</P>
+
+<P>The key &#123;KP_0&#125; - &#123;KP_9&#125; are set up to call functions &#060;&#060;Macro0&#062;&#062; - &#060;&#060;Macro9&#062;&#062;, these functions not defined by the startup script - some scripts define these, or you may define your own functions.</P>
+
+<P>|--------------|-----------------|-----------------|-----------------|-----------------| | | &#123;NumLock&#125;|/ &#123;KP_Divide&#125;|* &#123;KP_Multiply&#125;|- &#123;KP_Subtract&#125;| | | | | | | | | | | | | |Ctrl | | | | | |Alt+Ctrl | | | | | |--------------|-----------------|-----------------|-----------------|-----------------| | |7 &#123;KP_7&#125;|8 &#123;KP_8&#125;|9 &#123;KP_9&#125;|+ &#123;KP_Add&#125;| | | | | | | | | Macro7 | Macro8 | Macro9 | | |Ctrl | |<A HREF="jot_ug.html#UPREGARDLESS">UpRegardless</A> | | | |Alt+Ctrl |<A HREF="jot_ug.html#LINENW">LineNW</A> |<A HREF="jot_ug.html#LINEN">LineN</A> |<A HREF="jot_ug.html#LINENE">LineNE</A> | | |--------------|-----------------|-----------------|-----------------| | | |4 &#123;KP_4&#125;|5 &#123;KP_5&#125;|6 &#123;KP_6&#125;| | | | | | | | | | Macro4 | Macro5 | Macro6 | | |Ctrl |<A HREF="jot_ug.html#LEFT">Left</A> | |<A HREF="jot_ug.html#RIGHTREGARDLESS">RightRegardless</A>| | |Alt+Ctrl |<A HREF="jot_ug.html#LINEE">LineE</A> |<A HREF="jot_ug.html#BOXTEXT">BoxText</A> |<A HREF="jot_ug.html#LINEW">LineW</A> | | |--------------|-----------------|-----------------|-----------------|-----------------| | |1 &#123;KP_1&#125;|2 &#123;KP_2&#125;|3 &#123;KP_3&#125;| &#123;KP_Enter&#125;| | | | | | | | | Macro1 | Macro2 | Macro3 | | |Ctrl | |<A HREF="jot_ug.html#DOWNREGARDLESS">DownRegardless</A> | | | |Alt+Ctrl |<A HREF="jot_ug.html#LINESW">LineSW</A> |<A HREF="jot_ug.html#LINES">LineS</A> |<A HREF="jot_ug.html#LINESE">LineSE</A> | | |--------------|-----------------|-----------------|-----------------| | | |0 &#123;KP_0&#125;| |. &#123;KP_Decimal&#125;| | | | | | | | | | Macro0 | |<A HREF="jot_ug.html#AGAIN">Again</A> | | |Ctrl | | | | | |Alt+Ctrl | | | | | |--------------|-----------------|-----------------|-----------------|-----------------|</P>
+
+
+</UL><H2><A NAME="ESCAPE SEQUENCES">Escape sequences</H2>
+</UL><H3><A NAME="PRIMARY ESCAPE SEQUENCES">Primary Escape sequences</H3>
+<P>The following functions are not bound to any function keys</P>
+
+<UL><P><LI> &#123;Esc v s&#125; <A HREF="jot_ug.html#VIEWSAVE">ViewSave</A></P></LI>
+
+<P><LI> &#123;Esc v r&#125; <A HREF="jot_ug.html#VIEWRESTORE">ViewRestore</A></P></LI>
+
+<P><LI> &#123;Esc w d&#125; <A HREF="jot_ug.html#WINDOWDOWN">WindowDown</A></P></LI>
+
+<P><LI> &#123;Esc w u&#125; <A HREF="jot_ug.html#WINDOWUP">WindowUp</A></P></LI>
+
+<P><LI> &#123;Esc w 1&#125; <A HREF="jot_ug.html#WINDOWONE">WindowOne</A></P></LI>
+
+<P><LI> &#123;Esc w r&#125; <A HREF="jot_ug.html#WINDOWREASSIGN">WindowReassign</A></P></LI>
+
+<P><LI> &#123;Esc w h&#125; <A HREF="jot_ug.html#WINDOWHORIZSPLIT">WindowHorizSplit</A></P></LI>
+
+<P><LI> &#123;Esc w v&#125; <A HREF="jot_ug.html#WINDOWVERTSPLIT">WindowVertSplit</A></P></LI>
+
+<P><LI> &#123;Esc w t&#125; <A HREF="jot_ug.html#WINDOWALIGNTOP">WindowAlignTop</A></P></LI>
+
+<P><LI> &#123;Esc w c&#125; <A HREF="jot_ug.html#WINDOWALIGNCENT">WindowAlignCent</A></P></LI>
+
+<P><LI> &#123;Esc w b&#125; <A HREF="jot_ug.html#WINDOWALIGNBOT">WindowAlignBot</A></P></LI>
+
+<P><LI> &#123;Esc w +&#125; <A HREF="jot_ug.html#WINDOWSTRETCH">WindowStretch</A></P></LI>
+
+<P><LI> &#123;Esc w -&#125; <A HREF="jot_ug.html#WINDOWSHRINK">WindowShrink</A></P></LI>
+
+<P><LI> &#123;Esc q&#125; <A HREF="jot_ug.html#QUITDEBUGGER">QuitDebugger</A></P></LI>
+
+<P><LI> &#123;Esc e&#125; <A HREF="jot_ug.html#ENTER">Enter</A></P></LI>
+
+<P><LI> &#123;Esc i&#125; <A HREF="jot_ug.html#TEMPINSERTMODE">TempInsertMode</A></P></LI>
+
+<P><LI> &#123;Esc I&#125; <A HREF="jot_ug.html#INSERTMODE">InsertMode</A></P></LI>
+
+<P><LI> &#123;Esc c e&#125; <A HREF="jot_ug.html#CMDEDITSTART">CmdEditStart</A></P></LI>
+
+<P><LI> &#123;Esc c g&#125; <A HREF="jot_ug.html#CMDEDITGO">CmdEditGo</A></P></LI>
+
+<P><LI> (Esc I n&#125; <A HREF="jot_ug.html#INSERTMODE">InsertMode</A></P></LI>
+
+<P><LI> &#123;Esc i n&#125; <A HREF="jot_ug.html#TEMPINSERTMODE">TempInsertMode</A></P></LI>
+
+<P><LI> &#123;Esc q&#125; <A HREF="jot_ug.html#QUITDEBUGGER">QuitDebugger</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc f w&#125; <A HREF="jot_ug.html#FINDWILD">FindWild</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc - f w&#125; <A HREF="jot_ug.html#FINDWILDPREV">FindWildPrev</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc f p&#125; <A HREF="jot_ug.html#FINDINPARANEXT">FindInParaNext</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc - f p&#125; <A HREF="jot_ug.html#FINDINPARAPREV">FindInParaPrev</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc f s&#125; <A HREF="jot_ug.html#FINDSEQUENCE">FindSequence</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc - f s&#125; <A HREF="jot_ug.html#FINDSEQUENCEPREV">FindSequencePrev</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc f o&#125; <A HREF="jot_ug.html#FDINLINEORD">FdInLineOrd</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc - f o&#125; <A HREF="jot_ug.html#FDINLINEORDPREV">FdInLineOrdPrev</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc f u&#125; <A HREF="jot_ug.html#FDINLINEUN">FdInLineUn</A></P></LI>
+
+<P><LI>&#060;string&#062;&#123;Esc - f u&#125; <A HREF="jot_ug.html#FDINLINEUNPREV">FdInLineUnPrev</A></P></LI>
+
+<P>Line-drawing functions:</P>
+
+<P><LI>&#123;Esc b x&#125; <A HREF="jot_ug.html#BOX">Box</A></P></LI>
+
+<P><LI>&#123;Esc z 1&#125; <A HREF="jot_ug.html#LOZENGE">Lozenge</A></P></LI>
+
+<P><LI>&#123;Esc z 2&#125; <A HREF="jot_ug.html#DSLOZENGE">DSLozenge</A></P></LI>
+
+<P><LI>&#123;Esc b t&#125; <A HREF="jot_ug.html#BOXTEXT">BoxText</A></P></LI>
+
+<P><LI>&#123;Esc c e&#125; <A HREF="jot_ug.html#CMDEDITSTART">CmdEditStart</A></P></LI>
+
+<P><LI>&#123;Esc c g&#125; <A HREF="jot_ug.html#CMDEDITGO">CmdEditGo</A></P></LI>
+
+
+</UL><H3><A NAME="SECONDARY ESCAPE SEQUENCES">Secondary Escape Sequences</H3>
+<P>The following escape sequences are duplicated for users with no numeric keypad or for cases where the normal function-key combination is not available.</P>
+
+<UL><P><LI>&#123;Esc v s&#125; <A HREF="jot_ug.html#VIEWSAVE">ViewSave</A></P></LI>
+
+<P><LI>&#123;Esc v r&#125; <A HREF="jot_ug.html#VIEWRESTORE">ViewRestore</A></P></LI>
+
+<P><LI>&#123;Esc w +&#125; <A HREF="jot_ug.html#WINDOWSTRETCH">WindowStretch</A></P></LI>
+
+<P><LI>&#123;Esc w -&#125; <A HREF="jot_ug.html#WINDOWSHRINK">WindowShrink</A></P></LI>
+
+<P><LI>&#123;Esc e&#125; <A HREF="jot_ug.html#ENTER">Enter</A></P></LI>
+
+<P><LI>&#123;Esc / d&#125; <A HREF="jot_ug.html#LINESW">LineSW</A></P></LI>
+
+<P><LI>&#123;Esc / s&#125; <A HREF="jot_ug.html#DSLINESW">DSLineSW</A></P></LI>
+
+<P><LI>&#123;Esc \ d&#125; <A HREF="jot_ug.html#LINESE">LineSE</A></P></LI>
+
+<P><LI>&#123;Esc \ s&#125; <A HREF="jot_ug.html#DSLINESE">DSLineSE</A></P></LI>
+
+<P><LI>&#123;Esc l s&#125; <A HREF="jot_ug.html#LINES">LineS</A></P></LI>
+
+<P><LI>&#123;Esc l w&#125; <A HREF="jot_ug.html#LINEW">LineW</A></P></LI>
+
+<P><LI>&#123;Esc \ u&#125; <A HREF="jot_ug.html#LINENW">LineNW</A></P></LI>
+
+<P><LI>&#123;Esc \ n&#125; <A HREF="jot_ug.html#DSLINENW">DSLineNW</A></P></LI>
+
+<P><LI>&#123;Esc / u&#125; <A HREF="jot_ug.html#LINENE">LineNE</A></P></LI>
+
+<P><LI>&#123;Esc / n&#125; <A HREF="jot_ug.html#DSLINENE">DSLineNE</A></P></LI>
+
+<P><LI>&#123;Esc l n&#125; <A HREF="jot_ug.html#LINEN">LineN</A></P></LI>
+
+<P><LI>&#123;Esc l e&#125; <A HREF="jot_ug.html#LINEE">LineE</A></P></LI>
+
+
+</UL><H2><A NAME="JOT PRIMITIVES">Jot primitives</H2>
+<P>These are basic commands recognized by the editor, you can type these straight into the console area, hit return and it will be done.</P>
+
+<P><A HREF="jot_tech.html#(">(</A> <A HREF="jot_tech.html#O!">O!</A> <A HREF="jot_tech.html#%A">%A</A> <A HREF="jot_tech.html#%Q">%Q</A> <A HREF="jot_tech.html#%D">%D</A> <A HREF="jot_tech.html#)">)</A> <A HREF="jot_tech.html#O#">O#</A> <A HREF="jot_tech.html#%C">%C</A> <A HREF="jot_tech.html#QUERY SYSTEM">Query system</A> <A HREF="jot_tech.html#%G">%G</A> <A HREF="jot_tech.html#,">,</A> <A HREF="jot_tech.html#O%">O%</A> <A HREF="jot_tech.html#%E">%E</A> <A HREF="jot_tech.html#QUERY LINUX">Query linux</A> <A HREF="jot_tech.html#%I">%I</A> <A HREF="jot_tech.html#?">?</A> <A HREF="jot_tech.html#O&">O&</A> <A HREF="jot_tech.html#%F">%F</A> <A HREF="jot_tech.html#QUERY WINDOWS">Query windows</A> <A HREF="jot_tech.html#%L">%L</A> <A HREF="jot_tech.html#\">\</A> <A HREF="jot_tech.html#O*">O*</A> <A HREF="jot_tech.html#%M">%M</A> <A HREF="jot_tech.html#QUERY HASHTABLES">Query hashtables</A> <A HREF="jot_tech.html#%O">%O</A> <A HREF="jot_tech.html#A">A</A> <A HREF="jot_tech.html#O+">O+</A> <A HREF="jot_tech.html#%X">%X</A> <A HREF="jot_tech.html#QUERY WD">Query wd</A> <A HREF="jot_tech.html#%R">%R</A> <A HREF="jot_tech.html#B">B</A> <A HREF="jot_tech.html#O-">O-</A> <A HREF="jot_tech.html#QUERY WINDOW">Query window</A> <A HREF="jot_tech.html#%U">%U</A> <A HREF="jot_tech.html#C">C</A> <A HREF="jot_tech.html#O.">O.</A> <A HREF="jot_tech.html#%S">%S</A> <A HREF="jot_tech.html#QUERY TIME">Query time</A> <A HREF="jot_tech.html#%W">%W</A> <A HREF="jot_tech.html#E">E</A> <A HREF="jot_tech.html#O/">O/</A> <A HREF="jot_tech.html#%S=CASE">%S=case</A> <A HREF="jot_tech.html#QUERY DATE">Query date</A> <A HREF="jot_tech.html#%%">%%</A> <A HREF="jot_tech.html#F">F</A> <A HREF="jot_tech.html#O&#060;">O&#060;</A> <A HREF="jot_tech.html#%S=COMMANDMODE">%S=commandmode</A> <A HREF="jot_tech.html#QUERY ENV">Query env</A> <A HREF="jot_tech.html#%~">%~</A> <A HREF="jot_tech.html#G">G</A> <A HREF="jot_tech.html#O=">O=</A> <A HREF="jot_tech.html#%S=COMMANDCOUNTER">%S=commandcounter</A> <A HREF="jot_tech.html#QUERY PID">Query pid</A> <A HREF="jot_tech.html#H">H</A> <A HREF="jot_tech.html#O&#062;">O&#062;</A> <A HREF="jot_tech.html#%S=TRACE">%S=trace</A> <A HREF="jot_tech.html#QUERY STACK">Query stack</A> <A HREF="jot_tech.html#I">I</A> <A HREF="jot_tech.html#O?">O?</A> <A HREF="jot_tech.html#%S=TRACEDEFAULT">%s=tracedefault</A> <A HREF="jot_tech.html#QUERY TABSTOPS">Query tabstops</A> <A HREF="jot_tech.html#J">J</A> <A HREF="jot_tech.html#O@">O@</A> <A HREF="jot_tech.html#%S=SETENV">%S=setenv</A> <A HREF="jot_tech.html#QUERY BACKTRACE">Query backtrace</A> <A HREF="jot_tech.html#K">K</A> <A HREF="jot_tech.html#O|">O|</A> <A HREF="jot_tech.html#%S=VERBOSE">%S=verbose</A> <A HREF="jot_tech.html#QUERY BUFFER">Query buffer</A> <A HREF="jot_tech.html#M">M</A> <A HREF="jot_tech.html#O~">O~</A> <A HREF="jot_tech.html#%S=GUARDBAND">%S=guardband</A> <A HREF="jot_tech.html#QUERY SAMESINCEIO">Query samesinceio</A> <A HREF="jot_tech.html#N">N</A> <A HREF="jot_tech.html#OA">OA</A> <A HREF="jot_tech.html#%S=TAB">%S=tab</A> <A HREF="jot_tech.html#QUERY SAMESINCEINDEXED">Query samesinceindexed</A> <A HREF="jot_tech.html#P">P</A> <A HREF="jot_tech.html#OB">OB</A> <A HREF="jot_tech.html#%S=COMMANDSTRING">%S=commandstring</A> <A HREF="jot_tech.html#QUERY SAMEFLAG1">Query sameflag1</A> <A HREF="jot_tech.html#Q">Q</A> <A HREF="jot_tech.html#OC">OC</A> <A HREF="jot_tech.html#%S=MOUSEMASK">%s=mousemask</A> <A HREF="jot_tech.html#QUERY CASE">Query case</A> <A HREF="jot_tech.html#R">R</A> <A HREF="jot_tech.html#OE">OE</A> <A HREF="jot_tech.html#%S=RECOVERYMODE">%S=recoverymode</A> <A HREF="jot_tech.html#QUERY INVIEW">Query inview</A> <A HREF="jot_tech.html#S">S</A> <A HREF="jot_tech.html#OF">OF</A> <A HREF="jot_tech.html#%S=COPY">%S=copy</A> <A HREF="jot_tech.html#QUERY COMMANDMODE">Query commandmode</A> <A HREF="jot_tech.html#T">T</A> <A HREF="jot_tech.html#OG">OG</A> <A HREF="jot_tech.html#%S=PASTE">%S=paste</A> <A HREF="jot_tech.html#QUERY VERSION">Query version</A> <A HREF="jot_tech.html#V">V</A> <A HREF="jot_tech.html#OI">OI</A> <A HREF="jot_tech.html#%S=SETMOUSE">%s=setmouse</A> <A HREF="jot_tech.html#QUERY DIR">Query dir</A> <A HREF="jot_tech.html#W">W</A> <A HREF="jot_tech.html#OK">OK</A> <A HREF="jot_tech.html#%S=CONSOLE">%S=console</A> <A HREF="jot_tech.html#QUERY FILE">Query file</A> <A HREF="jot_tech.html#Y">Y</A> <A HREF="jot_tech.html#OL">OL</A> <A HREF="jot_tech.html#QUERY KEYS">Query keys</A> <A HREF="jot_tech.html#Z">Z</A> <A HREF="jot_tech.html#OM">OM</A> <A HREF="jot_tech.html#%B">%B</A> <A HREF="jot_tech.html#QUERY TAGS">Query tags</A> </P>
+
+<UL><P><A HREF="jot_tech.html#ON">ON</A> <A HREF="jot_tech.html#%B=UNRESTRICTED">%B=unrestricted</A> <A HREF="jot_tech.html#QUERY HEAP">Query heap</A> <A HREF="jot_tech.html#OO">OO</A> <A HREF="jot_tech.html#%B=READONLY">%B=readonly</A> <A HREF="jot_tech.html#QUERY HISTORY">Query history</A> <A HREF="jot_tech.html#OP">OP</A> <A HREF="jot_tech.html#%B=WRITEIFCHANGED">%b=writeifchanged</A> <A HREF="jot_tech.html#QUERY VERIFY">Query verify</A> <A HREF="jot_tech.html#OR">OR</A> <A HREF="jot_tech.html#%B=LEFTOFFSET">%b=leftoffset</A> <A HREF="jot_tech.html#OS">OS</A> <A HREF="jot_tech.html#%B=TABSTOPS">%b=tabstops</A> <A HREF="jot_tech.html#%H">%H</A> <A HREF="jot_tech.html#OU">OU</A> <A HREF="jot_tech.html#%B=HEADER">%b=header</A> <A HREF="jot_tech.html#HASHTABLE CREATE">Hashtable create</A> <A HREF="jot_tech.html#OW">OW</A> <A HREF="jot_tech.html#%B=UNICODE">%b=unicode</A> <A HREF="jot_tech.html#HASHTABLE ADD">Hashtable add</A> <A HREF="jot_tech.html#OZ">OZ</A> <A HREF="jot_tech.html#%B=PATHNAME">%b=pathname</A> <A HREF="jot_tech.html#HASHTABLE NEW">Hashtable new</A> </P>
+
+<UL><P><A HREF="jot_tech.html#%B=SAMEFLAG1">%b=sameflag1</A> <A HREF="jot_tech.html#HASHTABLE JUMP">Hashtable jump</A> <A HREF="jot_tech.html#%B=TAGTYPE">%b=tagtype</A> <A HREF="jot_tech.html#HASHTABLE CALL">Hashtable call</A> <A HREF="jot_tech.html#%B=ADDTAG">%b=addtag</A> <A HREF="jot_tech.html#HASHTABLE FIX">Hashtable fix</A> <A HREF="jot_tech.html#%B=REMOVE_TAG">%b=remove_tag</A> <A HREF="jot_tech.html#HASHTABLE DESTROY">Hashtable destroy</A> <A HREF="jot_tech.html#%B=SORT">%B=sort</A> <A HREF="jot_tech.html#HASHTABLE TESTKEY">Hashtable testkey</A> <A HREF="jot_tech.html#%B=TABSORT">%B=TabSort</A> <A HREF="jot_tech.html#%B=CODEPAGE">%b=codepage</A> </P>
+
+
+</UL></UL><H3><A NAME="HOW CAN I ...">How can I ...</H3>
+<UL><P><LI>exit jot - see <A HREF="jot_tech.html#%C">%C</A> or <A HREF="jot_tech.html#%A">%A</A></P></LI>
+
+<P><LI>move the cursor Left or Right - see <A HREF="jot_tech.html#R">R</A> and <A HREF="jot_tech.html#OR">OR</A></P></LI>
+
+<P><LI>cut/Paste - see <A HREF="jot_tech.html#N">N</A>, <A HREF="jot_tech.html#A">A</A> and <A HREF="jot_tech.html#H">H</A></P></LI>
+
+<P><LI>break or Join lines - see <A HREF="jot_tech.html#B">B</A> or <A HREF="jot_tech.html#J">J</A> respectively</P></LI>
+
+<P><LI>change case of ASCII alphabetical characters - see <A HREF="jot_tech.html#C">C</A></P></LI>
+
+<P><LI>remove a given number of characters - see <A HREF="jot_tech.html#E">E</A></P></LI>
+
+<P><LI>search (Find) a string in text - see <A HREF="jot_tech.html#F">F</A> and <A HREF="jot_tech.html#%F">%F</A></P></LI>
+
+<P><LI>replace (Substitute) the current substring with some other string - see <A HREF="jot_tech.html#S">S</A></P></LI>
+
+<P><LI>pick up new lines or characters from the user - see <A HREF="jot_tech.html#G">G</A> <A HREF="jot_tech.html#OG">OG</A> <A HREF="jot_tech.html#OO">OO</A> <A HREF="jot_tech.html#I">I</A> and <A HREF="jot_tech.html#%G">%G</A></P></LI>
+
+<P><LI>remove (Kill) lines - see <A HREF="jot_tech.html#K">K</A></P></LI>
+
+<P><LI>move to a nearby line - see <A HREF="jot_tech.html#M">M</A> and <A HREF="jot_tech.html#Y">Y</A></P></LI>
+
+<P><LI>do arithmetic or logical processing - see <A HREF="jot_tech.html#STACK OPERATIONS">Stack operations</A></P></LI>
+
+<UL><P><LI>Arithmetic - see <A HREF="jot_tech.html#O+">O+</A>, <A HREF="jot_tech.html#O-">O-</A>, <A HREF="jot_tech.html#O~">O~</A>, <A HREF="jot_tech.html#O*">O*</A>, <A HREF="jot_tech.html#O/">O/</A>, <A HREF="jot_tech.html#O%">O%</A>, <A HREF="jot_tech.html#O=">O=</A>, <A HREF="jot_tech.html#O&#060;">O&#060;</A>, <A HREF="jot_tech.html#O&#062;">O&#062;</A>, <A HREF="jot_tech.html#OL">OL</A></P></LI>
+
+<P><LI>bitwise logical - see <A HREF="jot_tech.html#O|">O|</A>, <A HREF="jot_tech.html#O&">O&</A>, <A HREF="jot_tech.html#O!">O!</A></P></LI>
+
+<P><LI>housekeeping - see <A HREF="jot_tech.html#O#">O#</A>, <A HREF="jot_tech.html#OK">OK</A>, <A HREF="jot_tech.html#O@">O@</A>, <A HREF="jot_tech.html#OS">OS</A>, <A HREF="jot_tech.html#O?">o?</A> and <A HREF="jot_tech.html#QUERY STACK">query stack</A></P></LI>
+
+<P><LI>Read/set buffer state - see <A HREF="jot_tech.html#OB">OB</A>, <A HREF="jot_tech.html#OE">OE</A>, <A HREF="jot_tech.html#OF">OF</A>, <A HREF="jot_tech.html#OC">OC</A>, <A HREF="jot_tech.html#ON">ON</A>, <A HREF="jot_tech.html#OP">OP</A>, <A HREF="jot_tech.html#OU">OU</A>, <A HREF="jot_tech.html#OA">OA</A>, <A HREF="jot_tech.html#O.">O.</A></P></LI>
+
+<P><LI>Read/set values in the text - see <A HREF="jot_tech.html#OI">OI</A>, <A HREF="jot_tech.html#OG">OG</A>, <A HREF="jot_tech.html#OO">OO</A>, <A HREF="jot_tech.html#OV">OV</A>, <A HREF="jot_tech.html#OQ">OQ</A></P></LI>
+
+<P><LI>Do controlled movement in the text - see <A HREF="jot_tech.html#OZ">OZ</A>, <A HREF="jot_tech.html#OM">OM</A> and or</P></LI>
+
+</UL><P><LI>force the editor to display a line in the console area - see <A HREF="jot_tech.html#P">P</A></P></LI>
+
+<P><LI>check the text at the current-character position - see <A HREF="jot_tech.html#V">V</A> and <A HREF="jot_tech.html#Q">Q</A></P></LI>
+
+<P><LI>force the window to be redrawn - see <A HREF="jot_tech.html#W">W</A> and <A HREF="jot_tech.html#%L">%L</A></P></LI>
+
+<P><LI>move to a different buffer - see <A HREF="jot_tech.html#Z">Z</A> and <A HREF="jot_tech.html#OZ">OZ</A></P></LI>
+
+<P><LI>view internal state - see <A HREF="jot_tech.html#%Q">%Q</A> a few of the most useful %Q queries follow:</P></LI>
+
+<UL><P><LI>Report system-wide state - see <A HREF="jot_tech.html#QUERY SYSTEM">query system</A></P></LI>
+
+<P><LI>Verify script is running under a particular OS - <A HREF="jot_tech.html#QUERY LINUX">query linux</A>, <A HREF="jot_tech.html#QUERY WINDOWS">query windows</A></P></LI>
+
+<P><LI>Report on hashtable cross-referencing - see <A HREF="jot_tech.html#QUERY HASHTABLES">query hashtables</A></P></LI>
+
+<P><LI>find out my pwd - see <A HREF="jot_tech.html#QUERY WD">query wd</A></P></LI>
+
+<P><LI>find information about current window configuration - see <A HREF="jot_tech.html#QUERY WINDOW">query window</A></P></LI>
+
+<P><LI>obtain a backtrace <A HREF="jot_tech.html#QUERY BACKTRACE">query backtrace</A></P></LI>
+
+<P><LI>find the current date/time stamp - see <A HREF="jot_tech.html#QUERY DATE">query date</A></P></LI>
+
+<P><LI>find the value of something in the users env space - see <A HREF="jot_tech.html#QUERY ENV">query env</A></P></LI>
+
+<P><LI>report contents of stack - see <A HREF="jot_tech.html#O?">O?</A> and <A HREF="jot_tech.html#QUERY STACK">Query stack</A></P></LI>
+
+<P><LI>report current configuration of tabstops in this buffer - see <A HREF="jot_tech.html#QUERY TABSTOPS">Query tabstops</A></P></LI>
+
+<P><LI>report most other internal state of the current buffer - see <A HREF="jot_tech.html#QUERY BUFFER">Query buffer</A></P></LI>
+
+<P><LI>find out if the buffer has been changed recently - see <A HREF="jot_tech.html#QUERY SAMESINCEIO">Query samesinceio</A>, <A HREF="jot_tech.html#QUERY SAMESINCEINDEXED">Query samesinceindexed</A>, <A HREF="jot_tech.html#QUERY SAMEFLAG1">Query sameflag1</A></P></LI>
+
+<P><LI>find out if case sensitivity is currently on - see <A HREF="jot_tech.html#QUERY CASE">query case</A></P></LI>
+
+<P><LI>find out if the current character is currently in the viewable area of a window - see <A HREF="jot_tech.html#QUERY INVIEW">query inview</A></P></LI>
+
+<P><LI>identify the current jot version - see <A HREF="jot_tech.html#QUERY VERSION">query version</A></P></LI>
+
+<P><LI>list contents of specified filing-system directory - see <A HREF="jot_tech.html#QUERY DIR">query dir</A></P></LI>
+
+<P><LI>check details of specified (or current) file - see <A HREF="jot_tech.html#QUERY FILE">query file</A></P></LI>
+
+<P><LI>list keys currently set up in this buffers hashtable - see <A HREF="jot_tech.html#QUERY KEYS">query keys</A></P></LI>
+
+<P><LI>list keys currently set in this buffer - see <A HREF="jot_tech.html#QUERY TAGS">query tags</A></P></LI>
+
+<P><LI>report heap stats - see <A HREF="jot_tech.html#QUERY HEAP">query heap</A></P></LI>
+
+<P><LI>show recent command history - see <A HREF="jot_tech.html#QUERY HISTORY">query history</A></P></LI>
+
+<P><LI>sanity check this buffers internal data structure - see <A HREF="jot_tech.html#QUERY VERIFY">query verify</A></P></LI>
+
+</UL><P><LI>set internal state - see <A HREF="jot_tech.html#%S">%S</A></P></LI>
+
+<UL><P><LI>case sensitivity - see <A HREF="jot_tech.html#%S=CASE">%s=case</A></P></LI>
+
+<P><LI>prevent my script's internal F, %F and S args becoming the default - see <A HREF="jot_tech.html#%S=SYSTEM">%s=system</A></P></LI>
+
+<P><LI>enter insert/overtype/command-mode- see <A HREF="jot_tech.html#%S=COMMANDMODE">%s=commandmode</A></P></LI>
+
+<P><LI>set a breakpoint trap after a given number of commands in the script - see <A HREF="jot_tech.html#%S=COMMANDCOUNTER">%s=commandcounter</A></P></LI>
+
+<P><LI>set up the debugger and command tracer - see <A HREF="jot_tech.html#%S=TRACE">%s=trace</A> and <A HREF="jot_tech.html#%S=TRACEDEFAULT">%s=tracedefault</A></P></LI>
+
+<P><LI>set a value edit-sessions env space - see <A HREF="jot_tech.html#%S=SETENV">%s=setenv</A></P></LI>
+
+<P><LI>control messages emitted by jot - see <A HREF="jot_tech.html#%S=VERBOSE">%s=verbose</A></P></LI>
+
+<P><LI>control the number of lines borrowed from windows by verbose messages - see <A HREF="jot_tech.html#%S=CONSOLE">%s=console</A></P></LI>
+
+<P><LI>insert some characters into the command string - see <A HREF="jot_tech.html#%S=COMMANDSTRING">%s=commandstring</A></P></LI>
+
+<P><LI>set recovery mode - see <A HREF="jot_tech.html#%S=RECOVERYMODE">%s=recoverymode</A></P></LI>
+
+<P><LI>activate mouse events - see <A HREF="jot_tech.html#%S=MOUSEMASK">%s=mousemask</A></P></LI>
+
+<P><LI>simulate a mouse event- see <A HREF="jot_tech.html#%S=SETMOUSE">%s=setmouse</A></P></LI>
+
+<P><LI>stop the cursor going right to the top/bottom line on the screen - see <A HREF="jot_tech.html#%S=GUARDBAND">%s=guardband</A></P></LI>
+
+<P><LI>set the column-delimiter character - see <A HREF="jot_tech.html#%S=TAB">%s=tab</A></P></LI>
+
+<P><LI>set the prompt issued by G and OG commands - see <A HREF="jot_tech.html#%S=PROMPT">%s=prompt</A></P></LI>
+
+<P><LI>read a file into another buffer - see <A HREF="jot_tech.html#%I">%I</A></P></LI>
+
+<P><LI>set some attribute in this buffer <A HREF="jot_tech.html#%B">%B</A></P></LI>
+
+<P><LI>pass something back to the CLI - see <A HREF="jot_tech.html#%E">%E</A></P></LI>
+
+<P><LI>do a regular expression search (Find) <A HREF="jot_tech.html#%F">%F</A></P></LI>
+
+<P><LI>define a one-line buffer - see <A HREF="jot_tech.html#%D">%D</A></P></LI>
+
+<P><LI>define a buffer containing any number of lines - see <A HREF="jot_tech.html#%G">%G</A></P></LI>
+
+<P><LI>set terminal size or redraw a messed-up screen - <A HREF="jot_tech.html#%L">%L</A></P></LI>
+
+<P><LI>write a message for the user to see - see <A HREF="jot_tech.html#%M">%M</A></P></LI>
+
+<P><LI>write the current buffer to the filing system - see <A HREF="jot_tech.html#%O">%O</A></P></LI>
+
+<P><LI>run a command script - see <A HREF="jot_tech.html#%R">%R</A></P></LI>
+
+<P><LI>undo last substitution - see <A HREF="jot_tech.html#%U">%U</A></P></LI>
+
+<P><LI>set the window configuration - see <A HREF="jot_tech.html#%W">%W</A></P></LI>
+
+<P><LI>exit current script/macro and send a message to the user - see <A HREF="jot_tech.html#%X">%X</A></P></LI>
+
+<P><LI>insert or display a control character - see <A HREF="jot_tech.html#%~">%~</A></P></LI>
+
+<P><LI>add a comment to my script or macro - see <A HREF="jot_tech.html#%%">%%</A></P></LI>
+
+<P><LI>set up hashtables - see <A HREF="jot_tech.html#%H">%H</A></P></LI>
+
+
+</UL></UL><H2><A NAME="IMPORTANT SCRIPTS">Important Scripts</H2>
+<P>These are a few of the ones you are most likely to need.</P>
+
+<UL><P><LI><A HREF="jot_coms.html#AGE.JOT">age.jot</A> Reports the age of a file by comparing it's datestamp with current time.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#AUTOTAB.JOT">autotab.jot</A> Replace tabs with blanks, alighning text following tabs.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#AUTOTABDP.JOT">autotabdp.jot</A> Replace tabs with blanks, aligining decimal points following tabs.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#AUTOTABJUST.JOT">autotabjust.jot</A> Replace tabs with blanks, alighning right-justified text following tabs</P></LI>
+
+<P><LI><A HREF="jot_coms.html#BACKUP.JOT">backup.jot</A> Creates a backup copy of the current buffer in the backup subdirectory.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#BOOKINGS.JOT">bookings.jot</A> Maintains a bookings register.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#BT.JOT">bt.jot</A> Reformats a backtrace report to give line numbers as offsets in original file.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#C.JOT">c.jot</A> Sets up buttons specific to editing C source files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#CAL.JOT">cal.jot</A> Makes a calendar with week numbers.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#CERR.JOT">cerr.jot</A> for working with gnu C-compiler error reports.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#CLI.JOT">cli.jot</A> Applies CLI command and arguments supplied to current filespec.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#COMP.JOT">comp.jot</A> Compare two similar buffers - typically they are different versions of the same file.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#COPY.JOT">copy.jot</A> Sets Xterm paste-buffer from current buffer, using xsel.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#COUNT.JOT">count.jot</A> Counts up the number of words in a text buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#CSH.JOT">csh.jot</A> Sets up buttons specific to editing C-shell command files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#CURSES_KEYS_&#060;TERM&#062;.JOT">curses_keys_&#060;TERM&#062;.jot</A> Defines mapping of editor function to keycodes.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DATE.JOT">date.jot</A> Inserts current date in document, cursor is on a valid date this is removed.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DEFINE_KEYMAP.JOT">define_keymap.jot</A> Defines keymap for any keyboard - requires the user to press buttons.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DIC.JOT">dic.jot</A> Looks up words in websters dictionary.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DO.JOT">do.jot</A> Performs a cli command and places result into '@' buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DOC.JOT">doc.jot</A> Document-processing functions.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DOC2FOLD.JOT">doc2fold.jot</A> Transforms a doc-format document into a folded-help file </P></LI>
+
+<P><LI><A HREF="jot_coms.html#DOC2MIF.JOT">doc2mif.jot</A> Transforms a doc-style text document to framemaker mif format.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DOC2HELP.JOT">doc2help.jot</A> Transforms a doc-format document into a folded-help file </P></LI>
+
+<P><LI><A HREF="jot_coms.html#DOC2HTML.JOT">doc2html.jot</A> Translates the current document to HTML.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#DUPLICATES.JOT">duplicates.jot</A> Starting at current position in buffer, searching for duplicated lines.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#EDIF.JOT">edif.jot</A> Sets up buttons specific to editing EDIF files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#EXIT.JOT">exit.jot</A> Frees all buffers and exits the editor.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#FINDCOL.JOT">findcol.jot</A> Finds string in delimited arg1 in column.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#FINDHELP.JOT">findhelp.jot</A> Uses grep to locate given help keys in the help library.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#FOLD2DOC.JOT">fold2doc.jot</A> Transforms a folded document to the .doc format.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#FREEALL.JOT">freeall.jot</A> Frees (i.e. destroys) all buffers.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#GET.JOT">get.jot</A> Picks up a file relative to current file.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#HTML2DOC.JOT">html2doc.jot</A> Translates HTML to a .DOC-format file.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#JOT.JOT">jot.jot</A> Sets up buttons specific to editing jot scripts.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#KSH.JOT">ksh.jot</A> Sets up buttons specific to editing korn-shell scripts.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#LINKDOCS.JOT">linkdocs.jot</A> Sets up cross linking of any number of doc.jot style text documents.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#LS2LIST.JOT">ls2list.jot</A> Translates the output of an ls -F listing to a list of paths for multi_do etc.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MAIL.JOT">mail.jot</A> Transforms users mail file into folded text in the help area.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MANHELP.JOT">manhelp.jot</A> Converts a man page document to help format.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MATCH_WORDS.JOT">match_words.jot</A> Matches words listed in current and nominated buffers results tabulated in '@' buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MC.JOT">mc.jot</A> Command file to multicolumn a document to 2 columns for 90 by 66-line forms.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MIF.JOT">mif.jot</A> Sets up buttons specific to editing MIF files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MULTI_DO.JOT">multi_do.jot</A> Performs a unix command on a bunch of files specified in a ls -l listing</P></LI>
+
+<P><LI><A HREF="jot_coms.html#MULTI_ED.JOT">multi_ed.jot</A> Command file to edit a bunch of files starting with a list of paths</P></LI>
+
+<P><LI><A HREF="jot_coms.html#NEAR.JOT">near.jot</A> Locates a pair of words near each other.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#NONPRINTING.JOT">nonprinting.jot</A> Detects next nonprinting character in buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#PASCAL.JOT">pascal.jot</A> Constructs the first n rows of pascals triangle in the current buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#PASTE.JOT">paste.jot</A> Inserts current Xterm paste-buffer selection into nominated buffer, using xsel.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#PATH.JOT">path.jot</A> Applies CLI command and arguments supplied to current path.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#PERL.JOT">perl.jot</A> Sets up buttons specific to editing perl scripts.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#PRINT.JOT">print.jot</A> Outputs to /tmp/print and performs unix lp on buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#PURGE.JOT">purge.jot</A> Removes second and subsequent copies of all duplicated lines from buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#RECOVER.JOT">recover.jot</A> Recovers a crashed editor session using journal files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#RENUMBER.JOT">renumber.jot</A> Resets line number to count from 1.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#RETAB.JOT">retab.jot</A> Command file to reset tabs at a given key string and optional window size.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#RETABHERE.JOT">retabhere.jot</A> Command file to resolve spaces in current column as tabs.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#SCCS.JOT">sccs.jot</A> Applies sccs command (given as argument).</P></LI>
+
+<P><LI><A HREF="jot_coms.html#SEARCHBUFFERS.JOT">searchbuffers.jot</A> Searches all valid buffers for the key string in the argument.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#SH.JOT">sh.jot</A> Sets up buttons specific to editing C-shell command files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#SKILL.JOT">skill.jot</A> Sets up buttons specific to editing skill files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#STARTUP.JOT">startup.jot</A> Defines the editor functions, assigns these to function keys etc using a keymap file.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#TAB.JOT">tab.jot</A> Command file to resolve tabs at 8-character intervals.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#TCL.JOT">tcl.jot</A> Sets up buttons specific to editing TCL scripts.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#THES.JOT">thes.jot</A> Looks up words in Roget's thesaurus.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#TIMEX.JOT">timex.jot</A> Utility package for dealing with timex files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#TRACE.JOT">trace.jot</A> Does symbolic-level assignments to %t trace vector.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#UC_BASIC.JOT">uc_basic.jot</A> Provides basic unicode translations for European alphabets.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#UNLOCKALL.JOT">unlockall.jot</A> Destroys hashtables and removes write lock from all buffers.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#VERIFY_KEYS.JOT">verify_keys.jot</A> Tests the keycode mapping file by displaying each keystroke in the console area.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#VHDL.JOT">vhdl.jot</A> Sets up buttons specific to editing VHDL files.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#WIDEPRINT.JOT">wideprint.jot</A> Outputs to /tmp/print and performs unix lp on buffer.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#WINDOWSNT_KEYS.JOT">WindowsNT_keys.jot</A> Maps the hot-key functions onto escape sequences.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#XWORD.JOT">xword.jot</A> A simple utility to help with crossword puzzles.</P></LI>
+
+
+</UL><H2><A NAME="JOT DOCUMENTATION">Jot Documentation</H2>
+<P>The following links are entry points into the jot documentation suite.</P>
+
+<UL><P><LI><A HREF="jot_ug.html#DESCRIPTION OF THE EDITOR">Description of the Editor</A> - the user guide, an informal description of jot.</P></LI>
+
+<P><LI><A HREF="jot_tech.html#JOT TECHNICAL GUIDE">jot Technical guide</A> - detailed descriptions of behaviour, techniques, syntax, options and commands.</P></LI>
+
+<P><LI><A HREF="jot_coms.html#RUNNING THE SCRIPTS">Running the scripts</A> - details of the jot scripts.</P></LI>
+
+<P><LI><A HREF="jot_walkthrough.html#JOT WALKTHROUGH">jot walkthrough</A> - An introductory training course in the form of "push button A, push then button B".</P></LI>
+</UL>

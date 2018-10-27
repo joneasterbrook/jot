@@ -1,0 +1,69 @@
+%%Does symbolic-level assignments to %t trace vector.
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+  trace arguments - trigger points:
+    - a  - trace all commands
+    - l  - trace at start of each new command line.
+    - m  - trace at start of each new macro.
+    - f  - trace on entry to command files.
+    - i  - trace Ctrl+C interrupts.
+  trace arguments - trace actions:
+    - bt - dump backtrace to buffer '?' at each trace point.
+    - s  - dump stack at each trace point.
+    - p  - print current line of current buffer at each trace point.
+    - c  - show command line at each trace point.
+    - b  - breakpoint - stop on trigger points.
+    
+  usage:
+> trace [+|-]arg1[ [+|-]arg2 [...]]{F2}
+ 
+  The optional + qualifier adds the specified value to the existing trace setting.
+  The optional - qualifier removes the specified value from the existing trace setting.
+  With neither + or -, the trace vector is replaced with the specified setting.
+
+:
+
+%g#
+%%If no setting is given, prompt for one.
+%%obz$m-0(f/%%/-(v/ /r)0rl q/-+abcfilmps/, %%No setting
+obz$m-0((v/ /r)0rr- q/-+abcfilmps/, %%No setting
+  z?m0w
+  %s=prompt Specify your required settings: 
+  z$g m- %s=prompt > ; )
+
+b(q/-+/%q~=settings; f/Trace vector = /-oix z$osokr, ol0) ol0
+(  %%arg loop.
+  v/a/rol1o|,      %%0001 Trace_AllCommands: Trace at each new command.
+  v/l/rol2o|,      %%0002 Trace_CommandLines: Trace at the start of each new command line.
+  v/m/rol4o|,      %%0004 Trace_MacrosFailures: Trace after a failing command.
+  v/i/rol32o|,     %%0020 Trace_Int: Trace Ctrl+C interrupts.
+  v/bt/rol2048o|,  %%0800 Trace_Backtrace: At a trace point send a backtrace report to console.
+  v/s/rol4096o|,   %%1000 Trace_Stack: At a trace point dump the contents of the stack.
+  v/p/rol8192o|,   %%2000 Trace_Print: At a trace  point,  print  the  current  line  of  the current buffer.
+  v/so/rol16384o|, %%4000 Trace_Source: At a trace point, show command line.
+  v/b/rol32768o|,  %%8000 Trace_Break: Break at selected trace point, halts and prompt for a debug command.
+  r)0
+
+  r-0(v/-/o!o&, o|) m-0k0e0oo/%4X/ %s=trace '$
+oz
+:
+'#

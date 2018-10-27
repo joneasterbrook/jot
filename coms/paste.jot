@@ -1,0 +1,51 @@
+%%Inserts current Xterm paste-buffer selection into nominated buffer, using xsel.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  paste [<key>][ -Here]
+    paste -Here - pastes into current buffer.
+      - Key - the key for the destination buffer. 
+      - -Here - inserts buffer text into current buffer.
+       
+  Buffer usage: 
+    $ - command argument - the destination buffer key.
+    @ - Sub command macro
+    
+    
+    N.B. This scripy requires xsel to be installed. 
+:
+ 
+%%Clear out the argument buffer. 
+%%obz$m-0(f/%%/-e-0(m-k-0,), m-0k0e0)(f/-h/e-0i/@/b-l0, m-0)(v/ /r)0e-0(f1/ /e0,)
+obz$m-0(f/-h/e-0i/@/b-r-0, m-0)(v/ /r)0e-0(f1/ /e0,)
+ 
+%%Prompt for destination if necessary. 
+m-0(rr\, %s=prompt Buffer key?; gm- %s=prompt > ; )
+ 
+%%Import now.
+n.a@z@i/%e/i'$i/=xsel -p/ '@
+
+%%If the -h argument was given, then trim and insert into the original buffer.
+obz$(f/-h/z@n.m0a$okozh$, ozok)
+w
+

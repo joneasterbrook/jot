@@ -1,0 +1,86 @@
+%%Sets up buttons specific to editing TCL scripts.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%g?
+  TCL-file browser, the following functions have been assigned to
+  numeric-keypad buttons.
+  
+  1 - Go back to start of current block '{'. 
+  2 - Go forwards end of current block '}'.
+  3 - Go forwards to next structure-building keyword disregarding block structure.
+  
+:
+
+%%Find block-start for current level.
+%g1
+ol0
+( %%Main loop
+  %%If a '}' - decriment depth.
+  (v/}/ ol1o-,)
+  %%If a '{' depth is indexed and tested.
+  (v/{/\, (ol0o= (r-, m-(f1/#/, r0)) ok %X Found a "{" while searching for initial "}"
+    , o~)) 
+  %%If a string then skip to start.
+  (v/"/r- (f-1/"/v-/\/r-)0, )
+  (r-, m-(f1/#/,r0), ok %X Reached start of buffer.
+    )
+)0
+ok
+:
+
+%%Find block-end for current level.
+%g2
+ol0
+( %%Main loop.
+  %%If a '{' - decriment depth.
+  (v/{/ ol1o-,)
+  %%If a '}' depth is indexed and tested.
+  (v/}/\, (ol0o= rok %X Found a "}" while searching for initial "{"
+    , o~))
+  %%If a comment skip to end.
+  (v/#/r0,)
+  %%If a string then skip to end.
+  (v/"/r (v/\/(r2, m), v/"/\r)0, )
+  (r, m, ok %X Reached end of buffer.
+    )
+)0
+ok
+:
+
+%%Find next block-start keyword.
+%g3
+%%If already at a block start then move on.
+( ( v/if/r2, v/foreach_in_collection/r21, v/proc/r4)\
+    m, (rr-q/a-zA-Z0-9_/\, m))
+( %%Search loop.
+  (v/ /r)0
+  %%Test for block-start statement.
+  ( ( v/if/r2, v/foreach_in_collection/r21, v/foreach/r7, v/for/r3, v/while/r5, v/proc/r4)\,
+  rr-q/a-zA-Z0-9_/)
+  %%Not a block-start - check for ':' before moving to next line.
+  m)0
+%%Reset pointer to start of keyword.
+(q-/a-z_/r-)0
+:
+

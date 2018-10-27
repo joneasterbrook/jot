@@ -1,0 +1,158 @@
+%%The ctags-generated tags-index file is in the primary buffer, reads files as requested by user queries.
+%%
+%%
+%%    Copyright (C) 2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+The  ( . ) buffer contains the ctags index file and a hashtable used to look up objects named in the index.
+Each file is read into a sub-buffer of ( . ) using it's pathname as a key.
+Queries are launched by Macro 7 - attached to {KP_7} or {Esc 7}
+Macro 7 usage:
+> <key>{KP_7} - launches a search for that key.
+> {KP_7}      - Picks up a key from context and launches a search.
+  On every successful search, the search key is added to a stack in .|ctags_stack
+  
+Buffer usage:
+  . - Contains the hashtable and the raw ctags file image.
+  ~ - (buffer at top of stack) contains current file image.
+  $ - parameter passing.
+  
+Example - for this to work you must have a working Exuberant Ctags installation:
+$ cp -pR ${JOT_RESOURCES}/ide .
+$ cd ide
+$ ctags -R *
+$ jot tags -in=%r=ctags
+> %qz=keys;          - Shows a list of valid keys picked up from the tags file in buffer z.
+> level_5{KP_7}      - Now shows definition of function level_5
+> f/level_6/         - moves down to level_5 call.
+> {F7}               - picks up function name from context and switches to definition of level_5
+  To see files registered in .=Files|...
+> oq/.=Files/z~ %qx=keys;
+  
+Another example - for this to work you must also have an ncurses source tree:
+$ ctags -R ~/Downloads/ncurses-5.0
+$ jot ./tags -in=%r=ctags
+> %qz=keys;          - Shows a list of valid keys picked up from the tags file in buffer z.
+> NCursesForm{KP_7}  - Now shows definition of function NCursesForm
+> f/b_sub_owner/     - moves down to b_sub_owner call.
+> {F7}               - picks up function name from context and switches to definition of b_sub_owner
+> m                  - moves to whitespace at start of next line.
+> {F7}               - there being no valid tag name at current context it returns to definition of function NCursesForm
+  To see files registered in .=Files|...
+> oq/.=Files/z~ %qx=keys;
+:
+
+%%Which flavour of tags file are we looking at?
+z.(v"!_TAG_FILE_FORMAT	2	/extended format;", %x=Error: Unrecognized tags-file format.; )
+%%Allow one entry/line of the index file and 1000 more for data objects and file images.
+m0onol1000o+ %h=create '~;
+%%Now create the list of files in .=Files
+%h=data .=Files; %d~=;o# ov/.=Files/ z~%h=create 100; z. ok
+%%Set up the hashtable, duplicated keys are suffixed with "__n".
+m-0 (v/!/m, n.f1/	/a@& (%h=new '@;, ol0(o# %h=new '@__'~;\ o~)0 ok) m)0
+%%
+%%Set up the ctags_stack.
+%h=data .=ctags_stack; n.a~ov/.=ctags_stack/
+%%
+
+%g7
+%%Macro 7 - go to specified section, if section is not in memory, read the relevant source file.
+%%
+%%First kill the buffer at the top of the stack.
+z.ok??
+%%
+%%If no explicit arg given, try picking up one from current context,
+%%if that doesn't work then return from current context.
+%%
+%%If no function name given then pick up one from context.
+obz$ (r, oz(q-/A-Za-z0-9_/r-)0n.(q//r)0a$&)
+%%
+%%Add key to ctags stack.
+oq/.=ctags_stack/ z~m0r0bi'$ z.ok
+%%
+( %h=jump .='$;
+, %%Key not recognized return back up the stack.
+  oq/.=ctags_stack/z~(k-(rr-n.r0a$k)? z.ok %h=jump '$;, %x=Error: Section '$ not found in the tags-index file.; )
+  )
+%%
+%%The hashtable key is now defined by ( $ ).
+%%
+%%Clear existing buffer from stack.
+z.ok
+%%Pick up pathname and check against files registered in .=Files|...
+f1/	/-n.f1//a!&
+( oq/.=Files/z~oq'!  %%Yes, the file is already in memory.
+  z!r-0i/.=Files|/ oq'!z~
+,  %%No, read the file into a new sub-buffer.
+  %i~='!; %b=writeifchanged;
+  z!r-0i/.=Files|/ %h=data '!; o#ov'! z~) osok
+%%
+%%Find the requested definition using either the string or line number from the ctags file.
+z.r(v"/^"r2n.f1|$/;"|a$&z~m-0 (f'$r-\r0v-'$\)0, q/0-9/oid osz~osono-om) 
+%%Now adjust the view to get the section start about 3/4 of the way up the screen.
+z~w %q$=window; f/currently buffer ( ~ ), /-oidosz~os ol3o*ol4o/ow
+:
+
+%%The macro ( # ) and ( @ ), defined below are only activated if the -AtoZ qualifier is given.
+%%  Macro ( # ) assigns buffers to source files,
+%%  Macro ( @ ) is a replacement for macro ( 7 )
+%g#
+%%
+%%Assign a buffer key to each unique file.
+%%
+%%First boil down the list of files.
+z.m-0 (v/!/m)0 n.m0a@& z@m-0 (f1/	/-e-0f1//e0m,k)0 %b=sort; m-0(n.r0a$&m (v'$r0v-'$k)0 mm-)0
+%%Check no. of files, if too many then assign buffers in macro ( 7 ).
+onol26(o<\ %%There are too many files.
+  ok %h=data .=Buffer_keys; ol65 ov/.=Buffer_keys/
+, %%There are 26 or less files - assign buffers now.
+  %%Assign buffers A ... Z - FYI 65 is ASCII 'A'.
+  ok m-0ol65 (o#oo/%c	/o~m)0 
+  %%Now modify the tags file image.
+  z@m-0 (n.f1/	/a$r0i/	/ z.m-0 (f'@r0i/	KEY=/h$)0 z@m)0 ok) z.
+:
+
+%g@
+%%Redefinition of macro 7 for -AtoZ option - go to specified section, if section is not in memory, read the relevant source file.
+%%
+%%If no explicit arg given, try picking up one from current context.
+%%If that doesn't work then return from current context.
+%%
+%%If no function name given then pick up one from context.
+z$ (r, oz(q-/A-Za-z0-9_/r-)0n.(q//r)0a$&)
+%%
+%%Go to the relevant line of the ctags file.
+%h=jump .='$;
+%%Pick up pathname and buffer key, check if buffer has been read already.
+f1/	/-n.f1//a!&
+( z.r0f-1/	KEY=/-oic ozm-0m  %%Yes, the file is already in memory.
+, %%No - read the file into the buffer, assign a buffer key if necessary.
+  z.r0 (f-1/	KEY=/-oic, oq/.=Buffer_keys/o#o~ov/.=Buffer_keys/o#r0oo/	KEY=%c/) oz %i='!; %b=writeifchanged; )
+%%
+%%Find the requested definition using either the string or line number from the ctags file.
+obz.r-0f/	/-2(v"/^"r2n.f1|$/;"|a$&o#oz (f'$r-\r0v-'$\)0, q/0-9/oid osozono-om)
+%%Now adjust the view to get the section start about 3/4 of the way up the screen.
+obw %q$=window; f/currently buffer ( /f1/), /-oidosoz ol3o*ol4o/ow
+  
+:
+
+%%If -AtoZ qualifier is given, redefine macro ( 7 ) and run the -AtoZ modifiication code in macro ( # ).
+z$(f1/-atoz/ z@m-0n.m0r0a7z. '#, z.)

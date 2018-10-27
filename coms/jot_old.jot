@@ -1,0 +1,263 @@
+%%Sets up buttons specific to editing jot command files.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+Optional qualifier:
+  -noinvalid  - ignore invalid jot command characters, just skip to the next line.
+  
+Buttons:
+  {KP_1}       - From a ')', find matching '(' from a ',' find previous case clause or start of parent block.
+  {x KP_1}     - Find previous ')', go to it's matching '(' by bracket counting in temp buffer ! (copy stripped of other commands). 
+  {KP_2}       - From a '(' then find its matching ')', from a ',' find next case  clause or end of parent block.
+  {x KP_2}     - Find next '(', go to it's matching ')' by bracket counting.
+  <cmd>{KP_3}  - Find next instance of the command. 
+  {* KP_3}     - Find any unterminated string specifications. 
+  
+Buffer usage: 
+  1 - The '1 macro, Find previous ')', go to it's matching '(' using hash tables.
+  2 - The '2 macro, Find next '(', go to it's matching ')' using hash tables.
+  3 - The '3 macro, search buffer, from current chr, for command given in arg.
+  4 - The '4 macro - maps first occurence of specified command in a cat listing of all command scripts.
+  5 - The '5 macro - reads current file to buffer !
+  6 - The '6 macro - goes to line and character indicated by current entry in @ buffer.
+  $ - Temporary - used to traverse string arguments.
+  ! - Temporary - Holds a simplified version of the current buffer (macro  4).
+  @ - Temporary - used at hashtable setup time.
+:
+
+obz$m-0(f/-noinvalid/ol1, ol0)osoz
+  
+%%reset verbosity.
+%s=verbose 1;
+
+%g$
+<<JotOldSetupHashtables>>
+%%Hashtable setup
+( %q=samesinceindexed;, 
+  %%This block of code is copied into macros 1 and 2 - it detects changes to the source code and, when detected, rebuilds the hash table. 
+  %%
+  %%Indexing works by placing the line no. and chr no. on the stack for each '(' encountered.
+  %%When a ')' is found the positions of the start and end points are at the top of the stack, these are then
+  %%logged into the hashtable giving the forwards link, The backwards link is made later using the forwards links.
+  %%Uses buffer $ as a temporary text stack for pending keys - as values are popped they are not destroyed, 
+  %%they will be used later to build the reverse index.
+  %%
+    
+  %%Rebuild the hashtable. 
+  oconob ol0m-0(f/(/o~)0 ol2o* n.a$&z$oo/%d/o#oz %h=create '$ -destroy; m-0
+  
+  %%Clear the text stack. 
+  n.a$& z$b- o#oz
+  ( %%Main parsing loop.
+  
+    %%Basic check next character.
+    q/ a-zA-Z(),\%?':/\ %h=destroy; %x=Invalid jot command character; ,
+    (  %%Parser case block.
+      %%If a '(' Add entries to stack.
+      v/(/oconz$r0bi/blockStart_/r-roo/%d/i/_/r-roo/%d/o#ozr,
+      %%If a ')' make the key using the start-point on the stack then add the entry.
+      v/)/o#oz %h=new '$; z$m-? o#ozr(q/0-9/r)0,
+      %%Skip remainder of line for all percent commands.
+      v/%/ (v/%%/r0, v/%e/r0, r2f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
+      %%Simple commands (some have numeric argument).
+      q/bcegjkprtwyBCEGJKPRTWY?\/ r(q/-0-9-/r)0,
+      %% Commands with string argument.
+      q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra!&f1'!-, m?) (q/-0-9/r)0 ),
+      %%Commands with a buffer-key argument.
+      q/ahzAHZ/(v/a/(r2q/+-./r)? (q/&*/r)?, v/h/r2(q/*0-9/r)0, r2),
+      %%Operand-stack commands.
+      q/oO/r(q/lL/r(q/-0-9/r)0, q/iI/r2, q/oO/ rn.ra!&f1'!-, r),
+      %%Move command.
+      q/mM/r(q/+*/r,)(q/-0-9/r)0,
+      %%Note.
+      q/nN/r(v/./r,),
+      %%Invalid alphanumerics.
+      q/dDlLxX/ %h=destroy; %x=Invalid command character - D, L and X commands are currently unassigned.;,
+      %%Else i.e. comma. 
+      v/,/r,
+      %% `'`
+      v/'/r2,
+      %%Terminating colon from %G.
+      v/:/r-\rr\, 
+      %%Skip any whitespace.
+      v/ /(rv/ /)0, )
+    ( (v/ /r)0 ( v/%%/, (r\, r-\) ) (m, r0\) )0
+    %%Test for the end of the buffer.
+    (rr-, (m, r0\))
+    )0
+ 
+  %%Now construct the reverse index using the list of keys in $ buffer.
+  z$m-0mo#ozn.a;& (%h=find '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=new '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
+  (z;m-0rr- (f/BlockStart_/s/ '{' at line no. /f/_/s/ chr no. /m)0m-0 %x=Error the following curly braces could not be matched;, ) o#oz
+  
+  %%Resume original focus.
+  oz ono-om or )
+:
+ob z'm0bh$b (m-v/<</\)0 r2n.f1/>>/a$& m %h=add '$; oz
+
+%g4
+%%Searching back, match next valid ')' with it's start-point '(' from hashtable.
+%%
+%h'=call JotOldSetupHashtables;
+%%
+%%Identify current position and prepare list of keys to find the next end point in the hashtable.
+obocon %q$=keys; k2(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2;
+%%Search for next block-end point by matching line numbers and chr positions in blockStart entries.
+m-0 (((f1/ blockStart_/\k)0 f/	/-oido>m)0 r-4oido=os f1/	/-oido<\ osm)0 m-okok
+%%Pick up block start point, return to original buffer and go to start point.
+r-0f1/ blockStart_/-oid osroidosozos ono-om or
+:
+
+%g5
+%%Searching forwards, match next valid '(' with it's end-point ')' from hashtable.
+%%
+%h'=call JotOldSetupHashtables;
+%%
+%%Identify current position and prepare list of keys to find the next start point in the hashtable.
+obocon %q$=keys; k2(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2;
+%%Search for next block-start point by matching line numbers and chr positions in blockEnd entries.
+m-0 (((f1/ blockEnd_/\k)0 f/	/-oido>m)0 r-4oido=os f1/	/-oido>osm)0 okok
+%%m-0 (((f1/ blockEnd_/\k)0 f/	/-oido>m)0 r-4oido=os f1/	/-oido<\ osm)0 m-okok
+%%Pick up block end point, return to original buffer and go to end point.
+r-0f1/ blockEnd_/-oid osroidosozos ono-om or
+:
+
+%g3
+%%Search for given command character in jot code.
+%%Mod button indicated by '*' argument.
+%%
+obz$m-0(v/*/
+  %%{* KP_3} - Find next unterminated string specification.
+  oz( ((v/ /r)0 rr-, (m\ %x=End of file.; , (v/ /r)0r\)0r-)
+    %%Check next character.
+    (q/ a-zA-Z(),\%?'/, %x=Invalid jot command character; ,  )
+    %%Skip to end of line or terminating semicolon for percent commands.
+    v/%/ (v/%%/r0, v/%e/r0, r3f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
+    %%Simple commands (some have numeric argument).
+    q/bcegjkprtwyBCEGJKPRTWY?\/r(q/-0-9/r)0,
+    %% Commands with string argument.
+    q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra$&f1'$-, %X=Unterminated string starts here.; ) (q/0-9-/r)0 ),
+    %%Commands with a buffer-key argument.
+    q/ahzAHZ/(v/a/r2(q/+-./r,)(q/&*/r,), v/h/r2(q/*0-9/r)0, r2),
+    %%Operand-stack commands.
+    q/oO/r(q/lL/r(q/-0-9/r)0, q/iI/r2, q/oO/ r(v/'/r2, n.ra$&f1'$-), r),
+    %%Move command.
+    q/mM/r(q/+*/r,)(q/-0-9/r)0,
+    %%Note.
+    q/nN/r(v/./r,),
+    %% `'`
+    v/'/r2,
+    %% ( , and )
+    q/(,/r, v/)/r(q/0-9/r)0, 
+    %% : - appearing at the end of %G buffer definitions.
+    v/:/(r-r)\ rr\, 
+    )0
+, %%Alt+3 - search
+  z$m-0 (n.rr0a!oz (v'!r,), oz %x=No jot command given (macro 3 searches for given command).; )
+  %%Plod through commands.
+  ( ((v/ /r)0 rr-, (m\ %x=End of file.; , (v/ /r)0r\)0r-)
+    %%Have we found a matching command?
+    (v'!\, %x=Command matches "'!".; )
+    %%Check next character.
+    (q/ a-zA-Z(),\%?'/, %x=Invalid jot command character; ,  )
+    %%Skip to end of line or terminating semicolon for percent commands.
+    v/%/ (v/%%/r0, v/%e/r0, r3f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
+    %%Simple commands (some have numeric argument).
+    q/bcegjkprtwyBCEGJKPRTWY?\/r(q/-0-9/r)0,
+    %% Commands with string argument.
+    q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra$&f1'$-,m?) (q/0-9-/r)0 ),
+    %%Commands with a buffer-key argument.
+    q/ahzAHZ/(v/a/r2(q/+-./r,)(q/&*/r,), v/h/r2(q/*0-9/r)0, r2),
+    %%Operand-stack commands.
+    q/oO/r(q/lL/r(q/-0-9/r)0, q/iI/r2, q/oO/ r(v/'/r2, n.ra$&f1'$-), r),
+    %%Move command.
+    q/mM/r(q/+*/r,)(q/-0-9/r)0,
+    %%Note.
+    q/nN/r(v/./r,),
+    %% `'`
+    v/'/r2,
+    %% ( , and )
+    q/(,/r, v/)/r(q/0-9/r)0, 
+    %% : - appearing at the end of %G buffer definitions.
+    v/:/(r-r)\ rr\, 
+    )0
+  (v/(/(rq/0-9/)0, )
+  )
+ok
+:
+
+%g4
+%%Macro 4 - function to map all occurrences of a command (defaults to L)  in the output of a cat of all command scripts generated as follows:
+%%    > do ls ${JOT_HOME}/coms/*.jot<<Do>>
+%%    n.m0aaza
+%%    > multi_do cat<<Do>>
+%%    m-0n.m0aaza
+%%Buffer A now contains a complete dump of all jot scripts.
+%%Set up to search for the L command.
+obn.a$z$i/l/oz
+%%Clear results buffer @
+n.a@
+%%Reset verbosity.
+%s=verbose 1;
+%%Go
+m-0 
+(
+  %%Insert macro 3 here.
+  )0
+obz@m-0oz
+:
+obz4m-0f/%%Insert macro 3 here./e0h3 
+%%Modify macro 3 - first skip past %g blocks that do not contain jot comments.
+m-0(f/%%Skip to end of line or terminating semicolon for percent commands/r0bi"(v/%g/mn.(f/:/r-m)0a$&obz$m-0(f/%%/m0ol0ono-osozom, oz), )")2
+%%Modify macro 3 commands - second tolerate invalid command characters (DLUX) - all assumed to have numeric args.
+m-0(f"(q/ a-zA-Z(),\%?'/, %x=Invalid jot command character; ,  )"r-0i/%%/r0bi"(q/ a-zA-Z(),\%?'/, m) (q/dluxDLUX/r(q/0-9/r)0, )" )2
+%%Modify macro 3 commands - third log matches in @ buffer.
+m-0f/ %x=Command matches /r-0i/%%/r0b
+  i"(v'!\, oconocon(f-.--------------------------------------------------------------/.r-m-)0"b
+  i"f//-r-n.r0a@+& obosono-z@r0oo/ Line %d, / r0osoo/Chr %d/pb ozono-omor )"
+oz
+
+%g5
+%%Macro 5 - reads current file to buffer &
+%s=verbose 7;
+z@r-0n.f1/ line /a$& %i&='$; %b=writeifchanged;
+:
+
+%g6
+%%Macro 6 - goes to line and character indicated by current entry in @ buffer.
+%%Uses buffer & to hold file image, if currently holdes designated file then goes to indicated line and character, otherwise fails.
+%s=verbose 7;
+z@r-0n.f1/ line /a$&z& %q~=buffer; f/pathname = /- 
+(v'$ %%It's the right file image.
+  %%Pick up line and chr no.s
+  z&okz@r-0f1/ line /-oidf1/, chr /-oidosm
+  %%go to specified place in file image.
+  z&ono-omor
+, z& %x=File is not '$; )
+:
+
+%%%%Add the hashtable setup section to both main macros.
+%%obz1f/<<Insert hashtable setup here>>/e0h$ z2f/<<Insert hashtable setup here>>/e0h$ oz
+
+%%If -noinvalid qualifier was given then nobble those %x=Invalid jot command character; commands
+ol1(o= ob z1m-0(f/%x=Invalid jot command character/i/m, /r)0 z2m-0(f//i/m, /r)0 z3m-0(f//i/m, /r)0 oz, ) ok

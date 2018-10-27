@@ -1,0 +1,32 @@
+%%Destroys hashtables and removes write lock from all buffers.
+%% 
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%%Destroy all hashtables.
+%h=destroy -all
+
+%%Set all buffers to unrestricted.
+%%
+ob z$ %b=unrestricted; z.n.a$& %q~=system; m-0f/  buffer $: /k m-0(f/ buffer ~: /k)0 m-0f/Buffers:/
+%%Buffer loop - reset write lock etc on all buffers.
+(z~m f1/ buffer /- q/a-z/m, oicoz %b=unrestricted;)0 osozok
+ 

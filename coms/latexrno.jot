@@ -1,0 +1,116 @@
+%%Command file to translate a .TEX file (LaTEX form) into a .RNO form.
+%%Changed I and S conventions 2/10/92
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%t2
+%w
+
+m0r0(q-/0-9/r-)0(v-/;/r-,)v-/.TEX/s-/.RNO/r-0n.r0a!
+
+m-0nf/\sloppy/m-a@,n.a@
+m-0(f/\&/s-/_&/)0
+m-0(f/*/i-/_/r2)0
+m-0(f/</i-/_/r2)0
+m-0(f/\$/s-/_$/)0
+m-0(f/\#/s-/_#/)0
+m-0(f/\_/s-/__/)0
+m-0(f/\\/s-/.break/b)0
+m-0(f/\%/e)0
+m-0(f/\{/s-/_{/)0
+m-0(f/\}/s-/_}/)0
+m-0(f/\today/s-/$$date/)0
+
+%%Begin by getting remaining InTex commands on separate lines - if not already.
+m-0(f/}/-(v/ /e)0(rr-b,)r)0
+m-0(f/\/(v-/|/,(v-/ /e-)0(r-rb,))r)0
+m-0(f/\/(v-/|/,r(q/0-9a-zA-Z/r)0(v/{/,(v/ /e)0(rr-b,)))r)0
+
+m-0(f/\section{/s-/.hl 1 /f/}/e)0
+m-0(f/\subsection{/s-/.hl 2 /f/}/e)0
+m-0(f/\subsubsection{/s-/.hl 3 /f/}/e)0
+m-0(f/\sectionfour{/s-/.hl 4 /f/}/e)0
+ 
+m-0(f/\begin{verbatim}/s-/.literal/)0
+m-0(f/\end{verbatim}/s-/.end literal/)0
+m-0(f/\\/s/.break/(v/ /e)0(rr-i-/;/,))0
+%%m-0(f/\begintable/s-/.no fill;.!/)0
+%%m-0(f/\endtable/s/.fill/)0
+ 
+m-0(f/\begin{itemize}/s-/.ls ,">"/)0
+m-0(f/\end{itemize}/s-/.els/)0
+m-0(f/\begin{enumerate}/s-/.ls/)0
+m-0(f/\end{enumerate}/s-/.els/)0
+m-0(f/\item [/s/.le;^&/f/]/s-/\&/)0
+m-0(f/\item[/s/.le;^&/f/]/s-/\&/)0
+m-0(f/\item/s/.le;/)0
+
+%%Now for the difficult bit - replacing \entry{ ... } calls with .le;
+%%
+%%Mark all curly brackets for later matching operation.
+m-0(f/}/(v-/_/,i/ /)r)0m-0(f/{/(v-/_/,i/ /)r)0
+%%Begin by identifying and matching \entry{ ... } curly brackets.
+m-0(f/ }/f-/ {/(ev-/\entry/s-/*e/f/ }/s-/*e}/,i-/*/f/ }/s-/*}/))0
+%%Now identify the first entry of lists (not preceded by another \entry{... })
+m-0(f/*e{/(((v-/ /r-)0r-\m-r0)0rv-/*e}/r?f/*e{/,f/*e{/i/.ls 0,"."/bf/*e{/))0
+%%Now identify last entry in lists (not followed by \entry{ ... }).
+m0(f-/*e}/-(((v/ /r)0r\m)0r-v/*e{/f-/*e}/,(r-,m-r0)f-/*e}/(r-rb,)i/.els/(r4r-b,)f-//))0
+%%Now change all *e{ to .ls and remove *e}.
+m-0(f/*e}/e3f-/*e{/s-/.le;/)0
+%%And finally remove tags from other curly brackets.
+m-0(f/*{/e)0m-0(f/*}/e)0
+
+m-0(f/\lineskip{/s-/.blank /f/}/e)0
+m-0(f/\newpage/s-/.page/)0
+
+m-0(v/\/(rv/&/,r-i-/.br;_/)m,m)0
+m-0(f/.literal/-n.f/.end literal/a:z:(f-/_>/e)0(f/_</e)0(f-/_#/e)0(f/_*/e)0(f-/_&/e)0z.h:m)0
+m-0(v/%./em,m)0
+
+m-0i/.literal/bh@i/.end literal/b
+m0e0h!
+
+%g:
+.set paragraph 0,1,2
+.if RN2
+.page size 63,64
+.right margin 64
+.enable bar
+.else RN2 
+.if LASER
+.page size 58,74
+.left margin 10
+.right margin 62
+.endif LASER
+.endif RN2
+.subtitle
+.flags substitute
+.disable overstriking
+.keep
+.date
+.style headers 6,0,,,,,,,
+.autoparagraph
+:
+m-0h:
+
+%w 20
+%w 0
+%t

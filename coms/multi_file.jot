@@ -1,0 +1,222 @@
+%%Reads sections of files in large collections of files using hashtables and an index file.
+
+%%
+%%    Copyright (C) 2017-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%History
+
+%g?
+  First create an index file with -indextype=c (for  c-language  files).  This
+  may take some time since it has to open every file in the collection.
+$ ls -laRF <path> | jot -in="%r=multi_file -indextype=c;"
+  
+  Subsequent sessions can read the index file generated above.
+$ jot /dev/null -in="%r=multi_file;"
+  
+  Command-line args:
+    - -index=<pathName>[, <pathName2>[, <pathname3>[, ...]]]  -  pathnames  of
+      index files to be read. If -indextype is given then only one pathname is
+      allowed here and the file is created.
+      
+    - -indextype=<type> - initiates a  reworking  of  the
+      index file and defines
+        the indexing strategy:
+        - c searches for .c files and indexes C function names.
+        - perl - searches for .pl files and indexes perl function names.
+        
+    - -htabsize=<n> - Maximum no. of  items  in  the  hashtable,  defaults  to
+      100,000
+   
+  Buffers used:
+    . - Normally but not necessarily the destination for sections as they are read.
+        Also holds the main hashtable.
+    I - The index-file image while constructing the index.
+    7 - macro 7 - calls <<multi_file_simpleQuery>>  to launch a query.
+    8 - macro 8 - calls <<multi_search_section_names>> to search the namespace.
+    
+  Data objects:
+     - destBuf       - Destination buffer - the current buffer when the script was started.
+     - type          - The language given in the -index=<lang> qualifier.
+     - htabSize      - From -size= qualifier, hashtable size - defaults to 100,000
+     - pathName      - From -file= qualifier, pathname of large file.
+     - indextype     - From -indextype=<type> qualifier.
+     - index         - From -index= qualifier, pathname of index file.
+     - thisFile      - A copy of the pathname of the file currently being red from the index.
+     
+  Index file structure:
+    There are any number of file entries - one for each valid file found in the original ls report.
+      - File entries are separated by blank lines.
+      - The first line in the file entry is the pathname for the file.
+      - The pathname line is followed by any number of section entries - one for each valid section found in the file.
+        A section entry is a byte offset followed by the section name, separated by a tab.
+        The byte offset is the total number of bytes from the start of the file to the start of the named section.
+:
+
+%%Define the multi_file functions now.
+%g@
+<<multi_file_simpleQuery>>
+%%Function to launch a query.
+%%
+%%Pick up buffer key and pathname
+z$r-0(v/ /e)0r0(v-/ /e-)0 z.oq/destBuf/ozm0on
+( %%It may already exist in the text?
+  %h.=jump '$_InText;
+, %%No, read it now.
+  %i= -fsection='$ -append;
+  %%Read success - add a label  and make it the target of a conventional hash-table entry for the section.
+  m0b2ono-omr-0b- z.%q~=key '$; f/Section Pathname /s-/( /bf1/, Seek /s/ )/b-
+  z.oq/destBuf/oz i/------------------------------------------ /i'~i/  /h$r-0
+  %%Replace SeekObj with HtabObj pointing at the start of the newly-read section.
+  %h.=add '$_InText;
+  %%get top of new section at top of view.
+  m*?w %h.=jump '$_InText; w
+, %%Read failure.
+  ok ( %h.=jump '$_InText; wm*w %h.=jump '$_InText; , oq/destBuf/oz %X=Error: Section '$ is not in the index.; ) )
+
+<<multi_search_section_names>>
+%%Function lists functions that match simply to specified string.
+z. %q@=keys; (f1'$m, k)0
+( m- on %m=There were '~ entries matching the string "'$";, %m=There were no entries matching the string "'$"; )
+
+<<multi_file_init>>
+%%Initialization macro.
+%%
+%%Pick up optional -size=<noOfHashTableEntries> arg.
+obo#z$(r-0i/ /r-f/ -size=/s/ /n.(f1/ /, r0)a~, ol100000) osoz
+o# ( %h.=create '~;, %x=Disaster: failed to create the hashtable.; )
+%%
+%%Declare various data objects:
+%h.=data htabSize;      %%From -size= qualifier, hashtable size - defaults to 100,000
+ov/htabSize/ 
+%h.=data destBuf;       %%Destination buffer - the current buffer when the script was started.
+o#ov/destBuf/
+%h.=data index;         %%From -index= qualifier, pathname of index file.
+%%
+%%Data object thisFile is the pathname of the file currently being read from the index.
+%h=data thisFile;
+%%
+%%Pick up name of index file(s) or default to ./multi_file_index
+obz$r-0(f/ -index=/s/ /n.(f1/ /, r0)a~osoz ov/index/, oz)
+%%
+%%If -indextype is given, pick up index type.
+obz$r-0
+( f/ -indextype=/
+  s/ /n.(f1/ /, r0)a~osoz %h=data indextype; ov/indextype/
+  %%Only one index-file pathname is allowed if -indextype is given.
+  z.oq/index/ z~(f1/,/ %x=Error: Only one index-file is allowed with -indextype;, ) z.ok
+, oz)
+%%
+%%Check for unrecognized qualifier keys.
+obz$r-0(v/ /e)0(r\, oz%x=Error: Unrecognized qualifier '$; ) oz
+%%
+%%Set default index-file name.
+ob(oq/index/, %d~=./multi_file_index; ov/index/ oq/index/) osoz
+%%
+%%If -indextype is set then re-make the index file - the primary file must be an ls -aRF report or similar.
+z.(oq/indextype/ 
+  %%Simple sanity test - are we looking at an ls -aRF report?
+  m-0r0(v-/:/f4"..", %x=Error: this is not an ls -RF report.; )
+  %%Transform to a list of full pathnames.
+  %r=ls2list;
+  %%If user included -l then trim off that crap now.
+  m-0(f1/	/r-0 (f/	/-e-0m)0, )
+  %%Initialization.
+  z.m-0 n.a@
+  %%
+  %%Call the relevant indexing routine.
+  ( %h'=call multi_file_create_index_'~;, oq/indextype/ %x=Files of type "'~" are not currently supported; )
+  %%
+  %%Now write the index file.
+  z.oq/index/ z@ %o='~;
+, )
+z.m-0k0
+%%
+%%
+%%Split -index=<arg> and read the index files.
+n.a@ n.a! n.a$z$i'~ okr-0 (f/,/e(v/ /e)0b)0 m-0
+( %%Index-file read loop.
+  ol0 %i@='$ -append; z$m)0
+%%
+( %%File loop.
+  %%Pick up file name and initialize byte counter.
+  z@n.a$z$i/Initial gumpf /i'@ z@n.r0a~& o#z.ov/thisFile/z@ m ol0
+  %%Section loop - enter section names in arrears in order to calculate the byte counts.
+  ( o#oidoso- 
+    ( %h.=setfsect '$;
+    , %%setfsect failed - the most likely explaination is that the same module-name is used in two files - uniquify using index-file line no.
+      on %h.=setfsect '$__'~;
+    , %%This should never happen.
+      oq/thisFile/ %m!=Failed to add section '$ from file '~ ; z@ )
+    rn.r0a$&m o+ )0 okokok
+  %%
+  (mr\)0r-
+  )0
+%%
+okok
+%%Check for error messages.
+z!m-0 (mm0m-onm-0 %x=Oh dear! there were '~ errors while building the hashtable - try again with a bigger hashtable;, oz)
+%%
+
+<<multi_file_create_index_c>>
+%%Function creates an index file from a collection of c source files.
+%%
+%%Delete anything that doesn't end ".c"
+m-0(r0v-/.c/m,k)0 m-0
+( %%File loop - read each file in the list.
+  z. %ic='.; ol0 z@i'.b
+  ( %%Line loop - count bytes and check for a function start.
+    zcoeo~
+    %%Is this a comment - defer adding byte count to total until we reach a non-comment line.
+    ol0os ((v/ /r)0 v"//"(v//moeo~o+)0, v"/*"(f1"*/"\moeo~o+)0, o+\)0 r-0
+    %%
+    %%Is this a function start - an alpha character in column 1 and an open bracket "(" somewhere and no terminating ';' is currently deemed to be the start of a function definition.
+    %%First remove any confusing comments.
+    (f1"//"e0, f1"/*"n.(f1"*/"moeo~o+)0, )
+    %%
+    (q/A-Za-z/f1/(/f1/;/\f-1/(/ (v-/ /r-)0n.r-f-1/ /-(v/*/r,)a$&oso#z@oo/%d	/h$bzc, )o+m )0
+  %%
+  %%Add the total byte count.
+  z@oo/%d	**End**/b2w z.m 
+  )0
+
+<<multi_file_create_index_perl>>
+%%Function creates an index file from a collection of perl files.
+%%
+%%Delete anything that doesn't end ".pl"
+m-0(r0v-/.pl/m,k)0 m-0
+%%
+( %%File loop - read each file in the list.
+  z. %ic='.; ol0 z@i'.b
+  ( %%Line loop - count bytes and check for a function start.
+    zcoeo~
+    %%Is this a function start - an alpha character in column 1 and an open bracket "(" somewhere and no terminating ';' is currently deemed to be the start of a function definition.
+    (v/sub /r4(v/ /r)0n.(f1/{/(v-/ /r-)0, f1/ /, r0)a$&oso#z@oo/%d	/h$bzc, )o+m )0
+  %%
+  %%Add the total byte count.
+  z@oo/%d	**End**/b2w z.m 
+  )0
+
+:
+%h'=call AddNewFunctions;
+  
+%d7=%h\\'=call multi_file_simpleQuery\;;
+%d8=%h\\'=call multi_search_section_names\;;
+  
+%h'=call multi_file_init;

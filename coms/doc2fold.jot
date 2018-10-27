@@ -1,0 +1,78 @@
+%%Transforms a doc-format document into a folded-help file 
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  This script converts a doc-style text document to a jot folded help file.
+  
+  Buffer usage: 
+    - @ - a working copy of the text.
+    - $ - Temporary.
+:
+
+%g#
+%%Pick up and modify pathname.
+ob%q$=buffer; f/pathname = /-br0f-1/./-e0i/hlp/ oz
+
+%%Make a working copy of the original text.
+m-0n.m0r0a@& z@m-0
+
+%%Set the new pathname.
+%b=pathname '$
+  
+%%Check the header level of the first heading - *must* be level 1. 
+m-0 
+%%Find first heading.
+(q/0-9/\m)0 n.ma$h$2m-2
+%%Get it's header level - must be 1.
+(q/0-9/e)0(v/./ %x=First heading *must* be level 1!!;, )
+r-0i/{{{/m2
+
+%%Initialize stack to header level 1.
+ol1
+
+( %% Main loop.
+  %%Find next header.
+  (q/0-9/\m)0
+  %%Copy header and make a fold mark.
+  r-0n.ma$h$2m-2
+  %%Determine header level.
+  ol1 ((q/0-9/r)0 v/./o~r)0
+  %%Compare header levels.
+  ( oso- ol0o>
+    %%A child section - no end-fold marks required.
+    r-0
+  , %%Add fold-close marks until header levels have equalized.
+    r-0ol1o-(i/}}}/bo~)0
+    ) ok
+  %%Transform header to start-fold mark.
+  ol1 ((q/0-9/e)0 v/./o~e)0 i/{{{/
+  %%Find next header.
+  m2
+  )0
+  
+%%Add enough close folds to end.
+ol0oso-r0b(i/}}}/bo~)0 ok
+
+:
+
+'#

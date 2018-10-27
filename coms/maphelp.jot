@@ -1,0 +1,47 @@
+%%Generates a map of the help entries.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+%%Make a copy of the help buffer.
+obz:onm-0n.m0r0a@h@ ono-om z@ m-0(v/{{{/m, v/}}}/m, k)0 m-0
+%g$
+( %%Main loop - picks up complete block and indents it.
+  f/{{{/ n. on
+  %%Find end of block.
+  ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
+  %%Abstract block and indent it.
+  a#z#m-0m(i/   /m)0z@h#
+  %%Return to line after original place.
+  ono-om m
+  )0
+%%Now remove end-fold marks.
+m-0(f/}}}/k)0 
+m-0
+:
+'$
+
+%%Reset line number to count from 1.
+oconm-0on ol1o. o-omor
+%%Go back home.
+oz
+%m Look in "@" buffer to see map.
+ 

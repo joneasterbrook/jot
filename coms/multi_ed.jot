@@ -1,0 +1,111 @@
+%%Command file to edit a bunch of files starting with a list of paths
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Replacement for multied - this is a bit old and crappy.
+%%
+
+%g?
+Arguments - all optional.
+  -use <key>[ ]<key>      - defines buffer to use for commands and working (defaults to @ and ! buffers respectively).
+  -command <jot commands> - defines commands to be used.
+  
+  Note - many command scripts us either or both of the default working buffers
+  used by this script, to wriggle around this problem, the  -use  <key>  <key>
+  qualifier allows you to nominate an alternative pair of  buffers.  Typically
+  you should chose a pair of buffers in the range A to Z,  since  jot  scripts
+  normally avoid these.
+  
+  In particular, many document-processing scripts load doc.jot - this uses the
+  following buffers: & * < > @ $ - # and !
+   
+  Also use the -command qualifier to specify commands from the command line.
+  
+  e.g If this these are the commands we want to run:
+    (r\m)0 li/1 /
+    doc2fold{F2}
+    %o
+  Then, something like this would do this to a list of pathNames:
+$ ls *.doc | jot
+  in jot:
+> multi_ed -use q w -command (r\m)0li/1 / %r=doc2fold; %o;{F2}
+   
+Run this by: 
+  1 - create a list of files and directories using unix ls -F
+  2 - edit the list as appropriate
+  3 - multi_ed <jot command>
+  4 - sit back and enjoy the show.
+   
+Buffer usage:
+  ! - Holds image of file currently being processed (can be reassigned with -use qualifier)
+  @ - Initially holds -use buffer keys, then constructed commands (can be reassigned with -use qualifier)
+  # - main command macro.
+  $ - temporary.
+:
+
+%%Set default command buffer key.
+%d@=@!
+ob
+%%Pick up command-buffer key if given.
+%%z$m-0 (f/%%/- (f/ -use /-(v/ /r)0b r(v/ /e)0r(v/ /, r\)n.l2a@&, %x=Syntax error in -use parameters;), )
+  z$m-0 (f/ -use /-\, (v/ /r)0b r(v/ /e)0r(v/ /, r\)n.r-2a@&, %x=Syntax error in -use parameters; )
+%%Upper-case any alpha buffer keys.
+z@r-0(q/a-z/c, r)2
+ 
+%g#
+%%Copy original list of paths.
+o#ozm-0n.m0a@&
+ 
+%%Pick up the jot command.
+z$m-0
+( f/%%/- f/-command /-(v/ /r)0b  n.r0a!&ok,
+  oz
+  %%No jot command - prompt for command.
+  %s=prompt Enter command line (":" to finish) 
+  n.a!z!g0?m0r0b
+  %s=prompt > ;
+  m-0b(i/  /m2m-)0j-
+  )
+z@
+
+%%Construct commands
+m-0(
+  %%get path.
+  n.r0a$r-0 
+  %%Report path,
+  i/%m /h$b
+  %%Execute command
+  i/%i!=/h$b
+  i/( /h!i/ )/bm2m-)0
+
+:
+
+%%Reassign buffers in # macro, as defined by -use qualifier.
+z@m-0rb- z#
+m-0 (f/@/s'@)0
+z@mz#
+m-0 (f/!/s'@)0
+
+%%Before launching #, pick up the identity of the command buffer.
+z@m-0oicos '#
+
+%%Launch user commands in @ or whatever buffer defined by -use qualifier.
+n.a$z$oo/'%c/ '$

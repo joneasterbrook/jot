@@ -1,0 +1,112 @@
+%%Performs a unix command on a bunch of files specified in a ls -l listing
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+Run this by: 
+  1 - create a list of files and directories using unix ls and run ls2list (or dos dir and dir2list)
+  2 - edit the list as appropriate
+  3 - either:
+    multi_do <cmd> [-quick]                              - the -quick option runs the command  with the files as continuation lines.
+      - For each pathname this generates commands of the form: <cmd> <pathName>
+    multi_do <cmdPart1> $1 [ | <cmdPart2> ... [ -quick]] - the $1 entry is replaced with each pathname in turn
+      - For each pathname this generates commands of the form: <cmdPart1> <pathName> <cmdPart2>
+  4 - results appear in buffer @
+   
+Buffer usage:
+  ! - unix command
+  ; - Results-file name.
+  $ - Temporary - initially the command and args, each pathname while constructing scripts.
+  @ - Constructed commands, then result returned from unix command. 
+  # - Main command macro.
+:
+
+%g#
+%%Pick up the unix command.
+obz$m-0((v/ /r)0n.r0a!h!,
+  oz
+  %x=No unix command found
+  )
+
+%%Construct the temporary file name (since multi_do might take a while to complete there is the possibility of simple names colliding).
+%q@=pid; k
+%%In ChromeOS /tmp is not mounted for execute
+%q~=version
+(mf1/chrome/
+  (z@okf1/ /e)0r-0n.r0a; z;r-0i"./multi_do_"
+, f1/windows/
+  (z@okf1/ /e)0r-0n.r0a; z;r-0i"multi_do_"
+,
+  (z@okf1/ /e)0r-0n.r0a; z;r-0i"/tmp/multi_do_"
+  )
+oz
+
+%%Copy original list of pathnames.
+m-0n.m0a@h@z@
+
+%%Remove any blank lines. 
+m-0(rm,k)0 %%m0j-
+
+%%Protect each pathname from the shell - this causes the scripts to fail every time on chromebooks.
+%q$=version; (mf1/chrome/z@, z@m-0(f/"/i/\/r)0 m-0(i/"/r0i/"/m)0 )
+ 
+%%Construct commands
+z!r-0(f1/-quick/s/ /
+  %%Quick mode - construct a list of commands with continuations.
+  %%In quick mode the command is split into two halves - before and after the $1 arg.
+  z!m-0 (f/$1/e2i-/ /, r0)b
+  %%
+  %%Repeat the command only in batches of 1000 pathnames.
+  z@m0((v/ /r)0r\m-)0 ( (m-r0i/ \/)1000 r-0b-z!m+1z@r0i'! i/ \/m- z!m+2z@r0i'!bm- )0 r-0(v'!, z!m-0z@i'!i/ \/b m0r0i/ \/bz!m+2z@i'!)
+, %%Repeat the command for each path, executed as a separate process - could take forever for a large list.
+  z@m-0 (rr-n.r0a$i/echo "" >> /h;b i/echo "--------------------------------------------------------------/h$i/ >> /h;bh!r-0 (f1/$1/ (s'$f1/$1/)0, r0i/ /i'$) r0i/ >> /h;b m)0
+  m-0(f/--------------------------------------------------------------"/-e-i/  /)0
+  )
+  
+%%In linux/unix add the shebang line, in windows strip out the double quotes.
+m-0b-2 (%q=windows; , i"#!/bin/sh" )
+%%
+%%Change the first ">>" to ">"
+m-0f/>>/e
+%%
+%%Write the command file.
+z@(%q=windows; %b=pathname '\;.bat;, %b=pathname '\;.sh;) %o
+%%
+%%Change permissions to execute.
+(%q=windows; z$, z;r-0n.r0a$h$z$r-0i/%e=chmod u+x /r0i/.sh/ '$ )
+%%
+%%Run the script.
+r-0e0i/( %e@=/h; (%q=windows; i/.bat/, i/.sh/)i/; , )/ '$
+%%
+%%Read the results. 
+z$r-0e0i/%i@=/h; '$
+i/multi_do results for unix command:  /h!b2
+%%
+%%Tidy up. 
+%%z$m-0e0i/%e=\rm -f /h; i/ / h; (%q=windows; i/.bat/, i/.sh/) '$
+%%
+%%All done. 
+z@
+%l
+ 
+:
+'#
+

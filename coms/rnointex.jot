@@ -1,0 +1,81 @@
+%%Command file to translate a .RNO file into a .TEX form.
+%%Changed I and S conventions 2/10/92
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%t2
+%w
+
+%%First check consistancy of .ls - .els within a header level block.
+m-0n.m0r0a!h!z!m-0(f/.ls/r0i-/ /)0m-0(f/.els/r0i-/ /)0m-0
+
+%%If this line fails then there is a .ls ... .els mismatch.
+(z!f/.hl/n.f//?a:z:(f-/.ls/n.f/.els /-a@)0f-/.ls/\f/.els /\)0m-0f/.ls/\f-/.els /\
+z.
+
+m0r0(q-/0-9/r-)0(v-/;/r-,)v-/.RNO/s-/.TEX/r-0n.r0a!
+
+m-0f/.set paragraph 0,1,2/nf/.autoparagraph/aa
+
+m-0(f/.br;_\/s/\/)0
+m-0(f/_&/s/&/)0
+m-0(f/_*/s/*/)0
+m-0(f/_</s/</)0
+m-0(f/_!/s/!/)0
+m-0(f/_#/s/\#/)0
+m-0(f/_$/s/\$/)0
+m-0(f/__/s/\_/)0
+m-0(f/%/i-/\/r2)0
+m-0(f/_{/s/\{/)0
+m-0(f/_}/s/\}/)0
+m-0(f/.literal/-n.f/.end literal/a:z:m-0(f/\%/e)0z.h:m)0
+
+m-0(f/.hl 1 /s-/\sectionone{/r0i-/}/)0
+m-0(f/.hl 2 /s-/\sectiontwo{/r0i-/}/)0
+m-0(f/.hl 3 /s-/\sectionthree{/r0i-/}/)0
+m-0(f/.hl 4 /s-/\sectionfour{/r0i-/}/)0
+m-0(f/.appendix ^&/s-/\newpage\appendix{/f1/\&/s-/}/)0
+m-0(f/.page/s-/\newpage/)0
+
+m-0(f/.literal/s-/\beginprogram{}/)0
+m-0(f/.end literal/s-/\endprogram/)0
+m-0(f/.break/s/\split/(v/;/s-/ /,))0
+%%m-0(f/.no fill/s/\begintable/(u/;.!/e3,))0
+m-0(f/.no fill/s/\begintable/(n.f1/;.!/-a$,))0
+m-0(f/.fill/s-/\endtable/)0
+m-0(f/.bb/k)0
+m-0(f/.eb/k)0
+m-0(f/$$date/s-/\today/)0
+
+m-0(f/.list/s-/.ls/)0
+m-0(f/.end list/s-/.els/)0
+m-0(f/.els/-n.f-/.ls/a:z:m-0(f1/ 0,"."/(f/.le;/s-/\entry{/m-r0i-/}/)0e0m-r0i-/}/m-0f/}/k,(f/.le;/s-/.*le;/)0)z.h:j)0
+%%m-0(f/.ls/s/\beginlist{/(u/;.!{/e4,i-/}/))0
+m-0(f/.ls/s/\beginlist{/(n.f1/;.!{/a$,i-/}/))0
+m-0(f/.*le;/-(v/^&/s-/\item{/e-0f/\&/s-/}/,e-0i-/\nitem{}/))0
+m-0(f/.els/s/\endlist/b)0
+m-0(v/./i-/%/m,m)0
+
+m0e0h!
+
+%w 20
+%w 0
+%t

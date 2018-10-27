@@ -1,0 +1,368 @@
+%%Maintains an appointments calendar.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+:
+
+%%Define calendar functions.
+%%
+%g$
+<<Initialize>>
+%%Called at the very start of day or following a change of resources.
+%%
+%%Set up the mail spool pathname and read the mail.
+z!m+1(r\i"/var/spool/mail/"%q@=env USER;mz!i'@, ) %im='!;
+%%  
+%%
+
+<<SwitchView>>
+%%Change focus to the current task in the calendar view.
+%%
+%%Pick up task-ID from curently-tagged text.
+ob %q$=tags -here; 
+( %%If there's a valid task-ID tag then perform the requested context switch.
+  f/Type text from/ f1/"/-e-0f1/"/e0mk0m- (q/0-9/r)0v/-/r(q/0-9/r)0r\ok
+  %%Register change to task-ID if a valid task-ID tag was found.
+  z!m+7e0i'$ m+9z$r-0i'! z$i-/,  task-ID: /
+  %h'=call SetPaymentStatus;
+  %%
+  %%Display resource name.
+  z!m+3z$i/, res: /i'!
+  %%If client name is set up then add that to header.
+  z!m+7 z. ( %h=jump Accounts; mf1/Name/ol0(f-1/	/ol1o-)0 %h=jump A_'!;r-0 (f1/	/o~)0ok r2n.(f1/	/, r0)r-a$+&z$j-i/,  for: /, )
+  zc%b=header '$;
+, %%No valid task-ID text tag - use current task-ID tag.
+  ok z!m+7n. (q/0-9/r)0v/-/r(q/0-9/r)8r\ a$& 
+, %%No current task set. return to original context and exit.
+  oz %x=Error: No task-ID is selected.; )
+
+<<SwitchToCalendar>>
+%%Change focus to the current task in the calendar view.
+%%
+%h'=call SwitchView;
+z!m+7zc %h=jump '!;
+
+<<CreateCalendar>>
+%%
+%%Called with two values at top of stack:
+%%  First year of calander.
+%%  Number of years in calendar.
+%%
+%%Define days for a Saturday-to-Saturday task week.
+n.a;z;i/ Su Mo Tu We Th Fr Sa/r-0
+%%
+%%According to Gauss the way to find the day of the first of January of year A in the Gregorian calendar
+%%  (see http://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week) is:
+%%  Mod7(1 + 5*Mod4(A-1) + 4*Mod100(A-1) + 6*Mod400(A-1))
+%%First year should be at top of stack.
+o#o#ol1o-ol4o%ol5o*ol1o+ oso#ol1o-ol100o%ol4o*  osol1o-ol400o%ol6o* o+o+ol7o%
+%%
+%%Now, we start the first year's calendar at the changeover day, this defaults to Saturday - add the right number of days for december of the previous year.
+z!m+4(r-0v/Sunday/ol0, v/Monday/ol1, v/Tuesday/ol2, v/Wednesday/ol3, v/Thursday/ol4, v/Friday/ol5, v/Saturday/ol6, ol6)
+%%The days list will now be transformed into a days-of week heading for the calendar with the specified changeover day at the beginning and end.
+o#ol3o*z;r-0n.ora@r0h@ r-0n.r3a@&r0h@ zch;b- %b=header 'c; z!m+9e0i'c zck
+%%Insert the right number of padding blanks at the start of the task week.
+zcol7o-o-ol-1o*ol31 (o#oo/ %2d/r-0ol1o-oso~os)0 r0bokok
+%%Define Months.
+n.a@z@i/JanFebMarAprMayJunJulAugSepOctNovDec/r-0(r3b)12
+%%
+( %%Year loop.
+  %%
+  z@m-0 n.a;z;o#oo/%d/
+  %%
+  %% LeapYear = Mod4(Y)!=0 ? True : Mod100(Y)==0 ? False : Mod400(Y)!=0 ? False : True
+  %%See http://en.wikipedia.org/wiki/Leap_year
+  %%
+  ( %%Ithink this encoding is about as good as it gets?
+    (o#ol4o%ol0o=\okol0, oko#ol100o%ol0o=\ okol1, oko#ol400o%ol0o=okol0, okol1) ol1o=
+    %%A leap year
+    ok ol31ol30ol31ol30ol31ol31ol30ol31ol30ol31ol29ol31
+  , %%A common (non-leap) year.
+    ok ol31ol30ol31ol30ol31ol31ol30ol31ol30ol31ol28ol31 )
+  %%
+  zc
+  ( %% Month loop.
+    %%Print the month in one line.
+    (o#oo/ %2d/r-0 ol1o-ol0o=\)0 ok
+    %%Construct month tag to go at the end of each week.
+    z;r0r-4e-0i/ - /i'@ z@mzc
+    %%Join with last week of previous month and split the month at changeover days.
+    j-r-0 (r21b-i/ /i';m)0 b
+    )12 
+  o~oso~os w)0 okok
+%%
+%%Copy the changeover dates.
+zcm-0m (n.r3a@&m-r21h@m2)0
+%%Copy month tags for weeks that straddle months.
+zcm-0 f/  1 / ((f/  1 /r-\m)0r (v/  1  - /mf1/ - /n.r0a@&m-r0, m-f1/ - /n.r0a@&m f1/ - /)h@m)0
+%%Change month tag for first week if it starts in December of previous year.
+m-0(v/  1 /, r0r-4oidol1o-r-10 oo/ - Dec%4d/)
+
+<<TagCalendar>>
+%%Add hashtable entries and colour tags to the calendar.
+%%N.B. Expects a valid task-ID in $ buffer.
+%%
+%%Set up a month-name to month-number table.
+n.a@&z@
+i/JanFebMarAprMayJunJulAugSepOctNovDec/r-0(r3b)12
+%%
+%%Parse the tag.
+z$r-0n.r0a;&z;r-0r4b(r2b)2er4b(r2b)2 m-0(v/0/s/ /m, m)0 m+3i/ /r0i/ /m+6i/ /r0i/ / m+2oidz@m-0omm-z;m+1i'@ m+5oidz@m-0omm-z;m+4i'@
+%%Find the start date - if it's on a changeover day, ensure we don't get the end of the previous task week (which has the same date).
+z;m+1zcm-0f';r-0f1/  1 /?rr- z;m+3zcf'; m(f1';, m-f1';) (v/ /r)0ocon z;m+1zcf1';
+%%Get relevant task-status tag.
+z!m+8zc
+(o= %%The start and endpoint are on the same line.
+  oko#ocoso-osr-0orou %b=addtag '!; %b=addtag -text='$; %hc=new '$;? w
+, %%Not on the same line - add colour tags to intermediate lines and the hashtable tag to the start point.
+  ocr-0(v/ /r)0oco-ou %b=addtag '!; %b=addtag -text='$; w
+  %%Add colour and text tags to all intermediate lines.
+  (m-ono=\(v/ /r)0ol24oco-ou%b=addtag '!; %b=addtag -text='$; w)0
+  %%At start of task add colour tag, hash entry and hashtable target tag.
+  okr-0o#ol24oso-osorou %b=addtag '!; %b=addtag -text='$; %hc=new '$; w)
+
+<<IndexEmails>>
+%%Function to Index emails and add links.
+%%
+zm %h=create 10000 -delete;
+%%Initialize to message no. 1
+zmol1m0
+( %%Message loop
+  zm
+  %%Pick up a copy of the mail.
+  n.(f-/From /r-m-)0ona;&ono-om
+  %%Add the index number to the mail-index buffer ( I ).
+  zio#oo/ %03d /o~ 
+  %%Get the sender name.
+  z;m-0(f/From: /r-m)0r6n.(f1/ /2r0f-1/ /, r0)ai+&zii/ /(r, i/ /)15i/ /e0
+  %%Get the date.
+  z;m-0(f/Date: /r-m)0r6n.r0f-1/ /-ai+&zi(r26, r-21i/ /)
+  %%Get the subject.
+  z;m-0(f/Subject: /r-m)0r9n.r0ai+&
+  %%Get the mail ID:
+  z;m-0(f/Message-ID: /r-m)0r12n.r0a$&
+  %%Now tag the index and add the hash-table entry for the mail buffer ( M ).
+  zir0ocr-0ou %b=addtag -text=M_'$; wr0bzm %h=new M_'$; m-)0
+okzim0e0m-0
+%%  
+%%Add tags to mail-thread lines.
+%%
+z.ol-1
+%%Pick up the task ID
+( %%task-ID loop.
+  %h=jump H_task-ID; o#(yo~)0 okol1o- v/"/rn.f1/"/a$&
+  %%Go to mail thread.
+  %h=jump '$; (mv/MAILTHREAD:/\)0
+  ( %%Message loop.
+    z.m v/</n.f1/>/-a$& ocr-0ou %b=addtag message; %b=addtag -text=M_'$;
+    )0
+  )0
+%%Identify all messages that have been indexed by *any* task for *any* resource and tag them yellow in the main mail index.
+z. %q;=tags; zi %q@=tags; (z; f/Chr  0, M_</-r-3n.f1/>/-a$& z@m-0f'$(m-v/Rec /\)0 r4oid ziono-om r0ocr-0ou %b=addtag MailRead; )0
+
+<<CurrentMail>>
+%%Go to currently-selected EMail in mailthread or main email index buffer ( i ).
+%%
+%%If in a mail index then pick up Email tag from current line, otherwise use current line of Email index buffer ( i ).
+ob (r-0 %q$=tags -here; (f/Type text from chr/f1/"M_</\m)0 m\ ziokob)2?
+%%Pick up message tag.
+m-f1/"M_</rbf1/"/b- zm %h=jump '$; (rm)0n.(mf/From /r-)0a;&
+%%Add header.
+ozr-0r4f/ /(v/ /r)0n.r0a$&z;m-0h$bh$b-2r-0(ei/-/)0m2
+
+<<DownEMail>>
+%%Down - the function to read the next or current Email in mail index or current mail thread.
+%%
+( %%Are we currently in a mail thread?
+  (obz.obo= n.a;&, z;obo=m-0v/From mail thread/z.m(v/</, ok%x=Last message in mail thread.;) )
+  %%Yes - pick up mail indicated by mail thread.
+  okz.r-0n.f1/>/-a$&zm %h=jump M_'$; (rm)0n.(mf/From /r-)0a;&
+  %%Pick up task ID.
+  z.on(m-v/TASK:/\)0r8n.r0a$&z!m+7e0h$me0z.ono-om
+  %%Add message header.
+  z;m-0i/From mail thread/b2 z.f1/>/-n.r0a$& z;h$bh$b-2r-0(ei/-/)0
+, %%No - maybe we're working from the mail index.
+  %%If we're in the mail index take current message, if in a mail message then move to next in index.
+  (z;obo=zimrr-, ziobo=rr-)
+  %%Pick up message.
+  okzi %q$=tags -here; (f/Type text from chr/f1/"M_</\m)0 rbf1/"/b- zm %h=jump '$; (rm)0n.(mf/From /r-)0a;&
+  %%Add header.
+  zir-0r4f/ /(v/ /r)0n.r0a$&z;m-0h$bh$b-2r-0(ei/-/)0m2
+, %%Not reading a message or on a mail index - go to current entry in mail index.
+  okzir-0 )
+
+<<UpEMail>>
+%%Up - the function to read the previous or current Email in mail index or current mail thread.
+( %%Are we currently in a mail thread?
+  (obz.obo= n.a;&, z;obo=m-0v/From mail thread/z.m-(v/</, ok%x=First message in mail thread.;) )
+  %%Yes - pick up mail indicated by mail thread.
+  okz.r-0n.f1/>/-a$&zm %h=jump M_'$; (rm)0n.(mf/From /r-)0a;&
+  %%Pick up task ID.
+  z.on(m-v/MAILTHREAD:/\)0r11n.r0a$&z!m+7e0h$me0z.ono-om
+  %%Add message header.
+  z;m-0i/From mail thread/b2 z.f1/>/-n.r0a$& z;h$bh$b-2r-0(ei/-/)0
+, %%No - maybe we're working from the mail index.
+  %%If we're in the mail index take current message, if in a mail message then move to next in index.
+  (z;obo=zim-, ziobo=rr-)
+  %%Pick up message.
+  okzi %q$=tags -here; (f/Type text from chr/f1/"M_</\m)0 rbf1/"/b- zm %h=jump '$; (rm)0n.(mf/From /r-)0a;&
+  %%Add header.
+  zir-0r4f/ /(v/ /r)0n.r0a$&z;m-0h$bh$b-2r-0(ei/-/)0m2
+, %%Not reading a message or on a mail index - go to current entry in mail index.
+  okzir-0 )
+
+<<AddToMailThread>>
+%%Add current message to current mail thread.
+%%Sanity checks
+%%First, are we reading a mail message
+obz;ob(o=ok, ok %x=Error: You must be reading an email to attach a mail to a task.;)
+%%Next, is there a valid task selected?
+z!m+7r-0((q/0-9/r)8v/-/r(q/0-9/r)8r\, %x=Error: No valid task has been selected.;)
+%%Check the message summary matches the index entry.
+z;m-0zir-0(f1';, %x=Error: Inconsistency in message header.;)
+%%Find the mail ID.
+%q$=tags -here; f/Type text from chr/f1/"/-v/M_</r2bf1/"/b- zm %h=jump M_'$;
+%%First unlock the resources.txt buffer.
+z. %b=readonly 0;
+%%Tag mail with current task ID and add tagged mail entry to resources-file image.
+z. %h=jump MT_'!; r0bi'$ r0ocr-0ou %b=addtag message; %b=addtag -text='$; zin.r-0a$&z. %b=addtag -text=Message '$; r0i/: /i';
+z. %b=readonly;
+%%Now mark the message as read in the mail index.
+zir0ocr-0ou %b=addtag MailRead; z.
+%%After changing linenumbers of subsequent entries fix the hashtable.
+z. %h=fix; %h=jump MT_'!; m
+
+<<ReReadEMail>>
+( r-
+  %%A pathname was given - prepend specified file to mail-spool image.
+  %%Count messages to determine next message index.
+  zm%q@=keys; m0onol3o-
+  %%Remove old hashtable.
+  zmm-0n.m0r0a@z@n.a&mzmh@
+  %%Read new mail file and prepend it to existing mail spool image.
+  %i@='$; zmm-0h@b
+,
+  %%Re-read the same mail spool file, if a pathname is given then add new mails to end of existing mail.
+  z!m+1 %im='!;
+  %%Assign index no. 1 to last message in mail spool image.
+  )
+  
+%h=create 10000 -delete;
+%%Identify each mail message and create a hash-table entry for it - keys are " 001 ", " 002 ", ...
+m0ol1 ((f-/From /r-m-)0 n.a$&z$r-0o#oo/ %03d /o~zm %h=new M_'$; m- )0 ok
+%%Add messages to index (buffer I) starting at message no. 1
+ol1n.ai&
+( %%Message loop - generate the the keys - 001, 002, ...
+  zio#oo/ %03d /o~zm 
+  %%Get the sender name.
+  %h=jump M_'i; on(f/From: /r-m)0r6n.(f1/ /2r0f-1/ /, r0)aI+&zii/ /(r, i/ /)15i/ /e0zm
+  %%Get the date.
+  o#ono-om(f/Date: /r-m)0r6n.r0f-1/ /-aI+&zi(r26, r-21i/ /)zm
+  %%Get the subject.
+  ono-om(f/Subject: /r-m)0r9n.r0aI+&
+  ziwr0b)0
+ok
+  
+%%Go to first message in mail index.
+zim0e0m-0
+(z@m
+  %%Appending another mail file - go to most recent in appended file.
+  ziom
+, %%Re-read mail spool - already at most recent message.
+  zi )
+
+<<AddNote>>
+%%Prompt string:
+%%This function adds specified text to the list of notes in the current task.
+%%
+%%Locate end of current notes list then add the new note.
+obz!m+7z.%h=jump N_'!; (mrr- %q;=tags -here;m3\z.)0 z. %b=readonly 0; i'$b %b=readonly 1;
+%%Add revised notes to calendar.
+zc %h=jump '!; f1/ - /-2?r7e0 z. %h=jump N_'!; (mrr- %q;=tags -here;m3\z. r-0n.r0a$&zci/  /h$ z.)0
+oz
+
+<<LeftClick>>
+%%Define the left-click mouse function.
+%%On a left-button click on tagged text in the calendar, switch context to the relevant mail thread in the tasks buffer.
+%%
+%%Go to the mouse-click position if we're in the C or . buffers, otherwise ignore event.
+op
+z.ob( o=\ zcobo=\)\
+  %%Buffer OK move to mouse-event point.
+  okono-omor
+  ob %q$=tags -here; 
+  ( f/Type text from chr/f1/"/2(q-/0-9/r-)8v-/-/r-(q-/0-9/r-)8 o#oz %h'=call SwitchView; z!m+7zc %h=jump '!; z. %h=jump Accounts; %h=jump A_'!; r-0
+    %%Return to original buffer at mouse-click point.
+    opozono-omor
+, %%Not in . or c buffers - exit without any action.
+  ozokok )
+
+<<DragStart>>
+%%Mouse button held down while mouse moves - get the start-point coordinates.
+op
+
+<<DragEnd>>
+%%Left button held down while mouse moves.
+op
+%%If this is the calendar then get the start/end-point dates and construct a task-ID
+zcob(o=, oz(ok)5 %X=Error: Mouse-drag function is only defined for the calendar view.;)
+%%First clear out any pre-existing pending tags.
+(z!m+8 v/Pending/ %h'=call Deletetask;, )
+%%
+%%Set up a month-name to month-number table.
+n.a@&z@
+i/JanFebMarAprMayJunJulAugSepOctNovDec/r-0(r3b)12
+%%Go to drag endpoint then pick up end date if the week goes across two months take the correct month if date is 7 or less it's in the new month otherwise the old month.
+zcokono-om(ol24o<, okol24)r-0or (v-/ /r-)0r-f-1/ /-oidf/ - /- (ol8o<f1/ - /-, ) n.r3a$&z@m-0f'$on z!m+7 e0 zcoidz!oo/%4d/r-roo/%02d/r-roo/%02d/
+%%Pick up start date if the week goes across two months take the correct month if date is 7 or less it's in the new month otherwise the old month.
+zcokono-omor f-1/ /-(v/ /r)0oidf/ - /- (ol8o<f1/ - /-, ) n.r3a$&z@m-0f'$on z!m+7 r-0 zcoidz!oo/%4d/r-roo/%02d/r-roo/%02d-/
+%%Set up to apply the Pending colour tag in the calendar.
+z!m+7n.r0a$& m+8e0i/Pending/
+%h'=call TagCalendar;
+%h'=call SwitchView;
+zc
+:
+
+%%Add new functions to hashtable in function buffer ( ' ) and their translations to the key-translation buffer ( ^ ).
+%g#
+obz'm0r0bh$b2
+(
+  (f-/<</r-m-)0 (z^m-0f'',)z' r2n.f1/>>/a$& r-0%h=new '$; 
+  %%Find the reference in the key-translation table.
+  %%Fetch prompt string if defined.
+  z'm(v/%%Prompt string:/f1/:/-n.r0a$&z$r-0i/"/r0i/ "/, n.a$&)
+  %%Set up the prompt string.
+  ( z^v/<</i"obn.a$&z$i`##"h$i" `e-oz %h'=call "e2f1/>>/e2i";
+    , )
+  z'm-2)0
+oz
+:
+'#
+
+%%Get todays date and munge into search keys.
+%q$=date; mr8e0f-1./.-2oidz@m-0omm-z$s'@ei/20/r-6eb
+%%Now find this week in calendar.
+zcm-0f'$ r-0f/  1 / z$m-i/ /r0i/ /zcf'$
+
+%%Enable left-button clicks and drags.
+%s=mousemask 0007;

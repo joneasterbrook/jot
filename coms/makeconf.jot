@@ -1,0 +1,52 @@
+%%Inserts configuration statements in hierarchal VHDL from synopsys.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Buffer 'i' - instance name of current instance.
+%%Buffer 'n' - Cell name of current instance.
+%%Buffer 'c' - Configurations for this entity.
+%%
+
+%%Check that we do indeed have a bit of VHDL here.
+m0r0v-/.vhd/m-0
+
+%%Macro > advances past white space comments and line breaks:
+%d>=((v/ /r)0v/--/m,r\m)0l
+
+%% macro '$' does the biz.
+%g$
+  (
+  (v/architecture/\m)0
+  (v/begin/\m)0
+  mon
+  n.ac
+    (
+    '>
+    n.(q/a-zA-Z0-9_/r)0aihi
+    '>v/:/r'>
+    n.(q/a-zA-Z0-9_/r)0anhn
+    obzci/   for /hii/ : /hni/ use entity work./hni/;/b ozf/;/-
+    )0
+  ono-om m-hcb
+  )0
+:
+'$m\
+%c

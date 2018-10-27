@@ -1,0 +1,55 @@
+%%Outputs to /tmp/print and performs unix lp on buffer.
+%%This gives a useful line length of 90 characters and a page length of 66
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g#
+onobm-0n.m0a@h@
+%m=Checking for tabs and long lines.
+m-0
+(f/	/\,
+  okok
+  %X=All tabs must be resolved before printing.
+  )
+%%Are we breaking long lines?
+z$m-0(f/ -break/s/ /
+  %%Yes - if possible break it at whitespace or non-alphanumeric character, indent by two.
+  z@m-0 ((r90 (f-1/ /r90\, r-0r90(q-/a-zA-Z0-9._/r-)0r-r, r-0r90)b-r-0n.(v/ /r)0a$h$mh$i/  /)0 m)0
+,
+  %%No
+  z@m-0 (r91\m)0 (m\,
+    m-ozokm-0f'@?r-0
+    %x=Long line - use the -break option to break long lines.
+    ) )
+    
+%%Prepare to print.
+%e=rm -f /tmp/print
+%o=/tmp/print
+%%z$(f/%%/e-0(v/ /e)0, m-0e0)
+z$(v/ /e)0
+n.a@z@i"%e=Lp -l66 /tmp/print | lpr -P "i-'$ (r, v-/-P /e-3) 
+'@
+%e=rm -f /tmp/print
+ozono-om
+%l
+:
+'#

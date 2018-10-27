@@ -1,0 +1,101 @@
+%%Provides basic unicode translations for european alphabets.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%Basic unicode from http://en.wikipedia.org/wiki/Compose_key
+%%
+%%  Usage - hit {Esc}<Ch1><Ch2> - if the two characters are recognized as 
+%%  inidicating a unicode character, the unicode character is inserted into
+%%  the command input stream.
+%%
+%%  e.g: {Esc u = Y} inserts ¥
+%%       {Esc u ~ a} inserts ã
+%%
+
+%g$
+^[u'a        %s=commandstring ##á    (  A1 C3  )
+^[u'A        %s=commandstring ##Á    (  81 C3  )
+^[u"a        %s=commandstring ##ä    (  A4 C3  )
+^[u"A        %s=commandstring ##Ä    (  84 C3  )
+^[u`a        %s=commandstring ##à    (  A0 C3  )
+^[u`A        %s=commandstring ##À    (  80 C3  )
+^[u~a        %s=commandstring ##ã    (  A3 C3  )
+^[u~A        %s=commandstring ##Ã    (  83 C3  )
+^[u^a        %s=commandstring ##â    (  A2 C3  )
+^[u^A        %s=commandstring ##Â    (  82 C3  )
+^[uca        %s=commandstring ##ǎ    (  8E C7  )
+^[ucA        %s=commandstring ##Ǎ    (  8D C7  )
+^[uoa        %s=commandstring ##å    (  A5 C3  )
+^[uoA        %s=commandstring ##Å    (  85 C3  )
+^[u_a        %s=commandstring ##ā    (  81 C4  )
+^[u_A        %s=commandstring ##Ā    (  80 C4  )
+^[u;a        %s=commandstring ##ą    (  85 C4  )
+^[u;A        %s=commandstring ##Ą    (  84 C4  )
+^[uba        %s=commandstring ##ă    (  83 C4  )
+^[ubA        %s=commandstring ##Ă    (  82 C4  )
+^[u,c        %s=commandstring ##ç    (  A7 C3  )
+^[u,C        %s=commandstring ##Ç    (  87 C3  )
+^[uOR        %s=commandstring ##®    (  AE C2  )
+^[uOC        %s=commandstring ##©    (  A9 C2  )
+^[utm        %s=commandstring ##™    (  A2 84 E2  )
+^[u<<        %s=commandstring ##«    (  AB C2  )
+^[u>>        %s=commandstring ##»    (  BB C2  )
+^[u"<        %s=commandstring ##“    (  9C 80 E2  )
+^[u">        %s=commandstring ##”    (  9D 80 E2  )
+^[u'<        %s=commandstring ##‘    (  98 80 E2  )
+^[u'>        %s=commandstring ##’    (  99 80 E2  )
+^[u..        %s=commandstring ##…    (  A6 80 E2  )
+^[u.^        %s=commandstring ##·    (  B7 C2  )
+^[uxx        %s=commandstring ##×    (  97 C3  )
+^[u-:        %s=commandstring ##÷    (  B7 C3  )
+^[u^0        %s=commandstring ##⁰    (  B0 81 E2  )
+^[u^1        %s=commandstring ##¹    (  B9 C2  )
+^[u^2        %s=commandstring ##²    (  B2 C2  )
+^[u^3        %s=commandstring ##³    (  B3 C2  )
+^[u12        %s=commandstring ##½    (  BD C2  )
+^[u14        %s=commandstring ##¼    (  BC C2  )
+^[u34        %s=commandstring ##¾    (  BE C2  )
+^[uss        %s=commandstring ##ß    (  9F C3  )
+^[uso        %s=commandstring ##§    (  A7 C2  )
+^[u/o        %s=commandstring ##ø    (  B8 C3  )
+^[u/O        %s=commandstring ##Ø    (  98 C3  )
+^[u-d        %s=commandstring ##đ    (  91 C4  )
+^[u-D        %s=commandstring ##Đ    (  90 C4  )
+^[udh        %s=commandstring ##ð    (  B0 C3  )
+^[uDH        %s=commandstring ##Ð    (  90 C3  )
+^[u~n        %s=commandstring ##ñ    (  B1 C3  )
+^[uth        %s=commandstring ##þ    (  BE C3  )
+^[uTH        %s=commandstring ##Þ    (  9E C3  )
+^[uae        %s=commandstring ##æ    (  A6 C3  )
+^[uAE        %s=commandstring ##Æ    (  86 C3  )
+^[u!!        %s=commandstring ##¡    (  A1 C2  )
+^[u??        %s=commandstring ##¿    (  BF C2  )
+^[u=L        %s=commandstring ##£    (  A3 C2  )
+^[u=E        %s=commandstring ##€    (  AC 82 E2  )
+^[u=Y        %s=commandstring ##¥    (  A5 C2  )
+^[u/C        %s=commandstring ##₡    (  A1 82 E2  )
+^[u|c        %s=commandstring ##¢    (  A2 C2  )
+^[uox        %s=commandstring ##¤    (  A4 C2  )
+^[u//        %s=commandstring ##\    (  5C  )
+^[uoo        %s=commandstring ##°    (  B0 C2  )
+:
+
+obz$m-0(f/    (  /e0)0z^m-0h$boz
+ 

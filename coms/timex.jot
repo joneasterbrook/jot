@@ -1,0 +1,153 @@
+%%Utility package for dealing with timex files.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Buffer usage:
+    $ - temporary
+    # - uncompressed activity - for checking only, also temporary ls listing
+    @ - Full totals
+    ! - mapped totals (summary)
+    * - format string
+  
+  Numeric-keypad buttons:
+    1 - make summary - you will be prompted for start and end date
+    
+  Mapping-file name:
+    ~/.timex/TLS_projects.map
+  Mapping-file format:
+<TLS project no.>[-<Description>]
+  <activity1>
+  [<activity2>
+      .
+      .
+      .
+  [<last activity chargeable to this TLS project no.>]
+<Another TLS project no.> ...
+
+  The mapping file is at: 
+    ~/.timex/TLS_projects.map
+:
+
+%d*=%3d
+%g1 
+%%Make summary for this month.
+%%
+n.a!n.a@n.a#
+  
+%%Get user name.
+%%
+%e=echo $USER > /tmp/user
+%i$=/tmp/user
+i"%e=/bin/ls -1rt /u/"r0i"/.timex/*-* > /tmp/ls"me0
+'$
+ 
+%%Get ordered list of timex files - then move to aproximately the right place.
+%%
+%i#=/tmp/ls
+%e=date +19%y-%m > /tmp/month
+%i$=/tmp/month
+z#(f'$m20?f-'$, m0)w
+ 
+%%Prompt for, and locate the first and last timex files.
+%%
+%s=prompt Enter the first date yyyy-mm-dd  
+n.a$z$b- g m-
+z#m-0(f'$-r\, z$i/%x=Unable to find timex file for /'$ )
+(m-k-0,)w
+%s=prompt Enter the last date yyyy-mm-dd  
+z$mg m-
+%s=prompt > ;
+z#m-0(f'$-r\, z$i/%x=Unable to find timex file for /'$ )
+(mk0,)m0e0
+ 
+%%Now make the timex.sum
+%%
+m-0i/%e=cat /r0i" > /tmp/timex.sum"
+(m2m-i/%e=cat /r0i" >> /tmp/timex.sum")0
+'#
+%i#=/tmp/timex.sum
+%%Tidy up
+m-0 (v/#/k, f1/:/r0i/ /m, k)0
+  
+%%Now construct full totals. 
+%%
+n.a@
+(m-0mm-n.a! %%Activity loop - First pick up activity tag.
+  f1/:/-f1/ /n.r0a$h$r-0
+  %%Collect all entries for this activity.
+  (f'$na!+)0 z!
+  %%Total minutes then hours.
+  m-0ol0 (f1/:/-oido+m)0 o#ol60o/ osol60o%os m-0(oido+m)0
+  m-0f1/:/-f1/ /e-0oo'*i/:/rr-oo'*na@+
+  z#)0
+  
+%%Reformat.
+z@m-0 (r2(v/ /, r-0i/ /)m)0
+%%Total minutes then hours.
+m-0ol0 (f1/:/-oido+m)0 o#ol60o/ osol60o%os m-0(oido+m)0
+b-oo'*i/:/r-roo'*r-0b-i/------------------/
+
+%%Apply map.
+%%Read map.
+%i$=/tmp/user
+i"%i#=/u/"r0i"/.timex/TLS_projects.map" me0 '$ 
+%%Reformat map.
+m-0 (v/ /(rv/ /e)0r0(v-/ /e-)0i/ /m,m)0e0
+%%Check map and find first entry.
+m-0 (r\m, v-/#/m)0 
+(v/ /\, %x=Syntax error in map file.
+  )
+  
+%%Apply map.
+n.a! (z#(v/#/m)0mm-na!+ ol0ol0 %%TLS-object loop.
+  (z#(v/#/m)0v/ /n.r0a$k z@m-0 (f'$r-0oido+rosoido+osr0e-,))0
+  %%Convert minutes to hours and write totals.
+  z!m-i/ /r-0 oso#ol60o%oo'* ol60o/o+r-0oo'*i/:/ )0
+%%Total minutes then hours.
+z!m-0ol0 (f1/:/-oido+m)0 o#ol60o/ osol60o%os m-0(oido+m)0
+b-oo'*i/:/r-roo'*r-0b-i/------------------/
+%%
+%%Check for any unspecified mappings.
+z@m-0n.a# (r0v-/ /na$h$z#h$z@, m)0 z#m-0(m\, %X=Unmapped activity - add these to your TLS_projects.map file.
+  )
+
+%%Now do totals check. 
+%i#=/tmp/timex.sum
+%%Total minutes then hours.
+m-0ol0 ((v/#/m)0 f1/:/-oido+m)0 o#ol60o/ osol60o%os
+m-0((v/#/m)0 oido+m)0
+b-oo'*i/:/r-roo'*r-0b-i/------------------/ mi/#/
+%%
+%%Now do this for each day. 
+m-0((f/# TIMEX log saved/\m)0m
+  %%Total minutes then hours.
+  ol0 (v/# TIMEX log saved/\(v/#/m)0 f1/:/-oido+m)0 o#ol60o/ osol60o%os
+  f-/# TIMEX log saved/m(v/# TIMEX log saved/\(v/#/m)0 oido+m)0
+  b-oo'*i/:/r-roo'*r-0b-i/-----/
+  m)0
+%%Uncomment the total.
+m0f-/------------------/mv/#/enm-a$m2h$
+
+%e=rm -f /tmp/timex.sum /tmp/month /tmp/ls /tmp/user
+:
+ 

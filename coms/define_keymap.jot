@@ -1,0 +1,148 @@
+%%Defines keymap for any keyboard - requires the user to press buttons.
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+  Sets up keycodes in a curses_keys  file,  based  on  responses  obtained  by
+  someone pressing requested keys.
+  
+  Optional qualifier:
+    -init - initialize -this resets all keycodes to ????????
+      If you resume the session (i.e. without the -init arg)
+      it will begin at the first keycode set to ????????
+  
+  Usage example:
+    jot ${JOT_HOME}/coms/std_keys.jot -in="%w; %w 20; %w 0; %b=pathname ./new_keys.jot; %r=define_keymap"
+  
+  Buffer usage: 
+    . - the new keymap file.
+    % - The Escape keycode
+    $ - The keycode from the current key.
+    
+    You will be prompted to strike each of the function keys  in  turn,  after
+    each hit return.; Some keys are dangerous - e.g. {Alt+<any  function  key>
+    triggers system actions in some linux. If prompted for a key you  know  to
+    be dangerous, just hit return.
+    
+    If you go wrong, interrupt with {Ctrl+c} change the dodgy keycode to ????????
+    and it will reprompt for that keycode and resume.
+    
+    The define_keymap script defines a  checking  macro  <<DefineKeymapCheck>>
+    that can be started by  typing  {Esc}check.  This  detects  the  following
+    errors:
+      - blank keycodes - these are usually the result of the key  not  sending
+        any escape sequence.
+      - duplicate keycodes - frequently  the  result  of  typing  mistakes  or
+        mapping multiple keys to one identity.
+        
+    When an error is detected the process halts at the incorrect line.
+    
+    To start checking, first go back to the top  of  the  file  -  it  ignores
+    comment lines then type {Esc}check.
+:
+
+%g@
+<<DefineKeymapCheck>>
+%%Function to do basic sanity checks on a key-map file.
+%%
+%m=Type {Esc}check - to repeat these checks.
+%%
+%%Begin at next line start.
+(r-m, )
+%%If at end of file then go back to begining.
+((r\m)0 r- (v/%%/m)0 )0 (m\ m-0 %m=Going back to top of file.;, m-)
+%%
+%%Turn on case sensitivity and hold current state for future restoration.
+(%q=case; ol0, ol1) %s=case 1;
+%m=Checking keys for blanks and duplicates.
+( %%Line loop.
+  %%Find next active keycode, this should have the key description comment of the form ' -- {<keyName>}'.
+  f/ -- {/r-0
+  %%Check for a blank keycode.
+  (v/ / %x=Error: this kecode begins with a blank;, )
+  %%Check for duplicate entries.
+  ( %%Ignore 'xxxxxxxx' entries.
+    v/xxxxxxxx/m
+  ,
+    on n.r12a$& n.a@ m-0 (v'$n.ma@+&, m)0
+    %%Return to original line.
+    ono-om
+    %%Report errors as and when.
+    obz@m-0(m2m-0p0oz %x=Duplicate keycodes;, ozm) ) )0
+  
+%Restore original case-sensitivity-or-not start.
+%s=case '^;
+%m=Checking complete.
+:
+
+%%Simplify the trace vector so that {Ctrl+C} interrupts can cleanly exit the loop.
+%s=trace B000;
+%%Add to functions and create the entry in the functions hashtable.
+%h'=call AddNewFunctions;
+obz^m-0i/check   %h'=call DefineKeymapCheck;/b oz
+%%ob z'm0bh$ f-/DefineKeymapCheck/m %h=add DefineKeymapCheck;
+%%%%Create entry in local key translations table.
+%%z^m0i/check   %h'=call DefineKeymapCheck;/ oz
+
+%g#
+
+%w
+%l
+%%Set window size to be 10 less than screen height.
+ob %q~=window; f/screenHeight = /-oidol10o-
+%w '~
+%w 0
+%%Tidy up stack, display help screen and return to main buffer.
+z?wosozok
+  
+%%
+%%First check that this looks like a key-map file.
+m-0(f/ -- /-(v/ /r)0v/{/, %x=ERROR: This does not look like a key map file.;)
+( obz$m-0f/-init/ %%Initialize keycodes - resets all keycodes to ????????
+  ozm-0((f/-- {/\m)0 r-0(v/xxxxxxxx/\ v/%%/\)\m, e12i/????????/m)0 m-0
+, %%A resumption session - restart at the next unknown keycode.
+%%  oz (f1/{/bf1/}/-bozf'$r-0, ozf/????????/f-/--/r-0)
+  oz (f/????????/f1/--/\m)0 r-0
+  )
+
+%%init.
+%%obz?w ozm-0 %s=commandmode 8000
+obz?w ozm-0
+
+( %%Main loop, request a key press and notes it's code  then pushes code into the new setup file.
+  %%Pick up next key name.
+  ((v/????????/\m)0 f1/ -- /- (v/ /r)0 v/{/r(v/ /r)0v/Esc/m)0 (v/ /r)0n.f1/}/(v-/ /r-)0a$&
+  %%Set prompt and get keycode.
+  %s=prompt Hit {'$}{Return} > ; obz?woz g m- %s=prompt > ;
+  %%Translate control characters.
+  (oicol32o< ol64o+ oo/^%c/, okrr-, i/ /)12
+  %%Set it up in the keycodes script and remove the previous value.
+  ji/            /e12bm-r12e0j
+  %%Advance to next keycode.
+  p%m=; (m v/%%/, (v/ /r)0r\)0 r-v/:/\)0
+  
+
+%s=prompt > ;
+%%%o
+%s=commandmode 0;
+%h'=call DefineKeymapCheck;
+%m=All done
+:
+'#

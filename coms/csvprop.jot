@@ -1,0 +1,78 @@
+%%jot macro, locates the named property in current row of the csv spreadsheet, subsequent queries can use macro 3.
+%%If initial query fails you get a message about recursive use of a macro. 
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+ 
+%%First version 01/12/08
+
+%g?
+  Utility for handling csv files, in pads-tool format (plain-text spreadsheets
+  separated by tabs, with comment rows and property-name row).
+  
+  Usage: 
+          <propName> Key-3 - highlights that property value in the current row.
+      -up <propName> Key-3 - moves the column associated with that property to first column.
+    -down <propName> Key-3 - moves the column associated with that property to last column.
+  
+  Buffer usage: 
+    3 - main command macro.
+    $ - temporary.
+:
+
+%g3
+%%csvprop macro.
+%%Top and tail argument.
+obz$r-0
+(v/-up /f1/ / (v/ /r)0b     %%Promote column associated with property to first column.
+ 
+,  v/-down /f1/ / (v/ /r)0b %%Demote column to last column.
+ 
+, )                         %%Simply highlight selected value in current row.
+   
+  r-0(rr-n.r0a@h@, h@) r-0i/"/r0i/"/ oz
+  %%Search for header line.
+  onm-0((f1/	/\m)0r-0 (v/#/\ v/"#/\)\ m)0 ol0 (v'$\f1/	/-o~)0 ol-1oso-
+  %%Search for property name.
+  (v'$, okobz$r-0i/%x=Given property name /r0i/ not found in heading row./ozono-om'$
+    )
+    
+%%Do it.
+obz$m-0
+ 
+( v/-up /  %%Promote.
+  ozr-0( (q/"0-9	/\m)0 o#(o~(f1/	/-, r0))0 n.(f1/	/-, r0i/	/)a$ r-0h$m2m- ok)0
+   
+, v/-down /%%Demote.
+  %%First get the number of tabs to the last column.
+  ozol0(f1/	/ol1o+)0 ol-1oso-os
+  r-0( (f1/	/\m)0 o#r-0(o~(f1/	/-, r0i/	/))0 n.(f1/	/-, r0i/	/)a$ok oso#(o~(f1/	/-, r0i/	/))0h$m2m-ok os)0 osok
+   
+, %%Simply highlight.
+  %%Go back to original line. 
+  ozosono-om
+  %%index to correct column and highlight it.
+  (o~(f1/	/-, r0))0 ok
+  ( (v/"/, q/0-9/)
+    n.(f1/	/, r0)a$h$v-'$,
+    obz$r-0i/ %x=No value specified for property /r0i/ in that row./oz'$
+    ) )
+:
+ 

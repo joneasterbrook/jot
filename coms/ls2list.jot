@@ -1,0 +1,48 @@
+%%Translates the output of an ls -F listing to a list of paths for multi_do etc.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%
+%g#
+%%Add a dummy offset to the stack.
+ol0
+%%In windowsland change all path separators from "\" to "/".
+(%q=windows; m-0f"\"s"/")0
+%%Remove any links.
+m-0 (f/ -> /k)0 
+m-0 ((r\m)0 r0v-/:/\m)0
+( %%Directory loop.
+  %%Find next directory header.
+  mm-(r\m)0
+  %%Pick up path from header.
+  r0(v-/:/e-,)(%q=windows; v-/=/e-, )i"/"n.r-0a$k (v/total /k,)
+  %%Clean up each file name and add path.
+  ((rr-, k\) (r0 (v-" ./"okocol2o-,) v-"/"k, (v-/*/e-,) (v-/@/e-,) r-0o#or rr-(r-ri/	/, )h$m))0 
+  )0
+  
+%%Remove the last offset from the stack.
+ok
+
+:
+'#
+m-0w
+

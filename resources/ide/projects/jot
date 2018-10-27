@@ -1,0 +1,107 @@
+gdb -ex="set confirm off" --args      
+gdb -ex="set confirm off" -ex="handle SIGINT pass" --args 
+valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev t.t -in="%r=test; %a;" ; cat valg.log
+  
+----jot_ref
+jot_ref t.t -st -ini="%r=monkey_test -gdb -tests=100000"
+jot_ref t.t -in="%w; %w 30; %w 0; %r=error_search -gdb -script=./x.jot;"
+jot_ref t.t -st -in="%r=monkey_test -valgrind"
+jot_ref t.t -in="%w; %w 30; %w 0; %r=error_search -valgrind -script=./x.jot;"
+jot_dev t.t -st -ini="%r=monkey_test -invoke=jot_dev -wine -tests=10000;"
+jot_dev t.t -in="%w; %w 30; %w 0; %r=error_search\ -winedbg -script=./x.jot;"
+   
+----jot_dev
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="%r=x.jot_boiled -asConsole; %a;"
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="%r=x.jot_boiled -asConsole; %a;" -st ; cat valg.log
+    wineconsole jot_dev l99.t -st -in="%r=x.jot_boiled -asConsole; %a;"
+    winedbg jot_dev l99.t -st -in="%r=x.jot_boiled\ -asConsole;"
+
+
+-- Release procedure and checklist.
+  - Clear any withdrawn releases from releasenote_cumulitive.txt
+  
+  - Run test_visual.jot under both linux and windows (*not* wine):
+    N.B. must be in a 80-character-wide window, preferably * 40-lines.
+      jot_dev t.t -in=%r=test_visual
+   
+  - Remove any withdrawn release subdirs.
+  
+  - Remove any commented-out code from jot.c try this macro: ((v.//.\m)0 (f1/;/\ f1/(/\)m)0
+  
+  - Check README for consistency with current directory structure etc.
+  
+  - Check source code and documentation for funny characters:
+      %d3=m-0 (oicol0o<%x=Found a non-ascii character;, ok rl, m)0 -hereEndsThePercentCommand;
+      %d1=((v.//.\m)0 f1/;/\m)0
+   
+  - Documentation:
+    %%Check spelling of main docs - jot_ug and jot_walkthrough
+    %%
+    %%Use linkdocs to check documentation links:
+    jot_dev /dev/null -st=qr
+    %%
+    %%Ensure HTML form of documentation is updated.
+    %%
+    
+    n.aazt ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -style main.css;
+    
+    z!m-0n.m0aa+ zv ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -style main.css
+    
+    z!m-0n.m0aa+ zb ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -style main.css
+    
+    z!m-0n.m0aa+ zd ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -style main.css
+    
+    z!m-0n.m0aa+ zc ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -style main.css
+    
+    z!m-0n.m0aa+ zh ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -tablinks -style main.css
+    
+    z!m-0n.m0aa+ zg ob %q$=buffer; f/pathname = /-bzabi'$boz
+    %r=doc2html -index -split -foot small_footer.png -style flip.css
+    
+    ztn.a$z$i/%%/zt %ia=jot_test.txt;
+    %r=doc2html -style main.css
+    z!
+    
+  First in a shell:
+$ chmod -R u+w resources/help
+$ chmod -R u+w my_resources/help
+    zd
+    %r=doc2fold 
+    %o
+    %o=/home/jone/resources/help/jot/jot_ug.hlp;
+    %o=/home/jone/ed/resources/help/jot/jot_ug.hlp;
+    zt
+    %r=doc2fold 
+    %o
+    %o=/home/jone/resources/help/jot/jot_tech.hlp;
+    %o=/home/jone/ed/resources/help/jot/jot_tech.hlp;
+    zc
+    %r=doc2fold 
+    %o
+    %o=/home/jone/resources/help/jot/jot_coms.hlp;
+    %o=/home/jone/ed/resources/help/jot/jot_coms.hlp;
+    zh
+    %r=doc2fold 
+    %o
+    %o=/home/jone/resources/help/jot/jot_qr.hlp;
+    %o=/home/jone/ed/resources/help/jot/jot_qr.hlp;
+    
+  Then, in a shell:
+$ chmod -R u-w resources/help
+    
+  - Testing (linuxland):
+      test.sh
+      jot_dev t.t -in=%r=test_visual
+    wine
+      test_win.sh
+      jot_dev t.t -in=%r=test_visual
+    windowsland
+      test
+      jot_dev t.t -in=%r=test_visual  - this fails because of an unresolved bug in %q=window screen dump
+      

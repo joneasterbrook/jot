@@ -1,0 +1,90 @@
+%%Looks up words in websters dictionary using an index file. If the index doesn't exist, then creates one at <originalPathName>_index.txt
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%History
+
+%g?
+  Prerequsites:
+    The Gutenberg Websters dictionary EBook must be in your JOT_RESOURCES directory and it must be named websters.txt
+    This can be downloaded free from gutenberg.org
+     
+  Usage:
+    <word>{KP_7} -- Queries the word in the dictionary
+   
+  Buffers used:
+    w - The index, has a hashtable for fast word lookup.
+    7 - macro 7, launches a dictionary query.
+    $ - temporary, used for setup and queries.
+    # - temporary, only used at dictionary-setup time.
+
+:
+
+%g7
+%%Macro to launch a dictionary query.
+%%Change query word(s) to upper case.
+z$(q/a-z/c, r)0
+%%Read entry for word.
+zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
+:
+
+%g#
+( %q=file ${JOT_RESOURCES}/websters.txt;, 
+  %m=Error: Dictionary file (${JOT_RESOURCES}/websters.txt) could not be read;
+  %x=you can download one from the www.gutenberg.org; )
+%%
+%hw=create 110000;
+( %q=file ${JOT_RESOURCES}/websters.txt;, %X=Error: Your JOT_RESOURCES area does not contain a websters.txt; )
+( %q=file ${JOT_RESOURCES}/websters_index.txt;,
+  %%No preexisting index - create one now.
+  %m=Extracting index.
+  ol0ol0 n.a@ n.a* %s=verbose 0; %d$=INTRODUCTORY WORDS FROM GUTENBERG PROJECT; 
+  ( %%Bucket loop - read the dictionary in 100000-byte bucketfuls.
+    %i@=${JOT_RESOURCES}/websters.txt -hold -bytes=100000 -append;
+    ( %%Record loop - each line of the file is examined to see it it looks like a new word all upper-case characters starting in column 1.
+      ( %%Valid-entry block - a series of tests can reject the current line as not being a valid entry.
+        %%Is the line all upper-case characters starting in column 1?
+        q/A-Z' -/r(q//r)0 
+        %%Accept the entry if terminated by end-of-line or a semicolon - entries terminated with semicolons will later be split into two or more.
+        (rv-/;/\)\ 
+        %%Reject if it a duplicate of the previous entry.
+        (v-'$r-0v'$)\
+        %%Add previous word(s) to index.
+        (z*i'$r0oso#oo/:%ld/r0oso#oo/	%ld/b z$m)0
+        %%Copy current word to ( $ ) buffer and split multiple words (separated by semicolons).
+        z@r-0n.r0a$&z$m-0(f1/'/e)0 m-0(f/;/eb(v/ /e)0)0m-0 o+ol0z@, )
+      %%Update byte count.
+      r0oeo+o~ kmm- )0 
+    )0
+  okok %s=verbose 3;
+  %%Now write the index for next time.
+  z*m-0b-i/Index file for Websters dictionary/ %o=${JOT_RESOURCES}/websters_index.txt; )
+%%
+%%An index exists, read it now.
+%m=Reading index.
+%i@=${JOT_RESOURCES}/websters_index.txt;
+%%Sanity-check index.
+(v/Index file for Websters dictionary/m, %x=Error: This is not a websters index.; )
+%%Set up hash table in ( W ) buffer.
+(n.f1/:/a$&roid roid %hw=setsect '$;? okok m)0
+:
+ob'#oz
+

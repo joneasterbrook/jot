@@ -1,0 +1,198 @@
+%%Sets up buttons specific to editing VHDL files.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%g?
+VHDL source-file scanner, the following numeric-keypad buttons are defined:
+  
+  1 - Finds previous clause in current block.
+  2 - Finds next clause in current block.
+  3 - Find next next signal/variable assignment, block start statement
+      or labeled statement irrespective of level.
+  4 - Finds previous block start statement. 
+  5 - Finds next block end (invariably the END statement). 
+  
+   
+Notes 
+   
+  1/Block-start keywords recognized: 
+      IF, CASE, FOR, WHILE, ENTITY, ARCHITECTURE, CONFIGURATION, PROCESS,
+      PACKAGE, PROCEDURE, FUNCTION and COMPONENT
+    
+  2/Subblock-start keywords recognized: 
+      ELSE, ELSIF, WHEN and BEGIN.
+       
+  3/In general the VHDL keywords mentioned above should be the first
+    non-whitespace character on a line, but a crude implementation of the
+    <labelName>:<keyWord> syntax works most of the time.
+     
+  4/The editor is not run in case sensitive mode - some lower-case identifiers 
+    may confuse it.
+     
+  5/The cursor is left at the begining of a significant VHDL keyword, all 
+    buttons will work when the cursor is left anywhere in whitespace before a 
+    VHDL keyword.
+    
+  6/There is no checking of the consistency of the keywords - thus ELSE is 
+    accepted as a subblock delimiter in a COMPONENT definition.
+    
+:
+
+%%Find previous 'ELSE',  'ELSIF', 'WHEN' or 'BEGIN' subblock.
+%g1
+%%Initialization
+ol-1
+%%If already at a sub-block start statement move on.
+(v/ /r)0 (v/END/\v/BEGIN/\v/ELSE/\v/ELSIF/\v/WHEN/\, m-)
+%%Plod through VHDL keywords.
+( ((v/ /r)0 rr-, (m-(v/ /r)0r\)0r-)
+  %%Skip remainder of line for all comment liness.
+  v/--/m-,
+  %%Increment counter for any 'END' statement.
+  v/END/ (r3 (v/ /r)0 (v/UNITS/r5, v/RECORD/r6) q/A-Za-z0-9_/\m-, ol1o-m-), 
+  %%Increment and test on block-start statements.
+  ( v/IF/r2, v/CASE/r4, v/FOR/r3, v/WHILE/r5, v/ENTITY/r6, v/ARCHITECTURE/r12,
+    v/CONFIGURATION/r13, v/PROCESS/r7, v/PACKAGE/r7, v/PROCEDURE/r9,
+    v/FUNCTION/r8, v/COMPONENT/r9)
+  q/A-Za-z0-9_/\
+  %%Looks like a genuine block start statement.
+  (o~m-, ok (q-/A-Za-z/r-)0
+    %X No more ELSE, ELSIF, WHEN or BEGIN statements in this block.
+    ),
+  %%Is it an ELSE,  ELSIF, WHEN or a BEGIN statement?
+  (v/ELSE/r4, v/ELSIF/r5, v/WHEN/r4, v/BEGIN/r5)\
+  ((q/a-zA-Z0-9_/r)0(v/ /r)0v/:/r, m-), q/A-Za-z0-9_/m-,
+  ol-1o=\
+  )0
+ok (q-/A-Za-z/r-)0
+:
+
+%%Find next 'ELSE',  'ELSIF' 'WHEN' or 'BEGIN' subblock.
+%g2
+%%Initialize the found-a-colon flag.
+ol0
+%%If already at a block start statement move on.
+( ( (v/ /r)0 
+    v/IF/\v/CASE/\v/FOR/\v/WHILE/\v/ENTITY/\v/ARCHITECTURE/\v/CONFIGURATION/\
+    v/PROCESS/\v/PACKAGE/\v/PROCEDURE/\v/FUNCTION/\v/COMPONENT/\
+    v/ELSE/\v/ELSIF/\v/WHEN/\v/BEGIN/\(f1/:/-ol1o-,), (q/A-Za-z/r)0 ) o~\)0 ok
+  
+%%Initialization
+ol-1
+%%Plod through VHDL keywords.
+( ((v/ /r)0 rr-, (m(v/ /r)0r\)0r-)
+  %%Skip remainder of line for all comment liness.
+  v/--/m,
+  %%Decrement on block-start statements.
+  ( v/IF/r2, v/CASE/r4, v/FOR/r3, v/WHILE/r5, v/ENTITY/r6, v/ARCHITECTURE/r12,
+    v/CONFIGURATION/r13, v/PROCESS/r7, v/PACKAGE/r7, v/PROCEDURE/r9,
+    v/FUNCTION/r8, v/COMPONENT/r9)
+  q/A-Za-z0-9_/\ol1o-m,
+  %%Increment on 'END'
+  v/END/ r3q/A-Za-z0-9_/\ (v/ /r)0 ((v/UNITS/r5, v/RECORD/r6)\, q/A-Za-z0-9_/)
+  %%Looks like a genuine END - increment and exit if at correct level.
+  (o~m, ok (v-/END/, (q-/A-Za-z/r-)0 (v-/ /r-)0 ) (q-/A-Za-z/r-)0
+    %X No more ELSE, ELSIF, WHEN or BEGIN statements in this block.
+    ) ,
+  %%Is it sub-block start statement?
+  (v/ELSE/r4, v/ELSIF/r5, v/WHEN/r4, v/BEGIN/r5)\
+  ((q/a-zA-Z0-9_/r)0(v/ /r)0v/:/r, m), q/A-Za-z0-9_/m,
+  ol-1o=\
+  )0
+ok (q-/A-Za-z/r-)0
+:
+
+%%Find next 'BEGIN', 'IF', 'CASE' etc.
+%g3
+%%If already at a block start then move on.
+( ( v/IF/r2, v/CASE/r4, v/FOR/r3, v/WHILE/r5, v/ENTITY/r6, v/ARCHITECTURE/r12,
+    v/CONFIGURATION/r13, v/PROCESS/r7, v/PACKAGE/r7, v/PROCEDURE/r9,
+    v/FUNCTION/r8, v/COMPONENT/r9)\
+    (f1/:/-, m), (rr-q/a-zA-Z0-9_/\, (f1/:/-, m)))
+( %%Search loop.
+  (v/ /r)0
+  %%Test for block-start statement.
+  ( ( v/IF/r2, v/CASE/r4, v/FOR/r3, v/WHILE/r5, v/ENTITY/r6, v/ARCHITECTURE/r12,
+    v/CONFIGURATION/r13, v/PROCESS/r7, v/PACKAGE/r7, v/PROCEDURE/r9,
+    v/FUNCTION/r8, v/COMPONENT/r9)\,
+  rr-q/a-zA-Z0-9_/)
+  %%Not a block-start - check for'<=', ':=' and ':' before moving to next line.
+  ((q/a-zA-Z0-9_/r)0(v/ /r)0 (v/<=/r2, v/:=/r2, v/:/r, m\)\ ) )0
+%%Reset pointer to start of keyword.
+(q-/A-Za-z/r-)0
+:
+
+%%Find previous 'END' then find its matching block-start.
+%g4
+%%If already at a block start statement move on.
+ol0 (v/ /r)0
+( v/IF/\v/CASE/\v/FOR/\v/WHILE/\v/ENTITY/\v/ARCHITECTURE/\v/CONFIGURATION/\
+  v/PROCESS/\v/PACKAGE/\v/PROCEDURE/\v/FUNCTION/\v/COMPONENT/\,
+  (f1/:/-, m-))
+%%Plod through VHDL keywords.
+( ((v/ /r)0 rr-, (m-(v/ /r)0r\)0r-)
+  %%Skip remainder of line for all comment liness.
+  v/--/m-,
+  %%Increment counter for 'END' statements.
+  v/END/ (r3 (v/ /r)0 (v/UNITS/r5, v/RECORD/r6) q/A-Za-z0-9_/\m-, ol1o-m-), 
+  %%Increment and test on block-start statements.
+  ( v/IF/r2, v/CASE/r4, v/FOR/r3, v/WHILE/r5, v/ENTITY/r6, v/ARCHITECTURE/r12,
+    v/CONFIGURATION/r13, v/PROCESS/r7, v/PACKAGE/r7, v/PROCEDURE/r9, 
+    v/FUNCTION/r8, v/COMPONENT/r9)\
+  %%It's none of those keywords.
+  ((q/a-zA-Z0-9_/r)0(v/ /r)0v/:/r, m-), 
+  %%A keyword matched - check at end.
+  q/A-Za-z0-9_/(f1/:/-, m-),
+  (ol0o= ok (q-/A-Za-z/r-)0
+    %X Found block start while searching back for END.
+    ,)
+  o~m-
+  )0
+ok (q-/A-Za-z/r-)0
+:
+
+%%Find next block-start command then find its matching 'END'.
+%g5
+%%If already at an END statement move on.
+ol0 (v/ /r)0 (v/END/\, m)
+%%Plod through VHDL keywords.
+( ((v/ /r)0 rr-, (m(v/ /r)0r\)0r-)
+  %%Skip remainder of line for all comment liness.
+  v/--/m,
+  %%Decrement on block-start commands.
+  ( v/IF/r2, v/CASE/r4, v/FOR/r3, v/WHILE/r5, v/ENTITY/r6, v/ARCHITECTURE/r12,
+    v/CONFIGURATION/r13, v/PROCESS/r7, v/PACKAGE/r7, v/PROCEDURE/r9,
+    v/FUNCTION/r8, v/COMPONENT/r9)
+  q/A-Za-z0-9_/\ol1o-m,
+  %%Increment and test on 'END'
+  v/END/\((q/a-zA-Z0-9_/r)0(v/ /r)0v/:/r,m), r3q/A-Za-z0-9_/m,
+  (v/ /r)0 (v/UNITS/r5, v/RECORD/r6) q/A-Za-z0-9_/\m, (v-/ /r-)0
+  %%Looks like a genuine END - increment and exit if at correct level.
+  (ol0o= ok (q-/A-Za-z/r-)0
+    %X Found END while searching for block start.
+    ,)
+  o~m
+  )0
+ok (q-/A-Za-z/r-)0
+:
+

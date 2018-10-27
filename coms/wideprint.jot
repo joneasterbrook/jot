@@ -1,0 +1,32 @@
+%%Outputs to /tmp/print and performs unix lp on buffer.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%m=Checking for nonprinting characters.
+on m-0
+(r132\m)0 m\m-0 ol1o-om
+%o=/tmp/print
+%%obz$(f/%%/e-0(v/ /e)0, m-0e0)
+obz$((v/ /e)0, m-0e0)
+n.a#z#i"%e=Lp -r90 -l45 /tmp/print | lpr -P "i-'$ (r, v-/-P /e-3) oz
+'#
+%l

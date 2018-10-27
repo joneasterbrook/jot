@@ -1,0 +1,62 @@
+%%Converts a man page document to help format.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+%%Run the general-purpose man-page crap remover.
+%r=makeman
+%%
+%%Assuming each level is indented by five spaces from its tag, subcategories
+%%are identified by being indented five spaces from the current text level.
+%%
+%%
+%g#
+%%
+%%Sniff out records indented at current level which are preceeded by either
+%%blank lines or other indents and followed by greater indents.
+m-0
+( %%Section-heading search loop.
+  ( %%Record loop - exits on a true header or end of file.
+    mm-
+    %%Check indentation of current line?
+    ((r\m)0r- v'$\m, rr-f1'$-v/ /m)0 
+      %%Is the previous line OK?
+      ( r-m-((rr-v'$rr-f1'$-v/ /)m2, m2?\)\
+        %%Is the next line OK?
+        rr-f1'$-v/ /
+        )\, mm-2\
+   )0
+  mm-
+  %%Add fold-start.
+  i/{{{  / (v/ /e)5?
+  ((mr\)0r-0f1'$-v/ /)0 r-0i/}}}/b
+  )0
+:
+%%Place top-level tags.
+m-0bn.maaha2m-2i/{{{ /
+(((rm)0(r\m)0r-0v/ /)0b-i/}}}/mn.maaha2m-2i/{{{ /)0
+%%
+%%$ is the indent-match string - second-level tags indented by two columns,
+%%subsequent levels by five, ten ... columns.
+n.i/  /a$ '#
+n.i/     /a$ '#
+n.i/          /a$ '#
+n.i/               /a$ '#

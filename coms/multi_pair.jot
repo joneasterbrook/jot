@@ -1,0 +1,103 @@
+%%Performs a unix command on a pairs of files specified in a tag-separated table.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+Run this by: 
+  1 - create a list of files and directories using unix ls and run ls2list
+  2 - For each pathname copy to the end of the line and separate with a tab.
+  3 - edit the paths as appropriate
+  4 - multi_pair <unixCommand><<Do>>
+    - The unix command is one that takes pairs of pathname e.g. mv, cp, ln or diff
+  4 - results appear in buffer @
+   
+Buffer usage:
+  ! - unix command
+  ; - Results-file name.
+  $ - Temporary - initially the command and args, each pathname while constructing scripts.
+  @ - Constructed commands, then result returned from unix command. 
+  # - Main command macro.
+:
+
+%g#
+%%Pick up the unix command.
+obz$m-0((v/ /r)0n.r0a!h!,
+  oz
+  %x=No unix command found
+  )
+
+%%Construct the temporary file name (since multi_pair might take a while to complete there is the possibility of simple names colliding).
+%e@=echo $$
+%%In ChromeOS /tmp is not mounted for execute
+%q~=version
+(mf1/chrome/
+  (z@okf1/ /e)0r-0n.r0a; z;r-0i"./multi_pair_"
+,
+  (z@okf1/ /e)0r-0n.r0a; z;r-0i"/tmp/multi_pair_"
+  )
+oz
+
+%%Copy original list of pathnames.
+m-0n.m0a@h@z@
+
+%%Remove any blank lines. 
+m-0(rm,k)0 m0j-
+
+%%Sanity-check the entries.
+m-0((v/ /r)0v/	/\m)0        (mm- %x=Error: this line contains a blank pathname.;, )
+m-0(f1/	/m)0                (mm- %x=Error: this line has no tab character separating the entries;, )
+m-0(f1/	/-(v/ /r)0rm)0      (mm- %x=Error: this line contains a blank pathname.;, )
+
+%%Protect each pathname from the shell.
+m-0(f/"/i/\/r)0 m-0(f/	/s/" "/)0 m-0(i/"/r0i/"/m)0
+ 
+%%Repeat the command for each pair of paths.
+z@m-0
+( %%Pathname-pair loop.
+  rr-n.r0a$i/echo ------------------  /h$i/ >> /h;bh!r-0 r0i/ /i'$ r0i/ 2>&1 >> /h;b m
+  )0
+
+%%Add the shebang line.
+m-0b-2i"#!/bin/sh"
+
+%%Write the command file.
+z@%b=pathname '\;.sh; %o
+
+%%Change permissions to execute.
+z;r-0n.r0a$h$z$r-0i/%e=chmod u+x /r0i/.sh/ '$
+
+%%Run the script.
+r-0e0i/( %e=/h;i/.sh > /h; i/ 2>&1 ; , )/ '$
+
+%%Read the results. 
+r-0e0i/%i@=/h; '$
+b-2i/multi_pair results for unix command:  /h!j-r0b2
+
+%%Tidy up. 
+%%z$m-0e0i/%e=\rm -f /h; i/ / h;i/.sh/ '$
+
+%%All done. 
+z@
+%l
+ 
+:
+'#
+

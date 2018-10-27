@@ -1,0 +1,65 @@
+%%Locates a pair of words near each other.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+Window size (by default) is 5 lines (2 above and 2 below match line).
+  Arg1 - <word1>
+  arg2 - <word2>
+  arg3 - optional window size.
+The window size includes the line contining the initial match. In the event
+  of an even window size being given, the part window  above the first match
+  is one line larger than that below.
+
+Buffer usage. 
+ # - Command buffer.
+ ! - word 1
+ @ - word 2
+:
+
+%%Check arguments. 
+%%obz$m-0(v/%% /\k)0e3(v/ /r)0
+obz$m-0(v/ /r)0
+%%Get word 1
+n.f1/ /a!(v/ /r)0
+%%get word 2
+n.(f1/ /, r0)a@(v/ /r)0
+%%get (optional) window size.
+(q/0-9/oid, ol5)
+
+%%get on with it.
+osoz
+%g#
+(v'!m,)
+( %%Main loop
+  f'!onos
+  %%Stack usage:
+  %%  Top   The window size.
+  %%  Top-1 The first-match line number
+  %%Step back to start of window and set up stack for window-size count.
+  o#ol2o/ol0oso-om o#ol0oso-
+  ( %%Searching each line in in window for 2nd. word.
+    (f1'@ okokono-omf1'! %XMatch found.
+      , ) o~m)0 ok
+  osono-omf1'!m)0 
+ok 
+:
+'#

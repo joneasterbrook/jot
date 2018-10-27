@@ -1,0 +1,56 @@
+
+  The contents of the default resources area. Most are  intended  for  testing
+  and demonstrations these can be deleted at any time.
+
+  - Sample_UTF-16LE.txt  - An example of UTF-16, downloaded from http://www.humancomp.org/unichtm/unichtm.htm
+  
+  - Sample_UTF-8.txt  - a UTF-8 from the sam site
+  
+  - Sample_UTF-16BE.txt  - Made with these commands (doesn't work in c-shell):
+$  echo -ne "\0376\0377\000\052" > Sample_UTF-16BE.txt
+$  iconv Sample_UTF-8.txt -f=UTF8 -t=UTF-16BE >> Sample_UTF-16BE.txt
+
+  - Sample_UTF-32LE.txt
+$ echo -ne "\0377\0376\000\000" > Sample_UTF-32LE.txt
+$ iconv Sample_UTF-8.txt -f=UTF8 -t=UTF-32LE  >> Sample_UTF-32LE.txt
+
+  - Sample_UTF-32BE.txt
+$ echo -ne "\000\000\0376\0377" > Sample_UTF-32BE.txt
+$ iconv Sample_UTF-8.txt -f=UTF8 -t=UTF-32BE  >> Sample_UTF-32BE.txt
+
+  - consumertrends2012q3cvmnsa_tcm77-292466.tsv - this is a plain-text version
+    of an XLS spreadsheet. The original was downloaded from:
+  http://www.ons.gov.uk/ons/publications/re-reference-tables.html?edition=tcm%3A77-46187
+  
+  - help - a dummy help tree containing only entries for jot and demonstration
+    samples.
+    
+  - jot_intro.txt - the introductory text for sourcefoorge.
+  
+  - l99.t - a little test file used for testing and demonstration.
+  
+  - lexicon.lis - a simple lexicon used by doc.jot to look up spellings.
+  
+  - my_xmodmap - an xmodmap file to redefine the  numeric  keypad  and  a  few
+    other keys.
+  
+  - Richard\ III:\ Entire\ Play.txt - downloaded with thanks: 
+      http://shakespeare.mit.edu/richardiii/full.html
+      
+  - t.t - a short test file used for testing and demonstration.
+  
+  - t.doc - t.t in MS-word form.
+  
+  - test_doc.t - a file used for testing.
+  
+  - test_get - a small directory tree used for testing the get.jot script.
+  
+  - test_table.txt - a simple table used for testing and demos.
+  
+  - xword_db.txt - a database file used for xword.jot
+  
+
+
+
+
+

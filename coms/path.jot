@@ -1,0 +1,39 @@
+%%Applies CLI command and arguments supplied to current path.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Original history unknown - looks like it goes back to the days of VAX? 
+
+%%Pick up path. 
+ob%q~=buffer; f/pathName = /-bn.r0(q-"]/\"\r-)0a@h@ z$ok
+
+%%Pick up cli command. 
+%%z$m-0kv/%% /e3jj\i/ /
+z$r-0(v/ /e)0r0i/ /
+
+%%Apply it. 
+%m=If it goes all quiet and hangs up it may be prompting for data.
+z@r-0i/%e@=/h$ '@
+
+%%Print reply and return to original buffer. 
+m-0p0oz 
+
+%m=Look at buffer @ to see any reply.

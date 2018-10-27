@@ -1,0 +1,130 @@
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%%Use this command to test.
+%%   ./jot_dev t.t -in="%r=pic; zqi/                                                                          ./b-naaha40m+10r20"
+
+%%Read the relevant keyboard map file.
+n.a@n.a;
+  
+%%Set up keycodes.
+%g$
+%q~=version
+(mf1/WindowsNT/
+  %r=WindowsNT_keys.jot;,
+  %r=std_keys.jot; )
+z^ok
+:
+ob'$
+%%Delete any unused key mappings and trim off the key-mapping commentry.
+z@m-0(f1/>>/-e0m, k)0oz
+
+%% <<LineS>> function - draws line in southerly direction, with tidy corners.
+%g$
+%%Pick up optional string argument.
+%d$=##"Draw-line string> "; 
+%%Check - if no arg given, default to "│".
+obz$e-0(r, i"│")r-0(r2r-b)0m-0oz 
+%%Note original column number.
+ocol0oso- 
+( v-"─" %%We're next on the next character on an easterly line - insert corner then shift down and right.
+    ei"┐"(m, r0b)ol-2o+
+  , rv"─" %%We're at the next character of a westerly line - shift down and left.
+    e-i"┌"(m, r0b)ol-2o+
+  , %%All other cases - start drawing at original cursor position.
+  r- ol-2o+ )
+%%Main loop - inserts character(s) along a southerly line.
+r-0(o#o~ (o~(r, i/ /))0ok ei'$ obz$moz (m, r0b) )0 
+%%Index to next start point.
+oz(m, r0b) ol1o+(o~(r, i/ /))0ok
+:
+obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z;m0r0bi/<<LineS>>/h$oz
+
+%% <<LineN>> function - draws line in northerly direction, with tidy corners.
+%g$
+%%Pick up optional string argument.
+%d$=##"Draw-line string> "; 
+%%Check - if no arg given, default to "│".
+obz$e-0(r, i"│")r-0(r2r-b)0m0oz 
+%%Note original column number.
+ocol0oso- 
+( v-"─" %%We're next on the next character on an easterly line - shift up and right.
+    e?i"┘"(m-, r-0b-)ol-2o+
+  , rv"─" %%We're at the next character of a westerly line - shift up and left.
+    e-i"└"(m-, r-0b-)ol-2o+
+  , %%All other cases - start drawing at original cursor position.
+  r- ol-2o+ )
+%%Main loop - inserts character(s) along a northerly line.
+r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$m-oz (m-, r-0b-) )0 
+%%Index to next start point.
+oz(m-, r-0b-) ol1o+(o~(r, i/ /))0ok
+:
+obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z;m0r0bi/<<LineN>>/h$oz
+
+%% <<LineE>> function - draws line in easterly direction, with tidy corners.
+%g$
+%%Pick up optional string argument.
+%d$=##"Draw-line string> "; 
+%%Check - if no arg given, default to "─".
+obz$e-0(r, i"─")r-0(r2r-b)0m-0oz 
+%%Note original column number.
+ocol0oso- 
+((m-, r-0b-)o#ol0oso-or v"│" %%We're next on the next character on a southerly line - shift right.
+    mo#ol0oso-or e?i"└" ol-3o+
+  , (m, r0b)2o#ol0oso-orv"│" %%We're at the next character of a northerly line - shift right.
+    m-o#ol0oso-orei"┌" ol-3o+
+  , %%All other cases - start drawing at original cursor position.
+  m- ol-2o+ )
+%%Main loop - inserts character(s) along an easterly line.
+r-0o~ (o~(r, i/ /))0ok (e?i'$ obz$moz )0
+%%Already at next start point.
+oz
+:
+obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z;m0r0bi/<<LineE>>/h$oz
+
+%% <<LineW>> function - draws line in westerly direction, with tidy corners.
+%g$
+%%Pick up optional string argument.
+%d$=##"Draw-line string> "; 
+%%Check - if no arg given, default to "─".
+obz$e-0(r, i"─")r-0(r2r-b)0m0oz 
+%%Note original column number.
+ocol0oso- 
+((m-, r-0b-)o#ol0oso-or v"│" %%We're next on the next character on a southerly line - left.
+    mo#ol0oso-or e?i"┘" ol-1o+
+  , (m, r0b)2o#ol0oso-orv"│" %%We're at the next character of a northerly line - shift right.
+    m-o#ol0oso-or e?i"┐" ol-1o+
+  , %%All other cases - start drawing at original cursor position.
+  m- ol-2o+ )
+%%Main loop - inserts character(s) along a westerly line.
+r-0 (o~(r, i/ /))0ok (e-i-'$ obz$m-oz )0
+%%Index to next start point.
+oz r-
+:
+obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z;m0r0bi/<<LineW>>/h$oz
+
+%%The @ buffer now contains associations of jot-editing functions with key codes and escape sequences.
+%%The ; buffer contains function definitions tagged with function names.
+%%
+%%For each key in the @ buffer, replace the symbolic function names with real code from ; add the completed hotkeys to ^
+obz@m-0 (f1/<</\k, n.f1/>>/-a$&z;m-0f'$-n.r0a$&z@r-0r8e0h$m, z@k)0 z^m-0h@ oz
+

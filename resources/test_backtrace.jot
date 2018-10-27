@@ -1,0 +1,44 @@
+%%Test script for jot backtrace.
+
+%w; %w 20; %w 0;
+
+%r=bt
+
+f/jon/
+
+%ga
+%m=In macro A
+%%A comment
+rl 'b rlrl
+%%Another comment
+:
+
+%gb
+%m=In macro B
+rlrl 'c rlrl
+:
+
+%gc
+%m=In macro C
+rlrlrl   %h'=call Test1;   rlrlrl
+:
+
+
+z'm0b
+i/<<Test1>>/l2 %h=new Test1;r0 bi/%h'=call Test2;/b
+i/<<Test2>>/l2 %h=new Test2;r0b2i/%h'=call Test3;/b  
+i/<<Test3>>/l2 %h=new Test3;r0b3i/t %qq=backtrace;/b 
+z. rlrlrlrl      'a     rlrlrlrl
+
+%%Should leave a report like this in buffer q
+%%
+%%backtrace
+%%  Line  811 of macro ': t [%qq=backtrace;]
+%%  Line  809 of macro ': [%h'=call Test3;]
+%%  Line  807 of macro ': [%h'=call Test2;]
+%%  Line    2 of macro C: rlrlrl   [%h'=call Test1;   ] rlrlrl
+%%  Line    2 of macro B: rlrl ['c ] rlrl
+%%  Line    3 of macro A: rl ['b ] rlrl
+%%  Line    1 of macro  : z. rlrlrlrl      ['a     ] rlrlrlrl
+%%  Line    0 of file <The Keyboard>:  %w; %w 9; %w 0; [%r=/home/jone/ed/resources//test_backtrace.jot]
+

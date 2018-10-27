@@ -1,0 +1,41 @@
+%%Provides basic unicode translations for european alphabets.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%Basic unicode info from    http://utf8-chartable.de/unicode-utf8-table.pl?start=9472&unicodeinhtml=dec
+%%
+%%Usage - hit {Esc}<Ch1><Ch2> - if the two characters are recognized as inidicating a unicode character, the unicode character is inserted into the text.
+%%  e.g: {Esc}u=Y inserts ¥
+%%       {Esc}u~a inserts ã
+%%
+
+%g$
+u--     %s=commandstring ##─    (  E2 94 80  )
+u||     %s=commandstring ##│    (  E2 94 82  )
+utl     %s=commandstring ##┌    (  e2 94 8c  )
+ubr     %s=commandstring ##┘    (  e2 94 98  )
+utr     %s=commandstring ##┐    (  e2 94 90  )
+ubl     %s=commandstring ##└    (  e2 94 94  )
+u//     %s=commandstring ##╱    (  e2 95 b1  )
+u\\     %s=commandstring ##╲    (  e2 95 b2  )
+:
+
+obz$m-0(f/    (  /e0)0z^m-0h$boz
+ 

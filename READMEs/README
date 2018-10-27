@@ -1,0 +1,227 @@
+This README is part of the jot text editor installation.
+
+  To view the jot documentation package point your browser at:
+    ${JOT_HOME}/docs/jot_ug.html
+  This has links to other files in the jot documentation suite.
+  
+  Alternatively, if you have a working jot installation, try this:
+$ jot /dev/null -st=qr
+  in windowsland this should work:
+$ jot NULL -st=qr
+  This loads the documentation .txt files, resolves  and  displays  the  links
+  allowing you to click through links.
+
+1 Installation - general.
+-------------------------
+  The contents of the jot_v<ver>.zip or jot_v<ver>.tz archives  is  identical,
+  these are available from the JoyOfText project at sourceforge.net
+  
+  A bare minimum installation is just the relevant executable placed somewhere
+  on your search path. This will  give  you  something  very  similar  to  the
+  original ecce editor - complete with a realistic 1960's-style  faux-teletype
+  user interface.
+  
+  To get a more modern user  interface  a  screen  view  and  function/hot-key
+  command interface it needs to know where  it  can  pick  up  an  appropriate
+  startup file. The default startup file is  ${JOT_HOME}/coms/startup.jot,  to
+  pick this up it requires an environment variable JOT_HOME pointing  to  your
+  jot installation. 
+  
+  Assuming you have just downloaded and unpacked the jot_v<version>.tz archive
+  (or the .zip archive) then you should now be  the  proud  owner  of  a  tree
+  similar to that shown below:
+  
+                   v<version>                                  
+                       |                                    
+    ---------------------------------------------                  
+   |      |      |                  |            |                  
+  bin    coms   releasenote.txt    resources    source                     
+   |      |                         |            |
+   |     ...                       ...          jot.c 
+   |
+   ------------------------------------------------------------------
+   |      |      |       |       |          |          |             |
+  lin64  lin32  win32   armv7l  test.csh   test.bat   test_win.csh  test_win.bat          
+   |      |      |       |
+  jot    jot    jot     jot
+  
+  You should set the environment  variable  JOT_HOME  to  point  to  the  vn.m
+  directory eg:
+$ export JOT_HOME=/<path>/v<version>
+$ export PATH=${JOT_HOME}/bin/<arch>/;${PATH}
+  
+  Also, some functions require data files that might  not  be  appropriate  to
+  share with the world at large, so there's  another  env  JOT_RESOURCES  that
+  points  to  a  place  where  these  can  be  picked  up.  If,  however,  the
+  JOT_RESOURCES   env   is   not   set   up   then   it   just   defaults   to
+  ${JOT_HOME}/resources which is OK for now.
+    
+    - the bin area, contains shell scripts and the jot binaries for various OS
+      and processor architectures, it is also where  scripts  expect  to  find
+      java applications.
+        - lin64 - 64-bit linux
+        - lin32 - 32-bit linux
+        - win32 - 32-bit  windows,  for  64-bit  windows  the  win32
+          version will run in compatibility mode.
+    - coms is the area where jot expects to find it's command scripts.
+    - releasenote.txt briefly describes recent changes and any known bugs.
+    - resources contains various test and example files, this area can be used
+      to park reference files for jot scripts.
+    - source - holds the jot source file.
+    
+  In windowsland some registry entries are requiredthe recommended way of setting up these. However, to just test and
+  play around with it after unpacking in your home area:
+$ setx JOT_HOME=C:\<unpackPath>\v<version>\
+$ set PATH=C:\<unpackPath>\v<version>n.m\bin\win32;%PATH%
+  
+  The  conventional  place  for  a  permanent  windowsland   installation   is
+  C:\Program files\... - anyway it's your computer park it where you will.
+
+1.1 Getting Started
+-------------------
+  Fire up the editor in an xterm (or windows console) - the following  command
+  line will work in either linux or windows:
+$ jot ${JOT_RESOURCES}/t.t
+  
+  In windowsland, the ${JOT_RESOURCES} element is passed to jot unchanged, jot
+  will always resolve any pathname containing references to envs wrapped up in
+  ${ - }.
+  
+  You should see an 11-line test file in a mainly blank window.  There  should
+  be a reverse-video line near the bottom - the  delimiter  line  showing  the
+  pathname of the file you're looking at and, near the right  margin,  a  full
+  stop ( . ) - in jot all buffers are identified by  a  single  character  the
+  main buffer is always ( . ).
+  
+  Below the delimiter line is the console area - four lines containing various
+  messages and a prompt. Right now there are lines of three messages generated
+  as jot fired up - details of scripts the startup script ran and the  version
+  and build date of the jot executable you're running.
+  
+  The prompt also contains two useful bits of information the line  number  of
+  the current line ( 1 in this case) and the buffer key ( . ).
+  
+  Notice also there's two cursors:
+    - the jot cursor consists of  a  single  reverse-video  character  in  the
+      top-left corner
+    - the system cursor shows as a reverse-video blank following the prompt in
+      the bottom line.
+  Those who old enough to remember them will deduce from this that  jot  is  a
+  command-driven editor. Many thought the species extinct but no - it's  alive
+  and well.
+  
+  This is good news for anyone who likes to get their hands  dirty  and  write
+  their own little bits of code. Maybe to automate some operation or to locate
+  some highly-specific context in the text. There is no requirement to do  any
+  special wriggling - just  type  your  command  sequence  straight  into  the
+  console area, hit {return} and it gets on with it right away.
+  
+  Let's do a string search - type the string abc then hit the F8 function key:
+> abc{F8}
+  the first thing to notice is that the function key doubles up  as  a  string
+  terminator - this is good news for typists of limited  ability  as  well  as
+  those susceptible to typists cramp.
+  
+  Next notice that the cursor has moved a little to the right it's now sitting
+  over the ( a ) of the alphabet and the ( b ) and the ( c ) are underlined  -
+  this indicates that it's selected the substring (  abc  )  and  the  current
+  character is the ( a ).
+  
+  Now hit F8 again.
+> {F8}
+  there are two things to notice about this -  first  that  {F8}  without  any
+  parameter string will search for the last-searched string and that  jot,  by
+  default is case insensitive.
+  
+  Searching again results in failure:
+> {F8}
+  we see this message appear in the console area:
+{Command-sequence failed.}f` 
+  notice that the jot cursor has moved to the last line of the file,  this  is
+  blank, so the cursor shows a tilde ( ~ ) in reverse video -  this  is  jot's
+  way of saying the cursor is at the end of the line.
+  
+  The F7 function key searches back towards the start of the file image:
+> {F7}
+  the cursor is once again showing the substring ( ABC ) on the second line.
+  
+  The cursor-control keys work pretty-much as for any text editor except  that
+  the up and down arrow keys go to the  start  of  adjacent  lines  making  no
+  effort to hold  to  a  column.  For  uses  applications  this  behaviour  is
+  preferable but there are ways of holding to a column when required.
+  
+  Another important command you will now need to  know  is  how  to  exit  the
+  editor - it's %a - no need to ask why.
+> %a{return}
+  
+  For  a  more  complete  introduction  to  jot,   point   your   browser   at
+  ${JOT_HOME}/docs/jot_walkltrough.html
+
+7 Compilation
+-------------
+  The tarball/zipfile contains executables. The win32 version should work  for
+  any recent NT windows.  The  linux  versions  are  dynamically  linked  and,
+  although they'll work with pretty-much any version of ncurses different  you
+  may find that the version I happened to have compiled it  with  is  not  the
+  version supported by your distro.
+  
+  If, at image activation time, it  complains  it  can't  find  some  specific
+  version of ncurses then your best bet is to recompile the source. There  are
+  a few libraries which you may be lacking:
+  
+7.1 Compilation (Linux/Unix)
+----------------------------
+  Compilation in a gnu environment: 
+$ csh
+$ cd $JOT_HOME
+$ set versionString='"'"jot <version>,
+$ gcc -g source/jot.c -D VERSION_STRING="${versionString}" -lncursesw -o jot |& tee jot.lis
+  
+  Expect no warnings or errors.
+
+7.3 Compilation: MS-Windows
+----------------------------
+  The original was compiled using MSVC 2010 (the express version) under  wine,
+  using both MS and  gnu  libs.  To  compile  locally  you  will  require  the
+  following:
+    - a libgw32c-0.4 installation (from the sourceforge gnuwin32 project).
+    - the Microsoft SDKs, I used v7.1,
+    - libgcc
+  
+  The following directory structure was used to compile in windows and wine:
+  
+    ------
+   |      |  
+  source wine
+   |      |
+  jot.c    -----------------------------------        
+          |                            |      |            
+         libgw32c-0.4                 MSDKs  lib           
+          |                            |      |            
+           -----------------          Lib    libgcc.lib    
+          |                 |          |      |            
+         lib               include    ...    ...           
+          |                 |                                                 
+         libgw32c.a        glibc                                              
+                            |                                                 
+                           search.h                               
+          
+  With VC express 2010 I built with the following commands: 
+$ cd $JOT_HOME
+$ set versionString="jot <version>, built <buildDateStamp>, for WindowsNT"
+$ cl /c /DVC /D__value=_value /Zi /D_DEBUG /DVERSION_STRING="jot <version>, <hostInfo>, <dateStamp>" source/jot.c
+$ link /debug /out:jot.exe jot.obj wine/libgw32c-0.4/lib/libgw32c.a wine/MSDKs/v7.1/Lib/*.Lib wine/lib/libgcc.lib
+ 
+  ( WINEDEBUG= -all wine cl.exe ; wine cl /c ${debug} /DVC /D__value=_value /Zi /D_DEBUG /DVERSION_STRING="${versionString}" ${sourceDir}jot.c /Foed/bin/jot.obj ) 2>&1 >> ${sourceDir}jot.lis
+  echo "Windows link now..." >> ${sourceDir}jot.lis
+  wine link /debug /out:ed/bin/jot${exeSuffix}.exe ed/bin/jot.obj \
+    ed/wine/libgw32c-0.4/lib/libgw32c.a ed/wine/MSDKs/v7.1/Lib/*.Lib \
+    ed/wine/lib/libgcc.lib 2>&1 >> ${sourceDir}jot.lis
+  
+8 Testing
+---------
+  Start the editor in either an xterm or a windows console:
+$ jot ${JOT_RESOURCES}/t.t
+
+  If all is well you should see a simple test file with 
+   

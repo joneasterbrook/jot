@@ -1,0 +1,67 @@
+%%Toolbox for touching up help files.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+ob
+%r=doc
+%%Define additional help info.
+%g$
+  Buffer 'a - A start fold mark "{{{ "
+  Buffer 'b - An end fold line "}}}"
+  Buffer 'c - An end followed by a start fold.
+   
+  Button 1 - Make all the text up to the next blank line a headed sub-paragraph.
+  Button 2 - Similar to Button 1 but for a subheading.
+  Button 3 - Formats this paragraph
+  Button 4 - Makes the current paragraph a bullet.
+   
+  N.B. unnecessary trailing blank lines are abstracted to the '% buffer.
+
+:
+z?m-0h$bm-0
+
+%g$
+}}}
+{{{ 
+:
+z$m-0nabhb
+n.r0aahan.m-ac
+
+%%%d1=l0r l0(v/ /e)0 (m(v/ /r)0rj-)0m-f1/ /(v/ /e)0bi/  /'* m(v/ /r)0 (rl, l0n. (m(v/ /r)0r\m)0m-a%+)
+%%%d2=l0r l0(v/ /e)0 i/  / (m(v/ /r)0rj-)0m-f1/ /(v/ /e)0bi/    /'* m(v/ /r)0 (rl, l0n. (m(v/ /r)0r\m)0m-a%+)
+%%%d3='*mn.((v/ /r)0r\m)0l0a%+
+%%%d4=l0(q/{ /r)0lv/ n /s-/  - /e-0 (m(v/ /r)0rj-)0m- '* m-r0(v-/}}}/e-3,) (m(v/ /r)0r\)0l0
+%g1
+l0r l0(v/ /e)0 (m(v/ /r)0rj-)0m-f1/ /(v/ /e)0bi/  /'* m(v/ /r)0 (rl, l0n. (m(v/ /r)0r\m)0m-a%+)
+:
+%g2
+r-0r r-0(v/ /e)0 i/  / (m(v/ /r)0rj-)0m-f1/ /(v/ /e)0bi/    /'* m(v/ /r)0 (rr-, r-0n. (m(v/ /r)0r\m)0m-a%+)
+:
+%g3
+'*mn.((v/ /r)0r\m)0r-0a%+
+:
+%g4
+r-0(q/{ /r)0r-v/ n /s-/  - /e-0 (m(v/ /r)0rj-)0m- '* m-r0(v-/}}}/e-3,) (m(v/ /r)0r\)0r-0
+:
+
+oz

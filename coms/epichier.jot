@@ -1,0 +1,78 @@
+%%Finds an instance/net from a pathname in an epic-include netlist.
+%%This is in the form:  <InstName1>/<InstName2>/<InstName3>/<LastInstName>
+%%  e.g.                core/byte_3/mux0/I41/MP6/pmos
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Usage
+    epichier <InstName1>/<InstName2>/<InstName3>/<LastInstName>
+    
+  Assumptions:
+    The epic include netlis is in buffer n.
+    
+  Buffer usage:
+    $ - the instance path, exploded to one instance name/line
+    @ - Temp - master name, and last-read netlist.
+    ; - The result netlist
+    
+:
+%g#
+%%Initialization 
+%%
+n.a;
+%%
+%%Check that we've got a valid epic include netlist in buffer n.
+znm0m-(v/include /, r0v-/.epic/
+  %X=Fatal:Buffer "n" must be the epic include netlist.
+  )
+%%Pick up path arg.
+%%z$m-0(f/%%/-, %X=Must specify a path as argument to epichier.
+z$m-0((v/ /r)0rr-, %X=Must specify a path as argument to epichier.
+  )
+(v/ /r)0e-0(m-k-0,)(mk0,)j-r-0(q"|"e,)((q"|/."\r)0eb)0m-0
+%%
+%%Find the top-cell name.
+znm0m-r0f-1/.epic/n.f-1./.-a@h@
+  
+( %%Main loop - take each instance name off the argument string
+  %%and read the next master.
+  %%
+  %%Read the master's netlist.
+  znm0(f-'@v-./.\, rr-f1'@-v/.epic/\r-0)0 r0n.f-1/ /-a@h@z@%i@
+  %%
+  %%Mark end of netlist.
+  m0i/from: /r0b5
+  %%
+  %%Prepend new netlist to collection.
+  z;m-0b-h@z@m-0
+  %%
+  %%If we're up to the last path element accept any object - otherwise accept only instances.
+    z$(mm-z@
+    %%Not yet at end of path - find the path-element instance.
+    (f/(en=/-v'$\, rr-f1'$-rr-q/ )/\)0 z;m-0f'@r0f-1/(ef=/-n.f1/)/a@h@
+  , %%Yup - at end of path - find the path-element object.
+    z@ (f'$rr-f1'$-rr-q/ )/\)0 z;f-'@r-0f1'$)
+  z$m )0
+z;
+:
+'#

@@ -1,0 +1,94 @@
+%%Command file to multicolumn a document to 2 columns for 90 by 66-line forms.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%g?
+  Forms a long list of records into a multi-column list.
+  
+  Buffer usage:
+    - @ -  A copy of the original text, this is destructively munged into the multicolumn format.
+    - $ - Temporary.
+    - 1 - Page up macro.
+    - 2 - Page down macro.
+:
+
+%%  %d1=(onm*-m-, ono-om)
+%%  %d2=(onm*m, ono-om)
+%g# 
+%%Take a copy of the buffer.
+ocon m-0n.m0a@& ono-omor z@
+ 
+%%Acquire the window dimensions.
+(obz$r-0i/ /r-f/ -size=/-
+  (oidosv/x/roidos, %x=Error Dimensions must be <width>x<height>; )
+, %%No -size given use screen dimensions.
+  w %q$=window; 
+  f/screenWidth = /-oidos f/currently buffer ( /f1/ ), /-oid 
+  (f1/Height includes an end delimiter./ol1o-, )os ) 
+oz
+
+%%Change any tabs to tildes.
+m-0 (f/	/ (f/	/s/~/)0 %m=The original text contained one or more tabs - changed to tildes.;, )
+
+%%Mark the columns with empty lines.
+m-0 (o#ol0oso- ( (r, i/ /)m o~)0 okbmm- )0 os
+
+%%Initialize Page-width counter.
+ol0
+m-0
+( %%Page loop - pick up all columns in this page.
+  ( %%Column loop - pick up all lines in this column, noting longest.
+    %%Initialize longest-line counter.
+    ol0
+    ( %%Line loop - pick up next line
+      %%Test for column end.
+      r
+      %%Compare line length.
+      r0oc(o<okoc, ) m)0
+    %%Pad first line in column with whitespace.
+    (m-r)0 (r-0r, m) r-0o#ol0oso- (ol0o=, ((r, i/ /)o~)0) oki/	/
+    %%If total width of all columns (including this) width exceeds screen width then start a new page.
+    o+(o> ocr-0n.(rm)0a$ (m-\h$m, (m-r)0(r-0r, m)r0oco+h$* r-0(v/ /r)0(r\km, m0\)))
+    )0 %%Next column.
+  %%Add extra whitespace padding to even up columns in display.
+  %%First count tabs.
+  o#m-(m-r)0(r-0r, m) r0v-/	/e- r-0ol0(f1/	/o~)0ol0oso- 
+  %%Calculate total no. of blanks to insert.
+  osr0ocoso-r-0 
+  ( %%Indent column loop.
+    %%Find next tab and note it's column no.
+    (f1/	/, r-0f1//)ocr-0 
+    %%Entry loop - indent all entries in this column.
+    (o#ori/ /mrr-)0 
+    %%Back to start of column and count inserted blanks.
+    (m-r)0(r-0r, m) orr2o~)0
+  %%Tidy stack and return to first column in next page.
+  okok (mr)0m
+  %%Reset page-width counter and move to next column.
+  r0oc(mr)0 m2m- )0 %%Next page.
+   
+:
+'#
+%%Tidy up the stack and remove the blank-line page marks.
+okokos m-0(o#omj)0 okok
+m-0

@@ -1,0 +1,128 @@
+%%Reads CDL using hashtables and an index file.
+
+%%
+%%    Copyright (C) 2017-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%History
+
+%g?
+  Usage:
+    <subsktName>{KP_7} -- Reads the subcircuit using %i ... -section=<hashkey>;
+    <netName>{KP_8} -- Reads in all subcircuits connecting to named net.
+   
+  Buffers used:
+    7 - macro 7, launches a dictionary query.
+    8 - macro 8, launches a net-name grep and loads matching subcircuits.
+    $ - temporary, used for args, setup and queries.
+    # - temporary, only used at dictionary-setup time.
+    % - Used to hold the index file while building.
+    ! - CLI args:
+      - Line 1 - Destination buffer.
+      - Line 2 - Pathname of CDL file.
+      - Line 3 - value given by -size=<n> qualifier or default value
+      - Line 4 - pathname for optional index file.
+    
+  Usage:
+$ jot /dev/null -init="%r=cdl -file=<cdlFileName>;"
+  
+  Format of index file:  
+    Each entry consists of a seek offset followed by the hashtable key separated by a tab, these *must* be in 
+    order of appearance in the CDL as the size of each section is calculated from the seek offsets.
+
+:
+
+%g#
+%%
+%%Prepare ! buffer and note the original buffer
+n.a! obz!oo/%c/b4
+%%
+%%Pick up mandatory -file=<pathName> arg and check it exists.
+z!m+2 z$r-0 (f/-file=/-n.(f1/ /, r0)a!., %X=Error: No -file=<pathname> arg - cannot continue.;)
+( %q=file '!;, %m=Error: CDL file '! not found.; )
+%%
+%%Pick up optional -size=<noOfHashTableEntries> arg.
+z!m+3 z$(r-0f/-size=/-n.(f1/ /, r0)a!., z!i/10000/)
+%%
+%%Pick up optional -index[=<pathName>] arg indicates an index file.
+z!m+4 z$(r-0f/-index/-(v/=/n.(f1/ /, r0)a!., z!m+2n.r0a@&m+4h@r0f-1/./e0i/_index.txt/), )
+%%
+%%If -index <pathName> was given then skip the direct index-build.
+z!m+4
+%%Clear ( $ )in preparation for index-build operation.
+%d$=Initial_gumph;
+( r 
+  %%Index file was specified, if it exists read it, if not then build it.
+  ( %q=file '!;,
+    %%Create the index file.
+    %%First set up the -filter commands.
+    %d*=(f1/.SUBCKT /- (v/ /r)0n.(f1/ /, r0)a$& z%o#oo/%10d	/h$bz@, ) oeo+o~ k? 
+    %%Go for it.
+    z!m+2 n.a$ ol0 %i@='! -filter='*;
+    %%Add the seek offset to the last byte in the file.
+    z%oo/%10d	**End of File**/b
+    %%Write the new index file.
+    z!m+4 z% %o='!;
+    %%Clear ( $ ).
+    %d$=Initial_gumph; )
+  %%Now read the index file
+  z!m+1oic m+3 oz %h=create '!; 
+  %d*=o#oidoso- %h=setseek \\'$\;? o+ f1/	/-n.r0a$& k?;
+  %%Read it now.
+  ol0 z!m+1oic m+4 oz %i='! -filter='* -noinit;? okok
+, %%No index-file pathname given do the direct index build.
+  z!m+1oic m+3 oz %h=create '!; 
+  %d*=(f1/.SUBCKT /- %h=setseek \\'$\;? o+ol0 (v/ /r)0n.(f1/ /, r0)a$&, ) oeo+o~ k?;
+  %m=Extracting index.
+  z!m+1oic m+2 n.a$ ol0ol0 %i='! -filter='*;
+  %%There's still one more pending subcircuit.
+  %h=setseek '$;?
+  okok )
+:
+
+%g7
+%%Macro to launch a query.
+%%
+%%Pick up buffer key and CDL pathname
+z!m+1oic m+2 oz m0on
+( %i='! -section='$ -append;
+  %%Read success - change original SeekObj entry to a conventional HtabObj.
+  ono-omm-r0b2i/*------------------------------------------ /h$r-0
+  %%Replace SeekObj with HtabObj pointing at the start of the newly-read subcircuit.
+  %h=add '$;
+  %%get top of new subcircuit at top of view.
+  wm*w %h=jump '$;
+, %%Read failure.
+  ok ( %h=jump '$; wm*w %h=jump '$; , z!m+1oicoz %X=Error: Subcircuit '$ is not in the CDL index.; ) )
+:
+
+%g8
+%%Macro to grep for subcircuits containing some feature (typically a net name). and pull the subcircuits it appears in.
+z!m+1oicoz m0b2i/*========================================= Subcircuits matching string "/h$i/"/b
+%%First use grep to search.
+z!m+2 z$r-0i/%e@=grep -b / r0i/ / i'! '$
+%%Get a list of subcircuits and their byte offsets.
+z!m+1oicoz %q_=keys; k2f1/, Seek /-oidf1/, Limit /-oido+r-0b-oo/key **Dummy**, Seek %d, Limit 0/ m0m-
+%%Now spot the subcircuits.
+(z@oidz_(f1/ Seek /-oido>m-)0ok mf1/key /-(v/ /r)0n.f1/, Seek /a$& '7 z@m)0
+z!m+1oicoz
+:
+
+ob'# oz
+

@@ -1,0 +1,1895 @@
+%%Defines the hot-keys, functions and function mappings for vim-like operation.
+%%
+  
+%%Copyright (C) 2013-2018 Jon. Easterbrook
+%%This programme, it's associated scripts and documentation is free software.
+%%It is distributed in case someone might find it useful,
+%%it can be modified and redistributed without restriction.
+%%No warrenty is given or implied for whatever purpose.
+%%
+%%
+  
+%%The user calls this script as a -startup=fake_vim.jot                                                                                                                                                                                                               Q    
+%%but this script actually needs to run after the standard mapping tables and functions have been defined.
+%%
+
+%%Setup.
+%h.=create 100;
+%%Options and Args first.
+%h=data .=Options; z$r-0(f/ -/, r0)n.r0a~z~ r-0(f1/  /e)0r0(v-/ /e-,) z.ov/.=Options/
+%h=data .=Args; z$r-0(v/ /e)0 (rr-0 (f1/ /b(v/ /e)0)0, ) m-0n.m0r0a~&z~m-0 z.ov/.=Args/ %h=create 100 .=Args;
+%%
+%%Call the standard startup now.
+%r=startup -nofinalize;
+%%
+%%Read files and create a hashtable for local marks, define the colour tags etc.
+oq/.=Args/z~m-0 %h=data .=CurrentBuf; ol65o#ov/.=CurrentBuf/ 
+%%File-reading loop.
+(n.r0a$& z$o#r-0oo/%%i%c=/o~r0i/;/ '$ %h=create 100; %b=tagtype VisualSel colour 0 7; osz~mos)0
+z.okok
+%%
+%%ArgStatus keeps track of which file images have actually been visited.
+%h.=data .=ArgsStatus; ol1ov/.=ArgsStatus/
+
+%%Jumps is a floating hashtable used for global jumps.
+%h=data .=Jumps; n.a~ %h~=create 100; ov/.=Jumps/
+%%JumpNo counts no. of jumps already in Jumps object.
+%h.=data .=JumpNo; ol0ov/.=JumpNo/
+%%DeferredAction - command to be executed after a navigation command.
+%h=data .=DeferredAction; ol0ov/.=DeferredAction/
+%%Digits - Numeric arg to various navigation etc, commands.
+%h=data .=Digits; ol-1ov/.=Digits/
+%%
+%%Various bits of state to do with find ( {/}, {?}, ... etc)
+%%FindOrigLineNo - the line number before the latest find jump.
+%h=data .=FindOrigLineNo; ol0ov/.=FindOrigLineNo/
+%%FindOrigChrNo - the character (column) number before the latest find jump.
+%h=data .=FindOrigChrNo; ol0ov/.=FindOrigChrNo/
+%%FindNewLineNo - the line number after the latest find jump.
+%h=data .=FindNewLineNo; ol0ov/.=FindNewLineNo/
+%%FindNewChrNo - the character (column) number after the latest find jump.
+%h=data .=FindNewChrNo; ol0ov/.=FindNewChrNo/
+%%LatestFind - the latest character search using {f} and {F}.
+%h=data .=LatestFind; %d~=;ov/.=LatestFind/
+%%
+%%And two bits of state for the find-character-on-line commands {f}, {F}, {t} and {T}
+%h=data .=FindCmd; ol0ov/.=FindCmd/
+%h=data .=FindChr; ol0ov/.=FindChr/
+%%
+%%Global Marks
+%h=data .=GlobalMarks; %d~=Global-marks buffer; ov/.=GlobalMarks/ %h=create 100 .=GlobalMarks;
+%%
+%%OriginalLineText and OriginalLineNumber - used by {U} to restore the line to it's original state, set by jumps etc.
+%h=data .=OriginalLineText; %d~=; ov/.=OriginalLineText/
+%h=data .=OriginalLineNo; ol0 ov/.=OriginalLineNo/
+%h=data .=OriginalChrNo; ol0 ov/.=OriginalChrNo/
+%%
+%%OriginalFocusBuffer, OriginalFocusLineNo and OriginalFocusChrNo - used by {Ctrl+T} to restore focus.
+%h=data .=OriginalFocusBuffer; ol0ov/.=OriginalFocusBuffer/
+%h=data .=OriginalFocusLineNo; ol0ov/.=OriginalFocusLineNo/
+%h=data .=OriginalFocusChrNo; ol0ov/.=OriginalFocusChrNo/
+%%
+%%Regs - a hashtable for all the vim registers.
+%h=data .=Regs; %d~=; ov/.=Regs/ %h=create 100 .=Regs;
+%%Populate with blank vim registers.
+%%  - Reg % seems to be the pathname of the current file,
+%%  - Reg # seems to be the pathname of the previous file,
+%%  - Reg / holds the latest search string
+%%  - Reg : holds the last-used : command.
+%%  - Reg 0 to 9 and a to z hold yanked text - selected with {"} command
+%%  - Reg - holds deleted text.
+%d$=%#/?:-0123456789; z$(i/.=Regs|/r2r-b)0m-0 (z.%h=data '$; %d~=; ov'$ z$m)0
+%%Set the initial yank reg to ( 0 ) - ASCII code 48 and initialize.
+%h=data .=Regs|YankReg; ol48 ov/.=Regs|YankReg/ n.a0&
+%%
+%%Last-moified line state:
+%%  .=LastModifiedLineNo - line number of last modified line
+%%
+%%YankMode - defines the visual and yank mode:
+%h=data .=YankMode; ol0ov/.=YankMode/
+%%VisulaMode values:
+%%  0 - Not in visual mode.
+%%  1 - Line-oriented visual mode.
+%%  2 - Character-oriented visual mode.
+%%  3 - Block-oriented visual mode.
+%%  4 - Non-visual Line-oriented yank.
+%%  5 - Non-visual Character-oriented yank.
+%%
+%%VisTopOrBot - 0 if at top of visual field, 1 if at bottom.
+%h=data .=VisTopOrBot; ol0ov/.=VisTopOrBot/
+%%
+%%VisualTop/BotLine/Chr - indicate the current extent of visual-mode area.
+%h=data .=VisTopLine; ol0ov/.=VisTopLine/  %h=data .=VisTopChr; ol0ov/.=VisTopChr/
+%h=data .=VisBotLine; ol0ov/.=VisBotLine/  %h=data .=VisBotChr; ol0ov/.=VisBotChr/
+
+%%The tags table.
+%h=data .=Tags; n.a~ ov/.=Tags/
+%%
+
+%g$
+This document defines the design endpoint for fake_vim, with thanks, From:
+   http://users.ece.utexas.edu/~adnan/vimqrc.html
+  
+VIM QUICK REFERENCE CARD
+  ** indicates unimplemented functions.
+  
+Basic movement
+  - h l k j                character left, right; line up, down
+  - b w                    word/token left, right
+  - ge e                   end of word/token left, right
+  - {  }                   beginning of previous, next paragraph
+  - ( )                    beginning of previous, next sentence
+  - gm                     middle of line
+  - g^                     Go to first nonblank of current line.
+  - g$                     Go to last character of line.
+  - ^  $                   first, last character of line (^ not implemented)
+  - nG ngg                 line n, default the last, first
+  - n%                     percentage n of the file (n must be provided) - not implemented - this seems like a perfectly useless command.
+  - n|                     column n of current line
+  - %                      match of next brace, bracket, comment, #define
+  - nH nL                  line n from start, bottom of window
+  - M                      middle line of window
+  
+Insertion & replace -> insert mode
+  - i a                    insert before, after cursor
+  - I A                    insert at beginning, end of line
+  - gI                     insert text in first column
+  - o O                    open a new line below, above the current line
+  - rc                     replace character under cursor with c
+  - grc                    like r, but without affecting layout
+  - R                      replace characters starting at the cursor
+  - gR                     like R, but without affecting layout
+  - cm                     change text of movement command m
+  - cc or S                change current line
+  - C                      change to the end of line
+  - s                      change one character and insert
+  - ~                      switch case and advance cursor
+  - g~m                    switch case of movement command m
+  - gum gUm                lowercase, uppercase text of movement m
+  - <m >m                  shift left, right text of movement m
+  - n<< n>>                shift n lines left, right
+  
+Deletion
+  - x X                    delete character under, before cursor
+  - dm                     delete text of movement command m
+  - dd D                   delete current line, to the end of line
+  - J gJ                   join current line with next, without space
+  - :rd{Rtn}               delete range r lines
+  - :rdx{Rtn}              delete range r lines into register x
+  
+Insert mode
+  - ^Vc ^Vn                insert char c literally, decimal value n
+  - ^A                     insert previously inserted text
+  - ^@                     same as ^A and stop insert -> command mode
+  - ^Rx ^R^Rx              insert content of register x, literally
+  - ^N ^P                  text completion before, after cursor
+  - ^W                     delete word before cursor
+  - ^U                     delete all inserted character in current line
+  - ^D ^T                  shift left, right one shift width
+  - ^Kc1c2 or c1<-c2       enter digraph \c1,c2\
+  - ^Oc                    execute c in temporary command mode
+  - ^X^E ^X^Y              scroll up, down
+  - <esc> or ^[            abandon edition -> command mode
+  
+Copying
+  - "x                     use register x for next delete, yank, put
+  - :reg{Rtn}              show the content of all registers
+  - :reg x{Rtn}            show the content of registers x
+  - ym                     yank the text of movement command m
+  - yy or Y                yank current line into register
+  - p P                    put register after, before cursor position
+  - ]p [p                  like p, P with indent adjusted
+  - gp gP                  like p, P leaving cursor after new text
+  
+Advanced insertion
+  - g?m                    perform rot13 encoding on movement m
+  - n^A n^X                +n, -n to number under cursor
+  - gqm                    format lines of movement m to fixed width
+  - :rce w{Rtn}            center lines in range r to width w
+  - :rle i{Rtn}            left align lines in range r with indent i
+  - :rri w{Rtn}            right align lines in range r to width w
+  - !mc{Rtn}               filter lines of movement m through command c
+  - n!!c{Rtn}              filter n lines through command c
+  - :r!c{Rtn}              filter range r lines through command c
+  
+Visual mode
+  - v V ^V                 start/stop highlighting characters, lines, block
+  - o                      exchange cursor position with start of highlighting
+  - gv                     start highlighting on previous visual area
+  - aw as ap               select a word, a sentence, a paragraph
+  - ab aB                  select a block ( ), a block { }
+  
+Undoing, repeating & registers
+  - u U                    undo last command, restore last changed line
+  - .  ^R                  repeat last changes, redo last undo
+  - n.                     repeat last changes with count replaced by n
+  - qc qC                  record, append typed characters in register c
+  - q                      stop recording
+  - @c                     execute the content of register c
+  - @@                     repeat previous @ command
+  - :@c{Rtn}               execute register c as an Ex command
+  - :rg/p/c{Rtn}           execute Ex command c on range r where pattern p matches
+  
+Complex movement
+  - - +                    line up, down on first non-blank character
+  - B W                    space-separated word left, right
+  - gE E                   end of space-separated word left, right
+  - n_                     down n-1 line on first non-blank character
+  - g0                     beginning of screen line
+  - g^  g$                 first, last character of screen line
+  - gk gj                  screen line up, down
+  - fc Fc                  next, previous occurence of character c
+  - tc Tc                  before next, previous occurence of c
+  - ; ,                    repeat last fFtT, in opposite direction
+  - [[ ]]                  start of section backward, forward
+  - [] ][                  end of section backward, forward
+  - [( ])                  unclosed (, ) backward, forward
+  - [{  ]}                 unclosed {, } backward, forward
+  - [m ]m                  start of backward, forward Java method
+  - [# ]#                  unclosed #if, #else, #endif backward, forward
+  - [* ]*                  start, end of /* */ backward, forward
+  
+Search & substitution
+  - /s{Rtn}  ?s{Rtn}       search forward, backward for s
+  - /s/o{Rtn}  ?s?o{Rtn}   search fwd, bwd for s with offset o
+  - n or /{Rtn}            repeat forward last search
+  - N or ?{Rtn}            repeat backward last search
+  - # *                    search backward, forward for word under cursor
+  - g# g*                  same, but also find partial matches
+  - gd gD                  local, global definition of symbol under cursor
+  - :rs/f/t/x{Rtn}         substitute f by t in range r x: g-all occurrences, c-confirm changes
+  - :rs x{Rtn}             repeat substitution with new r & x
+  
+Special characters in search patterns
+  - .   ^  $               any single character, start, end of line
+  - \< \>                  start, end of word
+  - [c1-c2]                a single character in range c1..c2
+  - [^c1-c2]               a single character not in range
+  - \i \k \I \K            an identifier, keyword; excl. digits
+  - \f \p \F \P            a file name, printable char.; excl. digits
+  - \s \S                  a white space, a non-white space
+  - \e \t \r \b            <esc>, <tab>, {Rtn}, {Linefeed}
+  - \= * \+                match 0..1, 0..<infinity>, 1..<infinity> of preceding atoms
+  - \|                     separate two branches ( Equivalence  or)
+  - \( \)                  group patterns into an atom
+  - \& \n                  the whole matched pattern, nth () group
+  - \u \l                  next character made upper, lowercase
+  - \c \C                  ignore, match case on next pattern
+  
+Offsets in search commands
+  - n or +n                n line downward in column 1
+  - -n                     n line upward in column 1
+  - e+n e-n                n characters right, left to end of match
+  - s+n s-n                n characters right, left to start of match
+  - ;sc                    execute search command sc next
+  
+Marks and motions
+  - mc                     mark current position with mark c <<MemberOf>>[a..Z]
+  - `c `C                  go to mark c in current, C in any file
+  - `0..9                  go to last exit position
+  - `` `"                  go to position before jump, at last edit
+  - `[ `]                  go to start, end of previously operated text
+  - :marks{Rtn}            print the active marks list
+  - :jumps{Rtn}            print the jump list
+  - n^O                    go to nth older position in jump list
+  - n^I                    go to nth newer position in jump list
+  
+Key mapping & abbreviations
+  - :map c e{Rtn}          map c -> e in normal & visual mode
+  - :map!  c e{Rtn}        map c -> e in insert & cmd-line mode
+  - :unmap c{Rtn} :unmap! c{Rtn} remove mapping c
+  - :mk f{Rtn}             write current mappings, settings... to file f
+  - :ab c e{Rtn}           add abbreviation for c -> e
+  - :ab c{Rtn}             show abbreviations starting with c
+  - :una c{Rtn}            remove abbreviation c
+  
+Tags
+  Tags have a separate namespace for each buffer.
+  - :set tags <pathName1>[,<pathName2>[,...]] (from http://vim.wikia.com/wiki/Browsing_programs_with_tags )
+    Sets tag-file pathnames.
+  -  ^T  go to the file/code you were editing before the last tag jump
+  -  ^]  use word at cursorto lookup function in tags file, edit that file/code
+  - :ta t{Rtn}             jump to tag t
+  - :nta{Rtn}              jump to nth newer tag in list
+  - :ts t{Rtn}             list matching tags and select one for jump
+  - :tj t{Rtn}             jump to tag or select one if multiple matches
+  - :tags{Rtn}             print tag list
+  - :npo{Rtn}  :n^T{Rtn}   jump back from, to nth older tag
+  - :tl{Rtn}               jump to last matching tag
+  - ^W}  :pt t{Rtn}        preview tag under cursor, tag t
+  - ^W]                    split window and show tag under cursor
+  - ^Wz or :pc{Rtn}        close tag preview window
+  
+Scrolling & multi-windowing
+  - ^E ^Y                  scroll line up, down
+  - ^D ^U                  scroll half a page up, down
+  - ^F ^B                  scroll page up, down
+  - zt or z{Rtn}           set current line at top of window
+  - zz or z.               set current line at center of window
+  - zb or z-               set current line at bottom of window
+  - zh zl                  scroll one character to the right, left
+  - zH zL                  scroll half a screen to the right, left
+  - ^Ws or :split{Rtn}     split window in two
+  - ^Wn or :new{Rtn}       create new empty window
+  - ^Wo or :on{Rtn}        make current window one on screen
+  - ^Wj ^Wk                move to window below, above
+  - ^Ww ^W^W               move to window below, above (wrap if already at top/bottom window)
+  
+Ex commands ({Rtn})
+  - :e f                   edit file f, unless changes have been made
+  - :e!  f                 edit file f always (by default reload current)
+  - :wn :wN                write file and edit next, previous one
+  - :n :N                  edit next, previous file in list
+  - :rw                    write range r to current file
+  - :rw f                  write range r to file f
+  - :rw>>f                 append range r to file f
+  - :q :q!                 quit and confirm, quit and discard changes
+  - :wq or :x or ZZ        write to current file and exit
+  - :<up> :<down>            recall commands starting with current
+  - :r f                   insert content of file f below cursor
+  - :r!  c                 insert output of command c below cursor
+  - :all                   open a window for each file in the argument list
+  - :args                  display the argument list
+  
+Ex ranges
+  - , ;                    separates two lines numbers, set to first line
+  - n                      an absolute line number n
+  - .   $                  the current line, the last line in file
+  - % *                    entire file, visual area
+  - 't                     position of mark t
+  - /p/ ?p?                the next, previous line where p matches
+  - +n -n                  +n, -n to the preceding line number
+  
+Folding
+  - zfm                    create fold of movement m
+  - :rfo                   create fold for range r
+  - zd zE                  delete fold at cursor, all in window
+  - zo zc zO zC            open, close one fold; recursively
+  - [z ]z                  move to start, end of current open fold
+  - zj zk                  move down, up to start, end of next fold
+  
+Miscellaneous
+  - :sh{Rtn}  :!c{Rtn}     start shell, execute command c in shell
+  - K                      lookup keyword under cursor with man
+  - :make{Rtn}             start make, read errors and jump to first
+  - :cn{Rtn} :cp{Rtn}      display the next, previous error
+  - :cl{Rtn}  :cf{Rtn}     list all errors, read errors from file
+  - ^L ^G                  redraw screen, show filename and position
+  - g^G                    show cursor column, line, and character position
+  - ga                     show ASCII value of character under cursor
+  - gf                     open file which filename is under cursor
+  - :redir>f{Rtn}          redirect output to file f
+  - :mkview [f]            save view configuration [to file f]
+  - :loadview [f]          load view configuration [from file f]
+  - ^@ ^K ^_  \  Fn ^Fn    unmapped keys
+
+Buffers used/defined in setup.
+  @ - the key-codes to key-name table
+  ! - key-name to function map.
+  ' - The code repository, adds a few functions specific to vim emulation.
+  $ - temporary.
+  
+Buffers used in operation:
+  - $ Arg passing.
+  - @ Arg passing VimEx_... interface only,
+  - * Used to effect a tidy exit from the jot debugger.
+  - " seems to be the last-deleted or yanked text
+  - - Seems to be the last deleted text.
+  - 0-9, a-z yank registers NB regs 0-9 are lost when changing files, a-z and A-Z are the same 
+    but lower case references redefine the reg, upper-case appends.
+  - . holds hashtable for data objects:
+      - Jumps - a subbuffer with a jump point hashtable, set by {/}, {?}, <n>%, [<n>]G, [<n>]gg
+      - JumpNo - an integer holding the current jump number, used to generate a key for Jumps.
+      - DeferredAction - some commands are applied after  some  navigation  or
+        find commands. The following actions:
+           {y}, {c}, {d}, {!}, {<} and {>}
+         are deferred until completion of the following navigation commands:
+           {/}, {?}, {f}, {F}, {h}, {j}, {k}, {l} and all cursor keys.
+      - Digits - Numeric modifier for g command etc.
+      - LatestFind - The most recent find command (f, F, t or T)
+      - OriginalLineText - The original text at the line that was changed last.
+      - OriginalLineNumber - The line number where the most recent change occured.
+  - :e  <pathName> - replaces current file image with that of specified file.
+  - :args [<arg1>[ <arg2> [...]]] - displays pathname list or defines a new one.
+  - :n and :N - switch to next, or previous, file in arg list.
+  - :q - in addition to exiting the current file, also closes current window.
+  - :buffers - not available with basic versions, displays buffers
+  - :buffer n - loads specified buffer into current window - if the buffer needs writing the command fails (use :buffer! n).
+  - {0} - is always taken as a digit, never as <<VimGotoChr>> for which, in any case, there's {|}
+  - {(} and {)} behaviour in vim is a bit difficult to understand for some lines - see note in <<VimPrevSentance>>
+  - { } - is not mapped - there's already at least two perfectly good ways of moving right.
+  - {%} - leaves some informational messages about failures.
+  - {^} - (go to begining of line) can't be implemented - conflicts with Escaped characters syntax.
+  - {&} - I need to know more about the regular-expressions substitution syntax.
+  - {@} - vim eval seems to call vimscript code.
+  - {[}  --  move to previous "{...}" section
+  - {]}  --  move to next "{...}" section
+  - {&}  --  repeat last ex substitution (":s ...") not including modifiers
+  - {"}  --  access numbered buffer; load or access lettered buffer
+  - {Ctrl+M} --  (CR) move to first non-whitespace of next line
+  - {Ctrl+\} --  leave visual mode (go into "ex" mode)
+  - {Ctrl+]} --  use word at cursor to lookup function in tags file, edit that file/code
+  - {Ctrl+^} --  switch file buffers
+  - {g} a graphics-mode modifier for lots of commands.
+    ge e                   end of word/token left, right
+    0 gm                   beginning, middle of line
+    nG ngg                 line n, default the last, first
+    gI                     insert text in first column
+    grc                    like r, but without affecting layout (i.e tabs)
+    gR                     like R, but without affecting layout (i.e tabs)
+    g~m                    switch case of movement command m
+    g?m                    perform rot13 encoding on movement m
+    gqm                    format lines of movement m to fixed width
+    gv                     start highlighting on previous visual area
+    g0                     beginning of screen line
+    g^  g$                 first, last character of screen line
+    gk gj                  screen line up, down
+  - Commands which don't take a numeric parameter should reset the digits.
+  - Insert mode is wrong - {i}, {a}, {I} and {A}
+  - Visual mode (highlights selection in reverse video):
+    - {o} - switches focus between the start and end of highlighted area.
+    - {y} - yanks all of highlighted text without waiting for a navigation command.
+  - tab-pages ???
+
+Known behavioural differences, problems and deficiencies:
+  - Registers - these seem to be buffers that have had bits ot text moved/copied into them, 
+    - The current file image is in register ( % )
+    - The next-arg file image is in register ( % )
+    - the default register for deleted text is ( - )
+    - the default register for yanked text is ( 0 ), this can be changed using {"}
+    - {p} (put) will insert the current default register in the current file.
+    - View registers with :reg
+    - Reg % seems to be the pathname of the current file,
+    - Reg # seems to be the pathname of the previous file,
+    - Reg / holds the latest search string
+    - Reg : holds the last-used : command.
+    - Reg 0 to 9 and a to z hold yanked text - selected with {"} command
+    - Reg - holds deleted text.
+    - Each yank operation appends new text to the selected yank register.
+  - :n! and :N!, in vim will restore a new version of the file, in fake_vim these preserve changes.
+    Also, :n and :N will trigger a confirmation in real vim if the image has been changed, not in fake_vim.
+  - {Ctrl+w} (prefix to various window-control actions in vim) closes the screen in chrome - 
+    fake_vim should use {Esc w} instead.
+  - Secondary files - {Ctrl+t}, {Ctrl+]}, {Ctrl+^}, behaviour of {Ctrl+t} doesn't seem to match that advertised in documentation.
+    - use ctags to compile a tags file.
+    - It seems that vim can support more than one active file at a time:
+      vi -o t.t l99 x.lis  - Make a change then {Ctrl+w} to switch to the next window - note the [+] flag in the separator bar.
+  - {/} and {?}
+    - cannot do single-character patterns.
+    - Should search to end, then search from start of buffer.
+    - Should set jump points if endpoint is on a different line to start point.
+  - <<VimUp>> and <<VimDown>> add a zero entry to the stack.
+  
+Command-line args:
+  vim [<pathName1>[ <pathName2> [...]]]
+    - The editor fires up with one window and one active buffer/window on the first pathname file image.
+  vim -o [<pathName1>[ <pathName2> [...]]]
+    - The -o qualifier says open the specified files. They are read into separate buffers displayed in separate windows.
+  vim ... -c<cmd1>[ +<cmd2>[ +<cmd3>[...]]]
+    <cmd1> etc. are vaild vim commands, these are executed at startup time.
+  
+:
+z?m0h$m-0
+
+%%z@m-0(f/{Esc i}/k)0 m0h$
+
+%g$
+%%<<VimUp>>                {UpArrow}
+%%<<VimDown>>              {DownArrow}
+%%<<VimLeft>>              {LeftArrow}
+%%<<VimRight>>             {RightArrow}
+^[x         <<VimDebugKey>>            -- Experimental function - this allows the function to be accessed in normal (non-vi) command mode.
+^[d         <<VimStartDebugger>>       -- Enters the jot debugger loop.
+^[q         <<VimQuitDebugger>>        -- Similar to <<ExitDebugger>> except that it also resets commandmode.
+^[i         <<VimToggleVimMode>>     
+h           <<VimLeft>>                --  move left one character
+l           <<VimRight>>               --  move right one character
+k           <<VimUp>>                  --  move up one line
+j           <<VimDown>>                --  move down one line
+(           <<VimPrevSentance>>        --  move to start of previous sentence
+)           <<VimNextSentance>>        --  move to start of next sentence
+c           <<VimChangeCommand>>       --  change command                                                    cursor motion command
+m           <<VimMarkPos>>             --  mark current line and position                                    mark character tag (a-z)
+'           <<VimMoveToMark>>          --  move to marked line, first non-whitespace                         character tag (a-z)
+`           <<VimMoveToMarkCol>>       --  move to marked line, memorized column                             character tag (a-z)
+r           <<VimReplaceChr>>          --  replace single character at cursor                                replacement character expected
+u           <<VimUndo>>                --  undo
+z           <<VimChangeView>>          --  position current line                                             CR = top; "." = center; "-"=bottom
+G           <<VimGotoLineNoLast>>      --  goto line number prefixed, or goto end if none
+H           <<VimHomeCursor>>          --  home cursor - goto first line on screen
+M           <<VimMidCursor>>           --  goto middle line on screen
+L           <<VimEndCursor>>           --  goto last line on screen
+J           <<VimJoinNext>>            --  join current line with next line
+/           <<VimFindNextPrompt>>      --  search forward                                                    search string, ESC or CR
+?           <<VimFindPrevPrompt>>      --  search backward                                                   search string, ESC or CR
+n           <<VimSearchAgain>>         --  repeat last search
+N           <<VimSearchAgainRev>>      --  repeat last search, but in opposite direction of original search
+t           <<VimFindChrBefore>>       --  same as "f" but cursor moves to just before found character       character to find
+T           <<VimFindChrBeforePrev>>   --  backwards version of "t"                                          character to find
+f           <<VimFindNextChr>>         --  find character after cursor in current line                       character to find
+F           <<VimFindPrevChr>>         --  backwards version of "f"                                          character to find
+;           <<VimFind>>                --  Repeats "f", "F", "t", or "T" command
+,           <<VimRevFindRpt>>          --  reverse direction of last "f", "F", "t", or "T" command
+a           <<Vim_a_Commands>>         --  vim commands begining with a lower-case a
+i           <<VimInsertHere>>          --  enter insertion mode before current character                     text, ESC
+o           <<VimEnterOrSwap>>         --  open line below and enter insertion mode, or swap top & bot in insert mode
+s           <<VimInsertChr>>           --  substitute single character with new text                         text, ESC
+A           <<VimInsertAtEoL>>         --  enter insertion mode after end of line                            text, ESC
+C           <<VimDelToEoLInsert>>      --  change to end of line                                             text, ESC
+I           <<VimNonBlankInsert>>      --  enter insertion mode before first non-whitespace character        text, ESC
+O           <<VimInsertAbove>>         --  open line above and enter insertion mode                          text, ESC
+R           <<VimInsertOvertype>>      --  replace mode - replaces through end of current line, then inserts text, ESC
+S           <<VimDelAllLineInsert>>    --  substitute entire line - deletes line, enters insertion mode      text, ESC
+p           <<VimPutAfter>>            --  put buffer after cursor
+P           <<VimPutBefore>>           --  put buffer before cursor
+Q           <<VimCmdMode>>             --  leave visual mode (go into "ex" mode)
+U           <<VimRestoreLine>>         --  restores line to state when cursor was moved into it
+gg          <<VimGotoLineNoFirst>>     --  goto line number prefixed, or goto top if none
+ge          <<VimWordEndPrev>>         --  end previous word
+gf          <<VimFileFromCursor>>      --  open file which filename is under cursor
+ga          <<VimShowAscii>>           --  show ASCII value of character under cursor
+g           <<VimShowCursorPos>>       --  show cursor column, line, and character position
+#           <<VimSearchWordCurPrev>>   --  Search backwards for word under cursor.
+*           <<VimSearchWordCurFor>>    --  Search forwards for word under cursor. 
+g#          <<VimSearchPartCurPrev>>   --  Search backwards for partial match to word under cursor.
+g*          <<VimSearchPartCurFor>>    --  Search forwards for partial match to word under cursor. 
+gd          <<VimDefineLocalSym>>      --  Local definition of symbol under cursor.
+gD          <<VimDefineGlpobalSym>>    --  Global definition of symbol under cursor.
+w           <<VimWordStartNext>>       --  move foreward one word
+b           <<VimWordStartPrev>>       --  back word
+e           <<VimWordEndNext>>         --  end of current or next word
+W           <<VimBlankStartNext>>      --  foreward Word
+B           <<VimBlankStartPrev>>      --  move back one Word
+E           <<VimBlankEndNext>>        --  move to end of Word
+d           <<VimDelete>>              --  delete command                                                    cursor motion command
+D           <<VimDelToEoL>>            --  delete to end of line
+x           <<VimDelNextChr>>          --  delete single character
+X           <<VimDelPrevChr>>          --  delete backwards single character
+y           <<VimYank>>                --  yank command                                                      cursor motion command
+Y           <<VimYankLine>>            --  yank entire line
+Z           <<VimQickSave1>>           --  first half of quick save-and-exit                                 "Z"
+|           <<VimGotoChr>>             --  move to column specified by numeric arg, defaults to zero
+0           <<VimDigit0>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+1           <<VimDigit1>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+2           <<VimDigit2>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+3           <<VimDigit3>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+4           <<VimDigit4>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+5           <<VimDigit5>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+6           <<VimDigit6>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+7           <<VimDigit7>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+8           <<VimDigit8>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+9           <<VimDigit9>>              --  numeric precursor to other commands                               [additional numbers (0-9)] command
+!           <<VimCliCmdToBuf>>         --  shell command filter                                              cursor motion command, shell command
+@           <<VimEval>>                --  vi eval                                                           buffer name (a-z)
+$           <<VimGotoEoL>>             --  move to end of line
+%           <<VimDoPercent>>           --  match nearest [],(),{} on line, to its match (same line or others)
+&           <<VimSubsAgain>>           --  repeat last ex substitution (":s ...") not including modifiers
+^           <<VimFirstNonBlank>>       --  move to first non-whitespace character of line
+_           <<VimFirstNonBlankOdd>>    --  similar to "^" but uses numeric prefix oddly
+-           <<VimFirstNonBlankPrev>>   --  move to first non-whitespace of previous line
++           <<VimFirstNonBlankNext>>   --  move to first non-whitespace of next line
+%%`[          <<VimReturnInsStart>>      --  Return to start of previous insert-mode operation.
+%%']          <<VimReturnInsEnd>>        --  Return to end of previous insert-mode operation.
+{           <<CurlyMatchLeft>>         --  move to previous blank-line separated section                     "{"
+}           <<CurlyMatchRight>>        --  move to next blank-line separated section                         "}"
+:           <<VimEx_Something>>        --  ex-submode                                                        ex command
+"           <<VimAccessBuffer>>        --  access numbered buffer; load or access lettered buffer            1-9,a-z
+~           <<VimChangeCase>>          --  reverse case of current character and move cursor forward
+.           <<VimRptLastChange>>       --  repeat last text-changing command
+<           <<VimReduceIndent>>        --  unindent command                                                  cursor motion command
+>           <<VimIncreaseIdent>>       --  indent command                                                    cursor motion command
+^B          <<VimPageUp>>              --  back (up) one screen
+^F          <<VimPageDown>>            --  foreward (down) one screen
+^D          <<VimPageHalfDown>>        --  down half screen
+^U          <<VimPageHalfUp>>          --  up half screen
+^E          <<VimScrollUpOrMove>>      --  scroll text up (cursor doesn't move unless it has to)
+^Y          <<VimScrollDownOrMove>>    --  scroll text down (cursor doesn't move unless it has to)
+^G          <<VimShowEditStatus>>      --  show status
+^H          <<VimLeft>>                --  backspace
+%%^J          <<VimDown>>                --  line down - nobbled for the benefit of fake_vim_startup_commands.jot
+^L          <<VimRefresh>>             --  refresh screen
+^M          <<VimNextLineStart>>       --  (CR) move to first non-whitespace of next line
+^N          <<VimDown>>                --  move down one line
+^P          <<VimUp>>                  --  move up one line
+^Q          <<VimXON>>                 --  XON
+^R          <<VimDoNothing>>           --  does nothing (variants: redraw; multiple-redo)
+^S          <<VimXOFF>>                --  XOFF
+^T          <<VimRestoreFocus>>        --  go to the file/code you were editing before the last tag jump
+^[t         <<VimRestoreFocus>>        --  go to the file/code you were editing before the last tag jump ({Ctrl+T} is a chromebook shortcut.)
+^\          <<VimExitVisualMode>>      --  leave visual mode (go into "ex" mode)
+^]          <<VimTagFromCurrWord>>     --  use word at cursor to lookup function in tags file, edit that file/code
+^^          <<VimSwitchFileBufs>>      --  switch file buffers
+v           <<VimVisualModeChr>>       --  Start visual mode, select to nearest character.
+V           <<VimVisualModeLine>>      --  Start visual mode, select to nearest line.
+^V          <<VimVisualModeBlock>>     --  Start visual mode, select block.
+^ws         <<VimEx_split>>            -- or {:spliView_FirstLine_  -- split window
+^wn         <<VimEx_new>>              -- or {:new} -- create new empty window
+^wo         <<VimEx_on>>               -- or {:on} -- make current window one on screen
+^wj         <<VimWindowDown>>          --  move to window below
+^wk         <<VimWindowUp>>            --  move to window above
+^ww         <<VimWindowUpWrap>>        --  move to window above (wrap if already at top/bottom window)
+^wW         <<VimWindowDownWrap>>      --  move to window below (wrap if already at top/bottom window)
+   
+:
+%%Delete the following:
+z!
+%%m-0f/{LeftArrow}/k  %%The Vim[Left|Right|Up|Down] functions have different behaviour and contain VimDeferredAction calls.
+%%m-0f/{RightArrow}/k
+%%m-0f/{UpArrow}/k
+%%m-0f/{DownArrow}/k
+m-0f/^[i   /k      %%Functions for {Esc i} and {Esc I} are redefined - now change in and out of vim command mode.
+m-0f/^[I   /k
+m-0f/^[q   /k
+%%Append new entries in the function map.
+z!m0r0bh$
+  
+%%If we're running under chrome, change all {^w ...} to {Esc w ...}
+%q$=version; m(f1/chrome/ z!m-0(f/{Ctrl+w /s/{Esc w /)0 z@m-0(f/^W/s/^[w/f1/ /ef1/{Ctrl+w/s/{Esc w/)0, )
+
+%%Now the new functions, these are appended to buffer ( ' ).
+%g$
+  
+<<VimToggleVimMode>>
+%%Toggle vim insert mode, also used to re-set commandmode after a {Ctrl+c} interrupt -- {Esc i}
+%%Also clears the stack and returns to current buffer.
+%%
+ob %q$=system; f/ Command mode = /r0 
+( v-/ 8/ %%Assumed to be in vim command mode - change to sane mode.
+  oz
+  %s=commandmode 0;
+, v-/ 2/ %%Currently in vim insert mode - change to vim command mode.
+  ozr-?o@ oq/.=CurrentBuf/ oz
+  %s=commandmode A;
+, v-/ 6/ %%Currently in vim replace mode - change to vim command mode.
+  ozr-?o@ oq/.=CurrentBuf/ oz
+  %%In replace mode the ( ] ) mark can not be set properly - so let's do it now.
+  (r, m) %h=add .=GlobalMarks_]; (r-, m-r0)
+  %s=commandmode A;
+, %%Currently in sane mode - change to vim command mode.
+  oq/.=CurrentBuf/ oz
+  %s=commandmode A;
+  )
+  
+<<VimUp>>
+%%  {k}   --  move up one line
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, )ol0oso- (y-o~)0 ok %h'=call VimDeferredAction;
+  
+<<VimDown>>
+%%  {Return} {j} {Ctrl+J} --  move down one line
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, )ol0oso- (y0y o~)0 ok %h'=call VimDeferredAction;
+  
+<<VimLeft>>
+%%  {h}, {Ctrl+H} --  backspace
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, )ol0oso- or? %h'=call VimDeferredAction;
+  
+<<VimRight>>
+%%  {l} --  move right one character
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) or? %h'=call VimDeferredAction;
+  
+<<VimPrevSentance>>
+%%  {(} --   move to previous sentence
+%%Actually moves to start of current or previous sentance.
+%%
+%%    Actual vim behaviour is a bit hard to fathom for lines like these,it's a similar story with {)} :
+%%
+%%1.25 sh.jot
+%%  It initially goes to the start of the line , even though it contains two full stops.
+%%  Next time it goes to the start of the blank line above - most odd.
+%%
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- 
+( %%Sentance loop.
+  ( %%2nd. sentance end loop - go back to the end of the sentance before the current sentance.
+    ( %%Sentance-end search loop.
+      ( %%Sentance-end logic block.
+        oc (r\r-\ok)\ %%Not a blank line.
+        r-0or(f-1/./-(r\, q-/ 	/) )   %%Found a valid fullstop.
+        )\
+      m-r0  %%Move back to the previous line.
+      )0
+    ((q-/ 	/r-)0r-2, m-r0))2
+  %%Found the end of the previous but one sentance, now move forwards to the next sentance start.
+    r2? ( ocr\r-\ (r\r-\m)0, r-0or((q/ 	/r)0r\m)0 r-)
+  o~)0ok
+  
+<<VimNextSentance>>
+%%  {)} --   move to next sentence - either 
+%%  - A sentance can be terminated by either a full stop or by the next line being entierly blank (not even containing whitespace).
+%%  - Lines containing only whitespace are deemed to be part of a sentance.
+%%  - Fullstops followed by nonblank characters are not deemed to be the end of a sentance.
+%%
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- 
+( %%Sentance loop.
+  ( %%Sentance-end search loop.
+    ( %%Sentance-end logic block.
+      oc (r\r-\ok)\ %%Not a blank line.
+      r-0or(f1/./-(r\, q-/ 	/) )   %%Found a valid fullstop.
+      )\
+    m  %%Move on to the next line.
+    )0
+  %%Found the end of the current sentance, now move on to the start of next.
+    %%Sentance-start search loops.
+    ( ocr\r-\ (r\r-\m)0, r-0or((q/ 	/r)0r\m)0 r-)
+  o~)0ok
+%h'=call VimDeferredAction;
+  
+<<VimGotoChr>>
+%%  {|}  --  move to column zero
+%%Move to that column no. specified by numeric parameter.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) r-0 orr-
+  
+<<VimYank>>
+%%  {y}  --  yank command                                                      cursor motion command
+oq/.=YankMode/ol0 
+( o=\ol4o< %%In visual mode, yanks all text in the highlighted area.
+  %h'=call VimYankNow;
+  %h'=call VimClearVisualTags;
+, %%Not in visual mode - the yank operation is deferred until the navigation command completes.
+  %%Yank start point is here.
+  onov/.=VisTopLine/ocov/.=VisTopChr/
+  %%Yank mode and deferred action is set to yank characters.
+  ol5ov/.=YankMode/ y0n. ol121ov/.=DeferredAction/ )
+  
+<<VimYankLine>>
+%%  {Y}  --  yank entire line
+oq/.=YankMode/ol0 
+( o=\ol4o< %%In visual mode, yanks all text in the highlighted area.
+  %h'=call VimYankNow;
+  %h'=call VimClearVisualTags;
+, %%Not in visual mode - the yank operation is deferred until the navigation command completes.
+  %%Yank start point is here.
+  onov/.=VisTopLine/ocov/.=VisTopChr/
+  %%Yank mode and deferred action is set to yank lines.
+  ol4ov/.=YankMode/ y0n. ol89ov/.=DeferredAction/ )
+  
+<<VimYankNow>>
+%%Performs the abstraction - called by VimYank in visual mode or VimDeferredAction
+oq/.=YankMode/
+( ol1o= %% V - yank complete lines.
+  okoq/.=VisTopLine/ono-omn oq/.=VisBotLine/ono-om a"&
+, ol2o= %% v - yank to nearest character.
+  okoq/.=VisTopLine/ono-omoq/.=VisTopChr/orn. oq/.=VisBotLine/ono-omoq/.=VisBotChr/or a"&
+, ol3o= %% ^v - yank rectangular block.
+  %%Init.
+  n.a"
+  %%Calculate line count and go to top line.
+  okoq/.=VisTopLine/oq/.=VisBotLine/o- oq/.=VisTopLine/ono-om
+  %%Calculate rectangle width.
+  oq/.=VisTopChr/oq/.=VisBotChr/o-
+  ( %%Yank-rectangle loop.
+    oq/.=VisBotChr/orn. o#ora"+&
+    oso~os obz"r0bozm)0 okok
+  ono-omor
+, ol4o= %%Yank complete line.
+  r-0n. okoq/.=VisTopLine/ono-omr0 a"&
+, ol5o= %%Yank characters.
+  n. okoq/.=VisTopLine/ono-omoq/.=VisTopChr/or a"&
+ )
+t%%Announce the size of yanked block
+obz"m0onosoz %m='~ line(s) yanked.;
+%%Seems as though genuine vim always returns to top-leftmost character of block.
+oq/.=VisTopChr/oq/.=VisTopLine/ono-omor
+%%Copy from ( " ) to current yank register.
+oboq/.=Regs|YankReg/ozm-0k0h"
+%%Tag the first line of the buffer with the visual-mode tag.
+oq/.=YankMode/
+( ol1o= m-0oeou %b=addtag -text=Visual full-line mode;
+, ol2o= m-0oeou %b=addtag -text=Visual character mode;
+, ol3o= m-0oeou %b=addtag -text=Visual block mode;
+, ol4o= m-0oeou %b=addtag -text=Line mode;
+, ol5o= m-0oeou %b=addtag -text=Character mode;
+, ) ok
+oz %l;
+%%Reset yank mode.
+ol0ov/.=YankMode/
+  
+<<VimPutAfter>>
+%%  {p}  --  put buffer after current character/line
+oby0oq/.=Regs|YankReg/o#oz m-0 %q$=tags -here; m+4 
+( f1/"Visual full-line mode"/ %%Insert Complete lines after current line.
+  z$m-0k0oo/h%c/ ozm '$
+, f1/"Visual character mode"/ %%Insert characters lines after current chr.
+  z$m-0k0oo/h%c/ oz '$
+, f1/"Visual block mode"/ %%Insert in block mode.
+  o#oz (n.r0a$&oso#oz och$(m, r0b)ol0oso-((r, i/ /)o~)0ok oso#ozm)0 okoz
+, f1/"Line mode"/ %%Insert Complete lines after current line.
+  z$m-0k0oo/h%c/ ozm '$ b
+, f1/"Character mode"/ %%Insert characters lines after current chr.
+  z$m-0k0oo/h%c/ oz '$
+, %%Something went wrong - most likely there is no tag here.
+  okoz )
+  
+<<VimPutBefore>>
+%%  {P}  --  put buffer before current character/line
+oby0oq/.=Regs|YankReg/o#oz m-0 %q$=tags -here; m+4 
+( f1/"Visual full-line mode"/ %%Insert Complete lines before current line.
+  z$m-0k0oo/h%c/ ozr-0 '$
+, f1/"Visual character mode"/ %%Insert characters lines before current chr.
+  z$m-0k0oo/h%c/ oz '$
+, f1/"Visual block mode"/ %%Insert in block mode.
+  o#oz (n.r0a$&oso#oz och$(m, r0b)ol0oso-((r, i/ /)o~)0ok oso#ozm)0 okoz
+, f1/"Line mode"/ %%Insert Complete lines before current line.
+  z$m-0k0oo/h%c/ ozm '$ b
+, f1/"Character mode"/ %%Insert characters lines before current chr.
+  z$m-0k0oo/h%c/ oz '$
+, %%Something went wrong - most likely there is no tag here.
+  okoz )
+  
+<<VimMarkPos>>
+%%  {m}<Chr>  --  mark current line and position                                    mark character tag (a-z)
+%%Local marks a-z, global marks A-Z
+obz$m-0k0g-1 (q/a-z/oz  %h=add GlobalMarks_'$;, q/A-Z/oz  %h=add .=GlobalMarks|'$;, oz %x=Invalid mark tag.;)
+  
+<<VimMoveToMark>>
+%%  {'}  --  move to marked line, first non-whitespace                         character tag (a-z)
+obz$m-0k0g-1 ( q/A-Z'"<>^[]/oz %h=jump .=GlobalMarks_'$;, q/a-z/oz %h=jump LocalMarks_'$;,  %x=Invalid mark tag.;) r-0(v/ /r)0
+  
+<<VimMoveToMarkCol>>
+%%  {`}  --  move to marked line, memorized column                             character tag (a-z)
+obz$m-0k0g-1 ( q/A-Z'"<>^[]/oz %h=jump .=GlobalMarks_'$; obz$(v/[/oz(r, m), v/]/oz(r-, ), oz), q/a-z/oz %h=jump LocalMarks_'$;,  %x=Invalid mark tag.;)
+  
+<<VimReplaceChr>>
+%%  {r}  --  replace single character at cursor                                replacement character expected
+%%Note `[ is a special case - it the tag points not to the first inserted character but one character before it.
+oby0 z$m-0k0g-1 oq/.=Digits/ol-1ov/.=Digits/ol-1(o=okol1,)ol0oso- osoz (ei'$o~)0
+  
+<<VimChangeView>>
+%%  {z}  --  position current line                                             CR = top; "." = center; "-"=bottom
+%%first, if a numeric parameter is given, go to that line.
+oby0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, )
+%%Now get the single-character arg, should be one of ^A ({LF}), . or -
+z$m-0k0g-1oic
+%%Now parse the result and shift accordingly.
+( ol10o= %%It's {CR} - align to top.
+  okokoz onofo-owr-0
+, ol46o= %%It's {.}  (ASCII code 46) - align to centre.
+  okok  %q$=window; f/current buffer, /-oid osoz ol2o/ofo+onoso- ow r-0
+, ol45o= %%It's {-} align to bottom of window.
+  okok %q$=window; f/current buffer, /-oid osoz ofo+onoso- ow r-0
+, ol108o= %%It's  {l} - scroll left.
+  okos oq/.=CurrentBuf/oz os %q$=buffer; f/ leftoffset = /-oido+osoz os %b=leftoffset '~; 
+, ol104o= %%It's  {h} - scroll right.
+  okos oq/.=CurrentBuf/oz os %q$=buffer; f/ leftoffset = /-oidoso-osoz os %b=leftoffset '~; 
+, %%None of the above - continue without complaint.
+  )
+  
+<<VimEx_split>>
+%% {Esc w s} or {:split} - horizontal split, adds another window, new window looking at the current buffer.
+%%First calculate the size of each new window.
+ob %q@=window; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenHeight = /-oidol1o- oso/
+%%Create each shrunk version of original windows.
+m-0f/  win:/m- %w; (z@mf1/  win:/f1/ ( /-oicz$m-0k0 oo/%%W%c=/r0 o#oo/ -height=%d -delim;/ '$ z@)0
+%%Create a new floating window.
+z$m-0k0 oo/%%W= -height=%d -delim;/ '$ oz
+  
+<<VimEx_on>>
+%% ^[wo or :on{Rtn}        make current window one on screen
+ob %q$=window; f/screenHeight = /- oid ol1o- %w; %w= -height='~ -delim; oz %s=console 10; w
+  
+<<VimWindowDown>>
+%% {Esc w j} --  move to window below.
+%%
+%%First find the current window.
+ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
+%%Now move to the next window, exit if already at end window, and pick up the key.
+m 
+( f1/ ( / r-0f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oico#
+  %%If there are earlier windows showing that buffer then make sure they're frozen.
+  (z@m- (f1'$\, r-0f1/ win:/-oid %w= -winno='~ -freeze=1;) )0, )
+%%Now switch to new buffer.
+oz
+  
+<<VimWindowUp>>
+%% {Esc w k} --  move to window above.
+%%
+%%First find the current window.
+ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
+%%Now move to the previous, exit if already at first window, and pick up the key.
+m- 
+( f1/ ( /r-0f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oic m-
+  %%Freeze any earlier windows matching this buffer.
+  (f1'$r-0f1/ win:/-oid %w= -winno='~ -freeze=1; m-, m-)0, )
+%%Now switch to new buffer.
+oz
+  
+<<VimWindowUpWrap>>
+%% {Esc w w} --  move to window above (wrap to bottom window if already at top)
+%%
+%%First find the current window.
+ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
+%%Now move to the previous, or bottom window if already at first window and pick up the key.
+m- (f1/ ( /r-0, f/  Console area /m-) f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oic m-
+%%Freeze any earlier windows matching this buffer.
+(f1'$r-0f1/ win:/-oid %w= -winno='~ -freeze=1; m-, m-)0
+%%Now switch to new buffer.
+oz
+  
+<<VimWindowDownWrap>>
+%% {Esc w W} --  move to window below (wrap to top window if already at bottom)
+%%
+%%First find the current window.
+ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
+%%Now move to the next window, or top window if already at last window and pick up the key.
+m (f1/ ( /, f-/  screenWidth = /m) r-0f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oico#
+%%If there are earlier windows showing that buffer then make sure they're frozen.
+(z@m- (f1'$\, r-0f1/ win:/-oid %w= -winno='~ -freeze=1;) )0
+%%Now switch to new buffer.
+oz
+  
+<<VimEx_e>>
+%%  {:e} <pathName> Open specified file in a new buffer.
+ob z@k(v/ /e)0oo/%%i%c=/r0i/;/ '@
+  
+<<VimEx_new>>
+%% Split horizontally creating an empty window.
+%%Pick up buffer key.
+ob z$m-0k0 oo/.%c/
+t%%Calculate size of each split-screen.
+%q@=window; f/ screenHeight = /-oid ol1o-ol2o/o#
+%%Set up window macrocommand.
+z$r-0 i/%w; %w/ r?oo/= -height=%d -delim;/r-r  i/  %w/r?oo/= -height=%d -delim;/ '$ oz
+
+<<VimGotoLineNoLast>>
+%%  {G}  --  goto line number prefixed, or goto end if none
+y0on oq/.=Digits/ol-1ov/.=Digits/ (ol1o<ok m0m-, ono-om) 
+%%If the line number has changed then add original to Jumps list.
+on(o=ok, oq/.=JumpNo/o~o#ov/.=JumpNo/ obosz$m-0k0oo/Jump_%d/oz ono-onosom oq/.=Jumps/ %h~=new '$; okono-om)
+  
+<<VimGotoLineNoFirst>>
+%%  {gg}  --  goto line number prefixed, or goto begining if none
+y0on oq/.=Digits/ol-1ov/.=Digits/ (ol1o<ok m-0, ono-om) 
+%%If the line number has changed then add original to Jumps list.
+on(o=ok, oq/.=JumpNo/o~o#ov/.=JumpNo/ obosz$m-0k0oo/Jump_%d/oz ono-onosom oq/.=Jumps/ %h~=new '$; okono-om)
+  
+<<VimWordEndPrev>>
+%%  {ge}  --  end of [previous] word
+%%Behaviour seems to be - go back to the end of the previous string of alphanumerics or non-alphanumerics except whitespace.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (r2r-, m-r0) (q-/A-Za-z0-9_/ (q-/ 	/r-)0, (q-/A-Za-z0-9_ 	/\r-)0 ) r- o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimFileFromCursor>>
+%%  {gf} --  open file which filename is under cursor
+  
+<<VimShowAscii>>
+%%   {ga} --  show ASCII value of character under cursor
+  
+<<VimShowCursorPos>>
+%%  {g Ctrl+g} --  show cursor column, line, and character position
+  
+<<VimSearchWordCurPrev>>
+%% {#}  --  Search backwards for word under cursor.
+  
+<<VimSearchWordCurFor>>
+%%  {*}  --  Search forwards for word under cursor. 
+  
+<<VimSearchPartCurPrev>>
+%% {g#}  --  Search backwards for partial match to word under cursor.
+  
+<<VimSearchPartCurFor>>
+%%  {g*}  --  Search forwards for partial match to word under cursor. 
+  
+<<VimDefineLocalSym>>
+%%  {gd}  --  Local definition of symbol under cursor.
+  
+<<VimDefineGlpobalSym>>
+%%  {gD}  --  Global definition of symbol under cursor.
+  
+<<VimVisualModeChr>>
+%% {v}  --  Start visual mode, select to nearest character.
+%%Reset if already in visual mode.
+oq/.=YankMode/ol0
+( o=\
+  ol0ov/.=YankMode/
+, %%Not in visual mode - set it up now.
+  %%Selects to nearest character.
+  ono#ov/.=VisTopLine/ov/.=VisBotLine/  oco#ov/.=VisTopChr/ov/.=VisBotChr/ ol2ov/.=YankMode/ ol1ov/.=VisTopOrBot/ )
+%h'=call VimClearVisualTags;
+  
+<<VimVisualModeLine>>
+%% {V}  --  Start visual mode, select to nearest word.
+%%Reset if already in visual mode.
+oq/.=YankMode/ol0
+( o=\
+  ol0ov/.=YankMode/
+, %%Not in visual mode - set it up now.
+  %%Selects to nearest complete line.
+  ono#ov/.=VisTopLine/ov/.=VisBotLine/  oco#ov/.=VisTopChr/ov/.=VisBotChr/ ol1ov/.=YankMode/ ol1ov/.=VisTopOrBot/ )
+%h'=call VimClearVisualTags;
+  
+<<VimVisualModeBlock>>
+%% {Ctrl+V}  --  Start visual mode, select to nearest paragraph.
+%%Selects rectangle.
+%%Reset if already in visual mode.
+oq/.=YankMode/ol0
+( o=\
+  ol0ov/.=YankMode/
+, %%Not in visual mode - set it up now.
+  ono#ov/.=VisTopLine/ov/.=VisBotLine/  oco#ov/.=VisTopChr/ov/.=VisBotChr/ ol3ov/.=YankMode/ ol1ov/.=VisTopOrBot/ )
+%h'=call VimClearVisualTags;
+  
+<<VimClearVisualTags>>
+%%Removes any instance of a VisualSel tag - only called by VimVisualModeChr, VimVisualModeLine or VimVisualModeBlock.
+oconob %q$=tags; 
+(f/VisualSel/f-1/ At rec /-oidosozono-om obz$f1/, chr /-oidosf/ to /-oido~osoz oso#oro-ou %b=remove_tag colour VisualSel; obz$m)0
+%%Return to original position.
+ozono-omor w
+  
+<<VimDigit0>>
+%%  {0} -- numeric precursor to other commands
+%%NB. {0} is a special case among the digits - a leading {0} meaning go to colomn 0.
+oq/.=Digits/ (y0ol-1o=okozr-0, ol10o*ov/.=Digits/)
+  
+<<VimDigit1>>
+%%  {1} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol1, ol10o*ol1o+) ov/.=Digits/
+  
+<<VimDigit2>>
+%%  {2} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol2, ol10o*ol2o+) ov/.=Digits/
+  
+<<VimDigit3>>
+%%  {3} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol3, ol10o*ol3o+) ov/.=Digits/
+  
+<<VimDigit4>>
+%%  {4} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol4, ol10o*ol4o+) ov/.=Digits/
+  
+<<VimDigit5>>
+%%  {5} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol5, ol10o*ol5o+) ov/.=Digits/
+  
+<<VimDigit6>>
+%%  {6} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol6, ol10o*ol6o+) ov/.=Digits/
+  
+<<VimDigit7>>
+%%  {7} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol7, ol10o*ol7o+) ov/.=Digits/
+  
+<<VimDigit8>>
+%%  {8} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol8, ol10o*ol8o+) ov/.=Digits/
+  
+<<VimDigit9>>
+%%  {9} -- numeric precursor to other commands
+oq/.=Digits/ (ol-1o=okol9, ol10o*ol9o+) ov/.=Digits/
+  
+<<VimHomeCursor>>
+%%  {H}  --  home cursor - goto first line on screen
+%%If n is given goto nth. line from top of screen or end of screen if n exceeds screen size..
+%%
+%%Pick up numeric arg, if not given, it defaults to 0
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol-1o=okol1, )(ol1o<okol1, )
+%%Check size of window, if offset is too big defailt to (window size)-1
+obos %q$=window; f/current buffer, /-oid (o<, okf-/ /-oid) osoz
+%%Do it
+ofono-o+ol1o-om %h'=call VimDeferredAction;
+  
+<<VimMidCursor>>
+%%  {M}  --  goto middle line on screen
+y0ob %q$=window; f/current buffer, /-oidosoz ol2o/ ofo+ono-ol1o+om r-0
+  
+<<VimEndCursor>>
+%%  {L}  --  goto last line on screen
+%%If n is given goto nth. line from bottom of screen or top of screen if n exceeds screen size.
+%%
+%%Pick up numeric arg, if not given, it defaults to 0
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol0, )
+%%Check size of window, if offset is too big defailt to line 1
+obos %q$=window; f/current buffer, /-oid (o<, okf-1/ /-oid)ol0oso-o~? osoz
+%%Do it
+obz$f-1/ /oidosoz ofo+onoso-o~?o- om %h'=call VimDeferredAction;
+  
+<<VimJoinNext>>
+%%  {J}  --  join current line with next line
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (j(v/ /e)0(v-/ /, i/ /) o~)0
+  
+<<VimFindNextPrompt>>
+%%  {/}  --  search forward                                                    search string, ESC or CR
+%%  /<string> Optionally followed by "/o" where o is a numeric offset no. of lines below the found substring.
+%%Pick up the search substring, split off the offset arg (nb - the search string might be digits).
+y0z$m-0k0 %s=prompt /; g %s=prompt; 
+k-i"%%/"b (f1"/"r0(q-/-0-9/r-)0 (v-"/"r-2v/\/r0, rv"/"e, ) b(v/ /e)0, ) oq/.=CurrentBuf/oz 
+%h'=call VimFindNext;
+  
+<<VimFindPrevPrompt>>
+%%  {?}  --  search backwards                                                    search string, ESC or CR
+%%  ?<string> Optionally followed by "?o" where o is a numeric offset no. of lines below the found substring.
+%%Pick up the search substring, split off the offset arg (nb - the search string might be digits).
+y0z$m-0k0 %s=prompt ?; g %s=prompt; k-i"%%?"b (r0(q-/-0-9/r-)0 (v-"?"r-2v/\/r0, rv"?"e, ) b(v/ /e)0) oq/.=CurrentBuf/oz 
+%h'=call VimFindPrev;
+  
+<<VimFindNext>>
+%%Performs a forwards search, the ( $ ) buffer contains the following:
+%%line 1 - the original direction key - either ( / ) or ( ? ) prefixed by %%
+%%line 2 - search string.
+%%Line 3 - the offset parameter.
+%%
+%s=system 1;
+%%Save original line and chr no.
+onov/.=FindOrigLineNo/ ocov/.=FindOrigChrNo/
+%%Save search args.
+z$m-0n.m0r0a~&ov/.=LatestFind/ 
+%%Update regs.
+z$m-0mr-0n.r0a~& z.ov".=Regs|/" z$r-0
+%%Prepare the %F command, extract post-find offset and execute.
+(rr-r-0i/%f=/ (v"\/"e, r)0 r0(v-"/"e-,)i/;/ (mq/-0-9/i/m/,) %s=system 0;  oq/.=CurrentBuf/oz ol1ou ('$, t) )
+%%Save the find command and the new coordinates.
+onov/.=FindNewLineNo/ ocov/.=FindNewChrNo/ oq/.=CurrentBuf/oz 
+%%If the found substring is in a different line then note the original line no.
+onoq/.=FindOrigLineNo/
+( o=ok, ok
+  %%Go back to original position.
+  oq/.=FindOrigLineNo/ono-om oq/.=FindOrigChrNo/or
+  %%Set Jump_ no. and save original coordinates as a JumpObj.
+  oq/.=JumpNo/o~o#ov/.=JumpNo/ z@m-0k0ol100o% oo/.=Jumps|Jump_%d/  oq/.=CurrentBuf/oz  %h=add '@; )
+%%Now set the note point and move back to the new position.
+n. oq/.=FindNewLineNo/ono-om oq/.=FindNewChrNo/or
+%s=system 0;
+%h'=call VimDeferredAction;
+  
+<<VimFindPrev>>
+%%Performs a backwards search, the ( $ ) buffer contains the following:
+%%line 1 - the original direction key - either ( / ) or ( ? ) prefixed by %%
+%%line 2 - search string.
+%%Line 3 - the offset parameter.
+%%
+%s=system 1;
+%%Save original line and chr no.
+onov/.=FindOrigLineNo/ ocov/.=FindOrigChrNo/
+%%Save search args.
+z$m-0n.m0r0a~&ov/.=LatestFind/ 
+%%Update regs.
+z$m-0mr-0n.r0a~& z.ov".=Regs|?" z$r-0
+%%Prepare the %F command, extract the post-find offset and execute.
+(rr-r-0i/%f-=/ (v"\?"e, r)0 r0(v-"?"e-,)i/;/ m(q/-0-9/i/m/,) %s=system 0;  oq/.=CurrentBuf/oz ol1ou ('$, t) )
+%%Save the find command and the new coordinates.
+onov/.=FindNewLineNo/ ocov/.=FindNewChrNo/ oq/.=CurrentBuf/oz 
+%%If the found substring is in a different line then note the original line no.
+onoq/.=FindOrigLineNo/
+( o=ok, ok
+  %%Go back to original position.
+  oq/.=FindOrigLineNo/ono-om oq/.=FindOrigChrNo/or
+  %%Set Jump_ no. and save original coordinates as a JumpObj.
+  oq/.=JumpNo/o~o#ov/.=JumpNo/ z@m-0k0ol100o% oo/.=Jumps|Jump_%d/  oq/.=CurrentBuf/oz  %h=add '@; )
+%%Now set the note point and move back to the new position.
+n. oq/.=FindNewLineNo/ono-om oq/.=FindNewChrNo/or
+%s=system 0;
+%h'=call VimDeferredAction;
+  
+<<VimSearchAgain>>
+%%  {n}  --  repeat last search
+%%Pick up find string.
+oq/.=LatestFind/z~ m-0n.m0r0a$&
+%%Check direction and call VimFindNext or VimFindNext appropriately.
+m-0(v"%%/"%%The original find was forwards - do a forwards search.
+  oq/.=CurrentBuf/ozok %h'=call VimFindNext;?
+, %%The original find was backwards - do a backwards search.
+  oq/.=CurrentBuf/ozok %h'=call VimFindPrev;?
+  )
+    
+<<VimSearchAgainRev>>
+%%  {N}  --  repeat last search, but in opposite direction of original search
+%%Pick up find string.
+oq/.=LatestFind/z~ m-0n.m0r0a$&
+%%Check direction and call VimFindNext or VimFindBack appropriately.
+m-0(v"%%/" %%The original find was forwards - do a backwards search.
+  oq/.=CurrentBuf/ozok (%h'=call VimFindPrev;, )
+, %%The original find was backwards - do a forwards search.
+  oq/.=CurrentBuf/ozok %h'=call VimFindNext;?
+  )
+  
+<<VimFindNextChr>>
+%%  {f}  --  find character after cursor in current line                       character to find
+%%Set up command and find characters.
+y0ob z.ol102 ov/.=FindCmd/ z$m-0k0g-1j- oicov/.=FindChr/ oz
+%%Do it.
+%h'=call VimFind;
+  
+<<VimRevFindRpt>>
+%%  {,}  --  repeat last {f}, {F}, {t} or {T}, in opposite direction 
+%m=VimRevFindRpt;
+  
+<<VimFindPrevChr>>
+%%  {F}  --  backwards version of "f"                                          character to find
+%%Set up command and find characters.
+y0ob z.ol70 ov/.=FindCmd/ z$m-0k0g-1j- oicov/.=FindChr/ oz
+%%Do it.
+%h'=call VimFind;
+  
+<<VimFindChrBefore>>
+%%  {t}  --  same as "f" but cursor moves to just before found character       character to find
+%%Set up command and find characters.
+y0ob z.ol116 ov/.=FindCmd/ z$m-0k0g-1 oicov/.=FindChr/ oz
+%%Do it.
+%h'=call VimFind;
+  
+<<VimFindChrBeforePrev>>
+%% {T}  --  backwards version of "t"                                          character to find
+%%Set up command and find characters.
+y0ob z.ol84 ov/.=FindCmd/ z$m-0k0g-1 oicov/.=FindChr/ oz
+%%Do it.
+%h'=call VimFind;
+  
+<<VimFind>>
+%%Generalist entry point for {f}, {F}, {t} and {T} and {;}  --  repeat last find command
+%%Pick up repeat-count arg.
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- 
+%%Pick up command and search characters.
+oq/.=FindChr/ oq/.=FindCmd/
+( ol102o=ok %% ( f ) command.
+  obz$m-0k0osoo/%c/oz (f1'$ o~)0ok 
+, ol70o=ok  %% ( F )
+  obz$m-0k0osoo/%c/oz (f-1'$ o~)0ok (v'$, r)
+, ol116o=ok  %% ( t )
+  obz$m-0k0osoo/%c/oz ((rv'$)?f1'$ o~)0ok (v'$r-?, )
+, ol84o=ok  %% ( T )
+  obz$m-0k0osoo/%c/oz ((rv'$, r-)f-1'$ o~)0ok (v'$r-?, )
+  )
+%h'=call VimDeferredAction;
+  
+<<Vim_a_Commands>>
+%%Vim commands begining with a lower-case a
+%%
+%%In vim command mode, {a} i enters insert mode after current character.
+%%In visual mode {aw} selects a word.
+%%In visual mode {as} selects a sentance.
+%%In visual mode {ap} selects a paragraph.
+%%In visual mode {ab} selects a ( ) block.
+%%In visual mode {aB} selects a { } block.
+%%
+oq/.=VisTopLine/ol0
+( o=  %%Not in vim visual mode - it's an insert-after-current-character operation then.
+  %%  --  enter insertion mode after current character                      text, ESC
+  y0ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+  r-0ol1o+or (r-, m-r0) %h=add .=GlobalMarks_[; (r, m) %h=add .=GlobalMarks_]; %s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i}; 
+, obz$m-0k0g-1 
+  v/w/  %% {aw} -- select word in visual mode.
+, v/s/  %% {as} -- select sentance in visual mode.
+, v/p/  %% {ap} -- select paragraph in visual mode.
+, v/b/  %% {ab} -- select ( ) block in visual mode.
+, v/B/  %% {aB} -- select { } block in visual mode.
+  )
+  
+<<VimInsertHere>>
+%%  {i}  --  enter insertion mode before current character                     text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0r-0or (r-, m-r0) %h=add .=GlobalMarks_[; (r, m) %h=add .=GlobalMarks_]; %s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i});
+  
+<<VimEnterOrSwap>>
+%%  {o}  --  open line below and enter insertion mode                          text, ESC
+oq/.=YankMode/ol0
+( o=%%We're not in insert mode then inser below current line.
+  ocr-0 %d~=; ov/.=OriginalLineText/ onol1o+ov/.=OriginalLineNo/ ov/.=OriginalChrNo/
+  y0r0b- %h=add .=GlobalMarks_[; m %h=add .=GlobalMarks_]; %s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i};
+, %%We're in visual mode - swap top and bottom.
+  oq/.=VisTopOrBot/o!ol1o&o#ov/.=VisTopOrBot/ 
+  %%Now go to Top or Bottom endpoint as appropriate.
+  (ol0o=oq/.=VisTopChr/oq/.=VisTopLine/, oq/.=VisBotChr/oq/.=VisBotLine/) ono-omor )
+  
+<<VimInsertChr>>
+%%  {s}  --  substitute single character with new text                         text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0r-0or(r-, m-r0) %h=add .=GlobalMarks_[; (r, m)e? %h=add .=GlobalMarks_];%s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i};
+  
+<<VimInsertAtEoL>>
+%%  {A}  --  enter insertion mode after end of line                            text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0r-0orr0(r-, m-r0) %h=add .=GlobalMarks_[; (r, m) %h=add .=GlobalMarks_]; %s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i};
+  
+<<VimDelToEoLInsert>>
+%%  {C}  --  change to end of line                                             text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0r-0ore0(r-, m-r0) %h=add .=GlobalMarks_[; (r, m) %h=add .=GlobalMarks_]; %s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i};
+  
+<<VimNonBlankInsert>>
+%%  {I}  --  enter insertion mode before first non-whitespace character        text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0okr-0(v/ /r)0 (r-, m-r0) %h=add .=GlobalMarks_[; (r, m) %h=add .=GlobalMarks_]; %s=commandmode 2; %m=-- INSERT -- (to exit type {Esc i};
+  
+<<VimInsertAbove>>
+%%  {O}  --  open line above and enter insertion mode                          text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0r-0b-m-r0 %h=add .=GlobalMarks_[; m %h=add .=GlobalMarks_];%s=commandmode 2;  %m=-- INSERT -- (to exit type {Esc i};
+  
+<<VimInsertOvertype>>
+%%  {R}  --  replace mode - replaces through end of current line, then inserts text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0r-0or(r-, m-r0) %h=add .=GlobalMarks_[; (r, m) %h=add .=GlobalMarks_]; %s=commandmode 6;  %m=-- REPLACE --  (to exit type {Esc i};
+  
+<<VimDelAllLineInsert>>
+%%  {S}  --  substitute entire line - deletes line, enters insertion mode      text, ESC
+ocr-0n.r0a~& ov/.=OriginalLineText/ onov/.=OriginalLineNo/ o#ov/.=OriginalChrNo/
+y0okr-0e0m-r0 %h=add .=GlobalMarks_[; m %h=add .=GlobalMarks_]; %s=commandmode +A;  %m=-- INSERT -- (to exit type {Esc i};
+  
+<<VimRestoreLine>>
+%%  {U}  --  restores line to state when cursor was moved into it
+%%Actual behaviour is to return to the line where the last change occured and restore that line.
+y0oq/.=OriginalLineText/ oq/.=OriginalLineNo/ono-ome0i'~ok oq/.=OriginalChrNo/r-0or
+
+<<VimCmdMode>>
+%%  {Q}  --  leave visual mode (go into "ex" mode)
+%%  All commands entered will be interpreted as though they had the ( : ) prefix.
+%m=Sorry, the Q function is not available in jot emulation;
+  
+<<VimWordStartNext>>
+%%  {w}  --  move foreward one word
+%%Behaviour seems to be - go forwards to the start of the next string of alphanumerics or non-alphanumerics except whitespace.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (rr-, m) (q/ 	/ (q//r)0, q/A-Za-z0-9_/ (q//r)0, (q//\r)0 ) ((rr-, m)q/ 	/r)0 o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimWordStartPrev>>
+%%  {b}  --  back word
+%%Behaviour seems to be - go back to the start of the current or previous string of alphanumerics or non-alphanumerics except whitespace.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (r-r, m-r0) (q-/ 	/r-)0 (q-/A-Za-z0-9_/ (q-//r-)0, (q-//\r-)0) o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimWordEndNext>>
+%%  {e}  --  end of word
+%%Behaviour seems to be - go forwards to the end of the current or next string of alphanumerics or non-alphanumerics except whitespace.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (r2r-, m) ((rr-, m)q/ 	/r)0 (q/A-Za-z0-9_/ (q//r)0, (q/A-Za-z0-9_ 	/\r)0 ) r- o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimBlankStartPrev>>
+%%  {B}  --  move back one Word
+%%Behaviour seems to be - go back to the start of the current or previous string of whitespace characters.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (r-r, m-r0) (q-/ 	/ ((r-r, m-r0) q-//r-)0, ) (q-//\r-)0 o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimBlankEndNext>>
+%%  {E}  --  move to end of Word
+%%Behaviour seems to be - go forwards to the end of the current or next string of non-whitespace characters.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/os (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (r2r-, m) (q/ 	/ ((rr-, m)q//r)0, ) ((rr-, m)q//\r)0 r- o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimBlankStartNext>>
+%%  {W}  --  foreward Word
+%%Behaviour seems to be - go forwards to the start of the next string of whitespace characters or non-whitespace characters.
+%%Pick up any numeric arg.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-
+%%Word shift the specified number of times.
+( (rr-, m) (q/ 	/\ (q//\(r, m))0, ) ((rr-, m)q//r)0 o~)0 ok
+%%If there's a defered action then do it now.
+%h'=call VimDeferredAction;
+  
+<<VimSqMatchRight>>
+%%  {]}  --  move forwards to matching ( ] ) in "[...]" section                                  "]"
+y0v/]/(r, m), ol0(v./*.f.*/.,v/"/r(f1/"/v-/*/r)0r,v/'/f1/'/,q/[/ol1o-r,q/]/\(r,m,okol-1?\),o~r)0ok
+  
+<<VimSqMatchLeft>>
+%%  {[}  --  move back to matching ( [ ) in "[...]" section                                      "["
+y0v/[/(r-,m-r0), ol0(v.*/.f-./*.,v/"/(r-f-1/"/v-/*/)0r-,v/'/f-1/'/r-,q/]/ol1o-r-,q/[/\(r-,m-r0),o~r-)0ok
+  
+<<VimChangeCommand>>
+%%  {c}  --  change command                                                    cursor motion command
+%%These makes the move indicated by the cursor-move command, removes all the intervening text and enters insert mode.
+%% {c}<movementCmd> command - marks extent and goes into insert mode, text is overwritten up to the mark
+%%after the mark, new text is simply inserted.
+%%In the event of a move up or down it removes all of both lines.
+y0n. obz.ol99ov/.=DeferredAction/
+  
+<<VimDelete>>
+%%  {d}  --  delete command                                                    cursor motion command
+y0ol100ov/.=DeferredAction/ n.
+  
+<<VimReduceIndent>>
+%%  {<}  --  unindent command                                                  cursor motion command
+y0obz.ol60ov/.=DeferredAction/
+  
+<<VimIncreaseIdent>>
+%%  {>}  --  indent command                                                    cursor motion command
+y0ol62ov/.=DeferredAction/
+  
+<<VimDelToEoL>>
+%%  {D}  --  delete to end of line
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- y0 n.(r (r0o~m)0a%+, r-a%-ok)
+  
+<<VimDelNextChr>>
+%%  {x}  --  delete single character
+y0n.(r, r-)a%+
+  
+<<VimDelPrevChr>>
+%%  {X}  --  delete backwards single character
+y0n.(r-a%-, )
+  
+<<VimQickSave1>>
+%%  {Z}  -- first half of quick save-and-exit                                 "Z"
+%o
+  
+<<VimCliCmdToBuf>>
+%%  {!}  --  shell command filter                                              cursor motion command, shell command
+y0n. obz.ol33ov/.=DeferredAction/
+  
+<<VimEval>>
+%%  {@}  --  vi eval                                                           buffer name (a-z)
+%%Use text in specified register as a command string.
+%%Pick up register key.
+y0ob z$m-0k0g-1j- oz
+%%Copy register contents to $ buffer.
+oq/Registers/  oq/.=CurrentBuf/oz m-0 (v'$\m)0 (v'$r2n.r0a$&osozok, ok oq/.=CurrentBuf/oz  %x=Error: That register is not defined.; )
+%h'=call VimActionIndirect;
+  
+<<VimGotoEoL>>
+%%  {$}  --  move to end of line
+y0r0
+  
+<<VimSubsAgain>>
+%%  {&}  --  repeat last ex substitution (":s ...") not including modifiers
+y0
+%m=<<VimSubsAgain>>;
+  
+<<VimFirstNonBlank>>
+%%  {^}  --  move to first non-whitespace character of line
+%%The control character in the Q command is {Tab}
+y0r-0(q/ 	/r)0
+  
+<<VimFirstNonBlankOdd>>
+%%  {_}  --  similar to "^" but there's some wierd subtlety in the way it uses the numeric prefix
+%%Actual behaviour seems to be to move down n lines then go to first nonblank - identical to {+} ???.
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso-  ol1oso- (mo~) ok (q/ 	/r)0
+  
+<<VimFirstNonBlankPrev>>
+%% {-}  --  move to first non-whitespace of previous line
+%%The control character in the Q command is {Tab}
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (m-o~) ok (q/ 	/r)0
+  
+<<VimFirstNonBlankNext>>
+%% {+}  --  move to first non-whitespace of next line
+%%Actual behaviour seems to be to move down n lines then go to first nonblank.
+%%The control character in the Q command is {Tab}
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (mo~) ok (q/ 	/r)0
+  
+<<VimParaStart>>
+%%  {{}  --  move to previous blank-line separated section                     "{"
+%%The control character in the Q command is {Tab}
+y0r-0 (rq/ 	/)0 (r, (m-(q//r)0r\)0) (m- (q//r)0 r)0 r-0
+  
+<<VimParaEnd>>
+%%  {}}  --  move to next blank-line separated section                         "}"
+%%The control character in the Q command is {Tab}
+y0r-0 (rq/ 	/)0 (r, (m(q//r)0r\)0) (m (q//r)0 r)0 r-0
+  
+<<VimEx_Something>>
+%%  {:}  --  :<something>                                                        ex command
+%%Now, some functions take an optional numeric arg (eg: :po ), if given save value in Digits object.
+obz@m-0k0 %s=prompt :; g k- %s=prompt; (f1/ /b-, ) r-0(oidobosz.ov/.=Digits/oz, ) oz 
+%%Update regs.
+z@n.r0a~& z.ov".=Regs|:"
+%%%m=--------Calling VimEx_'@;
+oq/.=CurrentBuf/oz  (%h'=call VimEx_'@;, %x=Sorry - :'@ nocando;)
+  
+<<VimEx_ta>>
+%%Jumps to specified tag-index point.
+%%  :ta <tagName>
+%%Pick up tag name.
+obz@k(v/ /e)0oz
+%h'=call Vim_GotoTag;
+  
+<<VimTagFromCurrWord>>
+%%  {Ctrl+]} Picks up tag-name below cursor and jumps to definition.
+y0oc (q-/a-zA-Z0-9_/r-)0 n.(q//r)0a@& oco-or
+%h'=call Vim_GotoTag;
+  
+<<Vim_GotoTag>>
+%%Open the file and go to the specified line.
+z. (%h=jump Tag_'@; f/	/-n.f1//a$& %i*='$;z.rn.f1//a$& )
+%%The key is either a regular expression or a line number.
+(z$ q/0-9/ oid ono-om  %%That was a line number.
+, %%Regular expressions need a little tarting up.
+  v"/"e r-0(q/()*;/(v-/\/, i/\/)r, r)0 r0v-./\;".e-4 oq/.=CurrentBuf/oz  
+  %%Go
+  %f='$;)
+%q$=window; f/current buffer, /-oid  oq/.=CurrentBuf/oz wol2o/ onofo-oso- ow
+  
+<<VimEx_set>>
+%%Currently, only :set tags is supported in fake_vim
+%%  :set tags <pathName1>[,<pathName2>[,...]] (from http://vim.wikia.com/wiki/Browsing_programs_with_tags )
+obz@k(v/ /r)0 (v/.=tags/e4, %x=Sorry nocando only ":set tags" is allowed at present.;)
+%%Pick up the list of files and read each of them into the tags buffer.
+r-0(f/ /e)0 m-0(f/,/eb)0 m-0
+oq/.=Tags/z@ ( %i.='@ -append; z@m)0 z.m-0(v/!/k, m)0
+%%Create the hashtable entry for every tags-file entry.
+m-0 (n.f1/	/a$& %h=add Tag_'$; m)0
+%%Tidy up and return to original buffer.
+okoz
+  
+<<VimEx_reg>>
+%%  :reg -- display registers.
+oboq/.=Regs/z~ %q$=keys; okk2(e12m)0m-0 
+%s=prompt Hit {Return} to continue> ; w tg %s=prompt; %m=; 
+oz 
+  
+<<VimEx_state>>
+%%  :state  -- Displays all of fake_vim state
+z-m-0k0
+i/fake_vim state report:/b
+oq/.=Regs/z~ %q$=keys; k2(i/    /e12m)0 z-i/  .=Regs|...:/bh$b
+oq/.=Options/z~m-0z- i/  .=Options = /i'~b
+oq/.=Args/z~m-0z- i/  .=Args = /i'~b
+oq/.=CurrentBuf/ oo/  .=CurrentBuf =  %c/b
+oq/.=ArgsStatus/ oo/  .=ArgsStatus = %d/b
+oq/.=JumpNo/ oo/  .=JumpNo = %d/b
+oq/.=Jumps/z~ %q$=keys; k2(i/    /m)0 z-i/  .=Jumps|...: /h$b
+oq/.=DeferredAction/ oo/  .=DeferredAction = %d/b
+oq/.=Digits/ oo/  .=Digits = %d/b
+oq/.=FindOrigLineNo/ oo/  .=FindOrigLineNo = %d, /r0 oq/.=FindOrigChrNo/ oo/  .=FindOrigChrNo = %d/r0
+  oq/.=FindNewLineNo/ oo/  .=FindNewLineNo = %d/r0   oq/.=FindNewChrNo/ oo/  .=FindNewChrNo = %d/b
+oq/.=LatestFind/z~m-0z- i/  .=LatestFind = /i'~b
+oq/.=FindCmd/ oo/  .=FindCmd = %c/  oq/.=FindChr/ oo/  .=FindChr = %d/b
+oq/.=GlobalMarks/z~ %q$=GlobalMarks; k2(i/    /m)0 z-i/  .=GlobalMarks|...:/h$b
+oq/.=OriginalLineNo/ oo/  .=OriginalLineNo = %d/r0  oq/.=OriginalChrNo/ oo/  .=OriginalChrNo = %d/r0 oq/.=OriginalLineText/ oo/  .=OriginalLineText = '~/b
+oq/.=OriginalFocusBuffer/ oo/  .=OriginalFocusBuffer = %c/r0  oq/.=OriginalFocusLineNo/ oo/  .=OriginalFocusLineNo = %d/r0  oq/.=OriginalFocusChrNo/ oo/  .=OriginalFocusChrNo = %d/b
+oq/.=YankMode/ oo/  .YankMode = %d/r0 oq/.=VisTopOrBot/ oo/  .VisualTopOrBot = %d/r0 
+oq/.=VisTopLine/ oo/  .=VisTopLine = %d/r0  oq/.=VisTopChr/ oo/  .=VisTopChr = %d/b
+%%w %s=prompt Hit {return} to continue; g %s=prompt;
+%q$=window; f/ screenHeight = /-oid %w-= -height='~ -popup;
+oq/.=CurrentBuf/oz
+  
+<<VimEx_po>>
+%% :[<n>]po  :n^T           jump back from, to nth older tag
+%m=Jump back to place before tag jump.;
+  
+<<VimEx_q>>
+%%  :q - Abandon session.
+%%Check that all args have been looked at.
+oboq/.=Args/z~m0onz.osokosoz oq/.=ArgsStatus/os (o< ok %x=Error: More files to be looked at.;, ok %a; )
+  
+<<VimEx_q!>>
+%%  :q! - Abandon session without asking silly questions.
+%b=unrestricted; %a;
+  
+<<VimEx_n>>
+%%  :n - switch to next file in args list
+%%The window report is used later.
+w %q@=window; 
+%%Check Args.
+oq/.=CurrentBuf/o# oq/.=Args/z~ osol64o-ono-om (m, osozokok %x=Error: Already at last item in args list.; )
+z$oko~
+%%Update ArgsStatus
+onoq/.=ArgsStatus/ (o<ok, ov/.=ArgsStatus/) o# ov/.=CurrentBuf/ oz
+  
+<<VimEx_N>>
+%%  :N - switch to previous file in args list
+%%The window report is used later.
+w %q@=window; 
+%%Check Args.
+oq/.=CurrentBuf/o#o# oq/.=Args/z~ osol64o-ono-om (m-, osozokok %x=Error: Already at first item in args list.; )
+%%Nobbled for debugging. 
+z$okok
+%%Update ArgsStatus
+onoq/.=ArgsStatus/ (o<ok, ov/.=ArgsStatus/) o#ov/.=CurrentBuf/oz
+  
+<<VimEx_n!>>
+%%  :n! - switch to next file in args list - identical to :n
+%h'=call VimEx_n;
+  
+<<VimEx_N!>>
+%%  :N! - switch to previous file in args list - identical to :N
+%h'=call VimEx_N;
+  
+<<VimEx_args>>
+%%  :args[ <arg>] - display [or redefine] the list of args (pathnames of files to edit).
+obz@r-0
+( m\  %%No args on command line, simply list the args ( 64 is ascii code for A) - 1.
+  o#oq/.=CurrentBuf/ol64o-oq/.=Args/ z~m-0n.m0r0a$& z$okol1o-m-0om i/[/r0i/]/ m-0(ji/ /)0 p-1 z$ok oz
+, %%Redefine current file pathname.
+  (v/ /e)0(f1/  /e)0 o#z$m-0k0oo/%c	/ oq/.=Args/m-0f'$-e0i'@ z.o#ov/.=Args/
+  %%Now read the file.
+   oq/.=CurrentBuf/oz r-0n.r0a$&z$ok i/%i/f1/	/s/=/r0i/;/ '$ %b=writeifchanged; ok  )
+  
+<<VimEx_marks>>
+%%  :marks - list marks held in current buffer.
+oq/.=CurrentBuf/oz %q$=keys; k2i/Global marks:/b oq/.=CurrentBuf/oz   %q@=keys; k2i/Local marks:/bm0h$w z. %q$=keys; k2(f1/GlobalMarks_/m,k)0 z@m0h$m-0w
+%s=prompt Hit {Return} to continue.; g %s=prompt; %s=commandmode A; %m=;  oq/.=CurrentBuf/oz 
+  
+<<VimEx_ju>>
+%h'=call VimEx_jumps;
+  
+<<VimEx_jumps>>
+%%  :jumps - list jumps in this and other buffers.
+%%A jump point is the starting point of a {/}, {?} {G}, {gg}, <n>{%} commands.
+%%These are only recorded if the end point is on a different line.
+oq/.=Jumps/ %q@=keys; (f1/Jump_/-e-0f/(/n.f1/line no./-a$f/,/n.f/no./-a$f/, Rec:/s/  /m, k)0 
+%b=sort; ol1m0 (f1/,/-e-0o#oo/%4d/o~m-)0 i"Jump  Line Col text"b- okokw
+%s=prompt Hit return to continue.; g %s=prompt; oz
+  
+<<VimAccessBuffer>>
+%%  {"}  --  access numbered buffer; load or access lettered buffer            1-9,a-z
+y0%d~=; oq/.=CurrentBuf/oz g-1j- z.ov/.=Regs|YankReg/  oq/.=CurrentBuf/oz 
+  
+<<VimChangeCase>>
+%%  {~}  --  reverse case of current character and move cursor forward
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (o~c)0
+  
+<<VimRptLastChange>>
+%%  {.}  --  repeat last text-changing command
+1
+  
+<<VimPageUp>>
+%%  {Ctrl+B} --  back (up) one screen
+%%The control character in the Q command is {Tab}
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (m-* o~)0 (q/ 	/r)0 %h'=call VimDeferredAction;
+  
+<<VimPageDown>>
+%%  {Ctrl+F} --  foreward (down) one screen
+%%The control character in the Q command is {Tab}
+y0oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- m*(q/ 	/r)0 %h'=call VimDeferredAction;
+  
+<<VimPageHalfDown>>
+%%  {Ctrl+D} --  down half screen
+%%Moves such that line, at the end of the original view, goes to the centre of the new view, 
+%%new current line is always set to line at the top of the new view. 
+%%
+%%First get the available size of the current window = (Total window height) - (delimiter line, if present) - (header line, if present).
+y0ob %q$=window; f/ current buffer, /-oid (f1/with an end delimiter line/ol1o-, ) oso#ozos %q$=buffer; f/ Header = /-(v/(null)/, ol1o-) osozo#o# 
+%%Now calculate how many lines to move down in order to bring the original bottom line to the centre of the window.
+ol2o/o+ onofo-o-omw 
+%%Finally, go back up to the top of the window.
+ol0oso-om (q/ 	/r)0 %h'=call VimDeferredAction;
+  
+<<VimPageHalfUp>>
+%%  {Ctrl+U} --  up half screen
+%%Moves such that line, at the top of the original view, goes to the centre of the new view, 
+%%new current line is always set to line at the end of the new view. 
+%%
+%%First get the available size of the current window = (Total window height) - (delimiter line, if present) - (header line, if present).
+y0ob %q$=window; f/ current buffer, /-oid (f1/with an end delimiter line/ol1o-, ) oso#ozos %q$=buffer; f/ Header = /-(v/(null)/, ol1o-) osozo#o# 
+%%Now calculate how many lines to move up in order to bring the original top line to the centre of the window.
+ol2o/ol0oso-onofo-o- omw 
+%%Finally, go back up to the top of the window.
+on (q/ 	/r)0 %h'=call VimDeferredAction;
+  
+<<VimScrollUpOrMove>>
+%%  {Ctrl+E} --  scroll text up (cursor doesn't move unless it has to)
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (ofol1owof(o=m-,) oko~)0
+%%oboq/.=Digits/(ol1o<okol1, ) osozol0oso- (ofol1owof(o=m-,) oko~)0
+  
+<<VimScrollDownOrMove>>
+%%  {Ctrl+Y} --  scroll text down (cursor doesn't move unless it has to)
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (ofol-1owof(o=m,) oko~)0
+%%oboq/.=Digits/(ol1o<okol1, ) osozol0oso- (ofol-1owof(o=m,) oko~)0
+  
+<<VimShowEditStatus>>
+%%  {Ctrl+G} --  show status
+ob %q$=buffer; 
+f/  pathName = /-b-k-0i/"/r0i// 
+(f/ SameSinceIO = FALSE/m-0r0i/ [Modified]/, ) 
+o#oz%q~=file; (f/writable by this UID = yes/z$, z$i/[readonly]/) ok
+m-0f/  LineNumber = /-oid m-0r0oo/ line %d/
+o#ozoconm0(r, m-)onosono-om osor z$m-0r0o#oo/ of %d/
+f/ LineNumber = /-oidol100o*oso/ m-0r0oo/ --%d%%--/
+m-0f/ CurrentChr = /-oid m-0r0oo/ col %d/
+oz %m='$;
+  
+<<VimRefresh>>
+%%  {Ctrl+L} --  refresh screen
+%l;
+  
+<<VimNextLineStart>>
+%%  {Ctrl+M} --  (CR) move to first non-whitespace of next line
+y0
+%m=<<VimNextLineStart>>;
+  
+<<VimXON>>
+%%  {Ctrl+Q} --  XON
+%%Ignore these it's just {Ctrl+q} and {Ctrl+s}
+%m=VimXON;
+  
+<<VimXOFF>>
+%%  {Ctrl+S} --  XOFF
+%%Ignore these it's just {Ctrl+q} and {Ctrl+s}
+%m=VimXOFF;
+  
+<<VimDoNothing>>
+%%  {Ctrl+R} --  does nothing (variants: redraw; multiple-redo)
+%m=VimDoNothing;
+  
+<<VimRestoreFocus>>
+%%  {Ctrl+T} --  go to the file/code you were editing before the last tag jump
+%%and {Esc t}
+%%and :<n>po
+y0oq/.=OriginalFocusChrNo/ oq/.=OriginalFocusLineNo/ oq/.=OriginalFocusBuffer/ (ol0o=\oz ono-om or ok, okokokoz %x=No moves to mark have been performed.;)
+  
+<<VimExitVisualMode>>
+%%  {Ctrl+\} --  leave visual mode (go into "ex" mode)
+y0 ol0ov/.=YankMode/
+  
+<<VimSwitchFileBufs>>
+%%  {Ctrl+^} --  switch file buffers
+y0
+%m=<<VimSwitchFileBufs>>;
+  
+<<VimDoPercent>>
+%%  {%}  --  match nearest [],(),{} on line, to its match (same line or others)
+%%Actual behaviour is:
+%%    - If a numeric parameter is given then go to the linenumber corresponding to that percentage.
+%%    - If not already on a { ( [ ] } or ) search forwards on the line for next ( { or [
+%%    - Then search forwards or backwards, through any number of lines, for matching brace including the contents of strings and comments, 
+%%    - in the event of a mismatch return to starting position.
+%%
+%%If percentage line no. specified go to that line.
+oq/.=Digits/
+( ol-1o=\ %%Percentage line no. was given.
+  (m0ono*ol100o/ono-om)?
+  %%
+, %%Matching braces.
+  ok
+  %%Note starting point.
+  y0oconol0
+  %%If not on an open/close brace find next open brace in line.
+  (q/{[()]}/, (rq//\)0 q//, r-0okokr-0or %x=Fail - no initial brace found on this line.; ) 
+  %%If on an open brace then search forwards, through any number of lines for the matching close brace.
+  %%The three types of brace each has a type code - () - type 1, {} - type 2 and [] - type 3.
+  ( q/{[(/ %%Initially at an open brace, search forwards for matching close brace.
+    %%Place brace type-code on the stack behind the brace counter.
+    ( q/{[(/  %%It's an open brace, add the type code and decrement brace count.
+      ol1o- (v/(/ol1, v/{/ol2, ol3)os (r, m)
+    , q/}])/\(r, m)  %%Not a close brace, move to next character
+    , %%It is a close-brace character, if the type codes don't match exit now.
+      os ( (v/)/ol1, v/}/ol2, ol3) (o=, (oko~os)0 p okono-omor %x=Fail - bracket-type mismatch.; ) ) ok
+      %%If it's the final end-brace exit now.
+      o~ (r, m) )0
+  , %%Initially at a close brace - search back for matching open brace.
+    %%Place brace type-code on the stack behind the brace counter.
+    ( q/}])/  %%It's a close brace, add the type code and decrement brace count.
+      ol1o- (v/)/ol1, v/}/ol2, ol3)os (r-, m-r0)
+    , q/{[(/\(r-, m-r0)  %%Not an open brace, move to next character
+    , %%It's an open-brace character, if the type codes don't match exit now.
+      os ( (v/(/ol1, v/{/ol2, ol3) (o=, (oko~os)0 p okono-omor %x=Fail - bracket-type mismatch.; ) ) ok
+      %%If it's the final open-brace exit now.
+      o~ (r-, m-r0) )0
+  , %%Mismatch or no initial open-brace found on line - return to starting point.
+    %%Unwind all type codes - the top of stack tells us how many.
+    ok (o~osok)0
+    %%Return to start point.
+    ono-omor
+    )
+  %%Clear brace-depth counter (now zero) and starting point off the stack.
+  ok okok )
+  
+<<VimDebugKey>>
+%%  {Esc x} - Inserts/removes debug mode for specified key.
+%%
+n.a$z$
+%s=prompt Specify a vim command: ; g %s=prompt;
+m-r-0
+( v/:/ei/VimEx_/ %h'=jump '$; mon (((v/ /r)0rr-f1/ g /\m)0 (r3ok, ono-om)(v/t /e2, i/t /))
+, %%Not a : command - look up the relevant command in the keycodes buffer.
+  z^m-0 %s=case 1; (v'$\m)0 %s=case 0; (v'$r12 (v/t /e2, i/t /),  oq/.=CurrentBuf/oz  %x=keycode '$ not found.;) )
+ oq/.=CurrentBuf/oz 
+  
+<<VimStartDebugger>>
+%% {Esc d} - enters the jot debugger.
+tw
+  
+<<VimQuitDebugger>>
+%% {Esc q} - exit the jot debugger, returning to vim-style command mode.
+%s=trace 0; %s=commandmode A;
+  
+<<VimActionIndirect>>
+%%There's a vim command in the ( $ ) buffer - execute now.
+%%
+r-0(v/:/rb, v/^/eoicol64o-oo/%c/r0i/            /, (q/0-9/rb)0 ,)
+%%Now y, c, < and > are the valid prefix commands for {/} and {?}
+r-0((q/yc<>/r, )q"/?"ri/*/, )
+%%Write then run the script.
+%o=./fake_vim_indirect_command.jot;
+oz ( %r=./fake_vim_indirect_command.jot -asConsole;, %x=Error: Something failed in the processing of your indirect command.; )
+  
+<<VimUndo>>
+%%  {u}  --  undo
+y0kh!
+  
+<<VimDeferredAction>>
+%%Various actions are deferred until the next navigation operation is completed.
+%%This function is called after these navigation commands:  {/}, {?}, {f}, {F}, {h}, {j}, {k}, {l} and all cursor key functions, including PageUp/Down.
+%%The DeferredAction state is set by {y}, {c}, {d}, {!}, {<} and {>} commands.
+%%
+%%If in visual mode, update the selection highlighting.
+oq/.=YankMode/
+( ol0o>ol4o<ok %%Yes we're in visual mode.
+  %%Remove all tags.
+  oconob %q$=tags; (f/VisualSel/f-1/ At rec /-oidosozono-om obz$f1/, chr /-oidosf/ to /-oido~osoz oso#oro-ou %b=remove_tag colour VisualSel; obz$m)0 ozono-omor
+  %%Calculate lines range.
+  ( oq/.=VisTopLine/ on 
+    ( o= %%Top and Bot lines are the same - compare Top and Bot Chrs and set Top or Bot parameters as appropriate.
+      okoq/.=VisTopOrBot/ (ol0o=onov/.=VisTopLine/ ocov/.=VisTopChr/, onov/.=VisBotLine/ ocov/.=VisBotChr/ )
+    , ono<\ %%We're above the previous top of the visual region.
+      okoq/.=VisTopOrBot/( ol0o=onov/.=VisTopLine/ ocov/.=VisTopChr/, onov/.=VisBotLine/ ocov/.=VisBotChr/ )
+    , %%We're below the previous top of visual region.
+      okoq/.=VisTopOrBot/( ol1o=onov/.=VisBotLine/ ocov/.=VisBotChr/, onov/.=VisTopLine/ ocov/.=VisTopChr/ ) ) ok
+      %%Tag all untagged lines in the range - first set up line counter and go to the top line.
+    oq/.=VisTopLine/o# oq/.=VisBotLine/o~o- 
+    %%If there's been a crossover swap and redo the calculation of the counter.
+    ol0 o<\ oq/.=VisTopLine/oq/.=VisTopChr/oq/.=VisBotLine/oq/.=VisBotChr/ ov/.=VisTopChr/ov/.=VisTopLine/ ov/.=VisBotChr/ov/.=VisBotLine/ oq/.=VisTopOrBot/o!ol1o&ov/.=VisTopOrBot/
+    )2?
+  osono-om
+  %%In VisualMode 1 set up the current chr to 0, for all other visual modes set it to left-top chr no.
+  oq/.=YankMode/ol1 (o=okol0, okoq/.=VisTopChr/)
+  ( %%Tagging loop.
+    %%If we're in VisualMode 3 set up the current chr to left-top chr no, for other visual modes set it to 0.
+    oq/.=YankMode/ol3 (o=okokoq/.=VisTopChr/, ok)
+    %%If we're at the last line, or in visual-mode 3 ( {Ctrl+v} ) set the end chr to VisualBotChr, otherwise line length.
+    osol-1 (((o=\os, os\) (oq/.=YankMode/ol3o=\ok, ok\))\ oq/.=VisBotChr/, oe)
+    %%Set up substring and add tag ... then set up the current chr for the next line.
+    osoroco-ou %b=addtag VisualSel; mo~ ol0)0 ok
+  %%Finally, return cursor to correct end point.
+  oq/.=VisTopOrBot/ol1 (o=okoq/.=VisBotChr/ oq/.=VisBotLine/, okoq/.=VisTopChr/ oq/.=VisTopLine/) ono-omor
+%%Debugging only
+o?
+obz$m-0k0 
+oq/.=YankMode/oo/YankMode = %d, /r0 oq/.=VisTopOrBot/oo/VisTopOrBot = %d, /r0
+oq/.=VisTopLine/oo/VisTopLine = %d, /r0 oq/.=VisTopChr/oo/VisTopChr = %d, /r0
+oq/.=VisBotLine/oo/VisBotLine = %d, /r0 oq/.=VisBotChr/oo/VisBotChr = %d/ poz
+, %%We're not in visual mode.
+  ok )
+%%
+%%Get the deferred command.
+oq/.=DeferredAction/ ol0ov/.=DeferredAction/
+( ol0o=                                                   %%No deferred action.
+, ol121o= %h'=call VimYankNow;                            %%It's a {y} command - abstract to current yank register.
+, ol89o=  %h'=call VimYankNow;                            %%It's a {Y} command - abstract to current yank register.
+, ol099o=a%+ %h'=call VimInsertMode;                      %%It's a {c} command - delete the text then go to insert mode.
+, ol0100o=a%+                                             %%It's a {d} command - delete the text.
+, ol033o=a$ z$i/%e=/ oq/.=CurrentBuf/oz  '$               %%It's a {!} command - copy text and send it to the CLI????
+, ol060o=a$z$(m-0(v/ /e)0m)0 oq/.=CurrentBuf/oz h$        %%It's a {<} command - indent all the selected lines???
+, ol062o=a_                                               %%It's a {>} command - un-indent all the selected lines???
+ ) ok
+
+:
+z'm0bh$
+  
+%%
+%%Finalize the startup now.
+'#
+
+%%fake_vim initialization.
+%g#
+%%
+t%%First do the CLI args  -c<cmd&arg1>[ ... -c<cmd&arg2> [ ... ]]; - execute the specified commands in sequence.
+oq/.=Options/z~r-0
+( f1/ -c/ %%One or more startup commands were given, split and construct the startup command file.
+  %%Trim and insert linebreaks after all {:} commands.
+  r-0(f/ -c/(v-/ /e-)0e3b)0 m-0(f/ +/(v-/ /e-)0e2b)0 m-0(mj-,)
+  %%Do control characters.
+  m-0 (v/^/ (e(q/a-z/cr-, )oicol64o-oo/%c/v/^/)0m, m)0
+  %%For {:}, {/} and {?} commands split the command part from the argument (if any), other commands merge onto one line.
+  m-0 (q":/?"r(f1/ /(v/ /e)0, r0)bm, m)0
+  %%Set pathname and write the script.
+  %b=pathname fake_vim_startup_commands.jot; %o;
+  %%Run the script.
+  oq/.=CurrentBuf/ozok ( %r=./fake_vim_startup_commands.jot -asConsole;, %x=Error: Something failed in the processing of your -c ... commands.; )
+, %%No options specified.
+  oq/.=CurrentBuf/oz ok )
+  
+%%Setup window and command mode.
+%h'=call VimEx_on; %s=commandmode A;
+%%Focus to image of first file in the args list.
+oq/.=CurrentBuf/oz
+:
+'#
+  

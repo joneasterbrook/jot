@@ -1,0 +1,74 @@
+%%Calls upon iconv to reformat  a file in a troublesome character set.
+%%
+%%
+%%    Copyright (C) 2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  iconv.jot - calls iconv to convert specified file in /tmp then opens the converted file for editing.
+  defines macro 4 - writes back to /tmp and invokes iconv to reformat the file to it's original form and pathname.
+  
+  Usage:  iconv [<pathname>[ <bufferKey>]]
+    - If no pathname given, then the current file image is re-read as converted UTF-8 text.
+    - if no buffer key given, defaults to current buffer.
+  
+  Buffers used
+    - ( 4 ) - the exit macro.
+    - ( $ ) - file pathname arg.
+    - ( @ ) - temp
+:
+  
+%g#
+%%Note current buffer.
+ob
+%%Pick up original pathname.
+z$m-0(r, o#oz %q$=buffer; f/ pathName = /-e-0m-k-0mk0)
+%%Pick up the original pathname and buffer key.
+r-0n.(f1/ /v-/\/r)0 (v/ /a~& (v/ /(v/ /e)0rr-okoic, ), r0a~&os)
+%%Determine original file format.
+%d@=%e@=\file '$; ('@, %X=Error: Cannot determine original character set.;)
+( f1/ Unicode text/, %X=Error: This file is not in any form of unicode.; )
+%%Pick up the egg-end.
+r-0(f1/,/s/ /)0 r-0(f1/ittle-endian/r0f-1/ UTF-/f1/ /i/LE/e0, f1/ig-endian/r0f-1/ UTF-/f1/ /i/BE/e0, r0f-1/ UTF-/f1/ /e0) f-1/UTF-/e-0
+%%Pick up unicode character-set name.
+r-0n.r0a~&os
+z$m-0n.r0a~& r-0(f1"/"s"_")0
+%%Use iconv to convert to UTF-8.
+z@r-0i"%e@=\iconv "h~ok i" -f=" r0i" -t=UTF-8 > /tmp/"h$ i";\" '@
+%%Read converted file into specified buffer, defaults to current buffer.
+oz %i=/tmp/'$;
+%%Set up a little hashtable to hold original pathname and format.
+%h=create 10;
+%h=data OriginalPathName; ov/OriginalPathName/
+%h=data OriginalFormat; ov/OriginalFormat/
+:
+'#
+
+%g4
+%%The write-out macro for iconv.jot
+%%
+%%First write out the temporary UTF-8 version.
+%o
+ob ( oq/OriginalFormat/ oq/OriginalPathName/, %X= Error: Could not find Original path name or format - this file image was not read by iconv.jot;)
+%%Reformat.
+%q$=buffer; f/pathName = /-b-k-0mk0
+z@i"%e@=\iconv "h$ i" -f=UTF-8 -t=" h~ok i/ > /h~ok i";\" '@ oz
+:
+

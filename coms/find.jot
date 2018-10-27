@@ -1,0 +1,79 @@
+%%Searches filing system for files matching pathname.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Release history:
+%%
+%g?
+  Usage:
+    PathName may contain normal CLI wildcards '*' and '?', the path section may contain hierarchy wildcard '/.../'
+    
+  Buffer usage:
+    # - Main macro, called recursively. 
+    $ - Temporary, frequently the current pathName element
+    @ - Temporary.
+    ! - The subpath to the left of the current pathName element.
+    " - The subpath to the right of the current subpath element.
+    ~ - Current directory listing held in stack. 
+    
+  Each path element is includes it's terminating obleque e.g. '<elem>/'.
+  The first path elem for an absolute path is '/' - the root directory. 
+  As the # macro is called, $ is already set.
+:
+
+%g#
+%%Get the directory listing.
+%q~=dir '!
+%%Sort any matching elements at the end of the list separated by a blank line.
+%%----------------------------------------The following line is wrong - no idea what was intended???
+%%n.a@k (%f~='$; l0n.mz@+)0 m0bh@(m-r)0
+n.a@k (%f~='$; r-0n.mz@)0 m0bh@(m-r)0
+%%Check the next path element from " buffer.
+z"r-0
+%%If there's a wildcard element list whole directory and prune non-matching branches, otherwise just add to existing left-hand path.
+( v/.../  %%hierarchy wildcard - exit depth-first search when next path element matches.
+  %%Extract hierarchy-search terminating element.
+  f1./.-n.(f1./.-, r0)a$
+  %%Get directory listing for current path.
+  %q~=dir '!
+  %%If we've found a matching subpath terminate hierarchy search.
+  ( %f~='$ %%Match found - remove hierarchy wildcard and descend down this subpath.
+    r-0n.r0i./.a!+& z"r-0n.r0i./.a$ '# 
+    %%There may be more matches - remove last matching element from ! and continue.
+    z!r0r-f-1./.-e0 z~
+    )0
+  %%No match on this path element - keep descending. 
+  z!ok
+, %%Simple wildcards or an explicit pathName element - regEx works just the same.
+  %%List directory.
+  %q~=dir '!'$
+  %%Call # macro recursively for each matching element.
+  (%f~='%; ok r-0n.r0a!+&m '#)0 )
+:
+
+%%Pick up pathName - given in $ buffer.
+%%z$m-0f/%%/e2(v/ /r)0n.r0a"
+z$m-0(v/ /r)0n.r0a"
+%%Initialize.
+z"r-0n.(f1/./-, r0)a!
+
+%%Go. 
+'# 

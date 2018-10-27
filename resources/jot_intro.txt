@@ -1,0 +1,271 @@
+
+
+
+
+                              ECCE Introduction
+                              -----------------
+
+1 Purpose
+---------
+  This is intended to be a simple beginners walk-thorugh introduction.
+  
+  It describes the use of ecce commands and structures witth  links  into  the
+  main user guide.
+
+2 Acquiring ECCE
+----------------
+  Where addtool works, the following unix command will acquire ecce:
+	 $ addtool ecce
+
+  If addtool is not available, then the following setup is required (Solaris -
+  Linux is similar excepth that IA32 or IA64 replace  Solaris  in  the  binary
+  path):
+	 $ setenv ECCE_HOME ${ecceInstallationPath}
+	 $ set path = ($ECCE_HOME/bin/Solaris $path)
+	 $ setenv EDIT_COMS $ECCE_HOME/scripts/
+ 
+  The following two commannds are optional: 
+	 $ setenv EDITOR "$ECCE_HOME/bin/Solaris/ecce"
+	 $ setenv HELP_DOCS $ECCE_HOME/help/
+  
+  The sample files are located below the documents area:
+    $ECCE_HOME/docs/example_files
+
+3 Some basic things that all text editors must do
+-------------------------------------------------
+  This section covers the most basic operations on text - the `F` (find),  `S`
+  (substitute), `L` (move left), `R` (move right) and  `M`  (move  to  another
+  line) commands.
+  
+  Internally, the editor maintains text in buffers, each  buffer  holds  three
+  important properties of the text:
+    - the current line pointer - indicates  a  line  of  text  in  your  file,
+      initially set to the first line.
+    - the current character - indicates a character in the line  specified  by
+      the current line pointer, initially set to 1 (the leftmost character).
+    - The substring length - indicates the length of a substring  starting  at
+      the current character, initially  set  to  0  to  indicate  no  selected
+      substring.
+  The  state  of  these  values  is  normally  indicated  on  the  screen   by
+  highlighting the substring.
+       
+  Working with one of the example files discretion.t
+    (see http://history.dcs.ed.ac.uk/archive/apps/ecce/hmd/ldsecce.html)
+  start an ecce session on discretion.t:
+   
+	 $ cp $ECCE_HOME/docs/example_files/discretion.t .
+	 $ ecce discretion.t 
+  If your terminal is not a vt100-compatible xterm it may be necessary to  run
+  the editor in teletype mode:
+	 $ ecce -tty discretion.t 
+  
+  At once we see this piece contains an obvious typo - the word 'eyws'  should
+  be 'eyes'. So we might use the `F` (Find) command:
+	1 .> f/eyws/
+  
+  The editor then highlights the word 'eyws' giving a visual indication of the
+  new state of the current line, current character and substring length.
+  
+  We might correct this word with the S (Substitute) command):
+	7 .> s/eyes/
+  
+  This could have been done all on one line: 
+	1 .> f/eyws/s/eyes/
+ 
+  Alternatively, if we happend to know exactly how  long  and  where  the  dud
+  string is located, we might have used the `m` (Move cursor to another  line)
+  and `r` (move cursor Right) commands, removed the  bad  text  with  the  `e`
+  (Erase characters) command and inserted the correct spelling  with  the  `i`
+  (Insert text) command:
+	1 .> mmmmmmrreeeei/eyes/
+  This is more conveniently expressed like this: 
+	1 .> m6r2e4i/eyes/
+  
+  Most ecce commands have a repitition argument - e.g. the  m6  command  means
+  move the line pointer forwards by 6 lines and, again in the  above  example,
+  r2 means move the cursor right by two characters.  For  many  commands  this
+  argument can be prefixed with a minus sign '-' to reverse the directionand a
+  zero indicates that the command should be repeated until it fails. This:
+	1 .> m0  - means go to the end of the file. 
+	1 .> m-0 - means go back to the start of the file. 
+	1 .> r0  - means go to the end of the current line. 
+	1 .> l0  - means go to the start of the current line. 
+  
+  New lines can be  inserted  using  the  `g`  (Get)  command,  when  this  is
+  encountered in the command string, execution og the  command  string  pauses
+  and you are expected to type in the new line (by default, no prompt is given
+  - see `%p`).
+	1 .> m2g
+	  ----------
+  
+  Complete lines can be removed with the `k` command - so, with the g  command
+  we could have fixed our original typo with this command followed by the good
+  version of the line:
+	1 .> m6kg
+  eyes as cold as ice
+  
+  Blocks of text can be cut and pasted with the `n` (Note), `a` (Abstract) and
+  `h` (insert buffer Here) commands. The n command places an  internal  marker
+  at the start of the block to be abstracted. The a command removes  the  text
+  from the note point to the current  line.  By  default,  n  and  a  commands
+  abstract complete lines but the n command has the  optional  qualifier  .  ,
+  this causes the note and abstract points to be to a character in a line. The
+  h command inserts all of the contents of the specified buffer at the current
+  character pointer.
+  
+  To abstract all of some quoted text (i.e.  within  double  quote  signs)  to
+  buffer 'q' and replace it:
+	 999 .> f-/"/n.f/"/raqhq
+  The find command, if given an empty search string will  use  the  last  used
+  string - this doesn't spare us much typing in this case but it is  a  useful
+  feature for long search strings:
+	 999 .> f-/"/n.f//raqhq
+   
+  The text will remain in the buffer identified by the buffer key q and can be
+  inserted any number of times at any point in the text with this command:
+	 999 .> hq 
+
+4 The ecce block structure
+--------------------------
+  The real power of ecce derives from it's block structure and  command-status
+  handling.
+  
+  All ecce commands return a status value indicating success or failure.  Thus
+  an f command will return a faul if the search string does not exist, m  will
+  fail when it is at the end of a buffer m- will fail  at  the  start  of  the
+  buffer, r will fail at the end of a line, l will fail at the  start  of  the
+  line. The following bloc constructs are allowed:
+    - `(` <commandString>  )  -  A  simple  block,  all  commands  within  the
+      barackets are grouped together, if one fails the entire block returns  a
+      failure status.
+       
+    - (<commandStringA>, <commandStringB>[,  <commandStringC>[,  ...]])  -  An
+      if-then-else block, execution begins with commandStringA, if any command
+      in here fails then control switches  to  commandStringB,  commandStringC
+      takes over if something failes there ...
+      
+    - (<commands>)100 - finite loop - will repeat the block  of  commands  100
+      times (which may contain if-then-else clauses), if a failure occurs then
+      the loop block returns a failure.
+      
+    - (<commands>)0 - infinite loop - will repeat the block of commands  until
+      the command string returns a failure.  The  infinite  loop  will  always
+      return a success.
+      
+    - `?` status reset - any failure in the preceeding command is reset  to  a
+      success.
+  
+    - `\` status negation - the status of the preceeding command (or block) is
+      reversed.
+      
+  Thus the block (<commands>)? will always return success, (<commands>)?\ will
+  always return a failure. ( (<commands>)? )0 will never exit.
+
+5 Testing text
+--------------
+  In addition to the f command, there are other tests which  can  be  usefully
+  applied:
+   
+    - m and m-, reespectively, test for the end and start of the buffer.
+     
+    - l and r, respectively, test fot the first or last character of a line. 
+    
+    - `v` (Verify text string) returns success status if the specified  string
+      matches immediately to the right of the current charater.  Thus  in  the
+      discretion.t example:
+	 1 .> m-0f/only will/l0r12v/suffice/   - this should return  success.
+	 1 .> m-0f/only will/r0v-/suffice/     - this should return  success.
+  
+    - `q` (Qualify) verifies that  the  character  indicated  by  the  current
+      character pointer is a member  of  the  set  of  characters  given.  The
+      following should be successful since the D in Discretion is a member  of
+      A-Z
+	 999 .> m-0mr2q/A-Z/       
+ 
+    this should succeede because the last letter of Discretion is in the range
+    a-z:
+	 999 .> m-0mr0q-/a-z/       
+
+6 Breaking and joining lines - the  b and j commands
+----------------------------------------------------
+  The `b` command breaks the line just before the  current  character  leaving
+  the original current character at the start of a new line. b- does the  same
+  except that the current character is set to the end of the first half of the
+  newly broken line.
+  
+  The `j` command joins the current line with the  next  leaving  the  current
+  character at the point where they were joined. j- is similar except that  it
+  joins with the previous line.
+
+7 Using and maintaining buffers
+-------------------------------
+  The a command will define a buffer using text picked up from any other buffer. 
+  
+  The `%i` command will load a file into a buffer - ecce adds the file name at
+  the end of the file.
+  
+  The `%o` command will write the current buffer as a file - ecce assumes that
+  the last line of the buffer is the file pathname.
+  
+  The `z` (Zoom) command will switch context  to  the  buffer.  e.g.  zq  will
+  switch context to buffer q.
+  
+  Buffers may also contain ecce commands - in this context they are  generally
+  referred to as macros (see `About macros`) e.g '3 will execute  commands  in
+  buffer 3.
+  
+  Buffers can be used to define the match string in f, v and t  commands  e.g.
+  f'q will search the current buffer for the string indicated by  the  current
+  line of buffer q.
+  
+  Try these:
+    - abstract all the text from the discretion.t file to buffer q:
+        m-0 n. m0aqhq
+    - now go into buffer q and break line 6 at 'strawberries' then  return  to
+      the home buffer .
+        zq m+6 f1/strawberries/b z.   
+    - now search the home buffer for an occurance what's in buffer q:
+        f-'q
+    
+
+8 Some more commands - c, p, t, and w
+-------------------------------------
+  The c command changes tha case of alphabetical characters and  then  indexes
+  to the next character. c- is similar except that is changes tha case of  the
+  alpha character before the current character and indexes to the left. If the
+  character turns out  to  be  non-alphabetical  then  the  current  character
+  pointer is indexed without any change. To use the  c  command  properly  you
+  will probably want to include a test to check the oricinal case -  something
+  like this maybe - this will change upper case characters (q/A-Z/c,r)0
+  
+  The `p` (Print) command prints the current line in the console area.
+  
+  The `t` (Traverse) command is similar to f, except:
+   - the current character pointer is left at the end of the  selected  string
+     and
+   - by default t searches only the current line, to search the entire  buffer
+     use t0.
+     
+  The `w` (Window)  command  redraws  the  window  -  this  is  normally  done
+  automatically.
+
+9 More detail on f, v, t and q commands
+---------------------------------------
+  The f, v and q commands all must be given a string argument delimited by any
+  non-alphanumeric characters. If, for example the string you seek contains  a
+  shash, then you can pick any other non-alphanumeric character  as  a  string
+  delimiter - e.g. f"abc/def" or f|"abc"/"def"| The only other  characters  to
+  avoid are \ and ? which, although they work, might be considered syntacticly
+  confusing.
+  
+  The f command has two optional numeric arguments, a number placed before the
+  search string limits the scope of the search  to  the  specified  number  of
+  lines - e.g. f1/abc/ will only search the current line, f2/abc/ will  search
+  the current line and the next.
+  
+  A number placed at the end of the search causes the search  to  be  repeated
+  the specified number of times. e.g. f/abc/3 will locate the third  accurance
+  of the string. f10/abc/3 will search up to 10 lines for the string and  fail
+  if not found, this will be repeated 3 times. This could be in the same  line
+  or it might be as many as 30 lines from the original.
+

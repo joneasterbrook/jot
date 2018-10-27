@@ -1,0 +1,50 @@
+%%Command file to reset tabs at a given key string and optinal window size.
+%%Key string must be wrapped up by valid delimiter characters.
+%%The window size sets the extent of the initial search and subsequent searches
+%%defaults to global search.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%
+%%Macro '# tests for validity of delimiter characters.
+%g#
+  %%Check and prepare argument string.
+%%  z$m-0f/%%/-e-0(m-k-0,) 
+  z$m-0
+  %%Clean and check the search-string argument.
+  (v/ /e)0q`/.:;"'=`n.ra!h!r-n.r2f1'!-a!
+  %%If there is a window size extract it.
+  (v/ /e)0(q/0-9/oid, ol0) (v/ /e)0r\,
+  osoz
+  %x=Missing or invalid argument or delimiter string use one of: /.:"=
+:
+ob
+'# 
+
+%%Build the find-command macro.
+z!m-0i"((f" ol0(o=, r-ro#oo/%d/) r0i"q-/	/r)0 v// (v-/ /l)0(v/ /e)0i/	/m)0"
+%%If global search go to start of buffer.
+osoz (ol0o=m-0, ) on
+%%Run it.
+'!
+ono-om ok
+

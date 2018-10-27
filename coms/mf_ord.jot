@@ -1,0 +1,39 @@
+%%Sets up keys 1 and 2 to find lines containing a number of substrings
+%%  occuring in the specified order, key 2 finds next, key 1 finds previous.
+%%Substrings given as an argument, delimited by first non-blank chr.
+%%If the current line matches then character pointer is moved to end (start if
+%%  searching back) of line.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%g1
+  on
+  obz$
+  m-0kv/%%/e2(v/ /e)0n.(ra@(f1'@eb)0jj-m-0n.m0r0a@h@,m-0k0e0h@)
+  (m-0o#ozf-'$(obz$mozf1'$)0ozv'$\mobz$)0ok
+  on(o=r-0,)ok
+:
+%g2
+  on
+  obz$
+  m-0kv/%%/e2(v/ /e)0n.(ra@(f1'@eb)0jj-m-0n.m0r0a@h@,m-0k0e0h@)
+  (m-0o#ozf'$(obz$mozf1'$)0ozv'$\mobz$)0ok
+  on(o=r0,)ok
+:

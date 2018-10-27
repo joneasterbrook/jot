@@ -1,0 +1,37 @@
+%%Searches all valid buffers for filenames - generates report in buffer '@
+%%Filenames are deemed to be strings of one or more characters with no whitespace.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%Initialize the report buffer.
+z$n.a@
+%%Initialize search at buffer & (ASCII code 38).
+ol38
+%%Go for it.
+(z@o#oo/%c - / o#oz%q~=buffer; f/PathName = /- (n.ma@+&)z@ok o~ol96o<)0
+z@m-0(f/(null)/k)0 m-0ok
+
+%%%%Initialize buffer % to be the format for converting ASCII codes.
+%%%d#=%c
+%%Go for it.
+%%(o#ozoconm0 (rlf1/ /\f1/	/\n.r0a"h"ono-omorz!o#oo'#i/ "/h"r0i/"/b, ol0o-omor)o~ol96o=\)0
+%%okz!

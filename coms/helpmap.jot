@@ -1,0 +1,57 @@
+%%Creates a map of the current help entries in the help buffer :
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g? 
+  Explores the tree below ${JOT_RESOURCES}/help
+  All the files with the .hlp extention are assumed to be in jot help format.
+  
+  Buffer usage:
+    : - The help buffer original content is replaced.
+    ! - Temporary - Help system path,
+    $ - Temporary - path and the one-line help description from the help file.
+:
+
+%%Get a recursive directory list.
+%e:=\ls -RF ${JOT_RESOURCES}/help;
+%%
+%%Get the JOT_RESOURCES env.
+%q!=env JOT_RESOURCES; kr0i"/help/"
+%%
+%%Top and tail - delete subdirectories and non-help entries.
+z:m-0 (v'!s/[/r0v-/:/s/]/m, r0v-"/"k, r0v-/.hlp/e-4m, r-\m, k)0
+%%
+%%Convert each entry
+z:m-0 (v/[/n.r0a$k, r\m, r-h$m)0
+%%
+%%Add the one-line descriptions (must be the first line of the help file).
+z:m-0 (v/[/rn.f/]/a$& z$r-0i/%e$=\head -1 /i'!r0i"/"z:rn.r0a$+&z$r0i/.hlp/ '$ z:r0i/	  - /i'$ m, m)0
+%%
+%%Lifted from autotab.jot.
+%%init
+m-0 ol0 (ol0o=m-0,)okonol0
+%%Find rightmost tab.
+(f/	/roc (o<okoc,) m)0 osono-om
+%%Resolve the first tabs.
+(f/	/ei/ /o#oc (o> ocoso- (i/ /o~)0, ) ok m)0 ok
+%%
+%%All done - copy the whole lot into the current-help-page buffer 
+m-0n.m0r0a;&z;m-0

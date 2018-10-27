@@ -1,0 +1,2589 @@
+<! Made with jot using doc2html >
+
+
+</UL><H2><A NAME="JOT WALKTHROUGH">JOT Walkthrough</H2>
+<P>This is a simple walkthrough course for those who just want to get their fingers dirty without going into the finer details of jot. Just follow the instructions, don't expect a framed and gilded certificate of accomplishment but do feel free to treat yourself to a doughnut.</P>
+
+<P>In the forgoing text the following shorthand (metasyntax) applies (see also <A HREF="#ABOUT METASYNTAX">About metasyntax</A>):</P>
+
+<UL><P><LI>This is a description of some text rather than the literal text: &#060;description&#062;</P></LI>
+
+<P><LI>This is an instruction, to you, to type something in response to the computers Command-Line Interpreter prompt (CLI - e.g. the Windows console or unix shell):</P></LI>
+
+<PRE>
+$ &#060;a CLI Command&#062;
+</PRE>
+<P><LI>This is an instruction, to you, to type something in response to the editors command prompt:</P></LI>
+
+&#062; &#060;a jot command or key&#062;
+<P><LI>&#123;Key&#125; - This means hit the specified key on your keyboard </P></LI>
+
+<UL><P>N.B. this is a literal env-variable reference: $&#123;&#060;envVariableName&#062;&#125;</P>
+
+</UL><P>The name of the key given in the curly brackets is  generally  the  name
+printed on the key cap. The main exceptions are the numeric keypad  (the
+beancounters keypad) where the key names are prefixed KP_ and the cursor
+control keys referred to as &#123;&#091;Up|Down|Left|Right&#093;Arrow&#125;.
+<UL>
+</UL><LI>Combinations  of  keys  are  listed  with  +  as  the   separator   e.g.</LI>
+&#123;Ctrl+Alt+RightArrow&#125; means press the rightArrow key while  holding  the
+Control and Alt keys down.
+
+<LI>Sequences of keys are listed with blanks as a separator - e.g. &#123;Esc f p&#125;</LI>
+means First hit the escape key, then f then p.
+
+<LI>&#060;&#060; ... &#062;&#062; - a reference to some jot function (a  macro  defined  by  the</LI>
+startup script and attached to a hotkey) e.g. &#060;&#060;FindNext&#062;&#062; refers to the
+jot FindNext function, normally attached to the F8 key - &#123;F8&#125;.
+
+<LI>&#091;&#060;optional&#062;&#093; -  some optional element of a command syntax.</LI>
+
+<LI>&#091;&#060;option1&#062;|&#060;option2&#062;|...&#060;lastOption&#062;&#093;   -   a   series    of    optional</LI>
+alternatives, you must chose one and only one of these.
+
+<LI>&#091;|&#060;option1&#062;|&#060;option2&#062;|...&#060;lastOption&#062;&#093;   -   a   series   of    optional</LI>
+alternatives, you must chose none or only one of these.
+
+</UL><H3><A NAME="BASICS">Basics</H3>
+Jot is a command-driven screen-based  editor  -  it  obeys  commands  either
+typed-in directly or picked up from function keys etc and  it  maintains  an
+screen image of the file being edited and displays changes as they happen.
+<UL>
+</UL>Text is held in buffers, in the form of a complete file image or  fragments.
+Jot maintains a number of buffers. Each buffer is  identified  by  a  single
+character key, typically A to Z, 0 to 9 and the  various  punctuation  marks
+etc.
+
+Jot has a small number of primitive  commands  and  some  structure-building
+syntax elements. On  completion,  most  commands  return  a  success/failure
+indication which can  be  picked  up  by  the  structural  elements  of  the
+language.
+
+Sequences of commands can also be held, as text, in buffers  (a  macro)  and
+macros can be run  and  will  deliver  status  results  like  the  primitive
+commands.
+
+</UL><H3><A NAME="STARTING JOT">Starting jot</H3>
+The usual way to start jot is from a command line - i.e. an xterm (linux) or
+a console (windows). It is also possible to set it up to  fire  up  from  an
+icon of your choice - but then since you can't explicitly-specify a pathname
+you will have to hunt around in some idiotic menu to  locate  the  file  you
+already knew you wanted to work on.
+<UL>
+</UL>Assuming your environment is set up correctly (see <A HREF="#INSTALLATION">installation</A>) in linux
+you can start the editor from the command line from an xterm like this:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+
+In windows, start from a Terminal session like this:
+<PRE>
+$ jot %JOT_RESOURCES%/Richard_III_Entire_Play.txt
+</PRE>
+<UL>
+</UL>At the bottom of the terminal window you should see the prompt "1 .&#062; "
+This is an invitation to type commands to the editor the  '1'  is  the  line
+number, the '.' is the buffer key - see below.
+
+Jot has a number of CLI qualifiers (see <CODE>&lt;</CODE>A HREF="#COMMAND-LINE QUALIFIERS"<CODE>></CODE>command-Line qualifiers<CODE>&lt;</CODE>/A<CODE>></CODE>) but here
+we will only need to know about three of them: -journal, -init and -startup
+<PRE>
+$ jot ... -journal
+</PRE>
+This causes the editor to keep a journal which can be used  to  recover  the
+session in the event of a crash or a power failure and
+
+<PRE>
+$ jot ... -init="&#060;jotCommands&#062;"
+</PRE>
+After running the normal startup script,  but  before  starting  the  normal
+interactive session, the given command sequence is executed.
+
+<PRE>
+$ jot ... -st=&#060;pathName&#062;
+</PRE>
+Runs the specified startup script instead of default one.
+
+<PRE>
+$ jot ... -st
+</PRE>
+Runs the editor with no startup script.
+
+</UL><H3><A NAME="LOOK AT THE JOT DISPLAY">Look at the jot display</H3>
+Look again at the  Richard III session you started earlier.
+
+<UL><LI>Notice the screen is split into two areas. At the top there's an image  of</LI>
+the file - a display window,
+
+<LI>then there's a delimiter line in reverse video showing  the  pathname  and</LI>
+the buffer key.
+
+<LI>Finally, at the bottom, is the console  area.  Immediately  after  startup</LI>
+there should be three messages visible - these originate from the  various
+scripts that comprise the startup procedure. Finally,  in  the  bottommost
+line there's a command prompt "1 .&#062;" this in invitation for you to type in
+a command. The ( 1 ) indicates that we are currently focused on line 1  of
+the text. The full stop (or period, according to taste) (  .  )  indicates
+that we are currently viewing the primary buffer.
+
+The startup script (more about that later) has adjusted the  size  of  the
+main viewing area to leave you with three lines in the console area.  This
+allows you to see any messages jot sends to the console area.
+
+Look now at the top-left corner of the window - it should be displaying  a
+tilde ( ~ ) in reverse video. The reverse video indicates that this is the
+current cursor position, the tilde indicates that the cursor has moved  to
+the right of any displayable text - that's because this  file  starts  off
+with an entirely blank line.
+
+<LI>We'll be seeing a lot of error and warning messages soon - so it's a  good</LI>
+plan to know what they look like. We're going to type in a command  that's
+guaranteed to generate a warning. Just type in the letter ( r )  and  then
+return - r is the command to move the cursor one character rightwards, and
+it's already at the end of a blank line):
+&#062; r
+The response should be:
+&#123;Command-sequence failed.&#125;r 
+The message comes wrapped up in curly braces followed by the full  command
+line, with the failing command highlighted- a  slightly  more  complicated
+command line illustrates this last detail:
+&#062; m1234m-1234r23m1234m-1234
+This first tells it to move the cursor 1234  lines  down  the  file,  1234
+lines back - it did that alright and, unsurprisingly, we ended up  exactly
+where we started. It was then instructed to go right  23  characters  then
+forwards and backwards 1234 lines again. It's the same  message,  but  now
+the highlighting pinpoints the failing command ( r23 ).
+
+</UL><H3><A NAME="SOME BASIC COMMANDS TO GET STARTED">Some basic commands to get started</H3>
+These are the most basic operations for anything claiming to be some sort of
+text editor:
+<UL><LI>Help &#123;F1&#125; - the view changes to a list of file folds (see <A HREF="#ABOUT HELP">about help</A>)</LI>
+select a file fold (any line begining with '&#091;' and hit &#123;F1&#125;  again.  The
+file is opened and it shows some text containing text folds  '&#123;&#123;&#123;'  move
+to one of these and hit &#123;F1&#125; to open. Move to any non-fold line and  hit
+&#123;F1&#125; again to close the current fold.
+
+<LI>Find-string next &#123;F8&#125; and find-string previous &#123;F7&#125; note that the search</LI>
+string is entered before hitting th function key. eg to  find  the  next
+occurrence of "fred":
+&#062; fred&#123;F8&#125;
+to find the next one again:
+&#062; &#123;F8&#125;
+&#123;F7&#125; is similar except that it searches back up the text.
+
+<LI>Substitute string &#123;F5&#125; substitutes the currently-selected substring with</LI>
+the given new substring. eg:
+&#062; aardvark&#123;F5&#125;
+the currently-selected substring is changed to "aardvark" and this  word
+becomes the currently-selected string.
+
+<LI>Insert a substring &#123;F6&#125; - inserts the given  substring  at  the  current</LI>
+character  position   and    the    given    substring    becomes    the
+currently-selected substring. eg:
+&#062; wonderful&#123;F6&#125;
+</UL>
+<UL><LI>Exit and save the primary buffer <A HREF="#%C">%c</A> - note, this fails and refuses to</LI>
+exit if you are not currently editing the primary buffer.
+
+<LI>Exit without saving <A HREF="#%A">%a</A> (abandon).</LI>
+
+<LI>Save - write the buffer back to the filing system <A HREF="#%O">%o</A> (output).</LI>
+Pathname defaults to the one remembered from when the file was read.
+
+<LI>Save-as - write the buffer to some specified pathname - %o=&#060;pathname&#062; </LI>
+
+</UL><H3><A NAME="SOME BASIC FUNCTION KEYS">Some Basic Function Keys</H3>
+<UL><LI>The up and down-arrow keys move to the begining of the previous or  next</LI>
+line respectively.
+
+<LI>Read specified file to a buffer - <A HREF="#%I">%i</A>&#060;key&#062;&#091;=&#060;pathName&#062;&#093; -</LI>
+<UL><LI>&#060;key&#062; is a single-character buffer identifier key,</LI>
+<LI>&#060;pathName&#062;  specifies  the  filing-system  path  file  name  add  name</LI>
+extension, missing elements are filled in from  the  pathname  of  the
+current buffer and, failing that, from your PWD.
+
+</UL><LI>Do it again &#123;F10&#125; - whatever command you last did, make it happen again.</LI>
+
+<LI>Entering text. Like most other modern editors, jot has  an  insert  mode</LI>
+but it's generally easier to stay in  command  mode  -  so  there  is  a
+command for entering new lines of text - either &#123;KP_Enter&#125;  (that's  the
+enter key on the numeric keypad) or, if you don't have a numeric keypad,
+then &#123;Esc e&#125;:
+&#062; &#060;lineOfText&#062;&#123;KP_Enter&#125;
+or
+&#062; &#060;lineOfText&#062;&#123;Esc e&#125;
+
+<LI>Navigation through, deletion and restoration of text        </LI>
+<UL><LI>The left and right arrow keys move, unsurprisingly, left and right. If</LI>
+at the end of a line, the rightarrow key moves to  the  start  of  the
+next line, the  behaviour  of  the  leftarrow  key  is  similar.  When
+combined with the Alt key, these delete  the  previous/next  character
+respectively.
+<LI>With the Shift key, left/right arrow keys move to  the  start  of  the</LI>
+previous word or the end of the next word respectively. With shift and
+Alt they delete the previous or next word respectively.
+<LI>With the Ctrl key, left/right arrow keys move to the start or  end  of</LI>
+the line respectively. If already at the start/end of a line they move
+to the relevant position of the previous/next line respectively.  With
+Ctrl and Alt they delete to the start/end of the line respectively.
+<LI>&#123;Ctrl+Shift+Alt+LeftArrow&#125; restores one character  previously  deleted</LI>
+by &#123;*Alt+LeftArrow&#125;, similarly for &#123;Ctrl+Shift+Alt+RightArrow&#125;.
+</UL></UL>
+Have a play around with a text file:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+
+</UL><H3><A NAME="A FEW MORE FUNCTION KEYS">A few more function keys</H3>
+To see all of the available function keys and to explore their functions  in
+jot, start up a qr (quick-reference) session:
+<PRE>
+$ jot /dev/null -st=qr
+</PRE>
+
+</UL><H3><A NAME="DO A FEW EASY EDITS WITH FUNCTION KEYS">Do a few easy edits with function keys</H3>
+Restart the  editor:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+The same command also works in windowsland.
+
+You should see the text appear  in  your  terminal  window  -  as  the  name
+suggests it's Richard III by Shakespere. This text was chosen as it's  long,
+well known and very much out of copyright. This version was downloaded from:
+<A HREF="http://shakespeare.mit.edu/richardiii/full.html">http://shakespeare.mit.edu/richardiii/full.html</A> - thanks.
+
+Try out a few of the edit keys mentioned in the <CODE>&lt;</CODE>A HREF="#SOME BASIC FUNCTION KEYS"<CODE>></CODE>Some Basic Function Keys<CODE>&lt;</CODE>/A<CODE>></CODE>
+section. For full  details  and  all  the  other  predefined  keys  look  at
+<A HREF="#KEYBOARD FUNCTIONS DEFINED AT STARTUP">Keyboard functions defined at startup</A>. First try hitting the
+cursor-control keys a few times - one  surprise  may  be  that  the  up  and
+down-arrow keys move to the start of the next/previous line.
+
+Now try the up/down/left/right-arrow keys while holding down the Shift key -
+this moves left or right by a full word or up and down in a column.
+
+Try a search using &#060;&#060;<CODE>&lt;</CODE>A HREF="#FINDNEXT">FindNext<CODE>&lt;</CODE>/A>&#062;&#062; the &#123;F8&#125; function key, note that, in jot,
+arguments to functions are entered before hitting the function key:
+&#062; gloucester&#123;F8&#125;
+Now just hit &#123;F8&#125; a few more times with no search string -  each  will  find
+the next instances of "gloucester" &#123;F7&#125; key is similar but searches back:
+&#062; &#123;F7&#125;
+
+Now use the &#060;&#060;<CODE>&lt;</CODE>A HREF="#INSERT">Insert<CODE>&lt;</CODE>/A>&#062;&#062; function (&#123;F6&#125;) to insert the string abcdef
+&#062; abcdef&#123;F6&#125;
+ 
+Now, using the &#060;&#060;<CODE>&lt;</CODE>A HREF="#SUBSTITUTE">Substitute<CODE>&lt;</CODE>/A>&#062;&#062; function ( &#123;F5&#125; ) to change that to 123456
+&#062; 123456&#123;F5&#125;
+
+Now play around with the &#060;&#060;<CODE>&lt;</CODE>A HREF="#FINDNEXT">FindNext<CODE>&lt;</CODE>/A>&#062;&#062; &#123;F8&#125;, &#060;&#060;<CODE>&lt;</CODE>A HREF="#FINDPREV">FindPrev<CODE>&lt;</CODE>/A>&#062;&#062; &#123;F7&#125;,
+&#060;&#060;<CODE>&lt;</CODE>A HREF="#INSERT">Insert<CODE>&lt;</CODE>/A>&#062;&#062; &#123;F6&#125; and &#060;&#060;<CODE>&lt;</CODE>A HREF="#SUBSTITUTE">Substitute<CODE>&lt;</CODE>/A>&#062;&#062; &#123;F5&#125; keys. Then re-read a clean copy
+of the original file with the %I command:
+&#062;  %i.&#123;Return&#125;
+This re-reads the  original  file  into  the  buffer,  destroying  all  your
+changes.
+
+</UL><H3><A NAME="A FEW MORE BASIC FUNCTION KEYS">A few more basic function keys</H3>
+Every editor has to have some way adjusting the  view  and  of  copying  and
+moving slabs of text. 
+
+In jot cut and copy operations are done by first noting  the  start  of  the
+desired section and then moving to the end of the section  to  copy  or  cut
+(abstract in ecce-speak).
+
+<UL><LI> &#060;&#060;<A HREF="#NOTE">Note</A>&#062;&#062; - &#123;Ctrl+Shift+F1&#125; - Remembers the current cursor position for</LI>
+later a Cut or Copy operation.
+<LI>&#060;&#060;<A HREF="#CUT">Cut</A>&#062;&#062; - &#123;Ctrl+Shift+F2&#125; - moves text, starting from the previous</LI>
+&#060;&#060;<CODE>&lt;</CODE>A HREF="#NOTE">Note<CODE>&lt;</CODE>/A>&#062;&#062; operation to the current cursor position, text is placed in the
+_ buffer.
+<LI>&#060;&#060;<A HREF="#COPY">Copy</A>&#062;&#062; - &#123;Ctrl+Shift+F3&#125; - similar to Cut except that the source</LI>
+buffer is unchanged.
+<LI>&#060;&#060;<A HREF="#PASTE">Paste</A>&#062;&#062; - &#123;Ctrl+Shift+F4&#125; - text in the paste buffer ( _ ) is inserted</LI>
+immediately before the cursor.
+<LI>&#060;&#060;<A HREF="#VIEWUP">ViewUp</A>&#062;&#062;, &#060;&#060;<A HREF="#VIEWDOWN">ViewDown</A>&#062;&#062;, &#060;&#060;<A HREF="#VIEWLEFT">ViewLeft</A>&#062;&#062; and &#060;&#060;<A HREF="#VIEWRIGHT">ViewRight</A>&#062;&#062; (</LI>
+&#123;Shift+UpArrow&#125;,      &#123;Shift+DownArrow&#125;,       &#123;Shift+LeftArrow&#125;       and
+&#123;Shift+RightArrow&#125; respectively). These adjust the position of the text on
+the screen but do not effect the buffer being viewed.
+<LI>&#060;&#060;<A HREF="#WINDOWSTRETCH">WindowStretch</A>&#062;&#062; and &#060;&#060;<A HREF="#WINDOWSHRINK">WindowShrink</A>&#062;&#062; ( &#123;Ctrl+Alt+DownArrow&#125; and</LI>
+&#123;Ctrl+Alt+UpArrow&#125; respectively). These adjust the size of the  view,  not
+by changing the xterm dimensions but by expanding or  shrinking  the  area
+dedicated to displaying the buffer.
+
+First move away from the start of the text image and then try the ViewUp and
+ViewDown functions:
+&#062; york&#123;F8&#125;
+&#062; 10
+You located the next occurrence of "york" and then repeated that  command  a
+further 10 times - typing a number always gives you the specified number  of
+repeats of the previous command.
+
+&#062; &#123;Ctrl+Shift+UpArrow&#125;
+This shifts the view up the screen by one line.
+&#062; 10&#123;Ctrl+Shift+UpArrow&#125;
+This shifts the view up the screen by ten lines.
+
+Next try copying a section of text:
+&#062; &#123;Ctrl+Shift+F1&#125;
+This sets the note point at the start of "YORK"
+&#062; &#123;F7&#125;
+Locates the previous "YORK"
+&#062; &#123;Ctrl+Shift+F3&#125;
+This has copied the slab of text.
+&#062; zq&#123;return&#125;
+&#062; &#123;Ctrl+Shift+F4&#125;
+We've moved to the buffer ( q ) and copied the text there. Now return to the
+main buffer.
+&#062; z.&#123;return&#125;
+
+</UL><H3><A NAME="ENTERING NEW TEXT">Entering new text</H3>
+The recommended  mode  of  operation  for  jot  is  the  command  mode  (the
+alternative is insert mode - see <CODE>&lt;</CODE>A HREF="#COMMAND-MODE VS. INSERT MODE">Command-mode vs. insert mode<CODE>&lt;</CODE>/A>). In insert
+mode everything that's typed in is interpreted as text to be  inserted  into
+the document at the current cursor position.
+
+To enter a new line of text, the line is first typed into the  console  area
+and then the &#060;&#060;<CODE>&lt;</CODE>A HREF="#ENTER">Enter<CODE>&lt;</CODE>/A>&#062;&#062; function is invoked - either by hitting the
+&#123;KP_Enter&#125; button if you have a numeric keypad, or &#123;Esc  e&#125;  (that's  Escape
+followed by e).
+
+Let's put "The end" at the end of the play. First go to the end of Richard III
+&#062; m0m-
+Now enter the new line.
+&#062;      The End&#123;Esc e&#125;
+
+A later section (<CODE>&lt;</CODE>A HREF="#INSERT MODE">insert mode<CODE>&lt;</CODE>/A>) deals with entering text in insert mode.
+
+</UL><H3><A NAME="DELETION AND RESTORATION OF TEXT">Deletion and restoration of text</H3>
+<UL><LI>&#060;&#060;<A HREF="#DELETECHRRIGHT">DeleteChrRight</A>&#062;&#062; &#123;Alt+RightArrow&#125; deletes the character under the</LI>
+cursor.
+<LI>&#060;&#060;<A HREF="#DELETECHRLEFT">DeleteChrLeft</A>&#062;&#062; &#123;Alt+LeftArrow&#125; deletes the character left of the</LI>
+cursor.
+<LI>&#060;&#060;<A HREF="#DELETEWORDRIGHT">DeleteWordRight</A>&#062;&#062; &#123;Alt+Shift+RightArrow&#125; deletes from the cursor to</LI>
+end of word.
+<LI>&#060;&#060;<A HREF="#DELETEWORDLEFT">DeleteWordLeft</A>&#062;&#062; &#123;Shift+Alt+LeftArrow&#125; deletes from the cursor to</LI>
+start of word.
+<LI>&#060;&#060;<A HREF="#DELETELINERIGHT">DeleteLineRight</A>&#062;&#062; &#123;Ctrl+Alt+RightArrow&#125; deletes from the cursor to end</LI>
+of line.
+<LI>&#060;&#060;<A HREF="#DELETELINELEFT">DeleteLineLeft</A>&#062;&#062; &#123;Ctrl+Alt+LeftArrow&#125; deletes from the cursor to start</LI>
+of line.
+<LI>&#060;&#060;<A HREF="#RESTORECHRRIGHT">RestoreChrRight</A>&#062;&#062; &#123;Ctrl+Shift+Alt+RightArrow&#125; restores one character</LI>
+under the cursor.
+<LI>&#060;&#060;<A HREF="#RESTORECHRLEFT">RestoreChrLeft</A>&#062;&#062; &#123;Ctrl+Shift+Alt+LeftArrow&#125; restores one character</LI>
+left of the cursor.
+
+In the context of the word-orientated functions, a word  is  any  string  of
+ascii alphanumeric characters bounded by either non-alpha characters or  the
+start or end of the line. At present jot treats  all  unicode  as  non-alpha
+characters.
+
+Note that there is only one graveyard for deleted text (the %  buffer).  All
+&#060;&#060;Delete...Right&#062;&#062; functions move deleted text to the end  of  this  buffer,
+all &#060;&#060;Delete...Left&#062;&#062; functions move text to  it's  start.  This  means  the
+&#060;&#060;RestoreWord...&#062;&#062; functions will restore characters and  words  deleted  by
+the &#060;&#060;DeleteChr...&#062;&#062; functions and  similarly  &#060;&#060;RestoreLine...&#062;&#062;  functions
+will restore words and characters that were not part of the original deleted
+word.
+
+</UL><H3><A NAME="GETTING HELP">Getting help</H3>
+Jot supports an online help system. The &#060;&#060;<CODE>&lt;</CODE>A HREF="#HELP">Help<CODE>&lt;</CODE>/A>&#062;&#062; function uses specially
+structured files derived  from  ordinary  jot  documents  (see  `About  help
+files`). The structure of these  documents  is  quite  simple,  entries  are
+bounded by fold marks '&#123;&#123;&#123;' and '&#125;&#125;&#125;' at the beginning of a line  and  these
+may be nested to any depth.
+
+The help  entries  you  are  about  to  look  at  are  images  of  files  in
+$&#123;JOT_RESOURCES&#125;/help/...
+
+&#062; &#123;F1&#125;
+When the &#060;&#060;`Help`&#062;&#062; function is invoked for the first time in a session,  it
+presents you with the contents of  the  file  $&#123;JOT_RESOURCES&#125;/help/help.hlp
+yours should contain some instructions and three entries:
+&#091;jot&#093;jot
+&#091;demo&#093;play          - An (almost) empty help category for you to play with. 
+&#091;your_stuff&#093;play    - For you put your own stuff in. 
+
+The square brackets indicate that this is a file  fold  -  it  is  currently
+empty. Opening it causes the file to be read. The cursor should  already  be
+on the jot entry, open it by calling &#060;&#060;`Help`&#062;&#062; again:
+&#062; &#123;F1&#125;
+
+It opens up similar screen but this one contains four entries  -  these  are
+all help files made from jot documentation. The  cursor  should  be  on  the
+jot_ug entry so open that one:
+&#062; &#123;F1&#125;
+
+This page announces that you're looking at the jot user guide  and  contains
+just two entries - these correspond to the two top-level entries in the user
+guide.
+
+To descend another level down the hierarchy move the cursor to any part of a
+line starting with a  fold  mark  and  hit  &#123;F1&#125;,  to  return  back  up  the
+hierarchy move the cursor to any line without a fold mark and hit &#123;F1&#125;.
+
+At any time you can return to your original work buffer e.g:
+&#062; z.
+and then return to the help entry you last looked at:
+&#062; z;
+
+</UL><H3><A NAME="LINE SHUFFLING">Line shuffling</H3>
+Sometimes, perhaps we're splitting a paragraph into two, all we need  to  do
+is to push some words from the end of one line and prepend them to the  next
+line. Or, maybe, lop words from the start of a line and append them  to  the
+previous line. These two requirements are met by  the  &#060;&#060;`AppendRightNext`&#062;&#062;
+&#123;&#123;Alt+F10&#125; and &#060;&#060;`AppendLeftPrev`&#062;&#062; ( &#123;Alt+F9&#125; ) respectively.
+
+Returning to Richard III we notice that Shakespere  could  have  achieved  a
+more optimal text density. Given the size  of  a  typical  "complete  works"
+there'd be loads more trees standing now if only if only  he'd  bothered  to
+cram a few more words on each line. Let's sort it out for him:
+&#062; z.m-0  
+&#062; by&#123;F9&#125;
+&#062; &#123;Alt+F9&#125;
+That seems to have done it, but, oh dear! it  doesn't  seem  to  scan  quite
+right now, maybe there is something to be said for  his  iambic  pentameters
+after  all  -  better  put   it   back   the   way   it   was.   Fortunately
+&#060;&#060;`AppendRightNext`&#062;&#062; will do exactly that:
+&#062; &#123;Alt+F10&#125;
+
+Another pair of functions, useful when editing  programming  languages,  are
+&#060;&#060;`IndentFromNext`&#062;&#062;     &#123;Ctrl+Shift+F10&#125;      and      &#060;&#060;`IndentFromPrev`&#062;&#062;
+&#123;Ctrl+Shift+F9&#125; - these change the indentation level of the current line  to
+match, respectively, the previous line or the next line - first prepare some
+lines of differing indentation levels:
+&#062; z.m+20e4 mi/    /m-
+
+First inherit the indentation from the next line:
+&#062; &#123;Ctrl+Shift+F10&#125;
+then from the previous line:
+&#062; &#123;Ctrl+Shift+F9&#125;
+restore the text:
+&#062; &#123;DownArrow&#125;
+&#062; &#123;Ctrl+Shift+F10&#125;
+
+</UL><H3><A NAME="USING MATCHING FUNCTIONS">Using matching functions</H3>
+The startup script  defines  some  useful  parenthesis  and  other  matching
+functions:
+
+<UL><LI>&#060;&#060;`ParagraphUp`&#062;&#062; &#123;F3&#125; and &#060;&#060;`ParagraphDown`&#062;&#062;  &#123;F4&#125;,  respectively,  find</LI>
+the start and end of the current paragraph. In this context a paragraph is
+taken to be any number of non-blank lines of  text  bounded  by  either  a
+blank line or either or both of the buffer's end points.
+
+<LI>&#060;&#060;`CodeSectionUp`&#062;&#062;  &#123;Shift+F3&#125;   and   &#060;&#060;`CodeSectionDown`&#062;&#062;   &#123;Shift+F4&#125;</LI>
+respectively find the start of the current code section and the  start  of
+the next code section. In jot a code section is deemed to be any number of
+lines beginning with an alpha character in the first character of a  line.
+Typically in computer programming language subroutines and other  sections
+are introduced with an un-indented keyword followed by indented code.
+
+<LI>&#060;&#060;`IndentMatchUp`&#062;&#062;   &#123;Alt+F7&#125;    and    &#060;&#060;`IndentMatchDown`&#062;&#062;    &#123;Alt+F8&#125;</LI>
+respectively locate the previous and next line with the  same  indentation
+level as the current line.
+
+<LI>&#060;&#060;`ParenMatchLeft`&#062;&#062; &#123;Shift+Alt+F5&#125; first searches back through  the  text</LI>
+for the previous parenthesis-end ')' then finds it's matching  start  '('.
+&#060;&#060;`ParenMatchRight`&#062;&#062;  &#123;Shift+Alt+F6&#125;  is  similar  except   it   searches
+forwards for the next '(' and then finds the matching ')'.
+
+<LI>&#060;&#060;`CurlyMatchLeft`&#062;&#062;   &#123;Ctrl+Shift+Alt+F5&#125;    and    &#060;&#060;`CurlyMatchRight`&#062;&#062;</LI>
+&#123;Ctrl+Shift+Alt+F6&#125; are similar except that they operate on curly braces (
+'&#123;' and '&#125;').
+
+<LI>&#060;&#060;`AngleMatchLeft`&#062;&#062;     &#123;Ctrl+Shift+F5&#125;     and     &#060;&#060;`AngleMatchRight`&#062;&#062;</LI>
+&#123;Ctrl+Shift+F6&#125; are similar except that they operate on angle braces  (  '
+&#060;' and '&#062;').
+
+<LI>&#060;&#060;`MarkupMatchLeft`&#062;&#062; &#123;Alt+F5&#125;  and  &#060;&#060;`MarkupMatchRight`&#062;&#062;  &#123;Alt+F6&#125;  are</LI>
+similar except that they operate on html/xml blocks.
+
+In the Richard III text play around with the ParagraphUp  and  ParagraphDown
+functions:
+&#062; z.
+&#062; &#123;F4&#125;
+&#062; &#123;F4&#125;
+&#062; &#123;F4&#125;
+&#062; &#123;F3&#125;
+&#062; &#123;F3&#125;
+&#062; ...
+
+Open the test_block.txt file in your resources area - this has  some  simple
+examples of nested blocks and indentation:
+&#062; %it=test_block.txt
+
+First do an indentation match:
+&#062; level 3 start&#123;F8&#125;
+&#062; &#123;Alt+F8&#125;
+Another &#060;&#060;`IndentMatchDown`&#062;&#062; takes you into the curly brace match set.
+&#062; &#123;Alt+F8&#125;
+&#062; &#123;Alt+F7&#125;
+
+</UL><H3><A NAME="BUFFERS">Buffers</H3>
+In a modern text editor, the text you see on your screen is an image of  the
+file as it currently exists as a text buffer in the computers memory. As the
+edit session progresses this may not match what's currently spinning  around
+in the filing system.
+
+Jot  supports  a  number  of  separate  buffers   each   identified   by   a
+single-character key - the following buffers are  accessible  but  some  are
+used by jot scripts:
+<UL><LI>. the primary buffer - by default jot starts up in this buffer.</LI>
+<LI>A-to-Z - not assigned any special meaning and are freely  available  for</LI>
+your use.
+<LI>0-to-9 user-defined functions attached to numeric-keypad  keys  0-9  but</LI>
+otherwise freely available for your use.
+<LI>~ Temporary (stack) buffer or numeric value at top of stack -  available</LI>
+for your use.
+<LI>_@#$ -  may be used and redefined by jot standard startup functions.</LI>
+<LI>!"#%&'()*+-./:;&#060;=&#062;?@&#091;\&#093;_ may  be  used  and  redefined  by  scripts.</LI>
+<LI>^ used for escape-sequence mapping - do not use or redefine.</LI>
+<LI>: is used to hold the help repository.</LI>
+<LI>; is used for viewing help</LI>
+
+</UL>To change focus to another buffer we use the Z command
+<UL><LI>`z`&#060;key&#062; - zoom  (i.e.  switch  context)  to  buffer  indicated  by  the</LI>
+single-character key e.g. zq will switch context to buffer q.
+
+</UL>You should be in buffet ( t ) at present,  let's  go  back  to  the  primary
+buffer ( . ):
+&#062; z.&#123;Return&#125;
+
+</UL><H3><A NAME="COPYING AND MOVING TEXT - 1">Copying and Moving Text - 1</H3>
+No text editor is complete without some facility for  picking  up  slabs  of
+text to be moved or copied. In ecce-speak this process is abstraction.
+
+The first step is to indicate the start point for abstraction with  the  `N`
+(note) command then move the cursor and then  abstract  to  the  destination
+buffer with the `A` (abstract) command.
+
+Normally there is a dedicated buffer defined by the system for  copying  and
+moving slabs of text. Typically known as the paste/pick/put/copy ... buffer,
+in jot you can use any buffer you fancy - given that  some  buffers  may  be
+used by hot-key functions defined by the startup script - see `buffers`. The
+predefined hotkey copy/paste functions use the '_' buffer.
+
+The basic cut/copy and paste keys use the jot note and abstract commands:
+<UL><LI>&#060;&#060;`Note`&#062;&#062; - (normally &#123;Ctrl+Shift+F1&#125; on the mid keypad) notes one  end</LI>
+of the text to be moved at the current cursor position.
+<LI>&#060;&#060;`Cut`&#062;&#062; - (normally &#123;Ctrl+Shift+F2&#125; ) removes text from the note point</LI>
+to the current cursor position.
+<LI>&#060;&#060;`Copy`&#062;&#062; - (normally &#123;Ctrl+Shift+F3&#125;) - copies  (i.e.  copies  to  the</LI>
+paste buffer without changing the original) text from the note point  to
+the current cursor position.
+<LI>&#060;&#060;`Paste`&#062;&#062; (Normally &#123;Ctrl+Shift+F4)  -  text  in  the  paste  buffer  is</LI>
+inserted at the current cursor position.
+
+</UL>We're going to pick up the phrase 'glorious summer by this sun of ' from Richards
+opening  soliloquy and reinsert them.
+&#062; Now is&#123;F8&#125;
+&#062; &#123;Ctrl+Shift+F1&#125;
+&#062; York&#123;F8&#125;
+&#062; &#123;Ctrl+Shift+F2&#125;
+<UL>The first and second lines of text, as far as York, disappears.
+&#062; &#123;Ctrl+Shift+F4&#125;
+The text reappears.
+
+</UL>The last two operations could have been performed by the copy function:
+&#062; m-0
+&#062; Now is&#123;F8&#125;
+&#062; &#123;Ctrl+Shift+F1&#125;
+&#062; York&#123;F8&#125;
+&#062; &#123;Ctrl+Shift+F3&#125;
+
+At this point, the text is still in the paste buffer  and  can  be  inserted
+anywhere you fancy in any of the editors buffers.  You  can  also  make  the
+paste buffer ( _ ) the current buffer to check what's in there:
+&#062; z_
+Go back to the primary buffer ( . ):
+&#062; z.
+
+</UL><H3><A NAME="ADJUSTING FOCUS AND VIEW.">Adjusting focus and view.</H3>
+Some of these operations are best done with a  file  with  very  long  lines
+(i.e. wider than your terminal) load the test_table.txt file into buffer w.
+&#062; %iw=test_table.txt
+Note that you did not need to type in the pathname to read  this  file,  jot
+first tries to read the file from your PWD (present working  directory),  if
+it can't find it in there it tries prepending  the  path  from  the  current
+buffer   -   in    this    case    $&#123;JOT_RESOURCES&#125;,    it    should    find
+$&#123;JOT_RESOURCES&#125;/test_table.txt
+
+The file you've just loaded is a tab-separated tabular file designed to show
+up any jot bugs affecting the display of tabular text. Later we'll find  out
+how to display this file properly. For now we'll display it as linear  text,
+jot displays tabs (and all other control characters) as tildes ( ~ ).
+
+Do a  few  &#060;&#060;`Down`&#062;&#062;  &#123;DownArrow&#125;  and  &#060;&#060;`WordRight`&#062;&#062;  &#123;Shift+RightArrow&#125;
+operations until the cursor approaches the right margin of your window.  Now
+do  another  &#060;&#060;`WordRight`&#062;&#062;   &#123;Shift+RightArrow&#125;   watching   the   display
+carefully. The editor is scrolling the entire view rightwards to  bring  the
+currently-selected word into view. Also try &#060;&#060;`WordLeft`&#062;&#062; &#123;Shift+LeftArrow&#125;
+<UL><LI>the behaviour is similar.</LI>
+
+You can adjust the view manually with the &#060;&#060;`ViewLeft`&#062;&#062; and &#060;&#060;`ViewRight`&#062;&#062;
+functions (&#123;Ctrl+Shift+LeftArrow&#125; and &#123;Ctrl+Shift+RightArrow&#125; respectively),
+if you shift the view to the extent that the cursor slips off  the  left  or
+right margin of the screen the editor will re-display the current section of
+the line in the console area.
+
+Similarly, you can manually scroll up and down  with  the  &#060;&#060;`ViewUp`&#062;&#062;  and
+&#060;&#060;`ViewDown`&#062;&#062; functions  (&#123;Ctrl+Shift+Up/DownArrow&#125;).  Note  that  none  of
+these functions affect the current editor focus, only  the  display  -  play
+around with these functions.
+
+The  &#060;&#060;`WordUp`&#062;&#062;  and   &#060;&#060;`WordDown`&#062;&#062;   functions   (&#123;Shift+UpArrow&#125;   and
+&#123;Shift+DownArrow&#125; respectively) move up and down in a column. Now &#060;&#060;WordUp&#062;&#062;
+and &#060;&#060;WordDown&#062;&#062; use the ( Y ) primitive command. This will hold to the same
+column, ignoring the starting column. This behaviour is useful for moving up
+and down performing repetitive operations in tabular or similarly  formatted
+text. But we will want to change column from time to time, this is done with
+the &#060;&#060;`NewWordDown`&#062;&#062;  and  &#060;&#060;`NewWordUP`&#062;&#062;  functions  (&#123;Ctrl+UpArrow&#125;  and
+&#123;Ctrl+DownArrow&#125; respectively) . These reset the ( Y ) column offset to  the
+current cursor position.
+
+Now, tell the editor to display the text in this buffer as a table - we will
+be covering this in more detail in the next section. Just type this in:
+&#062; %b=tabstops -1
+and play around with the &#123;Shift+&#091;Left|Right|Up|Down&#093;Arrow&#125; keys. Also insert
+some text to make one cell wider:
+&#062; abcdefghijklmnopqrstuvwxyz&#123;F6&#125;
+and erase some characters from a cell to make it shorter than the others:
+&#062; e6&#123;Return&#125;
+
+Occasionally you will want to shrink the view in your console  in  order  to
+display more of the system messages flying past. Especially if you are using
+the  jot   debugger.   The   function   to   do   this   is   `WindowShrink`
+(&#123;Ctrl+Alt+UpArrow&#125;)  or  to  expand  the   view   there's   `WindowStretch`
+(&#123;Ctrl+Alt+DownArrow&#125; each of these adjusts the window size by one line.
+&#062; &#123;Ctrl+Alt+UpArrow&#125;
+&#062; &#123;Ctrl+Alt+UpArrow&#125;
+&#062; &#123;Ctrl+Alt+UpArrow&#125;
+&#062; &#123;Ctrl+Alt+DownArrow&#125;
+&#062; &#123;Ctrl+Alt+DownArrow&#125;
+&#062; &#123;Ctrl+Alt+DownArrow&#125;
+
+</UL><H3><A NAME="SOME FANCY FLAVOURS OF FIND - 1">Some fancy flavours of find - 1</H3>
+The standard startup script defines several more functions for finding  text
+we're going to give them an outing now.
+
+Return to  Richard_III_Entire_Play.txt, it's in the primary buffer ( . ):
+&#062; z.
+
+The &#060;&#060;`FindExactNext`&#062;&#062; function (normally &#123;F9&#125; ) will only match to a whole
+word or number - i.e. one bounded by the start or  end  of  a  line  or  any
+non-alphanumeric character, in natural-language text this would typically be
+whitespace or a punctuation mark. We will be searching for exact matches  to
+the string 'our' - first go to the top of the buffer:
+&#062; m-0
+&#062; our&#123;F9&#125;
+sure enough it matches to 'our' in 'Now is the winter of our discontent'
+&#062; &#123;F9&#125;
+this time it matches to 'our' in 'clouds that lour'd upon our house'  notice
+it did not match  to  the  word  lour'd  in  the  same  line.  The  function
+&#060;&#060;`FindExactPrev`&#062;&#062; ( &#123;Shift+F9&#125; ) does the same sort of thing but  searches
+backwards.
+
+</UL><H3><A NAME="SOME FANCY FLAVOURS OF FIND - 2">Some fancy flavours of find - 2</H3>
+Now read the repetitive test file l99.t into buffer r, it's pretty dull  but
+useful for demonstrating repetitive edits. Note jot is set up to respect env
+variables but only if they are expressed in the form $&#123;&#060;envName&#062;&#125;
+&#062; %ir=$&#123;JOT_RESOURCES&#125;/l99.t
+First set the default find string to 'abc' and the default substitute/insert
+string to 'Abc':
+&#062; abc&#123;F8&#125; 
+&#062; Abc&#123;F5&#125;
+The &#060;&#060;`SubsThenFindNx`&#062;&#062; function  will  now  repeat  the  substitution  and
+locate the next matching substring:
+&#062; &#123;Shift+F8&#125;
+Hit &#123;Shift+F8&#125; a few more times. To repeat a command  &#060;n&#062;  times  enter  the
+number of repeats to the command line - let's change the next 10 occurrences
+of abc:
+&#062; 10
+To repeat the last command until something fails type zero:
+&#062; 0
+you should now be at the last line of the file (line  101)  with  all  'abc'
+changed to 'Abc'
+
+</UL><H3><A NAME="SOME FANCY FLAVOURS OF FIND - 3">Some fancy flavours of find - 3</H3>
+The &#060;&#060;`FindInParaNext`&#062;&#062;  &#123;Esc  f  p&#125;  function  finds  the  next  paragraph
+containing all of the substrings in the blank-separated list argument. We're
+going to find the famous "A Horse, a horse my kingdom ... " speech:
+<PRE>
+z.
+</PRE>
+&#062; horse king&#123;Esc f p&#125;  
+the first matching paragraph is not what we're looking for so try it again:
+&#062; &#123;Esc f p&#125;
+nooo! try again.
+&#062; &#123;Esc f p&#125;
+&#062; &#123;Esc f p&#125;
+
+Note that adding a second "horse" to the word list or changing the order  of
+the list makes no difference.
+
+The &#060;&#060;`FindInParaPrev`&#062;&#062; function ( &#123;Esc - f p&#125; ) is similar except that  it
+searches backwards up the buffer.
+
+The &#060;&#060;`FindWild`&#062;&#062; function finds the next  occurrence  of  a  string  in  a
+single line using a template containing wildcards. The '*' is the  wildcard,
+it represents any number of characters in the search, this uses  the  Esc  f
+sequence:
+
+The "A horse ... " speech is a single line so we can use &#060;&#060;`FindWild`&#062;&#062;
+&#062; m-0
+&#062; horse*horse&#123;Esc f w&#125;
+That gets it on  the  first  attempt.  The  &#060;&#060;`FindWildPrev`&#062;&#062;  function  is
+similar except it searches back and it's on &#123;Esc - f w&#125;.
+
+One more function, quite useful when dealing with natural-language text,  is
+&#060;&#060;`FindSequence`&#062;&#062;  &#123;Esc  f  s&#125;  -  this  identifies  a  string   of   words
+irrespective of punctuation, whitespace and line breaks.
+&#062; m-0
+&#062; him a horse&#123;Esc f s&#125;
+it highlights the first word of  the  given  list  of  words.  The  function
+&#060;&#060;`FindSequencePrev`&#062;&#062; ( &#123;Esc - f s&#125; ) is similar, except that  it  searches
+backwards.
+
+</UL><H3><A NAME="REGULAR EXPRESSIONS">Regular expressions</H3>
+Many battle-hardened unix users are quite good at regular expressions,  some
+may even enjoy using them (see `%F` for details). Here we're just  going  to
+demonstrate the jot %F interface to the gnu regular-expression functions.
+&#062; m-0
+&#062; %fa=horse.*king
+now search back from, the end of the buffer.
+&#062; m0
+&#062; %f-a=horse.*king
+
+</UL><H3><A NAME="FANCY FLAVOURS OF SUBSTITUTION AND INSERTION - 1">Fancy flavours of substitution and insertion - 1</H3>
+An occasionally-useful function is &#060;&#060;`Overwrite`&#062;&#062;  (&#123;Shift+F6&#125;)  which,  as
+it's name suggests, overwrites whatever happens to be there with  the  given
+string. 
+
+Return to the test_block.txt this has some simple block diagrams.
+&#062; zt
+this has a couple of simple block diagrams. There are some special functions
+for dealing with these  but,  for  now,  the  important  point  about  these
+diagrams is that if you just insert text with the simple &#060;&#060;`Insert`&#062;&#062; ( &#123;F5&#125;
+) function it will mess up the picture to the right of the insertion  point.
+For this job we need the &#060;&#060;`Overwrite`&#062;&#062; function - it's on &#123;Shift+F6&#125;.  The
+first box lacks a label on it's third input:
+&#062; m+18r13
+&#062; i3&#123;Shift+F6&#125;
+
+</UL><H3><A NAME="A DETAILED LOOK AT A TAB-SEPARATED TABLE">A detailed look at a tab-separated table</H3>
+Return to  the  test_table.txt  file,
+&#062; zw
+as we've already discovered, this contains table entries  (cells)  separated
+by tab characters - a special  control  character  that  emulates  a  manual
+typewriters tab key.
+<UL>
+</UL>Manual typewriters! - remember them? Anyone who's looked inside of one  will
+know exactly what tabstops are - little metal pegs  that  select  where  the
+carriage ends up after the tab key is pressed. This ensures that  addresses,
+headings and tabular entries all appear in the right position on the  paper.
+In computers and  text  editors  a  similar  behaviour  is  mechanized  with
+logical and arithmetic operations based on the tab character.
+
+In jot tabstops work in much  the  same  was  as  in  manual  typewriters  -
+tabstops are a list of positions where the next column in the  table  is  to
+appear. e.g. for four 8-character columns we might write:
+<PRE>
+%b=tabstops 8 16 24 32;
+</PRE>
+But it's a real drag typing in all that stuff - this command  has  the  same
+effect:
+<PRE>
+%b=tabstops 8;
+</PRE>
+this sets the first column width to 8 and  subsequent  columns  inherit  the
+same width.
+
+Setting the column width to -1 is an instruction  to  jot  to  calculate  an
+optimal set of tabstops for the section of table that's currently in view.
+
+Now, for tabular text we might find it easier if the header line  was  fixed
+in the window. There is a command to do this the line of text we want to use
+in this example happens to be the first line  try  typing  in  this  command
+string:
+&#062; m-0%b=header 'w
+The "m-0" element tells it to go back to the first line of  the  buffer,  in
+this case, this happens to be the header line. "%b=header " is  the  command
+to set the header and the "'w" element indicates that the text  to  use  for
+the header is in the current line of buffer w. With this set up we can  move
+right down so the first line scrolls off the top of the screen and still see
+the header.
+
+Play around  with  the  &#060;&#060;`WordRight`&#062;&#062;  &#123;Shift+RightArrow&#125;,  &#060;&#060;`WordLeft`&#062;&#062;
+&#123;Shift+LeftArrow&#125;,   &#060;&#060;`WordUp`&#062;&#062;   &#123;Shift+UpArrow&#125;    and    &#060;&#060;`WordDown`&#062;&#062;
+&#123;Shift+DownArrow&#125; functions.
+
+</UL><H3><A NAME="TABULAR TEXT - 1">Tabular text - 1</H3>
+When we look at some real tabular data using, say, a spreadsheet  viewer  we
+sometimes see that a cell has been truncated because the text-width  in  the
+cell is greater than the width allocated for that column. In  contrast,  our
+simple concept of tabstops will allow the cell to  overflow  into  the  next
+column - not really very desirable for real tabular data. Thus we  have  two
+slightly different settings:
+<UL><LI>%b=tabstops &#060;n1&#062; &#060;n2&#062; ... ; - sets simple tabstops,</LI>
+<LI>%b=tabcells &#060;n1&#062; &#060;n2&#062; ... ; - defines columns similar to spreadsheets.</LI>
+
+</UL>Staying with the test_table.txt session, first set the tabstops  all  to  12
+characters:
+&#062; %b=tabstops 12;
+now go to a cell on the screen and make it much wider:
+&#062; m-0f/colBrow15/i/This_is_now_a_very_wide_cell/
+The effect has been for the cell to encroach right across  three  columns  -
+undesirable for tabular data like this. Of course we could set the  tabstops
+to -1, then the editor would expand that column:
+&#062; %b=tabstops -1;
+But, what a spreeadsheet viewer would do would be to mark the over-wide cell
+and truncate it. The tabcells setting approximates to this behaviour:
+&#062; %b=tabcells 12;
+
+</UL><H3><A NAME="TABULAR TEXT - 2">Tabular text - 2</H3>
+A  line  of  tabular  text  consists  of  substrings  (cells)  separated  by
+value-separator characters. By default, this separator character is Tab  and
+tabs are represented on the screen, like any other control character, with a
+tilde '~'.
+
+Read a more typical spreadsheet table into buffer e.g:
+&#062; %ie=consumertrends2012q3cvmnsa_tcm77-292466.tsv
+and tell the editor to display this as 6-character cells
+&#062; %b=tabcells 6
+this is equivalent to saying %b=tabcells 6 12 18 24 30 ... i.e. the  default
+cell width is the width of the previous cell.
+
+The main body of the spreadsheet should display in a nice neat tabular  form
+with 6-character columns  -  not  quite  wide  enough  for  some  cells.  In
+particular, the first column of the main spreadsheet is a year  followed  by
+Q&#123;1-4&#125; - this requires at least 8 columns to display  clearly.  When  you've
+not given a column sufficient to display a cell, the cell is repeated in the
+console area of the screen. Looking a that we can see that the first  column
+needs at least 7 characters to display properly.
+ 
+We could ask the window manager to assign tabcells automatically, like this:
+&#062; %b=tabcells -1
+but some of the cells are very wide and tend to mess  up  our  display.
+
+Hit &#123;Shift+DownArrow&#125; and &#123;Shift+UpArrow&#125; a few more  times,  sufficient  to
+scroll the screen - taking note of the way the column widths change. This is
+because tabcells -1 will adjust the column widths to accommodate the  widest
+column-cell currently in view. See `%b=leftoffset` and `about long lines`.
+
+Try this instead:
+&#062; %b=tabcells 8 16 22
+This makes the first two columns 8 characters  and  subsequent  columns  all
+inherit the 6-character width  assigned  to  column  3.  Also,  the  initial
+comments are in very wide cells and much of this text has been truncated. If
+the cursor ends up in a cell that, for any reason,  has  been  truncated  it
+repeats the cell text in the console area like this:
+&#062; m-0f/Hairdressing/
+In the console area you should see something like this, showing  the  cursor
+in truncated cell and bits of it's neighbouring cells. If, as  might  happen
+in this case, you still can't see all of the cell, then  press  &#123;RightArrow&#125;
+until all of the cell is visible in  the  console  area  -  it  should  look
+something like this:
+<PRE>
+onal care~Hairdressing salons and personal grooming establishments~Electrical ap
+</PRE>
+
+Finally, when scrolling through a spreadsheet it's useful to have  a  static
+header at the top. For this file we might chose the 4-character column  key,
+this is on line 13 of the file:
+&#062; m+13 %b=header 'e
+
+</UL><H3><A NAME="COLOUR-TAGGED TEXT">Colour-tagged text</H3>
+Jot supports user-specified colouring for specific strings in the  text.  In
+jot this is referred to as tagging text. There are two stages to the process
+first we define a colour scheme and assign it a name (see `%b=tagtype`)  and
+then the tags can be added to the text (see `%b=addtag`).
+
+We're going to define two colour pairs - a foreground and background  colour
+combination is known as a colour pair. the colours identified by numbers  in
+the range 0 to 7 - see `%b=TagType` for details.
+&#062; %b=tagtype normal colour 7 0
+&#062; %b=tagtype red colour 7 1
+
+The colour pair normal is used to switch back to normal  text  colour  after
+the coloured-in cell. Now let's stick some colour on a cell:
+<PRE>
+m+40r8 %b=addtag red; r5 %b=addtag normal;r-0
+</PRE>
+
+Well it would be a real drag having to go  round  spreadsheets  adding  tags
+manually. In practice, the useful thing about colour tags is that  they  can
+be used to highlight  important  details  that  might  otherwise  have  been
+missed.
+
+Suppose we were interested in places where an entry for one row is less than
+the previous entry Now pick up the following, down-to and including '$ line,
+then drop it  into  the  console  area.  It  defines  a  little  macro  that
+highlights in red any cell that has a lower  value  than  the  corresponding
+cell in the previous year.
+
+<PRE>
+%g$
+%%Macro to highlight spreadsheet entries where on year's entry in a column is less than the previous year.
+%%
+%%Clear any preexisting colour tags.
+m-0n.m0a@h@
+%%Locate first row with digits in column 1 - assumed to be the year.
+m-0(q/0-9/\m)0
+%%Initialize column counter.
+ol0
+( %%Column loop - index to next column, initialize previous-cell value to 0 then find start of yearly entries.
+</PRE>
+ol-1o+ ol0os m-0f/1997/
+( %%Year (Row) loop.
+<UL>mm-
+%%Step past the year column.
+((q/0-9 Q/r)0rq/0-9/\m)0
+%%Now index to the current column.
+o# (o~ (q/0-9/r)0 r)0 ok (rr-, okokr-0 %x=All done;)
+%%Pick up value from this cell and compare it to previous.
+os (oid oso&#062; %b=addtag normal;, %b=addtag red;) mos )0 osok )0
+<PRE>
+:
+'$
+</PRE>
+</UL>
+Note that these tags can not persist beyond the current  session,  it's  all
+done with metadata that is not part of the plaintext file.
+
+</UL><H3><A NAME="GRAPHICAL TEXT - 1">Graphical text - 1</H3>
+With this type of text, it is important to preserve the position of text  to
+the right of the cursor. It is also important to have some line-drawing  and
+block-move operations.
+
+The most convenient way of doing this is with a numeric keypad - the startup
+script attaches the functions to the various  numeric-keypad  keys.  Windows
+users should find these work anyway but linux users will have to set up  the
+keypad with xmodmap - see `X-windows setup`. If you  don't  have  a  numeric
+keypad and you want to have a go at this, the  functions  are  available  as
+escape sequences but, trust me, it's a real drag doing it that way.
+
+First clear buffer r by abstracting an empty string to r (it should be empty
+anyway) then move into it:
+&#062; n.arzr
+
+The  buffer  is  completely  empty,  notice  that  the  cursor-control  keys
+(&#123;&#091;Left|Right|Up|Down&#093;Arrow&#125;) fail to shift  the  cursor  off  the  top-left
+corner of the screen because there is no text to navigate.
+<UL>
+</UL>In    the    empty    buffer,    you    can    navigate     around     using
+&#123;Ctrl+&#091;KP_4|KP_6|KP_8|KP_2&#093;&#125; () -  these  are  attached  to  the   &#060;&#060;`Left`&#062;&#062;,
+&#060;&#060;`RightRegardless`&#062;&#062;, &#060;&#060;`UpRegardless`&#062;&#062; and &#060;&#060;`DownRegardless`&#062;&#062; functions
+the latter three insert blank  lines  and  whitespace  into  the  buffer  as
+necessary.
+
+So first have a little play with the &#123;Ctrl+&#091;KP_4|KP_6|KP_8|KP_2&#093;&#125; keys (&#123;Esc
+m e&#125;, &#123;Esc m w&#125;, &#123;Esc m n&#125; and &#123;Esc m s&#125; respectively if you  don't  have  a
+numeric keypad) and move the cursor to somewhere near  the  centre  of  your
+screen.  
+
+Now draw the first hyphen of an easterly line by  hitting  &#123;Ctrl+Shift+KP_6&#125;
+(the &#060;&#060;`LineE`&#062;&#062; function - users with no numeric keypad should  do  &#123;Esc  l
+e&#125;. Now hit the repeat key &#123;F10&#125; five times - you should  see  a  horizontal
+line of six hyphens with the cursor one place  to  the  right  of  the  last
+hyphen.
+
+Now draw a vertical line down using the &#060;&#060;`LineS`&#062;&#062;  function,  this  is  on
+&#123;Ctrl+KP_2&#125; (&#123;Esc l s&#125;) and repeat this five times by hitting &#123;F10&#125; 5 times.
+Notice the corner - &#060;&#060;`LineS`&#062;&#062; detects the change in direction and  left  a
+blank at the corner to avoid any untidyness.
+
+&#123;Ctrl+KP_4&#125; (&#123;Esc l w&#125;) will draw a horizontal line  using  the  &#060;&#060;`LineW`&#062;&#062;
+function - again it detects the change in direction and puts a blank at  the
+corner. Finally &#123;Ctrl+KP_8&#125; or &#123;Esc l n&#125; will draw a line  going  up,  using
+the &#060;&#060;`LineN`&#062;&#062; function.
+
+</UL><H3><A NAME="GRAPHICAL TEXT - 2">Graphical text - 2</H3>
+The &#060;&#060;`LineNE`&#062;&#062;, &#060;&#060;`LineNW`&#062;&#062;, &#060;&#060;`LineSE`&#062;&#062; and &#060;&#060;`LineSW`&#062;&#062; functions draw
+diagonal lines with Slash and Backslash ( /  and  \  )  characters.  On  the
+numeric keypad these are attached to &#123;Ctrl+KP_9&#125;,  &#123;Ctrl+KP_7&#125;,  &#123;Ctrl+KP_3&#125;
+and &#123;Ctrl+KP_1&#125; respectively (for those without a  numeric  keypad  use  the
+following instead: &#123;Esc \ u&#125;, &#123;Esc / u&#125;, &#123;Esc \ d&#125; and &#123;Esc / d&#125;).
+
+Try drawing a few lozenge shapes with these keys and draw a few lines mixing
+these with the horizontal and vertical drawing functions.
+
+To  cut  and  paste  blocks  of  this  kind  of  text  use  the   &#060;&#060;`Note`&#062;&#062;
+&#123;Ctrl+Shift+F1&#125;,      &#060;&#060;`CutRectangle`&#062;&#062;       &#123;Ctrl+Shift+Alt+F3&#125;       and
+&#060;&#060;`PasteRectangle`&#062;&#062; &#123;Ctrl+Shift+Alt+F4&#125;. The note  point  must  be  at  the
+top-left corner of the rectangle you want to cut. First position the  cursor
+to the top-left corner of the rectangle to be cut, then hit note:
+&#062; &#123;Ctrl+Shift+F1&#125;
+then move the cursor to the bottom-right corner of the rectangle and cut the
+rectangle:
+&#062; &#123;Ctrl+Shift+Alt+F3&#125;
+
+The cursor should now be back at the original note point and all the text in
+the rectangle has been replaced by whitespace.
+
+To restore  the  original  text  use  the  &#060;&#060;`PasteRectangle`&#062;&#062;  function  -
+&#123;Ctrl+Shift+Alt+F4&#125; before moving the cursor. Then move to the  place  where
+you want the top-right corner to go and apply &#060;&#060;`PasteRectangle`&#062;&#062; again.
+
+To create a complete box use the &#060;&#060;`Box`&#062;&#062; function, it takes two arguments,
+the box width and box height with the top-left corner at the current  cursor
+position:
+&#062; 7 5 &#123;Esc b x&#125;
+This creates a box 7 characters wide by 5 lines high.
+
+To create a complete  lozenge  with  it's  apex  below  the  current  cursor
+position use the &#060;&#060;`Lozenge`&#062;&#062; function:
+&#062; 6&#123;Esc z 1&#125;
+The DSLozenge function is  similar  except  that  the  horizontal  pitch  is
+doubled:
+&#062; 6&#123;Esc z 2&#125;
+
+</UL><H3><A NAME="GRAPHICAL TEXT - 3">Graphical text - 3</H3>
+Each of the line-drawing functions take an optional text-string  argument  -
+this allows you to draw using text strings when required. For the  functions
+that draw right-to-left or bottom-to-top, the string is reversed to make  it
+easier to read (left-to-right or top-to-bottom).
+
+Navigate to the centre of your screen and type:
+&#062; This can be read top-to-bottom&#123;Esc l n&#125;
+
+Now create a small box of 7 characters wide by about 5 lines.  Now  navigate
+to anywhere in the box and insert text using the  &#060;&#060;`BoxText`&#062;&#062;  function  -
+either &#123;Ctrl+Alt+KP_5&#125; or &#123;Esc b t&#125;
+&#062; 7 4&#123;Esc b x&#125;
+&#062;  Text in the box&#123;Esc bt&#125;   
+
+You should get something resembling this:
+<UL>
+<PRE>
+                                   ------
+                                  | Text |
+                                  | in   |
+                                  | the  |
+                                  | box  |
+                                  |      |
+                                   ------
+</PRE>
+</UL>
+As an example of this type of text, open the text version of  the  jot  user
+guide and go to the diagram showing the mid-keypad assignments:
+&#062; %iz=$&#123;JOT_HOME&#125;/docs/jot_ug.txt
+&#062; f/| 9          KP_9  |/r (ol1ow)12
+
+Set the note point at the top-left corner inside the box:
+&#062; &#123;Ctrl+Shift+F1&#125;
+
+then navigate to the bottom-right corner and &#060;&#060;`CutRectangle`&#062;&#062;:
+&#062; r17y6
+&#062; &#123;Shift+Alt+F2&#125;
+
+The text disappears - it's actually in the _ buffer - take a quick look:
+&#062; z_
+
+Now return and restore the text:
+&#062; zz
+&#062; &#123;Ctrl+Shift+Alt+F4&#125;
+
+</UL><H3><A NAME="INSERT MODE">Insert mode</H3>
+Up to now, everything has been types into the console area at the bottom  of
+the screen. With,  many  modern  editors  the  stuff  you  type  in  appears
+WYSIWYG-style (What You See Is What You Get) directly in the the text  image
+image on the screen and, according to modern myth, WYSIWYG is  always  best.
+Indeed, if all you're doing is brain dumping your thoughts directly  into  a
+text-file image it's a pretty good way  to  work  -  see  `Command-mode  vs.
+insert mode`.
+
+Clear a buffer then zoom into it, put the editor into insert mode  and  just
+start typing.
+&#062; n.apzp   
+
+This switches the editor to insert mode:
+&#062; &#123;Esc I n&#125;
+
+Now just type in a few lines, each line is terminated  by  &#123;Return&#125;  if  you
+want to rub out something  just  press  the  &#123;Backspace&#125;  key.  This  little
+nursery rhyme will do:
+
+<UL>Tom, Tom, the pipers son
+stole a pig and away did run
+pig was eat and Tom was beat
+and Tom went howling down the street.
+
+</UL>The cursor-control keys will all work just the same, as  will  most  of  the
+function keys. The  exceptions  are  those  which  take  parameters  -  e.g.
+&#060;&#060;`FindPrev`&#062;&#062; and &#060;&#060;`FindNext`&#062;&#062; - these prompt you  for  a  search  string
+e.g:
+&#062; &#123;F7&#125;
+<PRE>
+Find string&#062; tom&#123;Return&#125;
+</PRE>
+now try &#123;F7&#125; again and hit &#123;Return&#125; in response to the "Find string&#062;" prompt.
+&#062; &#123;F7&#125;
+<PRE>
+Find string&#062; &#123;Return&#125;
+</PRE>
+it  finds  the  previous  occurrence  of  Tom  ok,  but  better   yet,   use
+&#060;&#060;`FindPrevAgain`&#062;&#062; ( &#123;Ctrl+F7 ) this repeats the search without prompting:
+&#062; &#123;Ctrl+F7&#125;
+
+&#123;Esc I n&#125; also exits insert mode.
+&#062; &#123;Esc I n&#125;
+
+In addition to the semi-perminant insert mode described above, jot offers  a
+temporary version - &#123;Esc i n&#125; enters a insert mode that persists  until  the
+next use of any function, cursor or escape sequence.
+&#062; &#123;Esc i n&#125;
+Type in some text.
+&#062; &#123;LeftArrow&#125;
+
+You are now back in command-driven mode alternatively,  &#123;Ctrl+c&#125;  will  also
+get you back to command mode.
+
+</UL><H3><A NAME="COMMAND-EDITING">Command-editing</H3>
+There is a simple command-edit/repeat facility  -  it  works  my  getting  a
+buffer containing command-history and editing the desired command string  in
+that buffer. By default, the command-history depth is just 20 lines, if  you
+feel that is not enough, you can increase the size  of  the  history  buffer
+with the `-history` CLI qualifier.
+
+<UL><LI>&#060;&#060;`CmdEditStart`&#062;&#062; &#123;Esc c e&#125; - Acquires command history to show the last</LI>
+few commands and whatever command string you were  typing  at  the  time
+that CmdEditStart was invoked.
+
+<LI>&#060;&#060;`CmdEditGo`&#062;&#062; &#123;Esc c g&#125; - pushes command  from  history  into  console</LI>
+command buffer. You can then hit return launch it as a  command  or  any
+function key that uses an argument.
+</UL>
+Return to the Richard III text in the primary buffer and go to the start:
+&#062; z.
+&#062; m-0
+Now fill the history buffer with simple commands - hold down the &#123;DownArrow&#125;
+key until you have passed line 20 (by default,  the  history  buffer  is  20
+lines long - see `-History`). Then enter an easily identifiable command:
+&#062; %m=Hello world; r0p
+
+Now enter a few simple commands - the &#060;&#060;`Right`&#062;&#062; function will do:
+&#062; &#123;RightArrow&#125;
+&#062; &#123;RightArrow&#125;
+&#062; &#123;RightArrow&#125;
+
+Now enter the command editor:
+&#062; &#123;Esc c e&#125;
+
+Now insert "%d1=" at the start of the macro  -  so  that  the  command  text
+defines the macro attached to button 1. First navigate to the start  of  the
+"Hello world" line then:
+&#062; %d1=&#123;F6&#125;
+
+Push the command back into the console command buffer:
+&#062; &#123;Esc c g&#125;
+
+You should be back in your original context and  see  the  modified  command
+string in the command area looking, for all the world, as though you'd  just
+typed it in. At this point hit &#123;Return&#125; to run it.
+&#062; &#123;Return&#125;
+
+Take a look at the definition of macro  1  -  we  should  see  our  original
+command:
+&#062; z1
+
+</UL><H3><A NAME="USING THE POPUP MENU">Using the popup menu</H3>
+Jot has a simple, yet, very useful popup menu. It can, for example, be  used
+to reproduce hard-to-spell, hard-to-remember  or  tedious-to-type  words  in
+documents or object names in computer coding languages. The  popup  menu  is
+also used to offer spelling corrections suggested by Aspell in `doc.jot`
+
+For   details   see   `PopupSearch`,   `PopupMouseSelect`,   `PopupRestore`,
+`PopupPageUp` and `PopupPageDown`.
+
+Fire up a session on RichardIII:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+
+Search for words containing the sting 'men':
+&#062; men&#123;Esc p s&#125;
+You will notice a list of  words  appear,  on  a  blue  background,  in  the
+top-right corner of the screen - this is the popup menu.
+
+Now select one of these words by moving the mouse cursor into the popup area
+and clicking the left button on the mouse - if you are unfortunate enough to
+be working with a laptop touchpad there is doubtless some equivalent motion.
+
+Notice that the popup menu has disappeared and that your selected  word  has
+appeared in the console area. You can now apply this word in some other  jot
+function - say Find:
+&#062; &#123;F8&#125;
+
+You might  equally  have  invoked  `FindPrev`  &#123;F7&#125;,  `FindExactNext`  &#123;F9&#125;,
+`Insert` &#123;F6&#125;, `Substitute` &#123;F5&#125;, etc.
+
+When the search returns more results than can be accommodated in  a  20-line
+popup, use the `PopupPageDown` and `PopupPageUp` to view more of the list:
+&#062; &#123;Esc p d&#125;
+and 
+&#062; &#123;Esc p u&#125;
+
+</UL><H3><A NAME="PERCENT COMMANDS - 1">Percent commands - 1</H3>
+These are mainly to do with housekeeping operations and  system  interfaces.
+`%q` (system Query) is  an  important  one,  it  supports  several  queries.
+Essentially it offers you little peepholes to see what's going on inside the
+editor.
+
+Another important one is `%s` (System settings) -  changes  various  default
+settings inside the editor.
+
+There's also `%b` (Buffer settings) - changes  some  default  state  in  the
+current buffer. Only a few key options are explored by this  introduction  -
+see `percent commands` for more details.
+
+Two quite handy ones are `%M` and `%X`, %m  just  sends  a  message  to  the
+console e.g.:
+&#062; %m=Hello world!; %m=You should also see this message.
+
+%X also sends a message but  it  forces  an  exit  from  whatever  macro  is
+currently running:
+&#062; %x=Abrupt exit.; %m=You should not see this message.
+
+</UL><H3><A NAME="THE %Q GROUP OF COMMANDS - 1">The %Q group of commands - 1</H3>
+First, let's look at the words on system queries - `%Q`, these report system
+and internal editor state. For most  of  these  the  destination  buffer  is
+mandatory, in these examples the report is directed to buffer z.
+
+&#062; %qz=version
+The editor focus changes to buffer z, this now contains two  records,  first
+the string 'version', followed by the editor version - this  query  is  more
+useful than might be immediately apparent - it can be used  by  a  macro  to
+find out if it's running on windows or unix.
+
+&#062; %qz=date
+Buffer z now contains two records, first the string 'date', followed by  the
+date as reported by the system.
+
+&#062; %qz=env JOT_HOME
+This time it replies with the current value of that env variable.
+
+&#062; %qz=buffer
+This replies with several lines reporting internal  state  for  the  current
+buffer - refer to `query buffer` for details.
+
+&#062; %q=SameSinceIO   
+This does not write a report, it simply sets the failure flag if the  buffer
+has been changed since it was last read or last saved - i.e.  the  image  in
+front of you is, possibly, different to  the  version  held  by  the  filing
+system.
+
+</UL><H3><A NAME="THE %Q GROUP OF COMMANDS - 2">The %Q group of commands - 2</H3>
+&#062; %qz=dir $&#123;JOT_RESOURCES&#125;
+This extracts a directory listing for your  JOT_RESOURCES  area.  There  are
+several options for extracting more information about the files - see `query
+dir` for details. Here's an example:
+&#062; %qz=dir -mtime -size $&#123;JOT_RESOURCES&#125;;
+&#062; %b=tabcells -1
+
+If, by chance, you want the report ordered by  file  size,  there  are  some
+options on the sort function that can help (see `%b=tabsort`):
+
+</UL><H3><A NAME="PERCENT COMMANDS, %B AND %E">Percent commands, %B and %E</H3>
+The %B commands set some of the buffer attributes reported by the %qz=buffer
+query above. You've already encountered two of these in  the  section  about
+tabular  data  (%b=tabcells  and  %b=header)  -  another  important  one  is
+%b=pathname - this sets the default pathName  used  by  %O  and  some  other
+commands that refer to the filing-system.
+<UL>
+</UL>The %E command is very useful - it passes a command down to  your  CLI  and,
+optionally, collects the reply in a nominated buffer.
+&#062; %ez=ls -l .
+
+The unix status for the command is picked up and defines the editor  failure
+flag.
+
+Note that many useful CLI commands contain semicolons (in unixland  they  do
+anyway), and escaping these with backslashes makes it difficult  to  predict
+what actually emerges after the various layers have  stuck  their  oars  in.
+Hence jot passes all semicolons through to the shell as-is. %E commands  can
+only be terminated by a break in the command line or the special  terminator
+string ' -hereEndsThePercentCommand;'.
+
+</UL><H3><A NAME="REDEFINING FUNCTION AND HOT-KEY MAPPINGS.">Redefining function and hot-key mappings.</H3>
+The mapping of functions to keystrokes is performed by the standard  startup
+script (see `about startup scripts`). Take a quick look at this  file  -  in
+particular the definition of functions in the ( ' ) buffer.
+&#062; %iz=$&#123;JOT_HOME&#125;/coms/startup.jot
+This only defines the  functions.  The  startup  script  calls  a  secondary
+startup script to curses_keys_&#060;TERM&#062;.jot to  define  the  keycodes  used  to
+recognize keystrokes. In windowsland it's WindowsNT_keys.jot,  take  a  look
+at one of the relevant files:
+&#062; %ix=$&#123;JOT_HOME&#125;/coms/curses_keys_xterm.jot
+or
+&#062; %ix=$&#123;JOT_HOME&#125;/coms/WindowsNT_keys.jot
+The syntax  is  quite  simple  -  each  line  has  three  entries  first  an
+8-character keycode,  a  function  name  and  finally  an  optional  comment
+describing the keystroke but note that this is not a free-format file -  the
+keycode must be passed out to 8 characters with whitespace.
+
+The keycode 'xxxxxxxx' indicates  that  this  OS  does  not  support  a  key
+combination.
+
+At the end of startup.jot we see this line
+<PRE>
+obz@m-0 (f1/&#060;&#060;/\k, n.f1/&#062;&#062;/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
+</PRE>
+this code merges function definitions from the ( '  )  buffer  with  keycode
+definitions from the @ buffer and adds them to the key-mapping buffer ^ this
+is the buffer where jot has to find key-to-function mappings.
+
+Essentially, to redefine your own key mappings, you should create  your  own
+startup.jot which defines any new  functions  and  a  new  key-map  file  to
+replace unix_keys/WindowsNT_keys.jot with a customized key-map.
+
+</UL><H2><A NAME="COMMAND FILES">Command Files</H2>
+
+</UL><H3><A NAME="COMMAND-FILE LIBRARY">Command-file library</H3>
+There are lots of command files  (scripts)  designed  to  take  on  specific
+functions. In some cases, the scripts may be a tad over-specfic  but  that's
+OK because it's easy enough to  adapt  them.  here's  a  list  of  the  most
+important ones:
+<UL><LI>`get.jot` - directory browser and file loader.</LI>
+<LI>`doc.jot` - document preparation toolbox.</LI>
+<LI>`dic.jot` - word lookup based on websters online dictionary.</LI>
+<LI>`thes.jot` (thesaurus) - cross-match words in the online Roget's</LI>
+<LI>`c.jot` - c-code browser</LI>
+<LI>`perl.jot` - perl-code browser.</LI>
+<LI>`jot.jot` - jot code browser.</LI>
+<LI>`doc2html.jot` - converts a text document to html.</LI>
+<LI>`comp.jot` - compares two buffers.</LI>
+<LI>`do.jot` - runs a CLI command and collects the results.</LI>
+<LI>`cli.jot` - applies CLI command to current file's pathName.</LI>
+<LI>`path.jot` - applies CLI command to current file's path.</LI>
+<LI>`multi_do.jot` - applies a CLI command to all files listed in buffer.</LI>
+<LI>`multi_ed.jot` - applies a jot command to pathnames listed in buffer.</LI>
+<LI>`ls2list.jot` - converts ls output to a list for multi_do and multi_ed.</LI>
+<LI>`age.jot` - returns current age of file in current buffer.</LI>
+<LI>`searchbuffers.jot` - searches all open buffers for a given string.</LI>
+<LI>`purge.jot` - identifies and removes duplicated records in buffer.</LI>
+<LI>`duplicates.jot` - finds next duplicated record in buffer.</LI>
+<LI>`mc.jot` - Displays the current buffer in multicolumned format.</LI>
+<LI>`cal.jot` - gets a calendar using the cal command and adds week numbers.</LI>
+<LI>`xword.jot` - word-search query server, useful to crossword enthusiasts.</LI>
+
+</UL><H3><A NAME="THE GET SCRIPT - 1">The get script - 1</H3>
+A most useful script, it is used to interactively browse the  filing  system
+directories and archive files - see `get.jot` for full details. It can  pick
+up a path from any of the following sources in the priority order listed.
+
+Most of these usages of get.jot result in the editor  focus  changing  to  a
+list of files in the ( + ) buffer. Subdirectory names are  suffixed  with  a
+slash ( / ). To select a file, or to  descend  another  directory,  navigate
+down to an entry and do &#123;Esc 0&#125;.
+<UL>
+<UL><LI>An absolute path given as a command-line argument.</LI>
+&#062; get /*&#123;F2&#125;
+it shows a list of all files in the root area.
+<UL>
+</UL><LI>Buffer ( . ) contains the Richard III sample from your  $&#123;JOT_RESOURCES&#125;</LI>
+area, this one offers a list of all files here.
+&#062; z.
+&#062; get&#123;F2&#125;
+
+<LI>When the current buffer has no valid pathname, it takes your PWD:</LI>
+&#062; n.aqzq&#123;Return&#125;
+&#062; get *&#123;F2&#125;
+</UL></UL>
+<UL><LI>A path relative to your PWD.</LI>
+&#062; get &#060;aFileOrDirNameInYourPwd&#062;&#123;F2&#125;
+ 
+<LI>A path specified by the env GetDefaultPath.</LI>
+<UL>This env is set to the default c include path by c.jot, for example.
+&#062; get stdlib.h&#123;F2&#125;
+
+</UL></UL><H3><A NAME="THE GET SCRIPT - 2">The get script - 2</H3>
+Another useful feature of get.jot is that it will descend into archive files
+of various sorts. In unixland tar (Tape ARchive) is a popular archive format
+(including compressed tarballs). In windows zip is a common one and  there's
+also the microsoft cabextract format.  In  linux  get.jot  recognizes  these
+files by applying the file utility, in windows it goes  by  file  extension.
+Various helper co-processors are used to do this, some of which may need  to
+be downloaded from various providers (see `get.jot` for details).
+
+There's a few little sample archives in $&#123;JOT_RESOURCES&#125;/test_get - lets see
+what's in them:
+&#062; get $&#123;JOT_RESOURCES&#125;/test_get&#123;F2&#125;
+
+Along with various test files and subdirectories  there's  test_get.tar  and
+test_get.zip - let's try pulling something from test_get.tar:
+&#062; test_get.tar&#123;F8&#125;
+&#062; &#123;Esc 0&#125;
+
+It shows you a list of files and directories in  this  small  test  archive.
+Ignore  the  directories   (entries   ending   with   &#123;/&#125;select   the   file
+test_get/hello.c:
+&#062; hello(F8&#125;
+&#062; &#123;Esc 0&#125;
+
+Note  that  the  buffer  has  not  been  given  a  proper  pathname   -   in
+window-terminator line it just says something like 
+<PRE>
+"&#091; From CLI command xls2csv ...
+</PRE>
+this is because the archive may contain absolute pathname, as this one does,
+and if it came from a different filing system you will not be able to  write
+the buffer to this path. As it is, in all cases you must  set  the  pathname
+(see `%b=pathname`) of the buffer before saving the file.
+
+It's a similar story with spreadsheet  file  containing  multiple  sheets  -
+let's take a look at the original xls file in $&#123;JOT_RESOURCES&#125;
+&#062; z+
+&#062; ..//&#123;F7&#125;
+&#062; &#123;Esc 0&#125;
+&#062; xls&#123;F8&#125;
+It first asks you for a buffer key - we'll put the sheet in buffer z:
+&#062; z&#123;Return&#125;  
+
+It presents you with a list of sheets in the spreadsheet file - 12KN is  the
+one we've looked at before:
+&#062; 12KN&#123;F8&#125;
+
+</UL><H3><A NAME="THE GET SCRIPT - 3">The get script - 3</H3>
+The  get  script  recognizes  some  binary  file  formats  and  can   launch
+co-processors to extract plaintext from them - see `installation`.
+
+In the $&#123;JOT_RESOURCES&#125; area are some versions  of  the  test  file  t.t  in
+various formats:
+<UL><LI>t.t - plain text.</LI>
+<LI>t.doc - old-style microsoft word format.</LI>
+<LI>t.docx - New-style microsoft word format (2007+).</LI>
+<LI>t.pdf - guess what - a PDF version.</LI>
+</UL>get.jot  uses  tika  (a  java  application  supported  by  apache)  to  suck
+meaningful text out of these files.
+&#062; get $&#123;JOT_RESOURCES&#125;&#123;F2&#125;
+&#062; t.pdf&#123;F8&#125;
+&#062; &#123;Esc 0&#125;
+In response to the 'Buffer key?' prompt, tell it to park the text in buffer x:
+&#062; x&#123;Return&#125;
+
+</UL><H3><A NAME="DOC - DOCUMENT PREPARATION TOOLBOX - 1">doc - document preparation toolbox - 1</H3>
+The doc script is a useful toolbox of basic  functions  for  writers.  We're
+going to try some out on some text written using  doc.jot.  First  read  the
+plaintext jot user guide:
+&#062; z.
+&#062; %iy=jot_ug.txt
+this is another copy of the jot user guide, which was written using doc.jot.
+
+Load the doc.jot macros and hotkeys:
+&#062; doc&#123;F2&#125;
+ 
+One of the most important hotkeys defined by doc.jot is  probably  &#123;Esc  p a&#125;,
+this re-formats the current paragraph. Let's add some text and then use this
+to reformat a paragraph:
+&#062; m+54f/-&#123;Return&#125;
+&#062; blah blah blah blah &#123;F6&#125;
+we've inserted a few words to the text, but the  paragraph  is  now  out  of
+alignment. re-make the paragraph:
+&#062; &#123;Esc p a&#125;
+
+Now let's try breaking and joining paragraphs. Suppose we decided we  wanted
+the last sentence of this line to be at the start of the next paragraph. The
+function we're going to use &#060;&#060;`AppendRightNext`&#062;&#062; &#123;Alt+F10&#125;, remember, moves
+text to the next line past indentation.
+&#062; plain&#123;F7&#125;
+&#062; &#123;Alt+F10&#125;
+&#062; &#123;Ctrl+LeftArrow&#125;
+&#062; &#123;Alt+F10&#125;
+&#062; &#123;Esc p a&#125;
+
+The process can be reversed by using &#060;&#060;`AppendLeftPrev`&#062;&#062; &#123;Alt+F9&#125; - 
+&#062; a text&#123;F7&#125;
+&#062; &#123;F9&#125;
+&#062; &#123;Ctrl+RightArrow&#125;
+&#062; &#123;Alt+F9&#125;
+This time merge  the  lines  by  erasing  the  line  break  -  the  function
+&#060;&#060;`DeleteChrLeft`&#062;&#062; &#123;Alt+LeftArrow&#125; deletes the line break when  at  the  start  of  a
+line, as it is now:
+&#062; &#123;Alt+LeftArrow&#125;
+&#062; &#123;Esc p a&#125;
+
+</UL><H3><A NAME="DOC - DOCUMENT PREPARATION TOOLBOX - 2">doc - document preparation toolbox - 2</H3>
+<UL><LI>&#123;Esc h e&#125; - makes the current line into a section heading.</LI>
+<LI>&#123;Esc h a&#125; - resets all headings, preserving header levels.</LI>
+<LI>&#123;Esc h +&#125; - current line becomes a heading at an increased header level.</LI>
+<LI>&#123;Esc h -&#125; - current line becomes a heading at an decreased header level.</LI>
+
+Go to any line of text and enter a new line:
+&#062; This a new heading.&#123;Esc h e&#125;
+Notice that the new heading has the correct header numbers relative to the
+previous heading - but the next heading is now wrong. This will  be  fixed
+later.
+
+Add three more headings at various header levels:
+&#062; This is at a higher level.&#123;Esc a&#125;
+&#062; &#123;Esc h +&#125;
+&#062; This is at an even higher level.&#123;Esc a&#125;
+&#062; &#123;Esc h +&#125;
+&#062; This is going back one level.&#123;Esc a&#125;
+&#062; &#123;Esc h -&#125;
+
+Having added a new section may wonder what about all  those  out-of-sequence
+section heading numbers further along? ... Well &#123;Esc H&#125; is here to help:
+&#062; &#123;Esc h a&#125;
+All the section numbers have been fixed.
+
+</UL><H3><A NAME="DOC - DOCUMENT PREPARATION TOOLBOX - 3">doc - document preparation toolbox - 3</H3>
+Spelling checks are an important part of document preparation -  except  for
+those of us who can remember all spellings and never miss-type a  word.  The
+doc.jot spelling check uses the gnu aspell programme - see `Unix  and  linux
+setup`,
+
+<UL><LI>&#123;Esc s p&#125; - checks the current paragraph for spelling mistakes.</LI>
+<LI>&#123;Esc s d&#125; - checks the entire document for spelling mistakes.</LI>
+<LI>&#123;Esc n i&#125; - moves to the next instance of the current misspelled word.</LI>
+<LI>&#123;Esc n w&#125; - moves to the next word in list of bad spellings.</LI>
+<LI>&#060;re&#062;&#123;Esc l x&#125; - this greps for the regular expression in the mini lexicon.</LI>
+
+First find a good-sized paragraph and drop a in few incorrect spellings.
+&#062; inner&#123;F8&#125;
+&#062; bananaz &#123;F6&#125;&#125;
+&#062; &#123;Esc s p&#125;
+The word "bananaz" appears in the console area. &#123;Esc s p&#125;  is  useful  as  a
+quick check of a freshly-updated paragraph or use &#123;Esc s  d&#125;  to  check  the
+whole document.
+
+Now check the entire document with &#123;Esc s d&#125;:
+&#062; &#123;Esc s d&#125;
+With the full-document spelling check the list of miss-spelled words is  not
+displayed in the console but is  held  in  a  buffer  (the  @  buffer).  The
+&#060;&#060;NextMisspelledInstance&#062;&#062; function finds the next instance of  the  current
+reported word and each new application of &#123;Esc  n  i&#125;  will  find  the  next
+instance of the current reported word.
+&#062; &#123;Esc n i&#125;
+
+Sometimes, the word is a correctly-spelled technical term or someone's  name
+that appears dozens of times and we just want to skip to the  next  reported
+word - the &#060;&#060;NextMisspelling&#062;&#062; function does just that:
+&#062; &#123;Esc n w&#125;
+
+It can, sometimes, be a long process looking up words  in  a  dictionary.  A
+regular expression search  of  the  lexicon  can  sometimes  help.  Use  the
+&#060;&#060;GrepLexicon&#062;&#062; function to find the correct spelling of a word. Results are
+displayed in the console area, if there are too  many  to  see  whet  you're
+looking for, you can browse them in the $ buffer.
+&#062; ^ac.*mpl&#123;Esc l x&#125;
+
+</UL><H3><A NAME="DIC (DICTIONARY) AND THES (THESAURUS)">dic (dictionary) and thes (thesaurus)</H3>
+These are quite useful for authors. They are indeed useful when reading text
+in difficult or archaic english. The dic.jot  script  is  set  to  find  the
+Gutenberg websters ebook - see  `installation`.  The  scripts  are  designed
+around the Gutenberg Ebook version of websters dictionary and Roget's. These
+can be downloaded from the Gutenberg project - see `dic.jot` and `thes.jot`.
+The dic and thes scripts expect to find these in your JOT_RESOURCES area.
+&#062; dic&#123;F2&#125;
+The dic.jot script reads the  dictionary  and  creates  an  index.  Now  the
+dictionary is pretty big - about 19MB and it takes a few  moments  to  read.
+Once this is done it writes the index and, keep the faith, next time you run
+the dictionary script it'll go like the wind.
+
+Once it's read it's book we can fire off a few queries.
+&#062; zythum&#123;KP_7&#125;
+if you've not got a numeric keypad or it's not been set up, then  this  will
+do it:
+&#062; zythum&#123;Esc 7&#125;
+
+The thes script is based on the Gutenberg Roget's ebook. This script takes a
+list of words and returns the categories containing all of them. Queries are
+handled by macro 8. Note that, although the thesaurus contains phrases,  the
+search does not currently support phrases.
+<UL>
+</UL>On completion the  $  buffer  contains  a  list  of  headings  for  matching
+sections, the @ buffer contains copies of the complete sections.
+&#062; thes&#123;F2&#125;
+&#062; party&#123;KP_8&#125;
+Now try intersecting it with another word.
+&#062; party clan&#123;KP_8&#125;
+
+</UL><H3><A NAME="C, JOT, PERL, SH, CSH, SKILL, VERILOG, VHDL, TCL, EDIF, MIF - CODE BROWSERS.">c, jot, perl, sh, csh, skill, verilog, vhdl, tcl, edif, mif - code browsers.</H3>
+These all match block starts and ends in their respective machine languages.
+The functions are similar - &#123;KP_2&#125; (or &#123;Esc 2&#125;)  searches  forwards  in  the
+text for the next valid block-start token and then locates the corresponding
+block-end token. &#123;KP_1&#125; (or &#123;Esc 1&#125;) is similar but works backwards.
+
+The browsers for c and jot have been used with recent versions  of  jot  and
+are pretty bulletproof. Those further down the list have not been used  much
+recently and may benefit from updating. We're now going to  look  at  c  and
+jot. First open a new editor session on some c:
+<PRE>
+$ jot $JOT_HOME/source/ed.c
+</PRE>
+To avoid corrupting the definitive file change the pathname:
+&#062; %b=pathname ./play.c
+ 
+Now load the c-code browser:
+&#062; c&#123;F2&#125;
+When you first hit &#123;KP_2&#125; there is a momentary pause while it maps  all  the
+blocks in the file. When it comes back, the focus has changed to a block end
+token ('&#125;' in c) at the end of a c function definition. Further  pumping  of
+&#123;KP_2&#125; takes us to the end of successive function  definitions.  The  &#123;KP_1&#125;
+key takes us back, but this time it goes to block-start tokens.
+
+If the C-code contains mismatched curly braces, c.jot will fail creating the
+hashtable. In these cases use the plodding versions - &#123;x KP1&#125; (or &#123;x Esc 1&#125;)
+and &#123;x KP_2&#125; (or &#123;x Esc 2&#125;) these work by plodding through the code counting
+curly-braces. The backwards-matching macro (Macro 1)  is  less  reliable  in
+this mode of operation because C cannot be  reliably  parsed  in  reverse  -
+nevertheless, it gets it right most of the time.
+
+To descend into a block just move  the  cursor  anywhere  inside  the  outer
+braces and hit &#123;KP_2&#125; again - Run_Sequence is  a  function  with  plenty  of
+internal structure:
+&#062; f/Run_Sequence()/f/&#123;
+&#062; &#123;RightArrow&#125;
+&#062; &#123;KP_2&#125;
+
+The c script uses hashtables, not for  speed  -  although  this  is  a  most
+welcome by-product, but to improve the reliability of reverse scanning.  The
+main pitfall of using hashtables is when there's a mismatch somewhere and we
+want to locate it.
+
+The &#123;Mod&#125; key (normally x ) modifies the function of &#123;KP_1&#125;  and  &#123;KP_2&#125;  so
+that, instead of  using  hashtables,  they  plod  through  the  code.  These
+functions can be useful in the quest for mismatched braces.
+
+</UL><H3><A NAME="JOURNAL FILES AND RECOVERY FROM CRASHES">Journal files and recovery from crashes</H3>
+First start a jot session with the optional qualifier -journal - this causes
+jot to keep a journal of your activity. Since the  JOT_RESOURCES  files  are
+normally read only, first make a working copy of Richard, then launch a  jot
+session with journal files.
+<PRE>
+$ cp $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt .
+$ jot Richard_III_Entire_Play.txt -jou
+</PRE>
+
+Now open another CLI-window (another xterm or windows console). Hopefully it
+will also have the jot environment set up. Note: the height and width of the
+new screen must be at least that of the original screen.
+
+Now, back in your jot session, just play around using the keys and  commands
+you've looked at in previous sections - move around in the text,  inserting,
+searching, substituting, copying and pasting. Also read in some other  files
+and cut and paste from those into the primary text.
+
+While you're doing all this, your activity is being recorded in a particular
+journal file - history.txt. In the other window, take a look at what's  gone
+in there:
+<PRE>
+$ jot Richard_III_Entire_Play.txt.jnl/history.txt
+</PRE>
+It begins by noting a few details of your session and files read the startup
+script. Then , a few lines down, there is a line like this:
+&#060;&#060;Startup Sequence ends, buffer .&#062;&#062;
+As the words suggest, this point marks the end of  startup-script  activity.
+After this, most of the entries are of the form ~Xxxxx - if  you're  viewing
+it with jot, the escapes will be represented as tildes ( ~  )  -  these  are
+keycodes. For keys that take an argument, the argument appears as  a  prefix
+before the escape.
+
+All the journal files and the  journal  directory  are  destroyed  when  the
+editor exits normally (the `%C` or `%A` commands).
+<UL>
+</UL>The journal directory holds the following items:
+<UL><LI>the history.txt file - mainly your typed-in command activity,</LI>
+<LI>any writable file read by the session, these are held as unique files.</LI>
+<LI>copies of responses to `%E` commands are held as unique files,</LI>
+<LI>results system queries are held as entries in the history.txt file.</LI>
+</UL>
+In the new screen restart the editor but with the recovery  script  as  it's
+startup:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt -st=recover
+</PRE>
+you may recognize some of the activity flashing past on the screen.
+
+What's happening is that the `recover.jot` script has read the raw record of
+your original activity from the history.txt  file  and  has  creates  a  new
+script ( ./recover_now.jot, in your PWD), it's now following  your  original
+activity. Whenever it needs to read  a  file,  it  reads  the  archived
+version from the journal - see also `about journal files`.
+
+While in recovery mode, jot %i and %e reads are intercepted and  take  files
+held in the journal  directory.  Also  jot  writes  are  disabled  to  avoid
+corrupting anything.
+
+When it's finished, all buffers in the recovered session should  be  exactly
+the same as in your original session and reading and  writing  are  back  to
+normal. You may continue with the session as if nothing  had  happened,  new
+commands will be appended to the history.txt file and file reads and  writes
+behave as normal.
+
+A quick way of comparing the recovered version of the file  and  version  in
+the original session is to use `comp.jot` go back to  the  original  session
+and write the current buffer, then in the recovery session type this:
+&#062; comp&#123;F2&#125;  
+
+The comparison script splits the screen to display  both  versions  side  by
+side. On completion both windows should be displaying an identical  view  of
+the end of the file.
+
+Note that, in a genuine recovery situation, the original session is dead and
+will never return. In our demonstration example the original session is very
+much alive and has no way of detecting the recovery session so there may  be
+two entirely divergent sessions appending to  the  history.txt,  this  would
+make for a very confusing history file.
+
+</UL><H2><A NAME="SOME MORE ADVANCED TOPICS.">Some more advanced topics.</H2>
+The following sections are of more interest to those seeking to write  their
+own macro-commands, scripts and redefinitions of the startup files.
+
+This section shows a few macro commands of moderate complexity , takes  them
+to pieces and analyzes them.
+
+</UL><H3><A NAME="A PROFILING MACRO">A profiling macro</H3>
+Suppose we were interested in the distribution of words in this  text  -  we
+might want to count how frequently each word appears in  there  -  something
+like this will generate such a report in the @ buffer.
+
+Begin by copying  the  text  into  the  @  buffer  and  changing  all  alpha
+characters to lower case.
+&#062; m-0n.m0r0a@&z@ m-0(q/A-Z/c, r, m)0 
+
+Place each word on a separate line then sort them alphabetically.
+&#062; m-0(q/a-z/(q//r)0b, rl(q/a-z/\e)0, j)0     
+&#062; %b=sort
+
+Finalize the report by counting instances of each word
+&#062;  m-0 (r\j)0 l0 (n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
+
+</UL><H4><A NAME="HOW DOES THIS WORK - 2">How does this work - 2</H4>
+There were four lines of code involved:
+<PRE>
+m-0n.m0r0a@&z@ m-0(q/A-Z/c, r, m)0 
+m-0(q/a-z/(q//r)0b, rl(q/a-z/\e)0, j)0     
+%b=sort
+m-0 (r\j)0 l0 (n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
+</PRE>
+
+In the first line:
+<UL><LI>m-0 - this sends the cursor to the beginning of line 1.</LI>
+<LI>n. makes a note of the cursor position (at the very start of the  buffer</LI>
+the subsequent abstraction will move text to the nearest character.
+<LI>m0r0 takes us to the very end of the buffer.</LI>
+<LI>a@& abstracts (copies) all the text from the note point to  the  current</LI>
+cursor position, to the @ buffer. Without the & suffix,  the  a  command
+would cut - i.e. remove the text from the original buffer.
+<LI>The "q/A-Z/" command checks for upper-case alpha characters.</LI>
+<LI>For upper-case alphas, the c command changes them to lower case and  all</LI>
+commands from the comma up to the end of the block are ignored.
+<LI>For other characters the Q command fails so commands following the  next</LI>
+comma are obeyed.
+<LI>The r command moves the cursor right by one character.</LI>
+<LI>The next comma indicates the commands to handle the situation when the r</LI>
+fails (i.e. at the very end of a line).
+<LI>The m command moves to the start of the next line.</LI>
+<LI>( ... )0 - this is a block of commands that  keeps  repeating  until  an</LI>
+untrapped failure occurs - in this case the final m command will fail at
+the last line of a buffer.
+
+</UL>The second line chops up sentences to yield a list of all the words in  the
+<UL>original file in  their  original  order.  Again,  the  q  command  detects
+non-alpha characters then the ( b ) command breaks up the lines on the word
+boundaries removing any more adjacent non-alpha characters with the (  e  )
+command.
+
+In the third line, the %b=sort calls  the  system  quicksort  service  (see
+`%b=sort`).
+
+In the final line there are a few new commands:
+<UL><LI>the backslash after the r command reverses the success/failure state.</LI>
+<LI>j joins the current line with the next.</LI>
+<LI>ol1 loads the value 1 onto the stack.</LI>
+<LI>v verifies that the string following the cursor is  the  same  as  that</LI>
+given in the argument.  In  this  case  the  argument  is  an  indirect
+reference to the $ buffer.
+<LI>The v- is similar, except that it looks back, at characters left of the</LI>
+cursor.
+<LI>The o~ command increments the value on the stack.</LI>
+<LI>The k command deletes (kills) the current line.</LI>
+<LI>the oo command outputs the value on the stack using  the  given  format</LI>
+string, in this case "%5d - ".
+
+</UL></UL><H3><A NAME="MACROS">Macros</H3>
+We could scoop up all of those commands  into  a  buffer.  That  would  then
+become a macro command to generate a similar report for any text.  Macros  0
+to 9 are attached to numeric-keypad buttons 0 to 9 - so,  for  this  example
+we're putting the commands into buffer 3 and adding some commentary.
+
+The `%g` command is a good way of doing this - it copies all text  from  the
+keyboard into the specified buffer, until terminated with a colon ( : ).
+
+&#062; %g3
+<PRE>
+%%Copy text to @ and change all alphas to lower case.
+m-0n.m0r0a@&z@ m-0(q/A-Z/c, r, m)0 
+</PRE>
+
+<PRE>
+%%Place each word on a separate line then sort them alphabetically.
+m-0(q/a-z/(q//r)0b, rl(q/a-z/\e)0, j)0     
+%b=sort
+</PRE>
+
+<PRE>
+%%Finally, count up instances of each word 
+m-0 (r\j)0 l0(n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
+:
+</PRE>
+
+Now go to the original text and run the macro - KP_3 denotes button 3 in the
+numeric-keypad - if your keyboard lacks a numeric keypad then use &#123;Esc 3&#125;  -
+the escape key followed by 3
+&#062; z.
+&#062; &#123;KP_3&#125;
+
+</UL><H3><A NAME="THE STACK - 1">The stack - 1</H3>
+The simplest usage of the stack  is  just  a  temporary  parking  place  for
+various fragments of numerical and textual data. It  can  also  be  used  to
+perform simple arithmetic and logical operations including counting.
+
+One common problem in the design of macro commands is that we need to switch
+context to some buffer to pick up some information and then  return  to  the
+original focus - the stack is there to help.
+
+&#062; ob %q~=date; m os oz i'~ ok
+
+<UL><LI>`ob` - puts the buffer key onto the stack.</LI>
+<LI>%q~=... puts the reply in a temporary buffer and  leaves  a  pointer  to</LI>
+that buffer at the top of the stack - see `about command parameters`.
+<LI>`os` swaps the top two items on the stack, so the buffer key is  now  at</LI>
+the top.
+<LI>`oz` changes focus to the buffer indicated by the key at the top of  the</LI>
+stack.
+<LI>the '~ expression in the insert command means insert the current  record</LI>
+from that buffer - see `about command parameters`.
+<LI>`ok` removes the top item, in this case it's a temporary buffer  so  the</LI>
+buffer is also deleted.
+
+</UL><H3><A NAME="THE STACK - 2">The stack - 2</H3>
+Sometimes we need to go off somewere else in the same buffer  and  find  our
+way back:
+&#062; oconf/fred/r4n.f1/ /a$ono-omor 
+<UL><LI>`oc` puts the current-character column on the top of the stack.</LI>
+<LI>`on` puts the current line number onto the stack.</LI>
+<LI>to get back to that place, get the new line number subtract and  that  is</LI>
+the displacement to give `om` to move back to the original line.
+<LI>`or` moves right to get back exactly to where we started.</LI>
+</UL>
+Notice it did a little bit of arithmetic there, on  puts  the  current  line
+number on the top of the  stack,  it  subtracted  one  from  the  other  and
+calculated the displacement to give om which takes it back to  the  original
+line.
+
+It can also pick  up  numerical  values  from  the  text.  This  involves  a
+text-to-numeric conversion - oid performs a decimal conversion, oix hex  oio
+octal and oif floating-point. Here, we're going to pick up a value from  the
+spreadsheet and insert it into some text using the formatted output `oo`:
+&#062; zem-0f/2011/r5
+&#062; oid z. oo/ In 2011, it was %d  /
+
+</UL><H3><A NAME="BLOCKS - 1">Blocks - 1</H3>
+Many editors  have  some  special  search-and-replace  mode  for  repetitive
+changes to the text. Jot has no such magic mode - because it's got something
+much better: a block structure. It's the block  structure  that  gives  this
+editor it's real power.
+<UL>
+</UL>Here you will find it useful  to  know  about  the  following  commands  and
+syntactic objects:
+<UL><LI>`v`/&#060;string&#062;/ - (verify) succeeds if the string immediately right of the</LI>
+cursor matches the given string, v-/&#060;string&#062;/verifies the  text  to  the
+left of the cursor.
+<LI>`q`/&#060;chrs&#062;/ - (qualify) succeeds if the character immediately  right  of</LI>
+the cursor is one of those in the list, q-/&#060;chrs&#062;/ looks the other way.
+<LI>`(` &#060;commandSequence&#062; `)`</LI>
+<LI>`,` (else) - the commands following  the  comma  take  control  if  some</LI>
+earlier command failed.
+<LI>`?` - changes the status of the previous command to success.</LI>
+<LI>`\` - reverses the status of the previous command.</LI>
+<LI>' - Invokes a macro command - see `about macros` (i.e. a sequence of jot</LI>
+commands in another buffer).
+
+</UL><H3><A NAME="BLOCKS - 2">Blocks - 2</H3>
+Here's a few examples:
+&#062; (f/fred/ l0 f1/jim/\)0
+<UL><LI>This block is designed to locate lines containing both  of  the  strings</LI>
+'fred' and 'jim', it works by locating the next line  containing  'fred'
+the status of the 'jim' find is reversed so that it exits  the  infinite
+loop with success. Note that it also exits with success when the end  of
+buffer is reached - even if the line contains neither fred or jim.
+
+&#062; (f/fred/ l0 f1/jim/\)0 v/jim/
+<LI>A bulletproof version of the above, in the sense that it  fails  if  the</LI>
+last line does not match.
+
+&#062; (f1/fred/\ f1/jim/\ f1/bill/\ m)0
+<LI>This sniffs through the buffer  and  stops  when  it  reaches  a  record</LI>
+containing any one of the strings 'fred', 'jim' or 'bill'
+<UL>
+&#062; (rle0j, j)      
+</UL><LI>This deletes to the end of the current line, if not already at  the  end</LI>
+of the line. Otherwise joins with next line. The initial r is only  used
+to test for the for the end of line.
+
+</UL><H3><A NAME="WORKING WITH LARGE FILES">Working with large files</H3>
+Jot has limited support for very large files - a  very  large  file  is  one
+that's too big to load in a normal editor session - see `About large files`.
+The approach adopted assumes that most of the  time  we  are  only  browsing
+these files in search of an answer to questions such  as  "why  this  timing
+violation" or "why that error".
+
+Here you will generate a sample  large  file  of  fairly  simple  structure,
+perform a few operations on it and write it back to disc.
+
+First up - make a sample  file.  Let  this  command  run  for  a  while  and
+interrupt it when you feel the output file (big_file.txt) is big enough -  I
+suggest one or two Gb to start off then try it with a really big file later.
+<PRE>
+$ rm big_file.txt
+$ jot /dev/null -in="%eq=ls -RF /usr/lib /usr/lib64 /usr/bin; %r=ls2list; \
+</PRE>
+<UL>m-0((%i.='q -binary 64; m-0b2i'qb %o=big_file.txt -append;,) zqm)0"
+
+</UL>What you've now got is hex dumps of a bunch  of  system  binary  and  object
+files - doubtless windows users can do something similar  with  the  windows
+system files. Each hex dump is introduced with the pathname of the  original
+file.
+
+The index can be built with these two shell commands:
+<PRE>
+$ grep -b "/usr" big_file.txt &#062; big_file.txt_index
+$ jot big_file.txt_index -quiet -in="(f1/:/-n.r0f-1./.-aam)0 %c"
+</PRE>
+
+After it's been generated the index remains good  until  the  main  file  is
+rebuilt or modified. Subsequent sessions can be started like this:
+<PRE>
+$ jot /dev/null -in="%r=big_file -file=big_file.txt; %qz=keys;"
+</PRE>
+
+The file it's actually reading is the index file we've just created, it uses
+this to populate a hash table with entries for each named section in the big
+file. If you want a different name for the index file you could say this:
+<PRE>
+$ jot /dev/null -in="%r=big_file -file=big_file.txt -index=&#060;myPathName&#062;;"
+</PRE>
+
+Before we read any of the real file let's check to see what's  in  the  hash
+table, the command-line suggested above lists all keys in the ( z )  buffer.
+Alternatively do this:
+&#062; z. %qz=keys;
+Notice each entry has a key, a seek offset and a bytecount, at  the  end  of
+this report you will notice a few  data  objects  defined  by  the  big_file
+script, "pathName", for example is the main-file pathname.
+
+Now pick up any name you fancy from the list of keys in buffer  Z  and  pull
+in it's hex dump - I'm picking "grep" for no particular reason:
+&#062; grep&#123;KP_7&#125;
+
+The screen should now be filled with a hex dump of the grep-command binary.
+Note that big_file.jot has added a separator line of the form:
+------------------------------------------ &#060;keyString&#062;
+These are important because they are target points  for  hash-table  entries
+that find sections later - if, at some  later  point,  query  "grep"  again,
+instead of re-reading the dump for grep it will direct you to  this  section
+again. These target points are also  used  if  ever  you  want  to  write  a
+modified file back to the filing system.
+
+Now, if this were a useful big  file,  such  as  a  CDL  netlist  some  EDIF
+parasitic file, we might be  more  interested  in  referencing  sections  by
+features inside the sections like net names, model names  ...  whatever.  In
+our case we look for features in the binary dumps - like this:
+&#062; E8 AE&#123;KP_8&#125;
+
+This greps for sections containing that sequence of bytes and pulls them all
+in.
+
+Finally let's make a few changes and write our modified version back to  the
+filing system, add a few strings that are easily  detectable  with  grep  or
+diff:
+&#062; f/00 00/s/ZZ ZZ/
+
+Now write the file, note that original order in which you read the  sections
+is unimportant and that all sections in memory will be written  irrespective
+of whether you've actually changed them. Macro 9 will copy sections from the
+original file to the new file replacing any that have  been  read  with  the
+relevant section from memory.
+&#062; &#123;KP_9&#125;
+
+The file is copied to a new version of big_file.txt, the original  is  still
+available for comparison - it's been renamed to big_file.txt_orig. Now close
+the session and return to the CLI - check the differences  between  the  two
+files:
+<PRE>
+$ diff big_file.txt big_file.txt_orig
+</PRE>
+
+Note: In general, once you have written a new version of the file you should
+re-index the file because the edits may have  altered  the  length  of  your
+modified sections and hence will change the seek offsets for later sections.
+
+</UL><H3><A NAME="WORKING WITH COLLECTIONS OF SOURCE FILES.">Working with collections of source files.</H3>
+The notion of index files has been broadened to encompass large  collections
+of  files  which,  together,  define  a  complicated   system.   The   first
+requirement, when faced with such a system, is to gain an  understanding  of
+how  the  various   modules   interact   with   each   other.   The   script
+`multi_file.jot` has been designed to address this problem.
+
+The multi_file.jot script, like `big_file.jot` is driven by  an  index  file
+but these index files refer to any number of source  files.  Remember  that,
+for large files, the file was opened and the filehandle was associated  with
+the buffer using hash-table objects that only need indicate  a  seek  offset
+and section length in bytes.  Now,  for  collections  of  files  we  need  a
+different hashtable object that also holds the file pathname. These  objects
+are set up using the `hashtable setfsect` command.
+
+The following should work for any GNU  download  -  in  this  case  I  chose
+an ncurses 4.2 download:
+<PRE>
+$ cd ncurses-4.2
+$ ls -aRF | jot -in="%r=multi_file -indextype=c;"
+</PRE>
+&#062; z@
+You should now be looking at an image  of  the  file  ./multi_file_index  in
+buffer ( @ ).
+
+The index file has been written to your PWD, to re-use the same index  file,
+exit and restart thusly:
+<PRE>
+$ jot /dev/null -in="%r=multi_file"
+</PRE>
+
+Now take a look at the file-sections (C-functions) it  has  defined  in  the
+index:
+&#062; z. %qz=keys;
+For ncurses I see over 1000 listed in the keys report. Now pick  any  likely
+function name - for C the function 'main' would be a good starting point:
+&#062; main&#123;Esc 7&#125;
+The view should change to buffer ( . ) with a copy of the  main()  function.
+&#123;Esc 7&#125; ran macro_7 which immediately calls &#060;&#060;multi_file_simpleQuery&#062;&#062;  -  a
+jot function defined by multi_file.jot.
+
+But hang on, I hear someone say, it's  quite  common  for  systems  to  have
+several main() routines - Quite right, the indexation process  detects  such
+name collisions and uniquifies the names by suffixing  with  a  number  (the
+index-file line number). The main() definition you're looking at happened to
+be the first one read from the  index  file.  You  can  see  the  others  by
+querying    names    matching    "main"    using    the     jot     function
+&#060;&#060;multi_search_section_names&#062;&#062; which, for your  convenience,  is  called  by
+macro_8 - let's see if there are any more main() functions:
+&#062; main&#123;Esc 8&#125;
+For ncurses v4.2 I get 19 matches in total. In addition  to  the  one  we've
+just loaded there's 17 with numeric suffixes, these are all listed as  being
+of type SetfsectObj. There's also a main_InText that's listed as being  type
+FindObj, this is the hashtable entry for the image we just loaded.
+
+If we were to query main again, rather than re-reading  the  same  text,  it
+just re-focuses to the original function.
+
+Now  pick  up  a  few  function  names  at  random  and  load  these   using
+&#060;&#060;multi_file_simpleQuery&#062;&#062; or &#123;Esc 7&#125;
+
+If you want to keep several index files in one directory,  you  can  specify
+unique names for them:
+<PRE>
+$ ls -aRF | jot -in="%r=multi_file -indextype=c -index=my_index;"
+</PRE>
+and restart with:
+<PRE>
+$ jot /dev/null -in="%r=multi_file -index=my_index;"
+</PRE>
+
+</UL><H3><A NAME="THE STARTUP SCRIPT">The startup script</H3>
+The assignment of editing functions to  keys  is  easily  changed  to  match
+whatever editor you happen  to  be  accustomed  to  -  see  `translation  of
+keyboard events to actions` and `about startup  scripts`.  Also,  it's  easy
+enough to roll your own editor functions and attach then  to  keys  in  your
+own personalized startup script.
+
+</UL><H3><A NAME="METADATA">Metadata</H3>
+Jot is strictly  a  plaintext  editor  in  the  sense  that  it  only  reads
+plain-text and only writes plain text - anything to do with fancy fonts etc.
+is strictly for word processors.
+
+It is possible and sometimes useful, to add bits of metadata to the internal
+representation of the text to highlight sections of text with colour  or  to
+link sections of text in some way.
+
+In jot such metadata is implemented  with  tags  (see  about  `about  tagged
+text`). Three types of tags are supported by jot:
+
+<UL><LI>Colour tags - causes a substring in a line of text to be displayed  with</LI>
+a specified foreground and background colour combination.
+
+<LI>Text tags - a string is held internally and invisible  in  the  display,</LI>
+this string can be picked up and used for any purpose.
+
+<LI>Target points - a hashtable can redirect the editor cursor  to  a  point</LI>
+indicated by the tag (see `about hashtables`). In  jot,  hashtables  are
+only used to implement hypertext jumps between different sections  of  a
+document or several documents in one or more buffers.
+
+</UL><H4><A NAME="COLOUR TAGS">Colour Tags</H4>
+First lets add a bit of colour to the Richard III example.
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+
+We're going to sniff through the text identifying each new scene and  colour
+tag those lines. First we have to define a colour pair with the `%b=tagtype`
+command:
+&#062; %b=tagtype SceneStart colour 7  5;
+This colour pair is white foreground on a magenta background.
+
+Now find each new scene and add the tag with the `%b=addtag` command:
+&#062; m-0((v/ /r)0v/SCENE /r0ocl0ou %b=addtag SceneStart; m, m)0
+Notice that the extent of  the  colour  tag  is  set  by  first  defining  a
+substring in the text.
+
+To remove a colour tag, use the `%b=remove_tag` command:
+&#062; m-0f/ SCENE I./r0ocl0ou %b=remove_tag colour SceneStart;
+The remove tag command first checks all the details given (tag type must  be
+'colour' tag name must be 'SceneStart' and the start and end points  of  the
+text string mus all exactly match those of the tag or the command fails.
+
+The colour can be used for  any  purpose  -  maybe  just  to  add  a  static
+highlight to sections of text - but they are particularly useful  when  used
+to indicate hypertext links.
+
+</UL><H4><A NAME="TEXT TAGS">Text tags</H4>
+Text tags allow the programmer to  hide  strings  in  the  editors  internal
+record structure. They can be used for any purpose but they are most  useful
+when used with hash tables to hide keys behind the text.
+
+Here we're going to hide the short string "This is a short string"  behind
+the first line of the play.
+
+Read Richard III into a new session:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+
+Find the first line and make all of the text a substring:
+&#062; f/Now is the winter/ocr0ocoso#l0oro-ou
+
+Now add the string:
+&#062; %b=addtag -text=This is a short string;
+
+Now retrieve the string with `query tags`  with  the  -here  qualifier  this
+restricts the report to tags directly below the current character.
+&#062; %q$=tags -here;
+
+The report should read like this:
+<PRE>
+tags -here
+Reporting tags at Line no. 15 Character no. 4, Buffer .
+</PRE>
+</UL><H5><A NAME="REC 15">Rec 15</H5>
+"    Now is the winter of our discontent"
+Type text from chr   4 to  39 = "This is a short string"
+
+</UL><H4><A NAME="MOUSE EVENTS - 1">Mouse Events - 1</H4>
+By default, all mouse events are disabled - linux users can then use all the
+normal X-windows selection facilities. Mouse events are enabled  by  setting
+the mouse mask - this is a bit-mapped mask selecting mouse actions that  are
+required see `%s=mousemask`.
+
+When a mouse event is encountered, it is delivered  as  an  escape  sequence
+which  allows  the  programmer  to  define  a  handler  for  the  event.   A
+left-button-click, for example is  encoded  as  M0004  -  see  the  relevant
+key-setup file for the full list (e.g. $&#123;JOT_HOME&#125;/coms/unix_keys.jot).
+
+When a left-click-event happens the editor  picks  up  the  escape  sequence
+&#123;Esc&#125;M0004 to locate the mouse-click position in text use the  `OP`  command
+this adds three items to the stack - the buffer key,  the  line  number  and
+character number. For this example we are just going to report these  values
+in the console area:
+&#062; z^m-0i/M0004   opn.a$z$ oo"Mouse click in buffer %c, "lr oo"Line no. %d, "lr oo"character no. %d" pz./b
+
+To enable just the left-click event (in  linux/X-windows)  we  would  set  a
+mouse mask of 0004:
+&#062; %s=mousemask 0004;
+For windows, all mouse events are enabled together with this:
+&#062; %s=mousemask -1;
+
+</UL><H4><A NAME="MOUSE EVENTS - 2">Mouse Events - 2</H4>
+We can set up a simple menu-driven system by  defining  a  secondary  window
+containing clickable menu items. A popup menu  can  be  mechanised  using  a
+popup window.
+
+First define  a  new  startup  file  named  menu_startup.jot.  Pick  up  the
+following and drop into a bourne-shell session (doubtless windows users know
+some way of doing this in windowsland):
+
+<PRE>
+$ cat - &#062; menu_startup.jot &#060;&#060;endOfFile
+%%This jot script sets up a simple menu-driven editing environment.
+%%
+%%First Run the normal startup.
+%r=/home/jone/ed//coms/startup.jot;
+%%
+%%Buffer M will be the menu - define the colour tags.
+n.amzm %b=tagtype Button 4 7;
+%%Define button text.
+i/ /20r0b2m-0
+r5i/FindAgain/ %b=addtag Button; %b=addtag -text=M_FindAgain;
+r5i/Find/ %b=addtag Button; %b=addtag -text=M_Find;
+r5i/SubsAgain/ %b=addtag Button; %b=addtag -text=M_SubsAgain;
+r5i/Subs/ %b=addtag Button; %b=addtag -text=M_Subs;
+%%
+%%Remove all windows from the screen, add a 1-line static window on buffer M followed by a floating window.
+%q~=window; f/screenHeight = /- oidol5o-z.osok %w; %w 1 m; %w '~; %w 0; w
+%%
+%g0
+%%Mouse-event handler.
+%%
+%%Get mouse coordinates and check for tags.
+ob op ozono-om or
+( %q$=tags -here;
+</PRE>
+f/Type text from chr/f1/"/-
+v/M_FindAgain/ zmm+2o#ozf'm?zmm-0 oz,
+v/M_Find/ zmm+2 %s=prompt Find string&#062; ; gm- o#ozf'm?zmm-0 oz,
+v/M_SubsAgain/ zmm+3o#ozs'm?zmm-0 oz,
+v/M_Subs/ zmm+3 %s=prompt Substitute string&#062; ; gm- o#ozs'm?zmm-0 oz,
+oz %x=Error: Invalid mouse click.; )
+<PRE>
+:
+%%Attach the handler to left-button-click events (M0004 - linux, MB1c - Windows).
+obz^m-0(%q=windows; f/MB1c    /-?, f/M0004   /-)e0i/'0/ oz
+%%Enable mouse events.
+%s=mousemask 0004;
+endOfFile
+</PRE>
+
+This can be run by using it as a startup script:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/l99.t -st=./menu_startup.jot
+</PRE>
+First click on "Find" and specify a search string - say "abc". Then click on
+"Subs" (substitute) and specify any string to replace the matched substring.
+
+</UL><H3><A NAME="HASH TABLES">Hash tables</H3>
+In the implementation of hypertext links, hashtables  are  useful,  but  not
+essential they avoid the necessity of repeating complicated  string  matches
+for every query and, for *very* large files they  can  speed  up  individual
+queries - but the setup times can get excessive.
+
+Now jot will only read simple plaintext files, so all the so the  links  are
+set up in some initialization phase. In this example we're going  to  add  a
+scene-contents page to the Richard III text. This  example  sets  up  simple
+hypertext links between a separate table-of-contents  buffer  and  the  main
+text.
+
+</UL><H4><A NAME="PLAYING WITH HASH TABLES">Playing With Hash tables</H4>
+Read Richard III into a new session:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/Richard_III_Entire_Play.txt
+</PRE>
+
+Set up the hashtable - allocating 100 entries, in fact it  needs  less  than
+30.
+&#062; %h=create 100;
+
+Define the table-of-contents colour tag.
+&#062; n.aczc %b=tagtype TOCLine colour 7 5;
+
+Enable mouse left-button clicks, and define a mouse-event handler function.
+
+This goes to the mouse-click position and picks up a text tag - this is  the
+hash-table key required to look up the scene. In  fact  this  example  could
+have been implemented without text tags - since the contents-table entry  is
+identical to the key hidden in the text tag. In general, however this is not
+the case.
+&#062; %s=mousemask 0004; z^m-0i/M0004   opozono-omor %q$=tags -here; f.Type text from.f1.".-bf1.".b-z.m0w %h=jump '$; l0/b
+
+Now sniff through the text locating each new scene, make a  hashtable  entry
+for it, add a line to the contents list and tag it with  the  text  and  the
+TOCLine colour.
+&#062; z.m-0((v/ /r)0v/SCENE /n.r0a$& %h=add '$; zch$b-ocl0ou %b=addtag TOCLine; %b=addtag -text='$; z.m, m)0
+
+Finish off at the start of the table of contents.
+&#062; zcm-0
+
+</UL><H4><A NAME="PLAYING WITH DATA OBJECTS">Playing with Data Objects</H4>
+Data objects are copied to and from hash-table entries and  the  stack.  And
+can be used in a similar way to variables in normal  programming  languages.
+There  are  three  data  types  allowed  on  the  stack  -  integers,  reals
+(floating-point numbers) and buffers.
+
+A data entry is created with the  `hashtable  create`  command,  values  are
+defined using the `OV` command, which copies the value at  the  top  of  the
+stack to the object and values are  referenced  by  the  `OQ`  command.  The
+declaration does not define the data type but once  assigned  a  value,  all
+later assignments must be of the same type (integer, real or buffer)
+
+Here's a few things to try:
+&#062; %h=create My_int; ol123 ov/My_int/
+We've defined the hashtable entry pushed the number 123 onto the  stack  and
+then popped that stack entry to define the value of data object  My_int.  At
+any time we can redefine the value with another OV/My_int:
+&#062; il456 ov/My_int/
+Now that they've been defined their type is also defined so this will fail:
+&#062; ol123.456 ov/My_int/
+
+The process for real numbers is pretty similar but,  for  buffers  we  might
+chose to use the `%D` command to define a new  buffer  at  the  top  of  the
+stack:
+&#062; %h=create My_buf; %d~=This is the string in My_buf; ov/My_buf/
+Or, we might chose to use an abstraction to define the  buffer  -  something
+like this: n. ... a~
+
+</UL><H4><A NAME="PLAYING WITH DATA TREES">Playing with data trees</H4>
+Since jot allows buffers to dangle off  the  hashtables  of  other  buffers,
+there exists the possibility of creating huge trees of unlimited complexity.
+Well that's probably not a good plan, but there's  a  lot  to  be  said  for
+building relatively modest trees.
+
+In  order  to  facilitate   navigation   around   such   trees   there's   a
+path-descriptor syntax that can divine  any  data  point  in  trees  of  any
+complexity. Given that the starting point is always a single (frequently but
+not necessarily alpha) character  and  the  remaining  path  elements,  each
+separated by some system-defined character.  The  path-specification  syntax
+being: &#091;&#060;bufferKey&#062;&#093;=&#060;pathElem1&#062;&#091;|&#060;PathElem2&#062;&#091; ... &#093;&#093;
+<UL><LI>bufKey - the single-character buffer-ID which identifies the root buffer</LI>
+(a-z, 0-9, !"$%&*,.:;@#...)
+<LI>Each pathElem is the name of a data object  in  the  hashtable  of  some</LI>
+intermediate buffer.
+
+</UL>The hashtables are created one at a time. in  this  example  we're  creating
+three levels of  hierarchy  -  "Top",  "Mid"  and  "Bot"  dangling  off  the
+top-level buffer Q:
+&#062; %h=create 100;
+This creates a hashtable big enough for at least 100 entries in buffer Q.
+
+Next, we have to create the hashtable  entry  "Top"  in  our  freshly-minted
+hashtable:
+&#062; %h=data q=Top;
+
+Then we have to set up a dummy buffer for the next level:
+&#062; %d~=Top dummy; ov/q=Top/
+
+Set up the next-level buffer and create a new hashtable there:
+&#062; %h=create 100 q=Top; %h=data q=Top|Mid; %d~=Mid dummy; ov/q=Top|Mid/ 
+
+Finally create the bottom level:
+&#062; %h=create 100 q=Top|Mid; %h=data q=Top|Mid|Bot; %d~=Bot dummy; ov/q=Top|Mid|Bot/ 
+
+Then, if we want to do hashtable operations  here,  it  had  better  have  a
+hashtable:
+&#062; %h=create 100 q=Top|Mid|Bot;
+
+</UL><H3><A NAME="FUNCTIONS">Functions</H3>
+Jot uses hash tables to implement function calls.  By  convention,  function
+names appear at the head of the  routine  code,  enclosed  by  double  angle
+brackets:
+
+&#060;&#060;MyRoutine&#062;&#062;
+<PRE>
+%%This routine just says hello world and exits.
+%m=Hello world.
+</PRE>
+
+These are held in a buffer known as a repository, by convention this is  the
+( ' ) buffer - but any other will work.  A  hashtable  target-point  tag  is
+added to the end of the function-name line. This tag is  important  for  two
+reasons:
+<UL><LI>Any `hashtable call` to use the tag to find the the function start.</LI>
+<LI>Less obviously there is no explicit code element marking the  end  of  a</LI>
+function. Historically macrocommands and scripts terminate at the end of
+the macro's buffer or the scripts EOF. In code-repository functions, the
+function end is indicated by the tag belonging to the next function.
+</UL>
+There is a special function, provided by the  normal  startup  script,  that
+registers and tags new functions - it's &#060;&#060;AddNewFunctions&#062;&#062;.  This  function
+copies one or more functions from the ( @ ) buffer and registers them in the
+code-repository buffer ( ' ). We're going to do this for &#060;&#060;MyRoutine&#062;&#062;:
+
+&#062; %G@
+&#062; &#060;&#060;MyRoutine&#062;&#062;
+&#062; %%This routine just says hello world and exits.
+&#062; %m=Hello world.
+&#062; :
+&#062; %h'=call AddNewFunctions;
+
+Now call the routine:
+&#062; %h'=call MyRoutine;
+
+It sends the message "Hello world" to the console.
+
+Note there is no "return" or similar command - control must  be  allowed  to
+trickle down to the end of the routine.
+
+</UL><H2><A NAME="THE DEBUGGER">The debugger</H2>
+Below is a broken version of that little profiling  macro  from  an  earlier
+section:
+&#062; %g3
+<PRE>
+%%Copy text to @ and change all alphas to lower case.
+m-0n.m0r0a@&z@ m-0(q/A-Z/c, r, m)0 
+</PRE>
+
+<PRE>
+%%Place each word on a separate line then sort them alphabetically.
+m-0(q/a-z/(q//r)0b, rr-(q/a-z/\e)0, j)0     
+%b=sort
+</PRE>
+
+<PRE>
+%%Finally, count up instances of each word 
+%%m-0 (r\j)0 r-0(n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
+m-0 (r\j)0 r-0(n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m, m-0)0
+:
+</PRE>
+
+The difference is this one runs for much longer and then exits with a  stack
+overflow message:
+&#062; '3
+<PRE>
+...
+</PRE>
+&#123;Stack overflow (line 9 of buffer 3)&#125;m-0 (r\j)0 l0(n.r0a$&&#091;ol1&#093;m(v'$r0v-'$o~k)0 m-oo/%5d - /m, m-0)0
+(The highlighting in the message has been replaced with square brackets)
+
+Oh dear, it looks serious - how are we going to fix  this?  First  we  might
+find it useful to know which line it's failing  on.  Well  that's  easy  the
+message says line 9. We can also see that the failing command was trying  to
+load a zero on the stack but that's not the command that's giving us  grief.
+As usual the error message points to the smoke not the fire.
+
+We can see at a glance that that the problem is the addition of ",  m-0"  at
+the end of the final loop. This means the loop will *never* exit  since  m-0
+is guaranteed never to fail.
+
+</UL><H3><A NAME="ADDING AN EXPLICIT BREAK-POINT TO A MACRO">Adding an explicit break-point to a macro</H3>
+To see what's going on in a complicated command sequence, you could do worse
+than single-step them in `the jot debugger`. This can be set to  single-step
+through the commands as you hit the &#123;Return&#125; button.
+<UL>
+</UL>When you run your command sequence, the debugger halts at every jot command,
+dumps the contents of the stack  and  prints  the  current  record,  in  the
+console area. When it reaches a break point it prompts with this string:
+<PRE>
+Debug Command&#062; 
+</PRE>
+To continue running normally, we have to set the trace vector back to zero.
+<PRE>
+Debug Command&#062; %s=trace 0
+</PRE>
+Which lets it run on to the next explicit t command.
+
+To avoid typing all that in every time, there's  a  hotkey  set  up  by  the
+startup script:
+<PRE>
+Debug Command&#062; &#123;Esc q&#125;
+</PRE>
+<UL>
+</UL>To exit the debugger hit &#123;Ctrl+c&#125; at the debugger prompt.
+ 
+To see all of the trace text you may find it helpful to  reduce  the  window
+size so that more  of  the  screen  is  dedicated  to  the  console  display
+(assuming your terminal is 40 lines or more):
+&#062; %w; %w 20; %w 0
+This changes your window size to just 20 lines,  for  a  40-line  xterm  the
+startup script sets the window size to 36 lines, with a one-line terminator.
+Leaving just 3 lines in the console area. After this hit return a few  times
+to see the effect of the new window setting.
+<UL>
+</UL>First go to the start of the Richard III sample an type t,  or  insert  a  t
+command into your command sequence:
+&#062; zq m-0 o@ t
+Now hit &#123;Shift+RightArrow&#125; - this is a complicated function because  it  has
+to deal with tabular and normal text.
+
+Hit &#123;Return&#125; a few times while looking at what's going  on  in  the  console
+area - you will see it plodding through the commands of the  &#060;&#060;`WordRight`&#062;&#062;
+function and displaying the stack and the current line at each step.
+
+</UL><H3><A NAME="SETTING THE COMMAND COUNTER">Setting the command counter</H3>
+Now, when debugging a long complicated macro  or  script,  it  may  be  more
+useful delay the trigger until we're getting close to  the  point  where  it
+goes wrong. This is the definition of a macro similar to one  we've  already
+looked at in the macros section:
+<UL>
+</UL>Well, the problem is probably somewhere in the loop  -  lets  start  off  by
+putting an explicit breakpoint in it:
+&#062; z3m+9f/n.r0/i/t /
+Line nine of the macro should now look like this:
+<PRE>
+m-0 (r\j)0 l0(t n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m, m-0)0
+</PRE>
+
+So, re-spin it (first reset the stack):
+&#062;o@ z.'3
+After hitting &#123;Return&#125; a few (hundred) times we we don't seem to be  getting
+very far. So let's try delaying the explicit debug call by a few zillion and
+restart it. But first we've got to get out of this &#123;Ctrl+c&#125; will do that:
+&#062; %s=tracecounter 1000000
+&#062; o@ z. '3
+
+It crashed again but we can now find out how many times it went past  the  t
+command by looking at the current value in the trace counter:
+&#062; %qa=system
+Will tell us where the trace counter got to -  946974  in  this  case.  Some
+arithmetic will extract the number  we  want  in  the  trace  counter.  This
+sequence will work it out for us - note the new value (53026) we  will  need
+this if ever we re-run the debugger with this setup:
+&#062; o@ %qa=system; f/Trace counter = /-oid ol1000000 o- ol0 os o- %s=tracecounter '~
+<PRE>
+Trace counter was 946974, now set to 53026
+</PRE>
+Re-spin it and it reaches a breakpoint at the start of the fatal iteration.
+&#062; o@ z. '3
+
+</UL><H3><A NAME="BACKTRACING">Backtracing</H3>
+Backtrace reports can be useful when diagnosing problems and can be used  to
+show the call stack when debugging a script or macro command.
+
+The problem with backtracing is that failures occur hundreds of times in the
+operation of a normal jot macro command, the interesting one is the one that
+unexpectedly causes the entire macro to fail.
+
+Fire up a jot session with a bigger than usual console area:
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/l99.t -in="%w; %w 15; %w 0;"
+</PRE>
+
+Backtracing is turned on with the  Trace_Backtrace  bit  of  the  trace-mode
+bitmask. Try turning it on for a while and see what happens:
+&#062; %s=trace 7804;
+That's turned on backtracing along with:
+<UL><LI>Trace_Source - shows the line of source code at each trace point,</LI>
+<LI>Trace_Print - prints the current line of  the  current  buffer  at  each</LI>
+trace point and
+<LI>Trace_Stack - does a stack dump at each trace point.</LI>
+</UL>It has selected only Trace_Failures as a trace point  -  this  triggers  the
+specified  trace  activity  (Trace_Source,  Trace_Print,   Trace_Stack   and
+Trace_Backtrace) immediately after any command fails.
+<UL>
+</UL>Now set up a few simple macros - notice macro c is pretty-much guaranteed to
+result in a failure:
+&#062; %da=r-0rr-rr-rr-rr-'brr-rr-rr-rr-rr-;
+&#062; %db=rr-rr-'crr-rr-
+&#062; %dc=rr- p r999rr-
+&#062; 'a  
+
+In the console area, along with  lots  of  other  chatter,  you  should  see
+something like this:
+
+</UL><H4><A NAME="LINE 1 OF MACRO C">Line 1 of macro C</H4>
+rr- p &#091;r999&#093;rr-
+</UL><H4><A NAME="LINE 1 OF MACRO B">Line 1 of macro B</H4>
+rr-rr-&#091;'c&#093;rr-rr-
+</UL><H4><A NAME="LINE 1 OF MACRO A">Line 1 of macro A</H4>
+r-0rr-rr-rr-rr-&#091;'b&#093;rr-rr-rr-rr-rr-
+</UL><H4><A NAME="LINE 21 OF CONSOLE C">Line 21 of console c</H4>
+&#091;'a&#093;
+
+The top line, as is the convention with backtracing, is the line of code and
+call frame nearest to the error, the next  one  down  shows  how  that  code
+object was called ... etc.
+
+The top line tells us that it was the r999 command that was  the  culprit  -
+well no surprises there. 
+
+The 2nd. line down says the macro in buffer ( C ) was called by a  macro  in
+buffer ( B ).
+
+...
+

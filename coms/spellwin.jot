@@ -1,0 +1,85 @@
+%% ECCE command file to maintain spelling dictonary.
+%%2/10/92 Changed I and S conventions
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%%
+%%Buffer assignment:
+%%  - The current misspelt word.
+%%  _ A replacement word from the dictionaries.
+%%  : A macro which ensures an exact match to misspelt word.
+
+%g?
+Numeric keypad assignments as follows:
+    Enter - Find current misspelt word in text.
+        1 - Make next word in error file current.
+        2 - Enter current error word in dictonary.
+        3 - Find next occurence of misspelt word and replace with current word.
+        4 - Rewind user dictionary (rewinds system lexicon 2nd. time.
+        5 - Find next occurence of substring in dictonaries.
+        6 - Find next occurence of word in dictonaries.
+        , - Replace current word with current dictionary or lexicon word.
+:
+
+%g@
+%%Find the next instance of the current word. 
+  (f'-(q-/_A-Za-z0-9/r?,rr-f1'--q/_A-Za-z0-9/))0f-1'-
+  ocon
+  (f'-(q-/_A-Za-z0-9/r?,rr-f1'--q/_A-Za-z0-9/))0
+  (v-'-\,
+    %m=More instances follow!!!
+    )
+  ono-omorv'-
+:
+ 
+%%Key 1 - Make next word in error file current.
+%g1
+z.m-0ze(r\m)0l(q/- 0-9/r)0n.r0a-h-z.m-0'@
+:
+%%Key 2 - Enter current error word in dictonary.
+%d2=obzdm0b-h-l0oz
+%%Key 3 - Find next occurence of misspelt word and replace with current word.
+%g3
+(q-/a-zA-Z/l)0n.(q//r)0a_h_z.(lr,)'@s'_
+:
+%%Key 4 - Rewind user dictionary (rewinds system lexicon 2nd. time.
+%d4=obzd(m-m-0,zlm-0)oz
+%%Key 5 - Find next occurence of substring in dictonaries.
+z^m-0b-i-"Ou      zd(f/##/l0f1//,zlf//l0f1//,)"z.
+%%Key 6 - Find next word starting with given string in dictonaries.
+obz^m-0b-i-"Ov      zdv/##/?(r,m)(mm-(f//lm)0v//,zl(v//m,)(f//lm)0)v//?l0n.r0a_h_oz"z.
+%%Key 0 - Find current misspelt word in text.
+z^m-0b-i-"OM      z.'@
+%%Key , Replace current misspelled word with current dictionary or lexicon word.
+z^m-0b-i-"Ol      zd(mm-n.r0a_h_,zlmm-n.r0a_h_(z.v'-s-/ /eh_),)z."z.
+
+%%Setting up the windows.
+%w
+%w 20
+%w 0
+%w 1 e
+%w 0
+%w 1 d
+%w 0
+%w 1 l
+%w 0
+%%Prime the pump with the first misspelt word.
+'1

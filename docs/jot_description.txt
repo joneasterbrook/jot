@@ -1,0 +1,43 @@
+
+Edit this entry in the Metadata section below the Admin tab in sourceforge.
+---------------------------------------------------------------------------
+
+Why, you might well ask, should we be needing yet another text editor when
+there are already far more than one could shake a stick at.
+
+Jot was developed specifically for analysis of CAD files.
+Generally the requirement is to cross-reference two or more files and 
+extract some nugget of information, locate an inconsistency or identify 
+elements mentioned in some report.
+
+Machine-generated plaintext CAD files can be *very* large.
+The capacity of jot is pretty good but insufficient for the largest 
+of these - jot has an optional filtering feature that can be 
+used to extract the elements required to answer your question.
+
+Although it's natural home is large CAD files, jot is equally 
+useful for extracting information and generating reports and 
+summaries from any kind text files. With the correct agents 
+it can process text from PDFs MS-word docs and spreadsheets.
+
+
+- Powerful (ECCE-like) command language.
+- Recovery of a session following a crash.
+- Strong interaction with system environment - can interface with helper apps
+e.g. spelling checkers, text <=> binary converters - in particular
+spreadsheet, wordprocessor and pdf files.
+- Good support for large files, especially those with abnormally long lines.
+- Tidy handling and display of tabular text especially spreadsheets.
+- A useful library of command scripts.
+- Easy construction of macro-commands and hot-key mapping.
+- Supports unicode.
+- Minimal use of magic modes and similar trickery.
+- Hash-table support - allows indexing and speedy lookup in large files.
+- Good support for abnormally wide text.
+- Has a handy document-processing facility - formats paragraphs, maintains
+headings, interfaces to external spell-check agent.
+- Useful debugging environment.
+- Very well behaved i.e. hardly ever crashes or locks up.
+- High capacity - OK for CAD files etc, can pre-filter oversize files.
+- Text can be colour tagged in the display.
+

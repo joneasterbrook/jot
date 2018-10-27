@@ -1,0 +1,75 @@
+%%Transforms a folded document to the .doc format.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+
+%%
+%%%%Check that doc.jot has been run.
+%%%g$
+%%  obz]m-0m\rl(q/0-9/r)0r\m\oz,
+%%  oz
+%%  %r=doc
+%%  %M Default document style assumed.
+%%:
+%%'$
+%r=doc.jot
+
+%%Macro '$ makes a heading at level set by counter at top of stack.
+%g$
+  obos
+  %%Get previous header-level key.
+  on
+  %%Find the last heading.
+  (m-q/0-9/\)0
+  %%Pick it up.
+  (q/0-9/n.f1/ /a!h!ono-omh!,ono-omi/0 /)
+  %%Prepare the header level stack variable.
+  o#ol1oso-
+  %%Locate current level, add in zero levels if necessary.
+  r-0(o~ (q/0-9/r)0 (v/./r,i/./i-/0/))0 ok
+  %%Increment the top level
+  oido~oo/%d/i/ /
+  %%and strip out any unwanted header levels.
+  (q/.0-9/e)0
+  %%Underline the heading.
+  r-0ol0
+  %%Count up heading levels.
+  ((q/0-9/r)0v/./ro~)0
+  %%Kill off any pre-existing underlines.
+  m(v/-/k,)m-r0
+  %%If levels < 4 add new underlines.
+  ol4o-n.a%obosz%oo/%d/r-0v/-/ oz(v-/ /e-)0ol0oco-b(i/-/o~)0ok
+  %%Remove second copy of heading - if present.
+  m-(q/0-9./r)0 (v/ /r)0n.r0(v-/ /r-)0a%h% m(v/--/m,) (v'%k v/--/k, )
+  osok, osoz 
+:
+
+%%Here we go. 
+m-0(v/{{{/\m)0 ol1 r-0
+(v/{{{/(q/{ /e)3 n.r0a@h@ o~'$ ((v/ /r)0v'@kv/-/(v/-/r)0r\k,), v/}}}/ol1o-k, m)0
+m\
+
+%%Change file type to .doc
+n.r0a$h$ (q-"/]."\r-)0 (v-/./r-e0,) i/.doc/
+m-0b-i/Created from folded file /h$i/ on ./r-
+%r=date
+w
+

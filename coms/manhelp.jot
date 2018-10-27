@@ -1,0 +1,43 @@
+%%Converts a man page document to help format.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?= 
+  manhelp [<manArgs>] <page>[ -flat]
+    - The -fold qualifier turns on internal folding.
+    - Passes all other args and qualifiers, as is, to the unix man command.
+   
+:
+ 
+%%Run the man command and pick up report in $ buffer.
+obz$ ( (v/ /r)0v/-fold /i/%%/r6b,) i/%e@=man / '$  
+(mok, oz %l; %x=manhelp failed, probably because the requested page does not exist; )
+  
+%%Add subsection folds and simplify one-line folds.
+z$m-0f1/-fold /\z@, z@m-0f1/      /s/ -fold/ z@m-0m ((q/A-Z/\m)0 mm-i/}}}/bi/{{{ /m)0 m-0f/}}}/km0i/}}}/  m-0 (f/}}}/mm-4 (v/{{{/e4jmk2, f/}}}/) )0 )
+  
+
+%%Top and tail then, if it doesn't already exist there, add it to the end of the help buffer.
+m-0i/{{{ /m0r0bi-/}}}/m-0 z:m-0(f'@on, ono~r0bh@) 
+
+%%Now show the new top-level help page.
+n.a$ %h'=call Help; z:ono-om z;m-0f': %l;

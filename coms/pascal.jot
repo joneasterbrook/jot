@@ -1,0 +1,59 @@
+%%Constructs the first n rows of pascals triangle in the current buffer.
+%%The number of rows, n, is passed as an argument to the script, defaults to 30
+%%
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+  Buffer usage:
+    $ - initially holds no. of rows (defaults to 30) then row under construction..
+    # - the main macro.
+:
+
+%g#
+%%Pick up no. of rows arg and add to stack.
+%%obz$m-0(f/%%/-(v/ /r)0q/0-9/oid, ol30) ol1oso-osoz
+obz$m-0((v/ /r)0q/0-9/oid, ol30) ol1oso-osoz
+%%Clear the buffer.
+m-0n.m0r0a$
+  
+( %%Row loop.
+  %%Add 1 to start and end of current line.
+  r-0i/1/r0i/		1/
+  %%Decrement row counter - exit if zero.
+  o~
+  %%Shift all rows 1 column rightward.
+  m-0(i/	/m)0
+  %%Construct new row by adding pairs from current last row.
+  n.a$ (v/	/roid (v/	/roid o+obz$osr0oo/		%lld/ozf-/	/, ok) )0
+  %%Add new row.
+  r0bh$
+  )0
+:
+
+'#
+
+%%Set the header.
+m0n.r0a$& obz$r-0(v/	/r,e)0 ol1r-0(o#oo/%d/ro~)0 okoz %b=header '$
+%%Find the width of the biggest integer (at the centre of the last row) and use this width to set the tab spacing.
+m0r-0(f1/		/o~)0ol-2o/(f-//o~)0 okocf-//oco- %b=tabcells '~
+%%Set the left offset.
+%q=inview;? osol2o/o- %b=leftoffset '~; ok

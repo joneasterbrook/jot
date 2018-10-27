@@ -1,0 +1,314 @@
+%%Transforms users mail file into folded text in the help area.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%g#
+%%Initialize and setup user options.
+obz!(m, b)10
+%%Pick up USER env.
+%q@=env USER;  mz!m+2e0i'@
+%%Process mail-file specification args to determine mail-file name.
+z!m+1 z$((v/ /e)0 (v/./, m-0f/-fil/, m-0f/-fo/, m-0f/-n/)
+  %%File specified - use it.
+  ( m-0(v/./\m)0v/./ %% . use current file as mail file.
+    ozm-0n.m0a* %q@=file; f/pathname = /-b z@%b=pathname'@
+  , m-0f/-file=/- %%Use explicit filename as mail file.
+    oke-0n.(f1/ /, r0)a!&
+  , m-0f/-fo/- %% use specified folder
+    okf1/ /-(v/ /r)0n.(f1/ /, r0)a$kz$i"/u/$$/Mail/"
+  , m-0f/-n/- %% Run without reading any mail file.
+    n.a$z$i"/dev/null" oz
+  , %X=Logic error - unknown qualifier in filename setup.; )
+, %%Folder not specified - use the users mail file.
+  z!m+2 n.r0a@&m-i"/var/spool/mail/"h@oz )
+%%
+
+%%Read in the mail file.
+z!m+1 %i*='!;
+%h=create 100000;
+%%
+%%Sort out any other options
+z$m-0
+( z$f/-/
+  v/-l/f1/ /-oidol0oso- z$m0((f-/From /r-r-0)0 o~m-)0k-0,
+  v/-fin/f1/ /-(v/ /r)0e-0 z$m-0n.(f'$(f-/From /r-r-0)0a= m(f/From /r-m)0n.)0m0a=,
+  v/-/ %X=Unknown qualifier - only -last <n> and -find <string> are allowed.
+  m)0
+   
+%%Read in the autograph message.
+( %i$='~/.mailrc;
+  %%Clip out the unwanted .mailrc crap.
+  m-0(f/ Sign=/- e-0m-k-0 (r0q-/\"/(f-1/\n/e0,)m)0k0e0 m-0(f/\n/e2b)0, m-0) m-0(f1/"/e,) z!m+10k0e0h$, )
+:
+'#
+
+%%If doc.jot has not yet been run, do it now.
+z'm-0(f/<<ReformatParagraph>>/, z. %r=doc; )
+
+%g$
+<<MailIndexMessages>>
+%%
+%%Index messages in POP archive.
+%%Initialization.
+z$n.a@ ol0 m-0
+%m=Indexing messages.
+( %%Mail-message loop.
+  %%Tag the mail header.
+  z*n.a$z$o~o#oo/%05d/z* %h=new Head_'$;
+  %%Tag start of real message.
+  n.(rm)0(r\m)0r-0 %h=new Message_'$;
+  %%Copy the message to ; buffer.
+  (f/Content-Length/r-m)0(m-r)0m a;&
+  %%
+  %%Construct mail-index entry in buffer @;
+  %%
+  %%Index no. becomes first element in mail-index entry.
+  z@o#oo/%05d /
+  %%Status tag next.
+  z;m-0(f/Status: /r-m)0 (f1//- z@i/* /, z@i/  /)
+  %%Sender-name/email for next 20 chrs.
+  z;m-0(f/From: /r-m)0 (f1//-(v/ /r)0v/</rn.f1/>/a@.&, (v/"/r,)n.(f1/</(v-/ /r-)0(v-/"/r-,), r0)a@.&) z@(r, i/ /)20e0
+  %%Date for next 25 chrs.
+  z;m-0(f/Date: /r-m)0 (f1//-(v/ /r)0r- n.r0a@.&, ) z@(r, i/ /)25e0
+  %%Subject for remainder.
+  z;m-0(f/Subject: /r-m)0(f1//-(v/ /r)0r-n.r0a@.&, )
+  %%Locate start of next message.
+  z*(f/Content-Length: /r-m)0(m-r)0m
+  %%Set up for next message.
+  z*mm-z@r-0b- w
+  )0
+  
+%%Append index to archive.
+z*m0b100h@
+
+<<MailOpenSelectedMessage>>
+%%Copy selected message to ; buffer.
+%%
+%%Pick up message tag and copy message.
+onr-0n.(q/0-9/r)0a$& %h=jump Message_'$; n.((f/Content-Length: /r-m)0(m-r)0, ) a;&z;m-0z*ono-om
+%%Add header lines.
+z;m-0i'*b-ocbol0oso- (o~i/-/)0ok b2
+
+<<MailSendMessage>>
+%% <list> m - send current buffer as mail using "To:", "Cc:" and "Bcc:" lines
+%g$
+onob
+%%Make a copy of message in '@' buffer.
+m-0n.m0r0a@h@z@ m0r0b
+%%Find/create "To:" line?
+m-0(v/To:/\m)0(v/To:/, m-0b-2i/To:/)r0
+%%Add any named recipiants to list.
+n.a$z$i/ /i/## /(v-/   /kz@, z@i/, /h$)
+%%Check for whitespace after header.
+z@m-0(f1/:/m)0(r\, n.a$z$i/%X=White space after header/ozono-om'$)
+%%Check and prepare to write out.
+z@m-0(v/To: /\m)0(m, ozono-om %X=Can not find a To: line in the message.; )
+%o=/tmp/mail.tmp;
+%e~=cat /tmp/mail.tmp | /usr/bin/msmtp -t -oi; z~m-0p0z$ok
+%m=Mail sent.;
+ozono-om
+
+<<MailReply>>
+%% <CC-list> r - reply, adding users from CC-list if specified.
+%%
+obz;ob(o=, n.a$z$i/%x=Error, you must be in the ; buffer to reply./oz'$)
+%%We could be in the fold or above, just looking at it?
+r-0(v/{{{/, m-0) (f1/ Headerinfo (/m-, )
+%%Go to the message and check.
+z:m-0f'; f1/Mail fold/\ n.a$
+%%Make a 'To:' list from sender of original.
+( %%Header-search loop - we need From: and Subject: lines.
+  v/From: /na"h"z"m-0f/@/f-/ /e-0i/To: /(f1/</ef1/>/e0,) z:,
+  v/Subject: /na$h$,
+  r-0rm)0
+%%Insert and hack the subject line.
+z"m-0mh$m-(f1/Subject: /-(v/ /r)0(v/Re:/, i/Re: /), )
+%%Is a CC-list specified?
+m-0mb-i/## /e-(r-r-0i/Cc: /r-0(f1/*/
+  %%Include all recipiants in new list.
+  s/ /r0b z:m-0f';
+  ( %%Copy-lists loop.
+    v/To: /r-0f1//-n.(mq/ 	/)0m-r0i/ /a$h$z$j0r-0(f/	/s/ /)0z"i/ /h$z:,
+    v/Cc: /r-0f1//-n.(mq/ 	/)0m-r0i/ /a$h$z$j0r-0(f/	/s/ /)0z"i/ /h$z:,
+    v/}}}/\ m)0
+  %%Tidy up user names
+  z" r-0(f1/</s/ /)0r-0(f1/>/s/ /)0r-0(f1/,/s/ /)0 r-0(n.f1/@/f-1/ /a$rf1/ /-)0r0a$?
+  %%append to Cc list.
+  j-i/ /, ), j-)
+  %%Final tidy up.
+  m-0((f1/  /e)0 r-0f1/ /(f1/ /i/,/r)0 mv/Cc:/)2?
+  m0b
+
+<<MailIncludeMessage>>
+%%Prompt string: Message no. >
+%% [<messageNo>] i - include current [nominated] message in current buffer.
+obz^m-0b-h$oz
+%g$
+obz;
+%%We could be in the fold or above, just looking at it?
+r-0(v/{{{/, m-0) (f1/ Headerinfo (/m-, ) z:m-0f';
+%%Is a message-number specified?
+n.a$z$i/## /e-(r-r-0i/{{{/(v/ /e)0i/ /(r2, r-i/ /)r0(v-/ /e-)0i/ /, i';) 
+%%Go to the message and check.
+z:m-0f'$ f1/Mail fold/\
+%%Pick up date from "From " line.
+m2v/From /f1/ /-2n.r0a$h$
+%%Copy it into the destination buffer.
+ozr0b2i/-/80r0bi/On /h$
+%%Pick up sender name - the "From: " line is the best place to look.
+obz:(v/From: /\m)0r-0f1//-n.r0a$h$z$
+%%Extract the users real name.
+f1"/"\ f1/@/\ f1/>/\, (f-1/ /, r-0)(v-/ /e-)0
+%%Users name could be before or after E address - failing that take E address.
+%%Users name could be in the form <LAST_NAME>_<First_name>/...
+(r-re0, f1/ /(v/ /e)0(rr-e-0, ), (f1"/"e0, r0) (f-1/_/en.r-0a@r0i/ /h@f-1/ /-rc0, ))
+%%Copy it into message.
+ozi/, /h$i/ wrote:/b
+%%Make a copy of message.
+obz:f/}}}/m2n.f//a$h$z$
+%%Hack it about
+((v/>/i/>/, i/> /)m)0 r0b2
+%%And copy it in.
+ozonh$  obz$ozono-omm-4
+
+<<MailAutograph>>
+%%Adds autograph message to current buffer.
+%%
+obz?m0(f-/Autograph Message:/mnm0m-a$h$, n.a$)ozh$
+
+<<MailExtractMessageToFile>>
+%%Prompt string: Path-name >
+%% [<path>] x - eXtract - Extracts message to file 
+%%File name defaults to /tmp/<originalName>.
+%% $ buffer holds two records:
+%%  1 - the destination file name (the optional argument overrides file= in header).
+%%  2 - a temprary command macro.
+%%
+%%Is pathname specified?
+n.a$obz$i/## /e- oz
+(
+  %%We should be on a separator - check.
+  onr-0n.r0a@h@ (mr)0m n.(f'@a@h@, n.a$obz$i/%x=This line does not look like a boundary/ozono-om'$)
+  %%Write it to a temp file.
+  obz@m0i"/tmp/attachment" z$r-0i-/%/2r0bi/%o/z@'$z$m0e0j-r-0e2 ozono-om
+  %%
+  %%Extract file name if not specified.
+  obz$r-0(roz, oz (f5/Content-Transfer-Encoding/ f-3/name=/-, n.a$z$i/%x=No filename specified - extraction fails./z;'$)
+    (f1/"/-, f1/ /r0f-1/ /-,)(f1/:/-,)(f1/~/-,) n.(f1/"/, r0) a$h$m, )
+     
+  %%Post process the temporary file according to encoding scheme.
+  f4/Content-Transfer-Encoding:/-(v/ /r)0 ob
+  ( (v/7bit/, v/quoted-printable/)
+    %%It's plain text - just copy it.
+    z$i"%e=/bin/cat -u /tmp/attachment > /tmp/" '$
+  ,v/base64/
+    %%Process with mime.
+    z$i"%e=/it/zmail/current/zmlite/sun4.solar2.6/lib/bin/mmencode -u /tmp/attachment > /tmp/" '$ 
+  ,v/uucode?? - I don't know what to look for??/
+    %%Process with uudecode.
+    z$i"%e=uudecode /tmp/attachment > /tmp/" '$
+  ,
+  %%Unrecognized encoding scheme.
+    (r-0v/begin /, n.a$z$i/%x=Can not locate valid attachment header - "begin ..." or "Content-Transfer-Encoding ..."/z;'$) )
+    
+  %%Final tidy up and write confirmation.
+  r-0f1/ > /-e-0i/%l/ b i"%e=rm -f /tmp/attachment" b i/%m=Decoded attachment to file /'$ )
+oz w
+  
+:
+
+%%Add new functions to hashtable in function buffer ( ' ) and their translations to the key-translation buffer ( ^ ).
+%g#
+obz'm0r0bh$b2
+(
+  (f-/<</r-m-)0 (z^m-0f'',)z' r2n.f1/>>/a$& r-0%h=new '$; 
+  %%Find the reference in the key-translation table.
+  %%Fetch prompt string if defined.
+  z'm(v/%%Prompt string:/f1/:/-n.r0a$&z$r-0i/"/r0i/ "/, n.a$&)
+  %%Set up the prompt string.
+  ( z^v/<</i"obn.a$&z$i`##"h$i" `e-oz %h'=call "e2f1/>>/e2i";
+    , )
+  z'm-2)0
+oz
+:
+'#
+
+%g$
+x       %h'=call MailExtractMessageToFile;
+m       %h'=call MailSendMessage;
+r       %h'=call MailReply;
+i       %h'=call MailIncludeMessage;
+a       %h'=call MailAutograph;
+o       %h'=call MailOpenSelectedMessage;
+:
+z^m-0b-h$
+
+%g?
+  The mail script reads the users POP mail archive and provides 
+  tools for handling messages.
+  
+Command options:
+ 
+  Command qualifiers are case insensitive - upper case characters indicate 
+  mandatory part of qualifier.
+ 
+  mail [{.|folderName| -New | -FILe <pathName>}][-Last <n>][-FINd <string>]
+    .                  - Must be first arg, process the file in the current
+                         buffer as a mail file.
+    -FOlder foldername - loads the spcified mail folder from ~/Mail/<folderName>
+    -Last <n>          - loads only the last n mail messages
+    -FINd <string>     - loads only the messages containing the string.
+    -New               - Read no mail just create a new mail message.
+    -File <fileName>   - Read the specified file as a mail message.
+    
+Usage example:
+  jot /dev/null -in="%r=mail -file=${JOT_RESOURCES}/mail"
+   
+Escape sequences:
+             {Esc o} - Open selected message.
+             {Esc x} - eXtracts message to file
+      <list> {Esc m} - send current buffer as mail using "To:" , "Cc:" and "Bcc:" lines
+  [<CClist>] {Esc r} - reply to sender [and users on CC list], if list contains a '*'
+                       the list will  reply to all recipiants of original message.    
+       [<n>] {Esc i} - include indented current [or nominated] message, in current buffer
+             {Esc a} - autograph - add the autograph message to the current folder. 
+  
+Buffer usage
+  ! - Mail constants in specified line numbers:
+    - Line  1 - POP message file pathname.
+    - Line  2 - User name (from $USER).
+    - Line 10, 11, ... - Autograph message.
+  * - POP-mail archive image followed by the mail index.
+  # - main command buffer at setup time, then holds Signoff string from .mailrc
+  $ - Temporary (initially used to hold complete mail file)
+  @ - Temp copy of header.
+  ; - Temporary
+  " - the outgoing mail message.
+  ? - Help buffer
+  
+Mail-index tags:
+  Head_<messageNo> - The mail header, metadata.
+  Message_<messageNo> - the message part.
+  
+:
+
+%h'=call MailIndexMessages;

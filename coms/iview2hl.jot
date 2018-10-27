@@ -1,0 +1,127 @@
+%%Converts a the .doc derived from ps2doc of an iview document to help format.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%% 
+%r=doc
+%g?
+Converts a the .doc derived from ps2doc of an iview document to true .
+ 
+Procedure
+  1/Print your document to postscript from iview <<document name>.ps
+  2/ps2doc <document name>
+  3/jot <document name>.doc
+  4/iview2doc <do>
+
+  Button 1 - finds next numeric bullet.
+  Button 2 - paragraphs numeric bullet.
+:
+%%
+%%Kill off the first line - this is quite useless.
+m-0k
+%%Kill off the top-of-page headers
+n.r0a$h$m(f'$(v-/ /r-)0r-\e0)0 m\m-0
+%%Remove warning from ps2ascii.
+m0(f-/FATAL ERROR. pspro version does not agree with pl2ps version/k,) m-0
+%%Identify the page footers - Iview has two separated by a few blank lines.
+m((v/ /r)0r\m)0 r-0n.r0a$h$(mr\)0 r-0n.r0a@h@ m-0
+%%Now stip off page headings.
+(f'$ (mr\)0 r-0(v'@m,) n.f-'$ (m-(v/ /r)0r\)0 ma%)0 m\m-0
+%%Take out digits from document header.
+(mr\)0 (v/ /r)0(q/0-9/e)0(v/ /e)0 m-0
+%%Make basic corrections to punctuation.
+(f/ ,/r(v-/ /e-)0)0 m\m-0
+(f/ ./r2(v/ /\r, r-(v-/ /e-)0r, ))0 m\m-0
+w
+
+%%Assuming that the first non-blank line is a heading - find heading depth. 
+(mr\)0 r-0n.(v/ /r)0a$h$ m-0
+%%Now dis-indent all lines by this much.
+(v'$s/ /e-m,m)0 m\m-0
+%%Now dis-indent text.
+m2(mr\)0 r-0n.(v/ /r)0a$h$r-0
+(v'$s/  /m,m)0 m\m-0
+w
+
+%%Tidy up special characters. 
+%%Hyphans
+(f/\261/s/-/)0 m\m-0
+%%Bullets.
+(f/ \001 /s/  - /)0 m\m-0
+(f/ \352 /s/  - /)0 m\m-0
+%% \320 bullets - these seem to appear on the previous line.
+(f/ \320/-(r\j,)r-0f1/ \320 /s/ - /)0 m\m-0
+
+%%Set top-level headers. 
+%g$
+m2
+( (q/A-Za-z/\m)0 
+  mm-
+  (f1/  /e)0
+  l0i/{{{ /m
+  (r, k))0 
+m\m-0
+(v/{{{/\m)0 m
+((v/{{{/\m)0 b-i/}}}/m2)0 m\m-0
+:
+'$
+w
+
+%%Set 2nd-level headers where a paragraph is indented back from its first line. 
+%g$
+( 
+  ( %%We must have 
+    ( %%only two blanks indentation.
+        v/  /\, r2q/a-zA-Z/\, 
+      %%an empty line above and
+        m-(rm2, m2\),
+      %%a line indented by more than two blanks following.
+        v/   /\, m-
+      %%Single-spacing only!
+      (f1/  /e)0 r-0i/{{{ /m
+      %%Standardize the indentation in these paragraphs.
+      n.(v/ /r)0a@h@r-0 (v'@s/  /m, r\m)0 m-b-i/}}}/
+      )
+    m) )0
+m\m-0
+:
+'$
+w
+
+%%Some documents (esp. synopsys) have lines begining with "- - "
+%%These cause the paragraph formatter to screw up.
+(f/-/-(v/ /r)0(v/-/(v-/ /e-)0,))0 m\m-0
+%%
+%%%%Now OK to do paragraphs. 
+%%( v/  / w (r,m)'*m-r0 , m )0 m\m-0 w
+
+%%Set up buttons for interactive correction of numeric bullets. 
+%d1=((v/ /\m)0v/ /(v/ /r)0q/0-9/\, rv/./\m)0
+
+%g2
+v/./en.(q-/0-9/l)0a$i/- / 
+(r,m)'*m-r0 
+'<
+s'$i/ /
+'1
+:
+
+m0r0(v-/.doc/s/.hlp/,)

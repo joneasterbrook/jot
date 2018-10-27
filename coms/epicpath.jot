@@ -1,0 +1,67 @@
+%%Locates a path that matches a (possibly incomplete) epic path specification.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Revision history:
+
+%g?
+  Locates a path that matches a (possibly incomplete) epic path specification.
+  Will ignore the (r) - rising and (f) - falling entries.
+  When you run this the current buffer should be the epic report to be searched.
+  Will accept path list as an argument (with current buffer an epic report)
+  or will accept the buffer key of buffer with the cursor at the start of an epic path spec (e.g in the config file).
+  
+       epicpath  fce1_lch_b net250 D1SELNB_iselb00Q0xn170 net393 net276 n204 n205 addc_11_b_i0Q0xn65 fde1_dsQ0xDPFF0.M1 <Do>
+  
+  Alternatively move cursor to the start of a path spec and pass in the report-file buffer key as an argument
+    zc <buffer containing a path spec>
+    <move cursor to start of path in some buffer - say a find_path line in a config.com>
+    zl
+    epicpath c <Do>
+  
+  Buffer usage
+    # - command buffer.
+    $ - list of node names.
+    ! - temporary - to avoid recursive use of buffer '$
+:
+ 
+%g#
+%%Extract arguments
+%%obz$m-0f/%%/-e-0m-k-0 (m2 k0,)m-0(v/ /e)0r0(v-/ /e-)0l0
+obz$m-0(v/ /e)0r0(v-/ /e-)0r-0
+%%If it's a buffer-spec argument then pick up path from cursor.
+(r2\r-0i-/z/na!'!n.a!ocn.r0a$h$r-0orz$r-0, je0r-0)
+%%Separate the args.
+((v/ /e)0(v/(R)/e3, v/(F)/e3, )(v/ /e)0f1/ /b)0 
+%%Return to buffer holding report
+oz
+
+%%Start searching 
+( %%Main loop.
+  %%Reset to first node name.
+  obz$m-0 ozf/Path (/m5
+  ( %%Node loop - search each line for next nodename - fail if end of path.
+    f1'$ obz$(moz, oz%x=Found
+      ) 
+    , mrr-)0
+  )0
+:
+'#

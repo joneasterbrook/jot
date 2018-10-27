@@ -1,0 +1,2005 @@
+<! Made with jot using doc2html >
+<link rel="stylesheet" href="main.css" type="text/css">
+
+</UL><H1><A NAME="COMMAND FILE LIBRARY">Command file library</H1>
+
+</UL><H2><A NAME="RUNNING THE SCRIPTS">Running the scripts</H2>
+<P>There are a number of predefined JOT command file in the $&#123;JOT_HOME&#125;/coms area - see <A HREF="jot_tech.html#INSTALLATION">installation</A>. In general these have a one-line description at the start of the command file. The most useful ones are described below</P>
+
+<P>These are run by first typing the name of the script, followed by any arguments and then pressing the 'F2' button i.e:</P>
+
+&#062; &#060;scriptName&#062;&#091; &#060;arg1&#062;&#091; &#060;arg2&#062;&#091; ...&#093;&#093;&#093;&#123;F2&#125;
+<P>If the &#060;&#060;Do&#062;&#062; function has not been mapped to the F2 button then, as a temporary workaround you can type in the command %r=&#060;scriptName&#062;. If the script happens to be one that takes arguments then you must manually define the arguments in the $ buffer - this is always used to define script and macro arguments. Then run the script with %r=&#060;scriptName&#062; like this:</P>
+
+&#062; %d$=%% &#060;arg1&#062; &#060;arg2&#062; ...
+&#062; %r=&#060;scriptName&#062;
+<P>In addition to Do there are two script-search functions ScriptByName and <A HREF="jot_ug.html#SCRIPTBYFUNC">ScriptByFunc</A>. ScriptByName searches for scripts in $&#123;JOT_HOME&#125;/coms and your PWD for those with the '.jot' name extension whose names match the given string (if no string given then it just lists all scripts in the searched areas e.g:</P>
+
+&#062; mc&#123;Shift+F2&#125;
+<P>To apply the script on your buffer, move the cursor to the line with your script name and run macro 0 (normally &#123;KP_0&#125;.</P>
+
+<P>By convention, all jot scripts should have a one-line comment in the first line. This should briefly describe what the script is intended to do. If it's a complicated script then detailed instructions should be left in the ? buffer.</P>
+
+<P><A HREF="jot_ug.html#SCRIPTBYFUNC">ScriptByFunc</A> searches these first-line comments in the search areas and returns a list of those matching the string e.g:</P>
+
+&#062; multicolumn&#123;Ctrl+F2&#125;
+<P>To apply a script on your buffer, first select one by moving the cursor to the line with your script name and run macro 0 (normally &#123;KP_0&#125;.</P>
+
+
+</UL><H3><A NAME="STARTUP.JOT">startup.jot</H3>
+<P>The script $&#123;JOT_HOME&#125;/coms/startup.jot is normally run by the editor as it starts up but if some other startup-script has been specified (see notes on the -startup section of <A HREF="jot_tech.html#COMMAND-LINE QUALIFIERS">command-line qualifiers</A>) then that script can call this startup script normally (e.g: %r=startup; ) or if it is necessary to defer finalisation of the keymap setup, it can be called with the -nofinalize option (e.g: %r=startup -nofinalize; ) - see below for usage notes on the -nofinalize option.</P>
+
+<P>It's principal functions are:</P>
+
+<UL><P><LI>To define a basic viewing window, it normally fills the screen except for the last four lines, which are used for user interaction and to display messages.</P></LI>
+
+<P><LI>To define editor functions in native jot code.</P></LI>
+
+<P><LI>To define the mapping of keystrokes to editor actions. Most of the rest of this section is dedicated to explaining how this works.</P></LI>
+
+</UL><P>This script creates a mapping of xterm escape sequences to code calls. It's first requirement is to have a map detailing the translation of key codes the to key names that appear in all the documentation.</P>
+
+<P>The mapping of key names to function calls is entirely for the the convenience of the user and can be changed to suit user requirements.</P>
+
+<P>In linux, the mapping of keys to actual key codes is a two stage process, firstly the physical signals received from the keyboard must be identified, then they are translated to a set of hardware-independent keycodes. Many, but not all, modern linux distributions use X Keyboard Extension (XKB). Followed by terminfo/termcap database identified by your TERM variable. For most linux distributions this seems to default to "xterm". If you are interested in that sort of thing, there's a compiled terminfo database file below /usr/share/terminfo/... - if your $TERM is set to xterm, for example, you will pick up the file /usr/share/terminfo/x/xterm.</P>
+
+<P>Although there seems to be pretty broad agreement on what the default setting for $TERM should be, there is no standardisation on what it's capabilities should be and, in particular, what keycodes should be returned for some of the Shift - Ctrl - Alt combinations (see <A HREF="jot_tech.html#TRANSLATION OF KEYBOARD EVENTS TO ACTIONS">translation of keyboard events to actions</A>). </P>
+
+<P>If the current directory contains a startup.jot file then jot picks up this in preference to the $&#123;JOT_HOME&#125;/coms version.</P>
+
+<P>If the optional CLI arg -startup is specified (see <A HREF="jot_tech.html#COMMAND-LINE QUALIFIERS">command-line qualifiers</A>), then this overrides any startup path from $&#123;JOT_HOME&#125;/coms or the current directory. if the qualifier is given without the '=&#060;pathName&#062;' value, this is equivalent to -startup=/dev/null i.e. no startup script.</P>
+
+<P>In summary, the startup-file selection is, in order of precedence:</P>
+
+<UL><P><LI>1 The -startup=&#060;pathName&#062; arg,</P></LI>
+
+<P><LI>2 a startup.jot in the current directory and, finally,</P></LI>
+
+<P><LI>3 $&#123;JOT_HOME&#125;/coms/startup.jot</P></LI>
+
+</UL><P>There are two mapping tables used to fully define the finished key translations table in the ( ^ ) buffer:</P>
+
+<UL><P><LI>The key-names to key-codes table - set up in buffer ( @ ) by the <A HREF="#CURSES_KEYS_&#060;TERM&#062;.JOT">curses_keys_&#060;TERM&#062;.jot</A> or <A HREF="#WINDOWSNT_KEYS.JOT">WindowsNT_keys.jot</A> script.</P></LI>
+
+<P><LI>The assignment of functions to key-names map in buffer ( ! ) set to by the startup.jot script.</P></LI>
+
+</UL><P>The startup script will finalize initialization of the editor by merging thes two tables into the key-to-function translation table in buffer ( ^ ) - see <A HREF="jot_tech.html#TRANSLATION OF KEYBOARD EVENTS TO ACTIONS">translation of keyboard events to actions</A>. It is this last step that is suppressed by the -nofinalize option.</P>
+
+<P>If the -nofinalize option is given, the macro to do the finalisation is defined in buffer ( # ) as the startup script exits, this allows your startup script to modify the final setup in some way.</P>
+
+
+</UL><H4><A NAME="NOMOD.JOT">nomod.jot</H4>
+<PRE>
+$ jot &#060;pathName&#062; -st=nomod
+</PRE>
+<P>This is an alternative startup script which modifies the key mapping to transform the standard &#123;Ctrl|Shift|Alt+Fn&#125; to a prefix style for those experiencing difficulty or discomfort reaching combinations of the Shift, Ctrl and Alt keys. In fact nomod.jot calls the normal startup script and modifies the keycodes data before finalising the key mapping.</P>
+
+<P>Instead, a two-key prefix is typed in before hitting the function key - in this context Fn should be taken to mean any top-row function key, any mid, or numeric-keypad key or any arrow key:</P>
+
+<UL><P><LI>&#123;Shift+Fn&#125; - is replaced by &#123;Esc 1 Fn&#125;</P></LI>
+
+<P><LI>&#123;Ctrl+Fn&#125; - is replaced by &#123;Esc 2 Fn&#125;</P></LI>
+
+<P><LI>&#123;Alt+Fn&#125; - is replaced by &#123;Esc 4 Fn&#125;</P></LI>
+
+<P><LI>&#123;Ctrl+Shift+Fn&#125; - is replaced by &#123;Esc 3 Fn&#125;</P></LI>
+
+<P><LI>&#123;Shift+Alt+Fn&#125; - is replaced by &#123;Esc 5 Fn&#125;</P></LI>
+
+<P><LI>&#123;Ctrl+Alt+Fn&#125; - is replaced by &#123;Esc 6 Fn&#125;</P></LI>
+
+<P><LI>&#123;Ctrl+Shift+Alt+Fn&#125; - is replaced by &#123;Esc 7 Fn&#125;</P></LI>
+
+</UL><P>The transformation assigns a weight of 1 to Shift, 2 to Ctrl and 4 to Alt. No prefix is required for the unmodified function keys.</P>
+
+<P>In addition, <A HREF="#QR.JOT">qr.jot</A> also accepts the qualifier -nomod, which causes it to display the prefix key sequence instead of modifiers.</P>
+
+
+</UL><H4><A NAME="CURSES_KEYS_&#060;TERM&#062;.JOT">curses_keys_&#060;TERM&#062;.jot</H4>
+<P>Theses scripts are run by the standard <A HREF="#STARTUP.JOT">startup.jot</A> script, they define mapping of keys to whatever key codes are generated by your terminfo , these are then assigned functions by the <A HREF="#STARTUP.JOT">startup.jot</A> script. Currently there is a keymap file only for the xterm:</P>
+
+<UL><P><LI>curses_keys_chrome.jot -- when using the chromebook version.</P></LI>
+
+<P><LI>curses_keys_xterm.jot -- $&#123;TERM&#125; set to "xterm"</P></LI>
+
+<P><LI>curses_keys_xterm-vt220.jot -- $&#123;TERM&#125; set to "xterm-vt220"</P></LI>
+
+<P><LI>curses_keys_vt220.jot -- $&#123;TERM&#125; set to "vt220"</P></LI>
+
+<P><LI>curses_keys_vt100.jot -- $&#123;TERM&#125; set to "vt100"</P></LI>
+
+</UL><P>These script only work when called by <A HREF="#STARTUP.JOT">startup.jot</A> this then attaches functions to the key definitions in these scripts. If run directly, it's only effect of these scripts is to load buffer @ with the key-names to key-codes map.</P>
+
+<P>In addition to providing the all-important mapping of editing functions to keystrokes these files also map the unassigned and unassignable key combinations. Some key combinations are unassignable because they collide with other keys or because they've been hijacked by the operating system for some system shortcuts. Feel free to add your own functions or rearrange the or redefine the assignments as in whatever way seems appropriate.</P>
+
+<P>The key mappings tend to vary significantly, so a utility is provided to assist with redefining and checking the key-map script - see <A HREF="#DEFINE_KEYMAP.JOT">define_keymap.jot</A> and <A HREF="#VERIFY_KEYS.JOT">verify_keys.jot</A> respectively.</P>
+
+
+</UL><H4><A NAME="WINDOWSNT_KEYS.JOT">WindowsNT_keys.jot</H4>
+<P>The function of this is identical to the various flavours of curses_keys (see <A HREF="#CURSES_KEYS_&#060;TERM&#062;.JOT">curses_keys_&#060;TERM&#062;.jot</A>) in that it associates functions with keycodes - i.e it defines key bindings.</P>
+
+
+</UL><H4><A NAME="UC_BASIC.JOT">uc_basic.jot</H4>
+&#062; uc_basic&#123;F2&#125;
+<P>This script defines a small number of basic unicode characters that may then be entered using a four-key sequence beginning &#123;Esc&#125;, &#123;u&#125;, &#123;c1&#062;&#125; and &#123;&#060;c2&#062;&#125; where the characters c1 and c2 uniquely define a character in the supported unicode subset. The uc_basic script performs this substitution on the command line using <A HREF="jot_tech.html#%S=COMMANDSTRING">%s=commandstring</A>. See also <A HREF="jot_tech.html#ABOUT UNICODE">about unicode</A>.</P>
+
+<P>These are the escape sequences and characters supported by uc_basic.jot:</P>
+
+&#123;Esc u ' a&#125;   á           &#123;Esc u ' A&#125;   Á           &#123;Esc u " a&#125;   ä           &#123;Esc u " A&#125;   Ä           
+&#123;Esc u <CODE>&lt;</CODE>A HREF="# A&#125; à &#123;ESC U "<CODE>></CODE> a&#125; à &#123;Esc u <CODE>&lt;</CODE>/A<CODE>></CODE> A&#125; À &#123;Esc u ~ a&#125; ã &#123;Esc u ~ A&#125; Ã 
+&#123;Esc u ^ a&#125;   â           &#123;Esc u ^ A&#125;   Â           &#123;Esc u c a&#125;   ǎ           &#123;Esc u c A&#125;   Ǎ           
+&#123;Esc u o a&#125;   å           &#123;Esc u o A&#125;   Å           &#123;Esc u _ a&#125;   ā           &#123;Esc u _ A&#125;   Ā           
+&#123;Esc u ; a&#125;   ą           &#123;Esc u ; A&#125;   Ą           &#123;Esc u b a&#125;   ă           &#123;Esc u b A&#125;   Ă           
+&#123;Esc u , c&#125;   ç           &#123;Esc u , C&#125;   Ç           &#123;Esc u O R&#125;   ®           &#123;Esc u O C&#125;   ©           
+&#123;Esc u t m&#125;   ™           &#123;Esc u &#060; &#060;&#125;   «           &#123;Esc u &#062; &#062;&#125;   »           &#123;Esc u " &#060;&#125;   “           
+&#123;Esc u " &#062;&#125;   ”           &#123;Esc u ' &#060;&#125;   ‘           &#123;Esc u ' &#062;&#125;   ’           &#123;Esc u . .&#125;   …           
+&#123;Esc u . ^&#125;   ·           &#123;Esc u x x&#125;   ×           &#123;Esc u - :&#125;   ÷           &#123;Esc u ^ 0&#125;   ⁰           
+&#123;Esc u ^ 1&#125;   ¹           &#123;Esc u ^ 2&#125;   ²           &#123;Esc u ^ 3&#125;   ³           &#123;Esc u 1 2&#125;   ½           
+&#123;Esc u 1 4&#125;   ¼           &#123;Esc u 3 4&#125;   ¾           &#123;Esc u s s&#125;   ß           &#123;Esc u s o&#125;   §           
+&#123;Esc u / o&#125;   ø           &#123;Esc u / O&#125;   Ø           &#123;Esc u - d&#125;   đ           &#123;Esc u - D&#125;   Đ           
+&#123;Esc u d h&#125;   ð           &#123;Esc u D H&#125;   Ð           &#123;Esc u ~ n&#125;   ñ           &#123;Esc u t h&#125;   þ           
+&#123;Esc u T H&#125;   Þ           &#123;Esc u a e&#125;   æ           &#123;Esc u A E&#125;   Æ           &#123;Esc u ! !&#125;   ¡           
+&#123;Esc u ? ?&#125;   ¿           &#123;Esc u = L&#125;   £           &#123;Esc u = E&#125;   €           &#123;Esc u = Y&#125;   ¥           
+&#123;Esc u / C&#125;   ₡           &#123;Esc u | c&#125;   ¢           &#123;Esc u o x&#125;   ¤           &#123;Esc u / /&#125;   \           
+&#123;Esc u o o&#125;   °           
+<P>e.g:</P>
+
+<PRE>
+&#123;Esc q = Y&#125; - is replaced by the Yen character ( ¥ ).
+&#123;Esc q o o&#125; - is replaced by the degrees character ( ° ).
+</PRE>
+
+</UL><H4><A NAME="UC_MATH.JOT">uc_math.jot</H4>
+&#062;uc_math&#123;F2&#125;
+<P>This script sets up some characters used in maths and engineering, essentially it is used in the same way as <A HREF="#UC_BASIC.JOT">uc_basic.jot</A>. It follows the vim digraph scheme.</P>
+
+<UL><P><LI>&#123;Esc u + -&#125; ± -- plus minus </P></LI>
+
+<P><LI>&#123;Esc u 2 S&#125; ² -- squared (superscript 2) </P></LI>
+
+<P><LI>&#123;Esc u * P&#125; ∏ -- coproduct (big, tall Pi) </P></LI>
+
+<P><LI>&#123;Esc u + Z&#125; ∑ -- summation (big, tall Sigma) </P></LI>
+
+<P><LI>&#123;Esc u S b&#125; ∙ -- bullet operator (dot product) </P></LI>
+
+<P><LI>&#123;Esc u R T&#125; √ -- (square) root </P></LI>
+
+<P><LI>&#123;Esc u 0 0&#125; ∞ -- infinity </P></LI>
+
+<P><LI>&#123;Esc u G *&#125; Γ -- Gamma </P></LI>
+
+<P><LI>&#123;Esc u D *&#125; Δ -- Delta </P></LI>
+
+<P><LI>&#123;Esc u H *&#125; Θ -- Theta </P></LI>
+
+<P><LI>&#123;Esc u P *&#125; Π -- Pi </P></LI>
+
+<P><LI>&#123;Esc u S *&#125; Σ -- Sigma </P></LI>
+
+<P><LI>&#123;Esc u F *&#125; Φ -- Phi </P></LI>
+
+<P><LI>&#123;Esc u Q *&#125; Ψ -- Psi </P></LI>
+
+<P><LI>&#123;Esc u W *&#125; Ω -- Omega </P></LI>
+
+<P><LI>&#123;Esc u a *&#125; α -- alpha </P></LI>
+
+<P><LI>&#123;Esc u b *&#125; β -- beta </P></LI>
+
+<P><LI>&#123;Esc u g *&#125; γ -- gamma </P></LI>
+
+<P><LI>&#123;Esc u d *&#125; δ -- delta </P></LI>
+
+<P><LI>&#123;Esc u e *&#125; ε -- epsilon </P></LI>
+
+<P><LI>&#123;Esc u y *&#125; η -- eta </P></LI>
+
+<P><LI>&#123;Esc u h *&#125; θ -- theta </P></LI>
+
+<P><LI>&#123;Esc u k *&#125; κ -- kappa </P></LI>
+
+<P><LI>&#123;Esc u l *&#125; λ -- lambda </P></LI>
+
+<P><LI>&#123;Esc u m *&#125; μ -- mu </P></LI>
+
+<P><LI>&#123;Esc u p *&#125; π -- pi </P></LI>
+
+<P><LI>&#123;Esc u r *&#125; ρ -- rho </P></LI>
+
+<P><LI>&#123;Esc u s *&#125; σ -- sigma </P></LI>
+
+<P><LI>&#123;Esc u * s&#125; ς -- sigma (alternative) </P></LI>
+
+<P><LI>&#123;Esc u t *&#125; τ -- tau </P></LI>
+
+<P><LI>&#123;Esc u f *&#125; φ -- phi* </P></LI>
+
+<P><LI>&#123;Esc u q *&#125; ψ -- psi* </P></LI>
+
+<P><LI>&#123;Esc u w *&#125; ω -- omega* </P></LI>
+
+<P><LI>&#123;Esc u / -&#125; † -- dagger (sword) </P></LI>
+
+<P><LI>&#123;Esc u / =&#125; ‡ -- double dagger (double sword) </P></LI>
+
+<P><LI>&#123;Esc u &#060; -&#125; ← -- left arrow* </P></LI>
+
+<P><LI>&#123;Esc u - !&#125; ↑ -- up arrow </P></LI>
+
+<P><LI>&#123;Esc u - &#062;&#125; → -- right arrow </P></LI>
+
+<P><LI>&#123;Esc u - v&#125; ↓ -- down arrow </P></LI>
+
+<P><LI>&#123;Esc u F A&#125; ∀ -- for all (for any) </P></LI>
+
+<P><LI>&#123;Esc u d P&#125; ∂ -- partial differential (curled little d) </P></LI>
+
+<P><LI>&#123;Esc u T E&#125; ∃ -- there exists (backwards capital E) </P></LI>
+
+<P><LI>&#123;Esc u A N&#125; ∧ -- logical and </P></LI>
+
+<P><LI>&#123;Esc u O R&#125; ∨ -- logical or </P></LI>
+
+<P><LI>&#123;Esc u . :&#125; ∴ -- therefore (triangle of dots) </P></LI>
+
+<P><LI>&#123;Esc u : .&#125; ∵ -- because (upside-down triangle of dots) </P></LI>
+
+<P><LI>&#123;Esc u / 0&#125; ∅ -- Null set, empty set, var nothing, capital O slash </P></LI>
+
+<P><LI>&#123;Esc u O /&#125; Ø -- Null set, empty set, var nothing, capital O slash </P></LI>
+
+<P><LI>&#123;Esc u ( -&#125; ∈ -- element of </P></LI>
+
+<P><LI>&#123;Esc u - )&#125; ∋ -- contains as member </P></LI>
+
+<P><LI>&#123;Esc u ( U&#125; ∩ -- set intersect </P></LI>
+
+<P><LI>&#123;Esc u U )&#125; ∪ -- set union </P></LI>
+
+<P><LI>&#123;Esc u ( C&#125; ⊂ -- subset of (contained in) </P></LI>
+
+<P><LI>&#123;Esc u ) C&#125; ⊃ -- superset of (contains) </P></LI>
+
+<P><LI>&#123;Esc u ( _&#125; ⊆ -- subset of or equal to </P></LI>
+
+<P><LI>&#123;Esc u ) _&#125; ⊇ -- superset of or equal to </P></LI>
+
+<P><LI>&#123;Esc u O b&#125; ∘ -- concatenation, centred dot </P></LI>
+
+<P><LI>&#123;Esc u I n&#125; ∫ -- integral S </P></LI>
+
+<P><LI>&#123;Esc u D I&#125; ∬ -- double integral S </P></LI>
+
+<P><LI>&#123;Esc u I o&#125; ∮ -- line integral S with circle </P></LI>
+
+<P><LI>&#123;Esc u D E&#125; ∆ -- Delta </P></LI>
+
+<P><LI>&#123;Esc u N B&#125; ∇ -- Nabla </P></LI>
+
+<P><LI>&#123;Esc u ? 1&#125; ∼ -- tilde operator (centred tilde, proportional) </P></LI>
+
+<P><LI>&#123;Esc u ? =&#125; ≅ -- approximately equal to </P></LI>
+
+<P><LI>&#123;Esc u ? 2&#125; ≈ -- almost equal to </P></LI>
+
+<P><LI>&#123;Esc u ! =&#125; ≠ -- not equal to </P></LI>
+
+<P><LI>&#123;Esc u = &#060;&#125; ≤ -- less than or equal to </P></LI>
+
+<P><LI>&#123;Esc u &#062; =&#125; ≥ -- greater than or equal to </P></LI>
+
+
+</UL><H4><A NAME="DEFINE_KEYMAP.JOT">define_keymap.jot</H4>
+<PRE>
+$  jot $&#123;JOT_HOME&#125;/coms/curses_keys_Vn.jot -in="%r=define_keymap&#091; -init&#093;"
+</PRE>
+<P>This script is used to map actual keycodes received from a real keyboard. It works by prompting for each of the various keystrokes in the nominated keys file and replacing the key code with whatever it picks up from your typing.</P>
+
+<P>Be aware though, that certain keys are hardwired as system shortcuts. These can cause evil or, at least, bizarre unhelpful, things to happen. Alt+F12 on some systems, for example, closes the current window. Now why we should need a shortcut to close a window when there must be at least half a dozen other ways of doing it is a question beyond the scope of this user guide. But that's what it does, it's very annoying, and there seems to be no way of turning it off - without re-coding and recompiling slabs of kernel. See also <A HREF="jot_tech.html#TRANSLATION OF KEYBOARD EVENTS TO ACTIONS">Translation of keyboard events to actions</A></P>
+
+<P>The define_keymap script sniffs through the key map file you give it and wherever it finds "????????" in the escape-sequence field, it prompts you to hit the specified modifier and function-key combination. So first launch an ordinary editing session to reset the dodgy keys to "????????" before launching define_keymap:</P>
+
+<PRE>
+$  jot new_keys.jot -in="%r=define_keymap"
+</PRE>
+<P>If you've made a mistake or just want to take a break, you can interrupt with &#123;Ctrl+c&#125; and manually change the incorrect keycode back to "????????" then save your work, exit and restart.</P>
+
+<P>In the unlikely event of you needing to redefine all keys codes, use define_keymap.jot with the -init qualifier:</P>
+
+<PRE>
+$  jot new_keys.jot -in="%r=define_keymap -init"
+</PRE>
+<P>The -init qualifier tells it to begin by scrubbing all keycodes in the file, replacing each with the string "????????". The main section of the script then searches these reset keycodes, prompts you to prod that combination of keys and picks up the keycode which then replaces the reset keycode. This process is repeated until all missing keycodes have been filled in.</P>
+
+
+</UL><H4><A NAME="VERIFY_KEYS.JOT">verify_keys.jot</H4>
+<PRE>
+$ jot /dev/null -in=%r=verify_keys
+</PRE>
+<P>This is a simple script that allows the user to verify the keyboard mappings. It simply prints the keycode and name of the function key to the console area as they are struck. Function-key names are assumed to be in a comment field of the keyboard map file e.g. $&#123;JOT_HOME&#125;/coms/curses_Vn.jot</P>
+
+
+</UL><H3><A NAME="MENU.JOT">menu.jot</H3>
+<P>For the default menu:</P>
+
+<PRE>
+$ jot &#060;pathName&#062; -st=menu
+</PRE>
+<P>For a custom menu and, optionally, custom functions:</P>
+
+<PRE>
+$ jot &#060;pathName&#062; -st=&#060;customMenuScript&#062;
+</PRE>
+<P>The custom script will normally conclude with a line like this:</P>
+
+<PRE>
+%r=menu;
+</PRE>
+<P>This is for the benefit of those who enjoy working with menu-driven systems, menu.jot sets up a simple, but usable, menu-driven editing environment.</P>
+
+<P>The default menu includes all the editor functions in a two-level hierarchical menu. An alternative menu can be specified - see <A HREF="#MENU DEFINITION">Menu definition</A>.</P>
+
+<P>Although the menu is crude and clonky looking - it's quite a lot like that of windows version 1 - remember that? It's still usable as it stands and, for users with simple keyboards, it may actually be useful.</P>
+
+<P>A menu item can be frozen with the &#060;&#060;HoldSubMenu&#062;&#062; function defined by menu.jot ( &#123;Esc m h&#125; ), frozen menu entries can be removed later with the &#060;&#060;TopMenu&#062;&#062; function ( &#123;Esc m i&#125; ) - this clears the menu buffer and rebuilds the original top-level menu bar(s).</P>
+
+
+</UL><H4><A NAME="MENU DEFINITION">Menu definition</H4>
+<P>The menu structure is defined in a simple tabular format in buffer ( - ). To define your own menu, the customMenuScript should set up a plain-text representation of the desired menu in buffer ( - ).</P>
+
+<P>Brief syntax rules for the menu-definition buffer:</P>
+
+<UL><P><LI>Any line which does not begin with either a plus or minus sign ( + - ) or a label (defined below) is ignored. Note that comments need not be introduced by any special character but, in these examples, %% has been included for clarity.</P></LI>
+
+<P><LI>Menu items *must* be enclosed in double quotes, each defines the name of a function to be called when that menu item is clicked.</P></LI>
+
+<P><LI>Each menu-bar definition line must have entries which either:</P></LI>
+
+<UL><P><LI>are an exact match for a callable function or</P></LI>
+
+<P><LI>must have a function name somewhere enclosed in double angle brackets eg: Any old text &#060;&#060;aFunction&#062;&#062; any old text.</P></LI>
+
+</UL><P><LI>Any line begining with a plus sign ( + ) is a permanently visible menu bar. If the plus sign is followed immediately with a string, this string is prefixed to the menu items to define a function which will be called when a menu item is clicked. eg:</P></LI>
+
+<PRE>
++fred_ "abc" "def" "ghi" "jkl"
+</PRE>
+<P>This defines a permanently-visible menu bar showing:</P>
+
+<PRE>
+abc def ghi jkl
+</PRE>
+<P>Clicking on ghi will call the function fred_ghi</P>
+
+<P><LI>Lines begining with a minus sign ( - ) are similar but parts of a submenu. Submenus are made temporarialy visible by some function - typically called by some superior menu item.</P></LI>
+
+<P><LI>Any line begining with a string followed by a colon ( : ) is a label, it introduces a submenu which will be brought into view when the appropriate function is called. The label line must not contain any other text and the label string must not contain blanks. All lines following the label through to that before the next label, defines the submenu. eg:</P></LI>
+
+</UL><P>...</P>
+
+<PRE>
+%%Submenu promoted by clicking on ghi, above.
+</PRE>
+</UL><H5><A NAME="FRED_GHI">fred_ghi</H5>
+- "doThis" "doThat" "doSomethingElse"
+-jim_ "mno" "pqr" "stu"
+<PRE>
+%%Submenu promoted by clicking on mno, above.
+</PRE>
+</UL><H5><A NAME="JIM_MNO">jim_mno</H5>
+<P>...</P>
+
+
+</UL><H3><A NAME="QR.JOT">qr.jot</H3>
+<PRE>
+$ jot /dev/null -st=qr
+</PRE>
+<P>or for users of <A HREF="#NOMOD.JOT">nomod.jot</A> (an alternative startup for CTS/RSI sufferers):</P>
+
+<PRE>
+$ jot /dev/null -st="qr -nomod"
+</PRE>
+<P>qr.jot reads the main jot user documentation in their raw ( .txt ) form to provide a useful quick-reference entry point to the words, using the <A HREF="#LINKDOCS.JOT">linkdocs.jot</A> script insert the link metadata. Valid links are highlighted in green.</P>
+
+<P>A left-button click on a link will follow the link. A left-button click in any other part of the window will return to the previous view.</P>
+
+<P>If you are in a non-mouse environment, macro_1 is set up to emulate mouse clicks - move the cursor to a link and &#123;Esc 1&#125; emulates a mouse click.</P>
+
+<P>The -nomod qualifier changes toe &#123;Ctrl|Shift|Alt+Fn&#125; modified keystrokes in the documentation, to the prefix form defined by nomod.jot.</P>
+
+
+</UL><H3><A NAME="IDE.JOT">ide.jot</H3>
+<PRE>
+$ cd &#060;projectDir&#062;; jot &#060;projectName&#062;
+</PRE>
+<P>e.g:</P>
+
+<PRE>
+$ cd work ; jot ide_hello
+</PRE>
+<P>or</P>
+
+<PRE>
+$ cd work ; jot ide_jot
+</PRE>
+<P>This is a very simple Integrated code Development Environment (IDE). It is set up to work in linux and wine with any command-driven compilers and gdb-like debuggers - typically gcc, cl, gdb and winedbg.</P>
+
+<P>There is an internal switch to focus on either linux or windows versions of the executables.</P>
+
+<P>On startup ide.jot splits the screen into the following fields:</P>
+
+<UL><P><LI>The top line has various menu items (white foreground and mauve background)</P></LI>
+
+<P><LI>Next, an 11-line by 40-column window slice focused on buffer ( @ ) - this buffer is displays any messages received from compilers and other commands launched as part of the compilation process.</P></LI>
+
+<P><LI>The remaining 11-line window-slice displays messages received from the debugger.</P></LI>
+
+<P><LI>The remaining lines of the terminal (apart from a 1-line console) are dedicated to viewing the source file.</P></LI>
+
+<P><LI>Finally, the last line of the terminal is the editor console.</P></LI>
+
+</UL><P>The menu line offers the following items: _ - File - launches a submenu - see below.</P>
+
+<UL><P><LI>Save - saves any source files deemed to have been modified in the session.</P></LI>
+
+<P><LI>Compile - runs the appropriate compile command.</P></LI>
+
+<P><LI>Run - runs the executable with the specified parameters.</P></LI>
+
+<P><LI>dbg_start - starts the appropriate debugger.</P></LI>
+
+<P><LI>dbg_run - sends the debugger the run command.</P></LI>
+
+<P><LI>dbg_continue - sends the debugger the continue command.</P></LI>
+
+<P><LI>dbg_quit - sends the debugger the quit command.</P></LI>
+
+<P><LI>dbg_break - sends the debugger the command to set a breakpoint at the current line in the source file.</P></LI>
+
+<P><LI>dbg_command - picks up a user-specified debugger command from the console and forwards it to the debugger session.</P></LI>
+
+<P>The submenu (from the "File", above) replaces the initial menu, it offers the following:</P>
+
+<UL><P><LI>Reload - destroys any modifications to the source file(s) by unlocking the files and re-reading.</P></LI>
+
+<P><LI>Abandon - abandons the session, if there are unsaved changes to any source file, this command will fail.</P></LI>
+
+<P><LI>Save - saves any modified source files.</P></LI>
+
+<P><LI>LinuxLand (the default setting) focuses on linux executables using gcc and gdb.</P></LI>
+
+<P><LI>WindowsLand - changes focus on windows executables using your preferred windows compiler and wineconsole/winedbg</P></LI>
+
+</UL></UL><P>The script operates by setting up a window on buffer ( L ) and associating it with an interactive command pipe (see <A HREF="jot_tech.html#%E">%E</A>), any suitable compilers can be used - typically gcc (linux) and cl (windows). The script runs windows programmes with wine and the winedbg debugger and gdb for linux.</P>
+
+<P>The script defines the following data objects and default values as follows, these may be redefined in your startup script - for examples see $&#123;JOT_RESOURCES&#125;/ide/projects/startup.jot:</P>
+
+<UL><P><LI>.=linCompile Default value cd ~/ ; make lin - Compiles source file for linux.</P></LI>
+
+<P><LI>.=winCompile Default value cd ~/ ; make win - Compiles source file for windows.</P></LI>
+
+<P><LI>.=linExePath Default value ~/bin/a.out - Executable pathname - linux.</P></LI>
+
+<P><LI>.=winExePath Default value ~/bin/exe.exe - Executable pathname - windows.</P></LI>
+
+<P><LI>.=testArgs Default value - Args to run the executable for testing.</P></LI>
+
+</UL><P>A typical session might begin with a bit of editing of the source in the main window, then either hit the "Save" button or manually type in the usual file-write command (<A HREF="jot_tech.html#%O">%O</A>) to save the source-file image, then press the "Compile" button to run your specified compile command. The script will refuse the compile request if the source has not yet been saved.</P>
+
+<P>One might then hit "Run", which will run your compiled programme either in your default shell (linux) or in wine, if you have selected windows.</P>
+
+<P>If you have bugs to diagnose, you might then invoke the debugger - gdb or, if you have selected windows, winedbg.</P>
+
+<P>The selection of Linux (the default state) or windows is set by the "Linuxland" or "Windowsland" buttons below the "File" menu item.</P>
+
+<P>For examples see <A HREF="jot_walkthrough.html#WORKING WITH IDE.JOT">working with ide.jot</A>.</P>
+
+
+</UL><H3><A NAME="FAKE_VIM AND FAKE_EMACS">fake_vim and fake_emacs</H3>
+<P><A HREF="#FAKE_VIM.JOT">fake_vim.jot</A> and <A HREF="#FAKE_EMACS.JOT">fake_emacs.jot</A> are attempts at emulating the behaviour of these editors in jot.</P>
+
+<P>A good question, at this point, would be "why bother with a vim emulator when there are perfectly good versions available for free anyway?" Well, it would be true to say it's a good demonstration of the power and flexibility of jot that it can do reasonable emulations of two entirely different editors without resorting to magic modes or special tricks. It's also true that, if ever they get anywhere near complete, they provide a transition path for vim users suffering from RSI problems in their escape fingers or Emacs users yearning for a bit of sanity. But, the real reason is, I did it because I could.</P>
+
+<P>For occasional vim users or less experienced users wanting to progress, fake_vim.jot offers a progression route for those daunted by the labyrinthine complexity of the vim and the immensity of it's user documentation (the quick-reference guide quickref.txt runs to over 1500 lines!)</P>
+
+<P>The end point for this project is defined by a vim quick-reference guide I found at <A HREF="http://users.ece.utexas.edu/~adnan/vimqrc.html">http://users.ece.utexas.edu/~adnan/vimqrc.html</A>. It's clearly not a complete guide to all the features but it looks like a good solid introduction.</P>
+
+</UL><H4><A NAME="FAKE_VIM.JOT">fake_vim.jot</H4>
+<PRE>
+$ jot /dev/null -st="fake_vim &#060;pathName1&#062;&#091; &#060;pathName2&#062;&#091; ...&#093;&#093;"
+</PRE>
+<UL><P><LI>Starts a fake-vim session on the specified list of file pathnames.</P></LI>
+
+<PRE>
+$ jot /dev/null -st="fake_vim &#060;pathName1&#062;&#091; &#060;pathName2&#062;&#091; ...&#093;&#093; -c=&#060;cmd1&#062;&#091; +&#060;cmd2&#062;&#091; +&#060;cmd3&#062;&#091; +...&#093;&#093;&#093;;"
+</PRE>
+<P><LI>ditto but executes the specified vim commands before starting the interactive session. Commands using control characters should be escaped by prefixing with carat ( ^ ) - eg for an escape use "^&#091;". There is no limit to the number of commands that may be passed in using -in and + they are executed in left-to-right order.</P></LI>
+
+<P>The remainder of this section is devoted to differences between the behaviour of fake_vim and that of standard vim, as defined by this guide. Different versions of vim have slightly different behaviours. for my analysis of vim behaviour I used two builds of the same version:</P>
+
+<UL><P><LI>Crouton Chromebook - 7.4 (2013 Aug 10, compiled Nov 24 2016 16:44:48)</P></LI>
+
+<P><LI>Fedora PC - 7.4 (2013 Aug 10, compiled Apr 8 2016 11:52:51)</P></LI>
+
+</UL><P><LI>Startup - As described above, start jot on /dev/null with the startup file fake_vim followed by normal vim arguments.</P></LI>
+
+<P><LI>jot functions - all of the key functions described in the user guide (see <A HREF="jot_ug.html#KEYBOARD FUNCTIONS DEFINED AT STARTUP">Keyboard functions defined at startup</A>) are available in addition to vim editing keys.</P></LI>
+
+<P><LI>Nomenclature alert: in vimspeak tags refer to index points (e.g. generated by Exuberant Ctags), in jotspeak tags are little bits of metadata that can be assigned to an, otherwise, plain-text file image.</P></LI>
+
+<P><LI>fake_vim completely ignores whatever you may have in your ~/.viminfo</P></LI>
+
+<P><LI>&#123;Ctrl+w&#125; - this is a prefix to several important window control functions but it closes the current page on my Chromebook and it's not so easy to nobble Chromebook shortcuts, so fake_vim picks these up on &#123;Esc w&#125; instead.</P></LI>
+
+<P><LI>Handling multiple files - When switching between open files in vim it insists on either writing or abandoning any edits you've done before moving to the next file. This affects :n, jumps and tag operations. The fake_vim behaviour is to allow any file-to-file jumps but the session cannot be closed until all modified file images have been written.</P></LI>
+
+<P><LI>Messages, warnings and errors - no effort was gone gone to in the making of fake_vim messages to exactly match genuine-vim messages. Also fake_vim messages disappear on the next command and many error conditions, reported by vim, do not result in fake_vim messages.</P></LI>
+
+<P><LI>Currently, the &#123;d&#125; and &#123;y&#125; prefixes to movement commands behaves slightly differently to genuine vim. If the movement ends up at the beginning of the next line then genuine vim &#123;d&#125; will delete the character left of the cursor, &#123;y&#125; yanks to the end of the line. Whether this be either bug or feature fake_vim does not attempt to replicate it - fake vim deletes and yanks are consistent with the underlying movement command.</P></LI>
+
+<P><LI>The vim cursor is red, fake_vim's is white.</P></LI>
+
+<P><LI>There are all kinds of subtleties in the definition of a sentence for &#123;(&#125; and &#123;)&#125; - the implementation in fake_vim fails to respect a lot of these.</P></LI>
+
+<P><LI>When genuine vim writes a report (eg :reg - reports register status) ir replaces the last few lines of the display with the report text - the view is restored on next keystroke, fake_vim replaces the entire view and prompts user to hit &#123;Return&#125; to continue. Unlike vim, the keystroke does not contribute to the next command string.</P></LI>
+
+<P><LI>Currently there is no undo/redo facility available in jot or fake_vim. While this is not too difficult to implement for vim commands, its impracticable for jot command strings. One of the main motivations behind fake_vim was to allow super-powerful jot command sequences to be mixed with vim commands.</P></LI>
+
+<P><LI>jot does not support any form of line-wrapping mode. Hence :set &#091;no&#093;wrap is not supported in fake_vim. The &#123;zh&#125; and &#123;zl&#125; commands are fully supported though.</P></LI>
+
+<P><LI>In the event of &#123;zl&#125; or &#123;zh&#125; causing the current character to go out of view, genuine vim will adjust the cursor position to keep it in view. It's hard to see how this feature could be even remotely helpful, so fake_vim allows the cursor to go out of view and repeats the relevant section of the line in the console area.</P></LI>
+
+<P><LI>The arrow keys are set up for normal jot operation - vim-style cursor control is available on the &#123;h&#125;, &#123;j&#125;, &#123;k&#125; and &#123;l&#125; keys.</P></LI>
+
+<P><LI>When near the end of the file image, vim will often display blank lines. Also the last line is deleted vim will generally move up the screen to the previous line leaving another blank line behind. In contrast, jot will only display blank lines when the file image is smaller than the window.</P></LI>
+
+<P><LI>Genuine vim will not normally allow the cursor to go past the end of a line of text, the only exception appears to be with entirely blank lines. In vim these are displayed as though the line contains whitespace. This aversion to allowing the cursor past the end of the line probably explains the plethora of vim functions with before and after-the-cursor variants.</P></LI>
+
+<P>The native jot end-of-line behaviour is to allow the cursor to go just one character past the end of line displaying a tilde ( ~ ) after the actual end of the line. This native jot end-of-line behaviour is adopted in fake_vim.</P>
+
+<P><LI>On exit from insert mode, vim will, for some reason, move the cursor back one character, jot just leaves it after the inserted text.</P></LI>
+
+<P><LI>The &#123;U&#125; command, in genuine vim will restore the last line where insert mode was begun. For vim, this only works if the insertion created no new lines (ie no &#123;return&#125; was entered in the text) then no restoration is done. In fake_vim the first line is restored and the additional lines are left as-is.</P></LI>
+
+
+</UL><H4><A NAME="FAKE_EMACS.JOT">fake_emacs.jot</H4>
+<PRE>
+$ jot &#060;filePathName&#062; -st=fake_emacs
+</PRE>
+<P>The fake_emacs script is designed to replace the normal startup script - in fact it calls the normal startup script (see <A HREF="#STARTUP.JOT">startup.jot</A>) so most of the normal jot functionality is also available.</P>
+
+<P>The end point for this project is a good implementation of the functions described in the emacs quick-reference card (https://www.gnu.org/software/emacs/refcards/pdf/refcard.pdf)</P>
+
+<P>There are some features of emacs features which will probably never be fully implemented in jot because they're either too hard, impossible or because jot already has a better approach:</P>
+
+<UL><P><LI>"Undo changes" - undo commands are very difficult, maybe impossible, to implement in editors like jot as one operation can affect any number of buffers and internal bits of state. However it is quite likely that the journal system (see <A HREF="#RECOVER.JOT">recover.jot</A> and <A HREF="jot_ug.html#ABOUT NOT LOSING YOUR WORK">about not losing your work</A>) could be adapted for this purpose.</P></LI>
+
+<P><LI>"Incremental search" - although this looks flashy, it doesn't seem to be a particularly helpful feature. Jot does an adequate emulation of it but the jot <A HREF="jot_ug.html#POPUPSEARCH">PopupSearch</A> function offers a better way viewing the population of partial matches to a string. The emacs incremental search restricts the horizon to one page, PopupSearch searches toe entire document.</P></LI>
+
+<P><LI>Key sequences involving &#123;Ctrl+C&#125; - in common with most sane applications, jot interprets &#123;Ctrl+C&#125; (C-c - in emacsspeak) as an interrupt and is therefore not available for key sequences. All instances of Ctrl+c have been changed to Alt+c.</P></LI>
+
+
+</UL><H3><A NAME="GET.JOT">get.jot</H3>
+&#062; get&#091; &#060;path&#062;&#091;/&#060;pathElem&#062;&#093;&#093;&#123;F2&#125;
+<P>e.g.</P>
+
+&#062; get ~/ed/.t&#123;F2&#125;
+<UL><P><LI>selects files matching *.t in ~/ed</P></LI>
+
+</UL><P>The get script picks up a directory path and lists files in the directory in a simple menu-style buffer. The intrepid user can then browse through this buffer using the cursor-control or find keys to select either a file or directory. The target is selected by running the 0 macro (bound to the numeric-keypad 0 button).</P>
+
+<P>If the target file turns out to be a tar or zip archive, then the file contents are listed and you are invited to select one of the member files. The selected file is then unpacked and it's image turns up in the nominated buffer.</P>
+
+<P>If the target file is an Excel spreadsheet then the spreadsheet sheets are listed and you are invited to select one. If the xls2csv utility is on your search path, then it uses this to open the spreadsheet.</P>
+
+<P>A directory listing shows one item to each line of the buffer, with the directory path at the head of the list, subdirectory names are suffixed with a slash '/'. Both the directory path and the trailing slashes on subdirectory names are recognized by and are important to the 0 macro.</P>
+
+<P>If the given path is absolute (i.e.begins with / or ~ (linuxland) or &#060;drive&#062;:/ (windowsland) the path is used as-is. If the given relative path begins ./ then this is taken as an indication to construct a path relative to your PWD. If the given relative path does not begin with "./" then it is taken to be relative to the current file's path.</P>
+
+<P>If no pathname is given, the current buffer is checked - if the cursor points to a string that matches a valid pathName relative to the current file then that is used. If not, then the env GetDefaultPath is used as a path prefix.</P>
+
+<P>When a file is selected, the get script runs the unix file utility to identify the file type, if it is an archive offer a new menu showing all members of the archive and invites you to select again. If the selected file is compressed then get will decompress a copy of the file before reading. In windows, the file utility does not exist and the file-name extension determines the file type:</P>
+
+<UL><P><LI>&#060;name&#062;.xls - a microsoft excel spreadsheet,</P></LI>
+
+<P><LI>&#060;name&#062;.doc - a microsoft word document,</P></LI>
+
+<P><LI>&#060;name&#062;.docx - a microsoft word document,</P></LI>
+
+<P><LI>&#060;name&#062;.pdf - a PDF document,</P></LI>
+
+<P><LI>&#060;name&#062;.tar - a tar archive,</P></LI>
+
+<P><LI>&#060;name&#062;.tz - a compressed tar archive,</P></LI>
+
+<P><LI>&#060;name&#062;.zip - a zip archive,</P></LI>
+
+<P><LI>&#060;name&#062;.cab - a microsoft cabinet archive,</P></LI>
+
+<P><LI>Files with any other extension are treated as plain text.</P></LI>
+
+</UL><P>If your selection is a directory (including the .. directory to descend the directory tree) then the new directory redefines the menu. If the target is a file and you did not specify a destination buffer on the command line, you will be prompted for a destination buffer and the file will be loaded into that buffer.</P>
+
+<P>To force get to pick up the current file-image path, even when the text under the cursor could be interpreted as a pathName, then enter some wildcard as the path - e.g:</P>
+
+<PRE>
+get *&#123;F2&#125;
+</PRE>
+<P>If the file name is fully specified and exactly matches a file in the directory indicated by the path, then the file is selected, if the file name contains wildcards (the * character) then the resultant menu lists the matching files.</P>
+
+<P>The get script will open some classes of non-text documents and archive files using a helper app where necessary, this requires the installation of the helper:</P>
+
+<UL><P><LI>excel spreadsheets use xls2csv, this must be on your search path, if an xls2csv cannot be found, then it attempts to use the tika-app (see below). Files required to make xls2csv can be downloaded from the libxls sourceforge project. xls2csv is preferable on two counts:</P></LI>
+
+<UL><P><LI>it's compiled c not java, so it goes like the wind,</P></LI>
+
+<P><LI>it can extract a list of sheets for you to browse; tika, by contrast just dumps all the sheets into one vast page.</P></LI>
+
+</UL><P><LI>PDF, MS-word (.doc and .docx) and (where xls2csv is missing) excel spreadsheets use apache tika - this requires a java on your search path and the tika-app jar in your $&#123;JOT_HOME&#125;/bin area. The tika-app jar can be downloaded from apache.org. A java installation can be downloaded from java.com.</P></LI>
+
+<P><LI>It opens tar archives with tar - this should be on your linux search path. In MS-windows systems, a suitable version of tar can be downloaded from the sourceforge gnu project.</P></LI>
+
+<P><LI>It opens zip files with unzip.</P></LI>
+
+</UL><P>Here is a full list of the various helper co-processors you may need</P>
+
+<UL><P><LI>cabextract - microsoft, in most linux distributions</P></LI>
+
+<P><LI>file - gnu.org, in most linux distributions</P></LI>
+
+<P><LI>gunzip - gnu.org, in most linux distributions</P></LI>
+
+<P><LI>iconv - gnu.org</P></LI>
+
+<P><LI>gtar - gnu.org, in most linux distributions</P></LI>
+
+<P><LI>tika - tika.apache.org/download.html, get.jot expects to find this in $&#123;JOT_HOME&#125;/bin - you will also need java.</P></LI>
+
+<P><LI>unzip - gnu.org, in most linux distributions</P></LI>
+
+<P><LI>which - gnu.org, in most linux distributions</P></LI>
+
+<P><LI>xls2csv - http://libxls.sourceforge.net</P></LI>
+
+
+</UL><H3><A NAME="COMP.JOT">comp.jot</H3>
+&#062; comp&#091; &#060;key&#062;&#093;&#091; -backup&#091;=&#060;backupVersion&#062;&#093;&#093;&#091; -nosplit&#093;&#123;F2&#125;
+<P>This sets up macros 4 and 5 to compare the contents of two buffers. The current buffer and a nominated reference buffer. If no comparison buffer is nominated, then the buffer is assumed to be a file image and is compared to the version spinning on disc.</P>
+
+<P>It also sets up macro 6, initially this repeats the last given command in the other buffer,subsequent invocations of macro-6 repeat the same command in both buffers.</P>
+
+<P>By default, comp.jot will redefine the windows to give you a split-screen view of the two buffers - the -nosplit option stops this happening.</P>
+
+<P>If the &#060;key&#062; arg value is given, this is the identity of the Reference buffer. If the reference buffer is not given, then the buffer is assumed to be a file image and the current filing-system version of the file is read into the ! buffer and that is compared to the current buffer.</P>
+
+<P>If the -backup value is given, then the most recent backup version is read to the ! buffer - see <A HREF="#BACKUP.JOT">backup.jot</A>. The path for the backup directory is assumed to be &#060;originalFilePath&#062;/backup - if no backupVersion string is specified it takes the most recent backup version. If a backupVersion string is specified then the extracted version name will match this string. In the even of more than one backup versions matching the given string, an error message is issued.</P>
+
+<P>It also redefines macros 4, 5 and 6 (bound to numeric-keypad buttons 4, 5 and 6).</P>
+
+<UL><P><LI>Macro 5 ( &#123;KP_5&#125; or &#123;Esc 5&#125; ) will compare successive lines in the current buffer with those the ref buffer, starting at the current character position in both progressing forwards through the buffers.</P></LI>
+
+<P>When the comparison reaches the end of a buffer all colour tags are removed from that buffer. This behaviour gives an easy way to remove the colour tags from the buffers:</P>
+
+&#062; m0&#123;KP_5&#125;
+<P><LI>Button 4 is similar, except that it compares backwards and does not clear the colour tags.</P></LI>
+
+<P><LI>If a jot command string is entered before hitting buttons 4 or 5, then instead of running the comparison, the jot command string is applied to both buffers - this is designed to facilitate re-synchronization of the two buffers.</P></LI>
+
+<P><LI>For those lacking a numeric keypad, or for linux users when the keypad has not been set up for jot (see <A HREF="jot_tech.html#X-WINDOWS SETUP">X-windows setup</A>) then &#123;Esc 4&#125;, &#123;Esc 5&#125; and &#123;Esc 6&#125; will work.</P></LI>
+
+<P><LI>Button 6 initially repeats the previous interactive command but in the other buffer. Subsequently, it repeats the same command in both buffers.</P></LI>
+
+
+</UL><H3><A NAME="RECOVER.JOT">recover.jot</H3>
+<P>Journal files are collected when the editor is started with the -journal qualifier see <A HREF="jot_ug.html#ABOUT NOT LOSING YOUR WORK">About not losing your work</A>. These can be used to retrace every step in an editor session in the event of a crash. The journal files are held in a subdirectory alongside the primary file named &#060;filename&#062;.jnl (where fileName is the primary file). It holds snapshots of all files and system queries read by the session and a history.txt file containing a log of your keyboard and mouse activity. All these files are deleted when the editor closes normally.</P>
+
+<P>The recover.jot script works by translating the history.txt file into a command script that will retrace your interactive session with snapshot copies of your input files and then winding it's way through all of your interactive commands and keystrokes.</P>
+
+<P>The identities of saved-copies of files is preserved but they are uniquified by suffixing them with your session's pid and a unique number. An extended session may read, modify and write a file and then read it in again later. It therefor keeps a separate snapshot of every read of the same file.</P>
+
+<P>Note that if there's a preexisting journal directory of the same name, the session will bounce complaining it can't create the &#060;fileName&#062;.jnl journal directory.</P>
+
+<P>For the duration of the recovery run all file writes are disabled - when the recover_now script script terminates the session should continue normally, Appending any new commands to the original history.txt file and adding new snapshot files.</P>
+
+<P>On completion of a successful recovery, the original journal files are left untouched, you must delete them before launching a new editing session.</P>
+
+<P>The recovery process starts with a special initialisation script recover.jot which reads the history.txt file and creates a runnable recovery script in your pwd, named recover_now.jot it then runs this recovery script. Here is the full process, from the start of the crashing session:</P>
+
+<PRE>
+$ jot &#060;fileName&#062; -journal
+</PRE>
+<UL><P><LI>It crashes (to see this in operation, suspend and kill the session. The journal files should visible in ./&#060;fileName&#062;.jnl/</P></LI>
+
+<P><LI>Start of the recovery procedure (note this next editor session is started with no -journal qualifier if you did it would fail immediately complaining that it could not create the new history file). </P></LI>
+
+<PRE>
+$ jot &#060;fileName&#062; -st=recover
+</PRE>
+<P>This creates a recovery script recover_now.jot which it then immediately runs - if all goes well you will end up exactly where you were. On completion of the recovery, any new commands or keystrokes are appended to the journal repository. In theory, you can keep on crashing and recovering the sessions.</P>
+
+<P>If your original session was started with an -init=... sequence these need not be inserted here - they are recovered from the history file.</P>
+
+<P>Now, if the recovery session crashes in the same way at the same point, congratulations, you have probably discovered a genuine jot bug!! Please report your bug - a tarball of the journal directory would be most helpful to the investigation into what went wrong. To recover from such a situation, edit the recovery script created by recover, removing the last command then restart using the modified recover_now script:</P>
+
+<PRE>
+$ jot &#060;fileName&#062; -init="%r=./recover_now.jot -asConsole"
+</PRE>
+<P><LI>This approach is also useful for recovering from self-inflicted disasters. Suppose that, at some point in the session, you've destroyed something and now you'd now like to see it back again. Then edit the recover_now script, deleting the commands that caused the problem and all subsequent commands. Or, maybe, by inserting a command to save what you want to keep.</P></LI>
+
+<P><LI>The recover_now.jot script must be run with -asConsole because they contain escape sequences - see <A HREF="jot_tech.html#%R">%R</A>.</P></LI>
+
+<P><LI>Optionally add the -hold qualifier, this holds the screen before exiting so, in the event of an early exit, you can see what's happening - see <A HREF="jot_tech.html#-HOLD">-hold</A>.</P></LI>
+
+</UL><P>Note: the history file in the journal area is entirely separate from the history maintained for the %Q <A HREF="jot_tech.html#QUERY HISTORY">query history</A> and is not affected by the the CLI -history setting.</P>
+
+
+</UL><H4><A NAME="ANNOTATE_RECOVERY_FILE.JOT">annotate_recovery_file.jot</H4>
+<P>This simple script is useful when puzzling over what activity is in the recovery file. It simply reads the relevant keymap file and back-annotates the function and key names as comments in the recover_now.jot.</P>
+
+<P>Although these comments should not affect the final outcome of the recovery, they certainly slow it down as the recovery session reflects every one back to the console area. It is therefore suggested that users keep a clean un-annotated copy to run and just use the annotated version for analysis.</P>
+
+
+</UL><H4><A NAME="RECOVER.JOT RESTRICTIONS">recover.jot Restrictions</H4>
+<P>A simple session will involve only one file and will not involve any interactions with other files or the system. </P>
+
+<P>More complex sessions can be problematic ... here are a few things to be aware of. In all cases, the effect is the same - some slight change causes the focus point in the recovery session to be different to that in the original and the result is complete gibberish.</P>
+
+<P>Essentially the problem is that we tend to browse around text buffers and menus using cursor-control keys rather than searching. If a menu (say a list of files generated by get.jot) has a different number of entries because files have been added or removed from that pat of the filing system, then the recovery session might end up picking the wrong item.</P>
+
+<P>In most cases, problems can be wriggled around by editing the recover_now.jot script and restarting as described above.</P>
+
+<PRE>
+$ jot &#060;fileName&#062; -init="%r=./recover_now.jot -asConsole"
+</PRE>
+<UL><P><LI>The recovery process will only work if the recovery session has an identical environment to the original - unfortunately. This can never be achievable since the clock will have ticked on since the original session and a few, but not many, scripts and procedures are time dependant. However response of all system queries via the %E command are held in the journal area - so they're fine, system queries using <A HREF="jot_tech.html#%Q">%Q</A> may be problematic.</P></LI>
+
+<P>The <A HREF="jot_tech.html#QUERY DIR">query dir</A> is most likely to cause trouble - the directory contents might change between the original session and the recovery session. Then scrolling down a fixed number of filename may lead to the wrong file. If the selected file is then read with the %i command, then it will always pick up the correct file from the journal area because the correct file name is picked up from the history.txt file.</P>
+
+<P><LI>If something, in the original session, fails and then it's fixed by making some adjustment to the filing system (e.g. a chmod, mkdir or some-such) - then the command that originally failed will now succeed in the recovery session. This might cause the overall recovery session to diverge and possibly fail.</P></LI>
+
+<P><LI>The recovery should be done in the same sized xterm as in the original session. If &#060;&#060;PageUp&#062;&#062; and &#060;&#060;PageDown&#062;&#062; operations were used, these set the focus point with reference to the window size. Also, the outcome of basic functions like &#060;&#060;WordRight&#062;&#062; and &#060;&#060;WordLeft&#062;&#062; are dependant on the screen width. The standard startup script sets window size in relation to screen size. For this reason the recover.jot script will refuse to proceed unless the window height in the recovery session is the same as that in the original session.</P></LI>
+
+<P><LI>If, in the original session, you interrupted something with Ctrl+C, the command count at interrupt time is noted and the recovery session is interrupted at the same point by setting a command counter.</P></LI>
+
+
+</UL><H3><A NAME="CERR.JOT">cerr.jot</H3>
+&#062; cerr&#123;F2&#125;
+<P>This picks up a compiler report and defines macros 3 and 4 which allow you to step between error or warning reports in the C source.</P>
+
+<P>For this to work you must have the C source file in the current buffer and the compiler report must be in the same directory and with the same filename as the source but with the .lis name extension.</P>
+
+<P>The script uses line numbers picked up from the compiler report even if the actual line numbers have shifted because of changes already made to the source file. The report linenumber is adjusted linenumbers to compensate for lines added or removed before the current line. This only works if your compiler reports problems in line-number order.</P>
+
+<P>The current version of cerr.jot will work with the output from either gcc or microsoft cl compilers.</P>
+
+
+</UL><H3><A NAME="DO.JOT">do.jot</H3>
+&#062; do &#060;CliCommand&#062;&#123;F2&#125;
+<P>This simply performs the shell commands and it's arguments, the result is read back into the @ buffer.</P>
+
+
+</UL><H3><A NAME="LS2LIST.JOT">ls2list.jot</H3>
+&#062; ls2list&#123;F2&#125;
+<P>Transforms the output of a unix ls -laRF listing to a list of paths for <A HREF="#MULTI_DO.JOT">multi_do.jot</A>, <A HREF="#MULTI_ED.JOT">multi_ed.jot</A> etc.</P>
+
+
+</UL><H3><A NAME="MULTI_DO.JOT">multi_do.jot</H3>
+&#062; multi_do &#060;cmd1&#062;&#091; $1 | &#060;cmd2&#062; ... &#091; -quick&#093;&#093;
+<P>This script assumes that the current buffer is a list of pathnames. It takes a CLI command as it's argument this is applied to all files in the list and the results are captured in the @ buffer. See also <A HREF="#LS2LIST.JOT">ls2list.jot</A>.</P>
+
+<UL><P><LI>The -quick option runs the command with lists of pathnames as extended argument lists this is faster for big heavyweight commands which take time to activate.</P></LI>
+
+<P><LI>The optional $1 entries are replaced by each pathname from the list ($1 only allowed once when -quick is given).</P></LI>
+
+</UL><P>Examples:</P>
+
+<PRE>
+$ ls $JOT_RESOURCES/*.txt | jot_dev -in="%r=multi_do cat \$1 | sed s/ and / AND / -quick"
+$ ls $JOT_RESOURCES/*.txt | jot_dev -in="%r=multi_do cat \$1 | sed s/ and / AND /"
+</PRE>
+
+</UL><H3><A NAME="MULTI_PAIR">multi_pair</H3>
+&#062; multi_pair &#060;shell command&#062;&#123;F2&#125;
+<P>The multi_pair.jot script applies pairs of arguments (typically pathnames) to a unix command requiring two arguments - e.g cp, ln, mv, diff etc.</P>
+
+<P>This requires the current buffer to contain a two-column tab separated table, each entry being a pathname. The Unix command is applied to each pair of pathnames in turn. This is only useful for unix commands which apply to two pathnames.</P>
+
+<P>Typically, you start off with a list of pathnames (derived, perhaps, using 'ls2list.jot') then copy, filter and modify each path to obtain the secondary pathname.</P>
+
+<P>It works by creating a temporary command file containing the expanded command string for each pair of operands. The generated script is written for bourne shell and, consequently, multi_pair will not work in windows environments.</P>
+
+<P>This example demonstrates multi_pair used with ls2list.jot to compare the contents of two directory subtrees.</P>
+
+<PRE>
+$  mkdir test; cd test
+</PRE>
+<P>Copy the resources tree to the test directory</P>
+
+<PRE>
+$  cp -R $JOT_RESOURCES/* .
+</PRE>
+<P>Compare all files with their originals - here, each pathname has been copied and modified by prefixing it with '\t$JOT_RESOURCES/':</P>
+
+<PRE>
+$  ls -aRF | jot -in="%r=ls2list; (rr-n.r0aa&i:\t$JOT_RESOURCES/:ham)0 %r=multi_pair diff"
+</PRE>
+<P>Now change a local file and one deeper down the tree.</P>
+
+<PRE>
+$  jot l99.t -in=f/__50/s/zzz/ %c
+$  chmod u+w test_get/another_dir1/t.t; jot test_get/another_dir1/t.t -in=f/jon/s/zzz/ %c
+</PRE>
+<P>This time diff should find two changes:</P>
+
+<PRE>
+$  ls -aRF | jot -in="%r=ls2list; (rr-n.r0aa&i:\t$JOT_RESOURCES/:ham)0 %r=multi_pair diff"
+</PRE>
+
+</UL><H3><A NAME="MULTI_ED.JOT">multi_ed.jot</H3>
+&#062; multi_ed&#091; -use &#060;key1&#062; &#060;key2&#062;&#093;&#091; -command &#060;jot commands&#062;&#093;&#123;F2&#125;
+<P>This script requires that that the current buffer is a list of valid pathNames. It prompts you for a series of jot commands, when you've finished entering the jot commands, the complete set of jot commands is applied to every file in the list.</P>
+
+<P>This script picks up your specified commands and constructs a command macro to execute these commands for all of the files in the list (in the @ buffer, by default). This macro reads each of the files in turn to a working buffer (!, by default) where the commands are run.</P>
+
+<P>If no -commands list is given, it prompts you to give it some, theses commands may extend over several lines, the list of commands is terminated with a line containing only a colon ':'.</P>
+
+<P>Note - many command scripts us either or both of the default working buffers used by this script, to wriggle around this problem, the -use &#060;key&#062; &#060;key&#062; qualifier allows you to nominate an alternative pair of buffers. Typically you should chose a pair of buffers in the range A to Z, since jot scripts normally avoid these.</P>
+
+<P>Also use the -command qualifier to specify commands from the command line.</P>
+
+<P>Note that multi_ed does not write out anything so, if you want to write the modified files, the last command must be %o.</P>
+
+<P>e.g If this these are the commands we want to run:</P>
+
+&#062; f/chapter/l0i/1 /&#123;Return&#125;
+&#062; doc2fold&#123;F2&#125;
+&#062; %o&#123;Return&#125;
+<P>We want to apply the same process to a list of pathnames, in this example they are generated by ls, processed by ls2list and filtered to extract just .doc files:</P>
+
+&#062; %ep=ls -laRF&#123;Return&#125;
+&#062; ls2list&#123;F2&#125;
+&#062; m-0 (r0v-/.doc/m,k)0&#123;Return&#125;
+&#062; multi_ed -use q w -command f/chapter/l0i/1 / %r=doc2fold; %o;&#123;F2&#125;
+<P>or something like this, starting from a unix prompt:</P>
+
+<PRE>
+$ ls *.doc | jot
+</PRE>
+<P>then, in jot:</P>
+
+&#062; multi_ed -use q w -command f/chapter/l0i/1 / %r=doc2fold; %o;&#123;F2&#125;
+
+</UL><H3><A NAME="RETAB.JOT">retab.jot</H3>
+&#062; retab&#091; &#060;string&#062;&#093;&#123;F2&#125;
+<P>Searches the entire buffer for the given string, when found, the first instance of the string in any line is prefixed with a tab character. Also removes any whitespace adjacent the inserted tab. Note that jot displays tabs, along with other control characters are displayed as tildes ( ~ ).</P>
+
+<P>This script is intended for use as a precursor to <A HREF="#AUTOTAB.JOT">autotab.jot</A>, <A HREF="#AUTOTABJUST.JOT">autotabjust.jot</A>, <A HREF="#AUTOTABDP.JOT">autotabdp.jot</A> - see <A HREF="jot_tech.html#TABULATED TEXT">tabulated text</A>.</P>
+
+
+</UL><H3><A NAME="RETABHERE.JOT">retabhere.jot</H3>
+&#062; retabhere&#123;F2&#125;
+<P>This inserts tabs in the current-character column. This is used in conjunction with <A HREF="#RETAB.JOT">retab.jot</A>, <A HREF="#AUTOTAB.JOT">autotab.jot</A> and <A HREF="#AUTOTABJUST.JOT">autotabjust.jot</A>.</P>
+
+<P>This script is useful for preservation of one column of a partly-formatted table - see <A HREF="jot_tech.html#TABULATED TEXT">tabulated text</A>. If you have several tab points to insert, it is important to start with the rightmost tab point and work leftwards.</P>
+
+
+</UL><H3><A NAME="AUTOTAB.JOT">autotab.jot</H3>
+&#062; autotab&#123;F2&#125;
+<P>Aligns tab points in a buffer.</P>
+
+<P>This operates by searching the buffer for lines containing tabs, it locates the leftmost tab character on each line and finds the rightmost first tab. The position of the rightmost first tab defines the tab points for all the other first tabs.</P>
+
+<P>It then replaces the first tab on any line with sufficient whitespace to align the text following the first tab on any line.</P>
+
+<P>Lines which do not contain any tabs are ignored - see <A HREF="jot_tech.html#TABULATED TEXT">tabulated text</A>.</P>
+
+
+</UL><H3><A NAME="AUTOTABJUST.JOT">autotabjust.jot</H3>
+&#062; autotabjust&#123;F2&#125;
+<P>Similar to autotab, but right-justifies so that, on any line containing tabs, the following tabs are aligned - see <A HREF="jot_tech.html#TABULATED TEXT">tabulated text</A>.</P>
+
+
+</UL><H3><A NAME="AUTOTABDP.JOT">autotabdp.jot</H3>
+&#062; autotabdp&#123;F2&#125;
+<P>Similar to autotab but inserts blanks so as to align decimal points in the column following the tab - see <A HREF="jot_tech.html#TABULATED TEXT">tabulated text</A>.</P>
+
+
+</UL><H3><A NAME="TAB.JOT">tab.jot</H3>
+&#062; tab&#091;&#060;n&#062;&#093;&#123;F2&#125;
+<P>Resolves all tabs to the specified tab spacing - defaults to 8.</P>
+
+
+</UL><H3><A NAME="MAIL.JOT">mail.jot</H3>
+&#062; mail&#091; -FOlder &#060;folderName&#062;&#093;&#091; -Last &#060;n&#062;&#093;&#091; -FINd &#060;string&#062;&#093;&#091; -New&#093;&#091;&#091; -File &#060;MailPathName&#062;&#093;&#123;F2&#125;
+<UL><P>-FOlder foldername - loads the specified mail folder from ~/Mail/&#060;folderName&#062; -Last &#060;n&#062; - loads only the last n mail messages -FINd &#060;string&#062; - loads only the messages containing the string. -New - Read no mail just create a new mail message. -File &#060;fileName&#062; - Read the specified file as a mail message.</P>
+
+</UL><H4><A NAME="USAGE EXAMPLE">Usage example</H4>
+<P>jot /dev/null -in="%r=mail -file=$&#123;JOT_RESOURCES&#125;/mail"</P>
+
+</UL><H4><A NAME="DEFINED ESCAPE SEQUENCES">Defined escape sequences</H4>
+<UL><P>&#123;Esc+o&#125; - Open selected message. &#123;Esc+x&#125; - eXtracts message to file</P>
+
+</UL><P>&#060;list&#062; &#123;Esc+m&#125; - send current buffer as mail using "To:" , "Cc:" and "Bcc:" lines</P>
+
+<P>&#091;&#060;CClist&#062;&#093; &#123;Esc+r&#125; - reply to sender &#091;and users on CC list&#093;, if list contains a '*'</P>
+
+<UL><P>the list will reply to all recipients of original message. </P>
+
+</UL><P>&#091;&#060;n&#062;&#093; &#123;Esc+i&#125; - include indented current &#091;or nominated&#093; message, in current buffer</P>
+
+<UL><P>&#123;Esc+a&#125; - autograph - add the autograph message to the current folder. </P>
+
+</UL><P>This script is not really seriously intended to be used as a general-purpose mailer. However with the mail handling agents correctly set up for a local POP mail file it can read and send mails. It may be useful to users of MUTT or similar POP-based mailers as a means of integrating with an editor session.</P>
+
+<P>This script sets up a simple Mail User Agent (MUA) - a programme that reads from a POP file and constructs a mail index. POP (Post Office Protocol) is a simple text-based format. This POP file is generally created by your Mail Delivery Agent (MDA) working with your Mail Transfer Agent (MTA) which interacts with your mail provider.</P>
+
+<P>Linux users should set up their MDA to deliver in POP3 form to /var/spool/mail/&#060;yourUserName&#062; a reasonably simple and robust setup involving fetchmail and procmail is described in http://www.andrews-corner.org/mutt.html You can test your setup using mutt - a useful text-based MUA.</P>
+
+<P>The POP-file image and mail index are held in the * buffer, to return to the mail index, type in the z* command.</P>
+
+<P>Mail adds the following control functions:</P>
+
+<UL><P>&#123;Esc o&#125; - Open - opens the message indicated at the current line </P>
+
+<UL><P>of the mail index.</P>
+
+</UL><P>&#123;Esc x&#125; - eXtracts message to file</P>
+
+</UL><P>&#060;list&#062; &#123;Esc m&#125; - send (Mail) current buffer using "To:" , "Cc:" and</P>
+
+<UL><P>"Bcc:" lines.</P>
+
+</UL><P>&#091;&#060;CClist&#062;&#093; &#123;Esc r&#125; - Reply to sender &#091;and users on CC list&#093;, if list</P>
+
+<UL><P>contains a '*' the list will reply to all recipients of original message.</P>
+
+</UL><P>&#091;&#060;n&#062;&#093; &#123;Esc i&#125; - Include indented current &#091;or nominated&#093; message, in</P>
+
+<UL><P>current buffer</P>
+
+</UL><P>&#123;Esc a&#125; - Autograph - add the autograph message to the current</P>
+
+<UL><P>folder.</P>
+
+
+</UL><H3><A NAME="C.JOT">c.jot</H3>
+&#062; c&#091; -tag&#093;&#123;F2&#125;
+<P>Redefines macros 1 and 2 (bound to numeric-keypad 1 and 2) to functions suitable for browsing C code. It is reasonably bulletproof but it will fail to set up the hashtables when it finds a mismatch in the curly-brace structure of your coding. Note that c.jot has no knowledge of what compile-time variables are set - it assumes #ifdefs are TRUE. Hence c.jot can fail to match braces even valid C when braces are inside #ifdef (etc.) blocks.</P>
+
+<P>Once set up, macros 1 and 2 (numeric keypad buttons 1 and 2) will first create a block index for the current c function. With the index set up, the 2 macro will locate the next block-start character '&#123;' in the c code or, if already at a block-start, will locate the corresponding block-end character '&#125;'. Similarly, macro 1 will locate the move back in the c code to the nearest block-end character or, if already at a block-end, move to the corresponding block start character.</P>
+
+<P>The optional -tag qualifier adds colour tags to comments.</P>
+
+<P>It also sets the env variable GetDefaultPath to /usr/include - the effect of this is to tell the <A HREF="#GET.JOT">get.jot</A> script to default to the specified path, with this set you can set the cursor to a library include file and it will find it.</P>
+
+<P>The speedup due to the hashtables, although welcome, is not really the principal motivation for their use. Because C allows multi-line comments and text strings, it is difficult, perhaps impossible, to reliably parse C when plodding back through the code. The c script plods forwards once to get forward and back links for the hashtable.</P>
+
+<UL><P><LI>&#123;KP_1&#125; - Calls macro 1, this finds last '&#125;' character then goes back to it's matching '&#123;' using the hash table for that buffer - see <A HREF="jot_tech.html#ABOUT HASHTABLES">about hashtables</A>.</P></LI>
+
+<P><LI>&#123;KP_2&#125; - Calls macro 2, this Find next '&#123;' character then goes to it's matching '&#125;'.</P></LI>
+
+
+</UL><H3><A NAME="JOT.JOT">jot.jot</H3>
+&#062; jot&#123;F2&#125;
+<P>Sets up macros 1, 2 and 3 (bound to numeric-keypad 1-3) to functions suitable for browsing jot command scripts. As with the <A HREF="#C.JOT">c.jot</A> script, it uses hash tables. Jot code is another one of those difficult ones where it's difficult to plod back through the code.</P>
+
+<P>In interactive usage, unterminated strings are allowed - e.g. f/fred&#123;Return&#125;, jot also allows these in macros although this is not recommended. When one of these is left unterminated in a script it is generally a coding mistake, but it might lead to the jot command parser being unable to match parenthesis. Such errors are difficult to trace. Use &#123;* KP_3&#125; to locate unterminated strings in your scripts.</P>
+
+<P>Note that jot.jot adds tags to the code, this will cause code called via the <A HREF="jot_tech.html#HASHTABLE CALL">hashtable call</A> command to fail when it is next recompiled. See <A HREF="jot_tech.html#CALLING SUBROUTINES BY NAME">Calling subroutines by name</A>.</P>
+
+<UL><P><LI>&#123;KP_1&#125; (or &#123;Esc 1&#125;) Calls macro 1 - find previous ')' then refocus to its matching '(' using hashtables.</P></LI>
+
+<P><LI>&#123;KP_2&#125; (or &#123;Esc 2&#125;) Calls macro 2 - find next '(' then refocus to its matching ')' using hashtables.</P></LI>
+
+<P><LI>&#060;jotCommand&#062;&#123;KP_3&#125; Calls macro 3 find next occurrence of the specified jot command string.</P></LI>
+
+<P><LI>&#123;* KP_3&#125; (or &#123;* Esc 3&#125;) Calls macro 3 modified, finds next unterminated string in a macro.</P></LI>
+
+
+</UL><H3><A NAME="PERL.JOT">perl.jot</H3>
+&#062; perl&#123;F2&#125;
+<P>Defines macros 1 and 2 (bound to numeric-keypad 1 & 2) assigning functions suitable for browsing perl code.</P>
+
+<UL><P><LI>&#123;KP_1&#125; Macro 1 Go back to start of current block i.e locates the '&#123;' or '&#091;' matching the current '&#125;' or '&#093;'.</P></LI>
+
+<P><LI>&#123;KP_2&#125; Macro 2 Go forwards end of current block i.e locates the '&#125;' or '&#093;' matching the current '&#123;' or '&#091;'.</P></LI>
+
+</UL><P>Normally, macro 1 should be started with the cursor over a block-end brace (a '&#125;'&#125; or '&#093;' character) or over whitespace to the right of one. If started with the cursor at some other point, the macro locates a suitable start point and stops - you need to check the chosen start point and press the'1' key once more.</P>
+
+<P>Similarly, macro 2 matches to the current open-brace character or the whitespace immediately before one, if the cursor is over some other character, it locates a suitable start point and stops to let you check before restarting.</P>
+
+
+</UL><H3><A NAME="SKILL.JOT">skill.jot</H3>
+&#062; skill&#123;F2&#125;
+<P>This is one for users of Cadence design frameworks interface language (skill) - a lisp-like language.</P>
+
+<P>Defines macros 1, 2, 3, 4 and 5 (bound to numeric-keypad 1-5) assigning functions useful for browsing skill code. The functions dedicated to skill keywords recognize the following skill keywords: if, when, unless, foreach, for, while, case, cond and procedure</P>
+
+<UL><P><LI>Macro 1 scan back to keyword at start of current block.</P></LI>
+
+<P><LI>Macro 2 scan forwards to keyword at end of current block.</P></LI>
+
+<P><LI>Macro 3 scan forwards to next "( ... )" block-start.</P></LI>
+
+<P><LI>Macro 4 scan back to start of current "( ... )" block.</P></LI>
+
+<P><LI>Macro 5 scan forwards to end of current "( ... )" block.</P></LI>
+
+
+</UL><H3><A NAME="CSH.JOT">csh.jot</H3>
+&#062; csh&#123;F2&#125;
+<P>Redefines macros 1, 2, 3, 4 and 5 to functions suitable for browsing C-shell scripts (these macros are normally bound to Numeric-keypad buttons 1, 2, 3, 4 and 5 respectively).</P>
+
+<P>In the context of a C-shell script, a block is a series of commands controlled by some recognized C-shell built-in structure. The following structures are supported:</P>
+
+<UL><P><LI>if ... else ... elsif ... endif</P></LI>
+
+<P><LI>foreach ... end</P></LI>
+
+<P><LI>while ... end</P></LI>
+
+<P><LI>switch case ... case ... endsw</P></LI>
+
+</UL><P>The following macros are defined:</P>
+
+<UL><P><LI>&#123;KP_1&#125; - Macro 1 - searches back for the previous end-block statement (endif, end or endsw) and then finds the matching startpoint (if, foreach, while or switch). Note, the jot script does not check the consistency of the start and end points (e.g. it will not complain if a foreach is terminated by an endsw).</P></LI>
+
+<P><LI>&#123;KP_2&#125; - Macro 2 - searches forwards for the next start-block statement (if, foreach, while or switch) and then finds the matching endpoint (endif, end or endsw). As with Macro 1, it does not check the consistency of the start and end points.</P></LI>
+
+
+</UL><H3><A NAME="SH.JOT">sh.jot</H3>
+&#062; sh&#123;F2&#125;
+<P>Redefines macros 1 and 2 (bound to numeric-keypad 1 and 2) to functions suitable for browsing Bourne-shell scripts.</P>
+
+<UL><P><LI>&#123;KP_1&#125; - Macro 1, Locates previous block-end statement (fi, esac, done, else, or elif), if not already at one, then finds corresponding block start (if, case, for, if, elif).</P></LI>
+
+<P><LI>&#123;KP_2&#125; - Macro 2, Locates previous block-start statement (if, case, for, if, elif) with it's matching block-start (fi, esac, done, else, or elif).</P></LI>
+
+<PRE>
+N.B.
+</PRE>
+</UL><P>Both functions work by counting block depth, there is no checking of block-start to block-end keyword-consistency, e.g. an 'if' block terminated by 'end' is matched without complaint.</P>
+
+
+</UL><H3><A NAME="KSH.JOT">ksh.jot</H3>
+&#062; ksh&#123;F2&#125;
+<P>Similar to <A HREF="#SH.JOT">sh.jot</A> but supports some additional ksh keywords.</P>
+
+
+</UL><H3><A NAME="MIF.JOT">mif.jot</H3>
+&#062; mif&#123;F2&#125;
+<P>Sets up macros 1, 2 and 3 (bound to numeric-keypad 1-3) for browsing mif files.</P>
+
+<UL><P><LI>&#123;KP_1&#125; Macro 1 - Go back to start of current block '&#060;'.</P></LI>
+
+<P><LI>&#123;KP_2&#125; Macro 2 - 2 Go forwards end of current block '&#062;'.</P></LI>
+
+<P><LI>&#123;KP_3&#125; Macro 3 - Go forwards to next 'TextFlow' keyword disregarding structure.</P></LI>
+
+
+</UL><H3><A NAME="EDIF.JOT">edif.jot</H3>
+ <CODE>&lt;</CODE>P<CODE>></CODE>edif&#123;F2&#125;<CODE>&lt;</CODE>/P<CODE>></CODE>
+
+<P>Sets up macros 1, 2 and 3 (bound to numeric-keypad 1-3) to functions suitable for browsing edif files.</P>
+
+<UL><P><LI>&#123;KP_1&#125; Macro 1 Go back to start of current block '('.</P></LI>
+
+<P><LI>&#123;KP_2&#125; Macro 2 Go forwards end of current block ')'.</P></LI>
+
+<P><LI>&#123;KP_3&#125; Macro 3 Go forwards to next Cell keyword disregarding structure.</P></LI>
+
+
+</UL><H3><A NAME="VHDL.JOT">vhdl.jot</H3>
+&#062; vhdl&#123;F2&#125;
+<P>This sets up macros 1 to 5 (bound to numeric-keypad 1-5) to functions suitable for browsing VHDL files.</P>
+
+<UL><P><LI>&#123;KP_1&#125; Macro 1 Finds previous clause in current block.</P></LI>
+
+<P><LI>&#123;KP_2&#125; Macro 2 Finds next clause in current block.</P></LI>
+
+<P><LI>&#123;KP_3&#125; Macro 3 Find next next signal/variable assignment, block start statement or labelled statement irrespective of level.</P></LI>
+
+<P><LI>&#123;KP_4&#125; Macro 4 Finds previous block start statement.</P></LI>
+
+<P><LI>&#123;KP_5&#125; Macro 5 Finds next block end (invariably the END statement).</P></LI>
+
+</UL><P>Notes and restrictions:</P>
+
+<UL><P><LI>Block-start keywords recognized: IF, CASE, FOR, WHILE, ENTITY, ARCHITECTURE, CONFIGURATION, PROCESS, PACKAGE, PROCEDURE, FUNCTION and COMPONENT</P></LI>
+
+<P><LI>Subblock-start keywords recognized: ELSE, ELSIF, WHEN and BEGIN.</P></LI>
+
+<P><LI>In general the VHDL keywords mentioned above should be the first non-whitespace character on a line, but a crude implementation of the &#060;labelName&#062;:&#060;keyWord&#062; syntax works most of the time.</P></LI>
+
+<P><LI>The editor should not be run in case sensitive mode - some lower-case identifiers may confuse it.</P></LI>
+
+<P><LI>The cursor is left at the beginning of a significant VHDL keyword, all buttons will work when the cursor is left anywhere in whitespace before a VHDL keyword.</P></LI>
+
+<P><LI>There is no checking of the consistency of the keywords - thus ELSE is accepted as a subblock delimiter in a COMPONENT definition.</P></LI>
+
+
+</UL><H3><A NAME="TCL.JOT">tcl.jot</H3>
+&#062; tcl&#123;F2&#125;
+<P>Sets up macros 1, 2 and 3 (bound to numeric-keypad 1-3) to functions suitable for browsing edif files.</P>
+
+<UL><P><LI>&#123;KP_1&#125; Macro 1 Go back to start of current block '&#123;/&#091;'.</P></LI>
+
+<P><LI>&#123;KP_2&#125; Macro 2 Go forwards end of current block '&#125;/&#093;'.</P></LI>
+
+<P><LI>&#123;KP_3&#125; Macro 3 Go forwards to next structure-building keyword disregarding block structure.</P></LI>
+
+
+</UL><H3><A NAME="BT.JOT">bt.jot</H3>
+&#062; bt&#123;F2&#125;
+<P>This script is useful when debugging complicated modular scripts. It sets up some backtrace functions using the <A HREF="jot_tech.html#QUERY BACKTRACE">query backtrace</A> report.</P>
+
+&#062; &#123;Esc b t&#125;
+<UL><P><LI>&#060;&#060;RawBacktrace&#062;&#062; - this simply extracts an ordinary backtrace report to buffer @.</P></LI>
+
+&#062; &#123;Esc a b t&#125;
+<P><LI>&#060;&#060;AdjustedBacktrace&#062;&#062; - This extracts a <A HREF="jot_tech.html#QUERY BACKTRACE">query backtrace</A> report to buffer @ and attempts to adjust the line numbers so that they match those in the source file.</P></LI>
+
+<P>The backtrace query only gives the linenumbers as they are in the code-repository buffer ( ' ). This report would be more useful if the line numbers referred to the linenumbers in the source file. It attempts to identify the source file using grep - searching for the last function name in the code repository buffer. It then calculates the correct line-number offset to get the lines in the source file and adjusts the linenumbers accordingly.</P>
+
+<P>There are at least two ways in which this can fail to give an accurate result:</P>
+
+<UL><P><LI>1 the last function in the code repository may not be from the same file as the functions in the backtrace report and</P></LI>
+
+<P><LI>2 the file may not be in the place where bt.jot does the search ( $&#123;JOT_HOME&#125;/coms )</P></LI>
+
+
+</UL></UL><H3><A NAME="SEARCHBUFFERS.JOT">searchbuffers.jot</H3>
+&#062; searchbuffers &#060;delim&#062;&#060;string&#062;&#060;delim&#062;&#123;F2&#125;
+<P>This searches all buffers for the string, results are presented in the form of a list of buffers where a string match was found. In each buffer where the string-match was found, the current line is set to the first matching line, for other buffers the current line ends up being the last line of the buffer.</P>
+
+
+</UL><H3><A NAME="LISTBUFS.JOT">listbufs.jot</H3>
+&#062; listbufs&#123;F2&#125;
+<P>Trawls through all buffers and their children and lists all buffers including any secondary buffers - these are not listed on a <A HREF="jot_tech.html#QUERY SYSTEM">query system</A> report. Where the buffer has a pathname, this is included in the report.</P>
+
+<P>e.g.</P>
+
+<PRE>
+$ jot t.t -in="%r=test_data; %r=listbufs;"
+</PRE>
+<P>The script test_data.jot creates a fairly deep data-object tree for listbufs to crawl over.</P>
+
+
+</UL><H3><A NAME="LISTDATA.JOT">listdata.jot</H3>
+&#062; listdata&#123;F2&#125;
+<P>Trawls through all buffers and their children and lists all data objects that have been created anywhere in the buffer hierarchy.</P>
+
+<P>e.g.</P>
+
+<PRE>
+$ jot t.t -in="%r=test_data; %r=listdata;"
+</PRE>
+<P>The script test_data.jot creates a fairly deep data-object tree for listdata to crawl over.</P>
+
+
+</UL><H3><A NAME="AGE.JOT">age.jot</H3>
+&#062; age&#123;F2&#125;
+<P>Tells you the age of the file in the current buffer. Note that it takes no account of leap years - each year is assumed to be 365 days. Hence, for files older than one year, the day-count is less than totally accurate.</P>
+
+
+</UL><H3><A NAME="DATE.JOT">date.jot</H3>
+&#062; date&#091; -Rev&#093;&#091; -Time&#093;&#123;F2&#125;
+<P>Inserts the current date at the current-character position in the text. If there is a substring, then the selected text is replaced by the current date.</P>
+
+<P>If the -r qualifier is given, the date section is reversed and the separating slashes removed.</P>
+
+<P>if the -t qualifier is given, then also inserts current time.</P>
+
+
+</UL><H3><A NAME="BACKUP.JOT">backup.jot</H3>
+&#062; backup &#091;&#060;comment&#062;|-again&#093;&#123;F2&#125;
+<P>This script makes a backup copy in the &#060;path&#062;/backup subdirectory, where &#060;path&#062; is the path element of the file being backed up. It also maintains a README_backup file in the same area, this contains the comments.</P>
+
+<P>Before doing anything the script checks for existence of &#060;path&#062;/backup if it does not exist, the script fails immediately with a suitable message.</P>
+
+<P>The buffer is written to the backup area with it's normal name suffixed with '_&#060;dateStamp&#062;'</P>
+
+<P>The script insists on being given either a comment or the -a modifier, this is included in the metadata in the README_backup file in the backup subdirectory. If -a (again) is given it inherits the datestamp and comment from the last entry in the same README_backup file.</P>
+
+
+</UL><H3><A NAME="COPY.JOT">copy.jot</H3>
+&#062; copy&#123;F2&#125;
+<P>Copies all of the current buffer into the X-windows copy buffer. This is useful for exporting an entire buffer to some x application.</P>
+
+<P>N.B: This script requires xsel to be on your search path and, it kind of goes without saying really - copy.jot does not work in windowsland.</P>
+
+
+</UL><H3><A NAME="PASTE.JOT">paste.jot</H3>
+&#062; paste&#091; &#060;key&#062;&#093;&#091; -here&#093;&#123;F2&#125;
+<P>If neither the destination buffer or -here is specified it prompts for the destination buffer.</P>
+
+<P>If the destination buffer is specified then the contents of that buffer are replaced with the contents of the x-windows paste buffer.</P>
+
+<P>If -here is specified, then the paste buffer is inserted into the current character position of the current buffer.</P>
+
+<P>N.B: This script requires xsel to be on your search path and, it kind of goes without saying really - copy.jot does not work in windowsland.</P>
+
+
+</UL><H3><A NAME="COUNT.JOT">count.jot</H3>
+&#062; count&#123;F2&#125;
+<P>Counts the number of words in the current buffer.</P>
+
+<P>This script predates the ability to pipe the current buffer into a unix command - the unix wc command should do the job just as well:</P>
+
+&#062; %e$=|wc;
+
+</UL><H3><A NAME="UNLOCKALL.JOT">unlockall.jot</H3>
+&#062; unlockall&#123;F2&#125;
+<P>Goes to every buffer activated in your session and sets the write lock to unrestricted.</P>
+
+
+</UL><H3><A NAME="FREEALL.JOT">freeall.jot</H3>
+&#062; freeall&#123;F2&#125;
+<P>Unlocks and then deletes all buffers. </P>
+
+
+</UL><H3><A NAME="EXIT.JOT">exit.jot</H3>
+&#062; exit&#123;F2&#125;
+<P>Frees all buffers then exits the editor without saving any files.</P>
+
+
+</UL><H3><A NAME="DOC.JOT">doc.jot</H3>
+&#062; doc&#123;F2&#125;
+<P>The doc script sets up a simple document formatting system, it defines several macros and escape sequences:</P>
+
+<UL><P><LI>&#123;Esc p a&#125; - re-format the current paragraph, the paragraph is deemed to be the current line and all the adjacent lines with the same indent level. This adjusts whitespace between words to align line endings, the line-length to aim for is in the &#093; buffer.</P></LI>
+
+<P>If the paragraph with a bullet mark (typically a dash followed by at least one blank) then the length of the bullet mark is included in the indentation calculation.</P>
+
+<P><LI>&#123;Esc P a&#125; reformats all paragraphs in the current buffer.</P></LI>
+
+<P><LI>&#091;ProformaHeadingKey&#093;&#123;Esc h e&#125; - makes the current line into a section heading. e.g:</P></LI>
+
+&#062; 0&#123;Esc h e&#125;             - makes current line next top-level heading
+<P>In fact, the section number given here is ignored - so this will have exactly the same effect:</P>
+
+&#062; 999&#123;Esc h e&#125;           - makes current line next top-level heading
+&#062; 12.34.56.78&#123;Esc h e&#125;   - makes current line next level-4 heading
+<P>Again, the section numbers given here are ignored - so this will have exactly the same effect:</P>
+
+&#062; ...&#123;Esc h e&#125;           - makes current line level-4 heading
+<P>Section headings are in two sections separated by whitespace. The first part is a key of the form &#060;n1&#062;&#091;.&#060;n2&#062;&#091;.&#060;n3&#062;...&#093;&#093; e.g. 9.3.99, the second part is any text string e.g:</P>
+
+<UL><P>123.456.789 An example of a section heading.</P>
+
+</UL><P>The heading level is determined by the previous heading but the final counter is incremented. If the current line has any kind of header level, this is taken as a proforma and the new header level will have the same number of levels but will inherit the numbering from the previous heading.</P>
+
+<P>If a proformaHeadingKey is given this defines the proforma and any preexisting heading key is ignored.</P>
+
+<P>By default, headings below level 4 (i.e. 1.2.3.4...) are underlined, this behaviour is controlled by the number in line 4 of the & buffer.</P>
+
+<P><LI>&#123;Esc h a&#125; - resets all headings, the heading levels are unchanged, but out-of-sequence section numbers are reordered.</P></LI>
+
+<P><LI>&#123;Esc h +&#125; - makes the current line into a section heading, the heading level is one higher than the previous heading.</P></LI>
+
+<P><LI>&#123;Esc h -&#125; - makes the current line into a section heading, the heading level is one lower than the previous heading.</P></LI>
+
+<P><LI>&#123;Esc s p&#125; - checks the current paragraph for spelling errors (using the aspell spelling checker). Any errors appear in the console area - note, &#123;Esc s p&#125; does not overwrite the @ buffer.</P></LI>
+
+<P><LI>&#123;Esc s d&#125; - checks the entire document for spelling errors, if the there is a spell.lis file in the same directory as the document, then this is passed to the spelling checker (aspell command). The list of misspelled words is read into the @ buffer - see the &#123;Esc s w&#125; and &#123;Esc s i&#125; keys, below.</P></LI>
+
+<P><LI>&#123;Esc s i&#125; - moves to the next Instance of the current misspelled word found by &#123;Esc s p&#125;, above. If there are no more instances, then moves to the next word in the @ (misspelled words) buffer and finds the first instance of that.</P></LI>
+
+<P><LI>&#123;Esc s n&#125; - moves to the Next word in the @ (misspelled words) buffer, this ignores any further instances of the current misspelled word.</P></LI>
+
+<P><LI>&#123;Esc s f&#125; - Fix current instance of a misspelled word. Aspell offers a list of correct spellings - select one then &#123;Esc s f&#125;</P></LI>
+
+</UL><P>Nb: To remove the spelling-suggestions popup re-draw the windows with the <A HREF="jot_ug.html#WINDOWONE">WindowOne</A> function &#123;Esc w 1&#125;.</P>
+
+<UL><P><LI>&#060;re&#062;&#123;Esc l x&#125; - this greps for the regular expression in the spelling lexicon. The lexicon is quite small so there are plenty of valid words that don't match but, on the plus side, it hardly ever matches to archaic or obscure words that hardly anyone knows.</P></LI>
+
+</UL><P>The doc script takes a paragraph as any number of nonblank lines of text at the same indentation level.</P>
+
+<P>A line of text can be protected from the paragraph processor (&#123;Esc p a&#125; and &#123;Esc P a&#125;) by placing a non-blank character in column 1 - in this context a tab is taken as a non-blank character.</P>
+
+<P>Linux users may find an aspell with their distribution. There are several similar spelling checkers but aspell can be used in command mode with an error report sent to stdout. Most others insist on you using their gui. If your distro does not have it or you are a windows user then try http://aspell.net</P>
+
+
+</UL><H4><A NAME="DOC SECTION AND PARAGRAPH FORMAT">Doc section and paragraph format</H4>
+<P>Typically, most lines of of text in documents are in paragraphs. Paragraph lines are always indented by at least one blank. In order to distinguish paragraph lines from special text such as headings, tables and literal text such as code examples these must have a non-blank character in column 1 (tabs count as non-blanks for this purpose).</P>
+
+<P>Text documents are deemed to consist of sections, introduced by a section heading and containing any number of paragraphs.</P>
+
+<P>Several scripts are designed to text documents in doc.jot format, these make the following assumptions about the structuring of the text.</P>
+
+<UL><P><LI>Numbered sections always start in column 0, may contain any number of subsection numbers, each delimited by a decimal point the section number is terminated by whitespace, followed by the section name e.g:</P></LI>
+
+&#062; 12.4.9 This section is a child of section 12.4 and grandchild of section 12
+<P><LI>In addition to numbered sections, a section name may start at column 0 and be terminated by a colon, which me, optionally, be followed by section text e.g:</P></LI>
+
+</UL><H5><A NAME="FRED">Fred</H5>
+<P>This is name frequently used by unimaginative technical authors.</P>
+
+<UL><P><LI>Bullet points are paragraphs introduced by a bullet character, by default these are hyphens ( - ) the actual bullet string is defined in line 4 of the ( & ) buffer.</P></LI>
+
+<P><LI>A paragraph is a series of lines, all indented to the same level, delimited by either blank lines, special lines or by paragraphs at a different level of indentation.</P></LI>
+
+<P>The rightmost extent of a paragraph defaults to 78 characters, this width is defined in line 3 of the ( & ) buffer.</P>
+
+
+</UL><H3><A NAME="DOC2FOLD.JOT">doc2fold.jot</H3>
+&#062; doc2fold&#123;F2&#125;
+<P>This translates a document to a folded help document suitable for use in the jot help system. The document sections and paragraphs must be structured according to the <A HREF="#DOC.JOT">doc.jot</A> script conventions. See also <A HREF="jot_tech.html#ABOUT HELP FILES">about help files</A>.</P>
+
+
+</UL><H3><A NAME="FOLD2DOC.JOT">fold2doc.jot</H3>
+&#062; fold2doc&#123;F2&#125;
+<P>This performs the reverse of the <A HREF="#DOC2FOLD.JOT">doc2fold.jot</A> process, it is only useful when a help file requires major changes and the original source document is not available - see also <A HREF="jot_tech.html#ABOUT HELP FILES">about help files</A>.</P>
+
+
+</UL><H3><A NAME="DOC2MIF.JOT">doc2mif.jot</H3>
+&#062; doc2mif&#123;F2&#125;
+<P>Translates the text in the current buffer into a framemaker mif file - sections and paragraph format defined by <A HREF="#DOC.JOT">doc.jot</A>.</P>
+
+
+</UL><H3><A NAME="DOC2HTML.JOT">doc2html.jot</H3>
+&#062; doc2html&#091; -split &#091; -head &#060;fooheadterImagePath&#062;&#093;&#091; -foot &#060;footerImagePath&#062;&#093;&#093;
+<PRE>
+    &#091; -index&#093;&#091; -noLinks&#093;&#091; -style &#060;styleSheetPath&#062;&#093;&#123;F2&#125;
+</PRE>
+<P>Translates the text in the current buffer into html.</P>
+
+<UL><P><LI>-split - splits up sections and moves contents into parent sections.</P></LI>
+
+<P><LI>-index - Adds index at start of html (or each page if -split is also set).</P></LI>
+
+<P><LI>-noLinks - skips link-resolution stage, this saves time for debugging, but the html is of little use.</P></LI>
+
+<P><LI>-head &#060;headerImagePath&#062; - Image to be inserted between section headings and section text.</P></LI>
+
+<P><LI>-foot &#060;footerImagePath&#062; - Image to be inserted below each section.</P></LI>
+
+<P><LI>-style &#060;styleSheetPath&#062; - includes the nominated stylesheet</P></LI>
+
+</UL><P>Any text in backticks is assumed to be a hyperlink - several forms are supported:</P>
+
+<UL><P><LI>A link to a heading either in the same file</P></LI>
+
+<P><LI>A link to a heading in some other file in the same directory.</P></LI>
+
+<P><LI>A file://&#060;path&#062;#&#060;tag&#062;</P></LI>
+
+<P><LI>&#060;file&#062;.gif</P></LI>
+
+</UL><P>For example, the following line (from the walkthrough course), refers to <A HREF="jot_ug.html#KEYBOARD FUNCTIONS DEFINED AT STARTUP">Keyboard functions defined at startup</A>.</P>
+
+<P>HREF references are checked - these must match a section heading either in the current document or in some other html in the same directory. If, after searching these, it still cannot resolve the HREF then the HREF target is added to a list of unresolved HREFs and the script terminates without writing any html.</P>
+
+<P>If the document contains more than one section with the same section-name string, then this is listed and the script terminates without writing any html.</P>
+
+
+</UL><H3><A NAME="DOC2HELP.JOT">doc2help.jot</H3>
+&#062; doc2help&#123;F2&#125;
+<P>Transforms an jot doc-format document into a folded-help file suitable for including in the jot help system.</P>
+
+
+</UL><H3><A NAME="HTML2DOC.JOT">html2doc.jot</H3>
+&#062; html2doc&#123;F2&#125;
+<P>Transforms an html document in the current buffer to the jot document format.</P>
+
+
+</UL><H3><A NAME="DIC.JOT">dic.jot</H3>
+&#062; dic&#123;F2&#125;
+<P>This looks up definitions of words using the gutenberg.org version of the websters dictionary. You must first download a copy of the dictionary from the Gutenberg project www.gutenberg.org and save it in your JOT_RESOURCES area naming it websters.txt</P>
+
+<P>When you run dic.jot for the first time an index file is written to your JOT_RESOURCES area - you must have write access to this area. The index file is named $&#123;JOT_RESOURCES&#125;/websters_index.txt it is plain text file, about one tenth the size of the actual dictionary (about 2.2Mb compared to about 28Mb for the complete dictionary). The index file structure is a bit more complicated than the index files used by <A HREF="#BIG_FILE.JOT">big_file.jot</A> - it has an explicit entry for the length of each section.</P>
+
+<UL><P><LI>First download the dictionary,</P></LI>
+
+<P><LI>now create the index:</P></LI>
+
+<PRE>
+$ jot /dev/null -in="%r=dic"
+</PRE>
+</UL><P><LI>It takes a few moments to digest the dictionary, once that's done you should never need to do it again. In any jot session you can now launch a query as follows:</P></LI>
+
+&#062; dic&#123;F2&#125;
+&#062; &#060;word&#062;&#123;&#123;Esc 7&#125;
+
+</UL><H3><A NAME="BIG_FILE.JOT">big_file.jot</H3>
+<P>Typical usage, launched from the shell command line:</P>
+
+<PRE>
+$ jot /dev/null 
+</PRE>
+<P>-in="%r=big_file -file=&#060;pathName&#062;&#091; -size=&#060;n&#062;&#093;&#091; -index=&#060;indexPathName&#062;&#093; &#091; -grep=&#060;grepCommands&#062;&#091; -trim=&#060;jotCommands&#062;&#093;;"</P>
+
+<UL><P><LI>The -file=&#060;bigFileName&#062; qualifier is mandatory - it's the pathname of your large file.</P></LI>
+
+<P><LI>the -size=&#060;n&#062; qualifier specifies the anticipated upper limit of the number of hash-table entries - defaults to 100,000</P></LI>
+
+<P><LI>-index=&#060;pathName&#062; specifies the index-file pathname, if unspecified, this defaults to &#060;bigFileName&#062;_index.</P></LI>
+
+</UL><P>Or, it can be launched from a jot session:</P>
+
+&#062; big_file &#091;&#060;options as above&#062;&#093;&#123;F2&#125;
+<P>This script is designed to facilitate browsing and, to a limited extent, editing of very large files (see <A HREF="jot_tech.html#ABOUT LARGE FILES">about large files</A>). It works on the assumption that nobody's ever going to want to look at all of some huge file and that these files are structured and sections can be identified by name - hopefully unique names. The file is first scanned to create a section-name index which can be read by the editor. The user can then request sections to be pulled into the editor session.</P>
+
+<P>In practice, grep, or one of it's namesakes, can be used to create the index, this task can be performed in advance, maybe as part of the batch job that created the big files. The jot session reads the index file, and responds to interactive requests to view named sections of the big file by pulling them into view. The index provides jot with two values it uses to read these sections - a byte-count offset to the start of the section and a byte-count length of the section.</P>
+
+<P>The index file can be prepared earlier and read from disc or it can be generated as the session starts up. The index file is marked with with the big-file's original datestamp. When the index file is contains this datestamp the big_file.jot script can detect situations when the index is out of date e.g: the big-file has been re-extracted or edited in some way.</P>
+
+<P>If the optional -index qualifier is given the big_file.jot script uses that file to reference your big file - see below. If no -index is given then the index pathname defaults to &#060;pathName&#062;_index - where pathName is that given in the -path qualifier.</P>
+
+<P>The -grep qualifier is grep command string that can be used to create a new index file with the appropriate datestamp mark. The -trim qualifier specifies some jot commands that transform the raw grep output to a usable index file.</P>
+
+<P>The script defines these functions:</P>
+
+<UL><P><LI>big_file_init - the initialization routine.</P></LI>
+
+<P><LI>big_file_verifyMainFile - checks that the main-file datestamp matches the index-file check data.</P></LI>
+
+<P><LI>big_file_simpleQuery - reads the section specified in the &#123; $ &#125; buffer.</P></LI>
+
+<P><LI>big_file_grepQuery - searches the main file for the string specified in the ( $ ) buffer and calls big_file_simpleQuery to read each one of them.</P></LI>
+
+<P><LI>big_file_writeModifiedFile - writes any changes you have made to the sections loaded by big_file_simpleQuery.</P></LI>
+
+<P><LI>Macro 7 calls big_file_simpleQuery to load a specified section.</P></LI>
+
+&#062; fred&#123;Esc 7&#125;
+<UL><P><LI>macro 8 reads all sections containing substrings matching a grep regular expression. For example if we're interested in all subcircuits connecting to a net named "master_clock":</P></LI>
+
+&#062; master_clock&#123;Esc 8&#125;
+<P><LI>macro 9 writes a new version of the file. In the new version all the sections read into the editor replace those in the original file.</P></LI>
+
+&#062; &#123;Esc 9&#125;
+</UL></UL><P>The index file is used to create hashtable entries for the named sections which can then be accessed reasonably quickly using the -section=&#060;key&#062; qualifier of the <A HREF="jot_tech.html#%I">%I</A> command.</P>
+
+<P>The index file contains one-line entries for each section in the file, each entry consists of a byte-offset to the start of the section and a section key, separated by a colon ':'. Sections are assumed to start immediately before the next one starts and entries must be in ascending byte order. Section-keys must, of course, be unique. This structure is exactly compatible with the output of the grep command when used with the -b option.</P>
+
+<P>To generate the index at the start of the session - specify the grep and trim commands on the command line - these is an example of this in <A HREF="jot_walkthrough.html#WORKING WITH LARGE FILES">working with large files</A>. </P>
+
+<P>For CDL files there is a predefined grep and trim activated with the -cdlindex modifier:</P>
+
+<PRE>
+$ jot /dev/null -in="%r=big_file -file=&#060;big_file_name&#062;.cdl -cdlindex;"
+</PRE>
+<P>This will create and write the index file and you can then use the &#123;KP_7&#125; to pull any subcircuits of interest.</P>
+
+<P>If the jot session is to be run as a batch job then add the exit command <A HREF="jot_tech.html#%A">%A</A> to terminate the session:</P>
+
+<PRE>
+$ jot /dev/null -in="%r=big_file -file=&#060;big_file_name&#062;.cdl -cdlindex; %a;"
+</PRE>
+<P>The index file will be assigned the name &#060;big_file_name&#062;.cdl_index</P>
+
+<P>Subsequent interactive sessions can then be started using the batch-job generated index:</P>
+
+<PRE>
+$ jot /dev/null -in="%r=big_file -file=&#060;big_file_name&#062;.cdl;"
+</PRE>
+<P>It is possible to write a modified version of the complete file but some care is required. The big_files.jot script defines macro ( 9 ) as the write-out macro. It writes all sections in their original order but any section you've loaded using macro ( 7 ) will be written from the editors memory, replacing the original. This is one very good reason for using internally-generated index files which allow date-stamp checks. If your changes should change the total number of characters in a section, then the index file will become invalidated.</P>
+
+<P>There's an example for you to try in the walkthrough course - <A HREF="jot_walkthrough.html#WORKING WITH LARGE FILES">Working with large files</A></P>
+
+
+</UL><H3><A NAME="MULTI_FILE.JOT">multi_file.jot</H3>
+&#062; multi_file&#091; -index=&#060;pathName&#062;&#093;&#091; -indextype=&#060;type&#062;&#093;&#091; -htabsize=&#060;n&#062;&#093;&#123;F2&#125;
+<P>or, a more typical usage, from the shell command line, to create a new index:</P>
+
+<PRE>
+$ ls -aRF &#060;rootDir&#062; | jot -in="%r=multi_file -indextype=&#060;type&#062; &#091; ... &#093;"
+</PRE>
+<P>or, to use an existing index:</P>
+
+<PRE>
+$ jot /dev/null -in="%r=multi_file&#091; &#060;options as above&#062;"
+</PRE>
+<P>The multi_file script is intended for browsing large collections of source files belonging to some system see <A HREF="jot_tech.html#ABOUT LARGE COLLECTIONS OF FILES">about large collections of files</A>. Selected sections are read into a buffer for viewing - typically the sections will correspond to programming-language modules. These are typically referenced by module name.</P>
+
+<P>The optional arguments are:</P>
+
+<UL><P><LI>-indextype=&#060;type&#062; - specifies that a new index file is to be built. The type argument specifies the indexing method to be used - currently the valid index method are:</P></LI>
+
+<UL><P><LI>c - for C-language files. The detection of c-function definitions is a compromise between run time and accuracy. It checks each line of the file and selects lines which match the following criteria, after removing any potentially-confusing comments and strings:</P></LI>
+
+<UL><P><LI>The first character on the line must be a lower-case alpha character,</P></LI>
+
+<P><LI>the line must contain an open bracket ' ( ' character and</P></LI>
+
+<P><LI>the line must not end with a semicolon.</P></LI>
+
+</UL><P>This catches almost all valid function definitions and rejects almost all non-function-definition lines.</P>
+
+<P><LI>perl - for perl scripts. It identifies lines begining withe "sub " followed by the subroutine name and an opn-brace character ' &#123; '</P></LI>
+
+</UL><P><LI>-index=&#060;pathName&#062;&#091;,&#060;pathname2&#062;&#091;,...&#093;&#093; - specifies the pathnames to be used for the index file, this defaults to multi_file_index in your PWD. You can use as many index files as necessary and they need not all refer to the same file types - indexes referring to both C and perl files can be used together as appropriate.</P></LI>
+
+<P><LI>-htabsize=&#060;n&#062; - specifies the hashtable size, this corresponds to the number of modules in the index file. It defaults to 100,000.</P></LI>
+
+</UL><P>The script define these functions:</P>
+
+<UL><P><LI>multi_file_init - As it's name suggests it's the main initialization routine, it checks and parses parameters, creates the hashtable and, when requested by the -indextype arg, it launches an index rebuild operation.</P></LI>
+
+<P><LI>multi_file_create_index - This reads the ls report and creates the index file.</P></LI>
+
+<P><LI>multi_file_simpleQuery - This expects to find a valid section-name in buffer ( $ ). This function is attached to macro_7 - ( &#123;KP_7&#125; or &#123;Esc 7&#125;</P></LI>
+
+<P><LI>multi_search_section_names - This searches the valid keys for any matching a string in the ( $ ) buffer.</P></LI>
+
+</UL><P>Usage:</P>
+
+&#062; &#060;sectionName&#062;&#123;KP_7&#125;
+<P>or, if you're lacking a numeric keypad:</P>
+
+&#062; &#060;sectionName&#062;&#123;Esc 7&#125;
+<P>Passes the section name to multi_file_simpleQuery. If successful, the module text is appended to the primary buffer.</P>
+
+&#062; &#060;string&#062;&#123;KP_8&#125;
+<P>or, if you're lacking a numeric keypad:</P>
+
+&#062; &#060;string&#062;&#123;Esc 8&#125;
+<P>Passes the string to multi_search_section_names, this searches all the valid keys for any matching the string. The matching process is pretty crude - it obtains a list of keys and then filters out lines that don't match the string. Note that queries using the strings Byte, Section, Seek or any other strings that appear a lot in <A HREF="jot_tech.html#QUERY KEYS">query keys</A> reports are going to return lots of results.</P>
+
+<P>Note that there is no facility for writing back modified versions of these files from a multi_file session - you must load the relevant files normally, in a separate buffer, then make your changes and write the complete file.</P>
+
+<P>As with <A HREF="#BIG_FILE.JOT">big_file.jot</A>, multi_file.jot is driven by user queries and an index file. In this case, however, the files will normally be of moderate size but there may be hundreds of them with each one defining dozens of sections.</P>
+
+<P>In the event of a name collision, the first instance of a name, as it appears in the index file, is taken as-is. Subsequent instances are uniquified by suffixing the name with __nnn, where nnn is the index-file line number for the duplicated name.</P>
+
+
+</UL><H3><A NAME="CTAGS.JOT">ctags.jot</H3>
+<PRE>
+$ jot &#060;tagsFile&#062; -in=%r=ctags;
+</PRE>
+<P>and</P>
+
+<PRE>
+$ jot &#060;tagsFile&#062; -in=%r=ctags -AtoZ;
+</PRE>
+<P>Exuberant Ctags is a GNU tool that generates source-code index files except that they, for reasons unknown, call the index file a tags file - anyway it functions as an index and it can be picked up by jot using this script. The ctags.jot script therefore performs a similar function to <A HREF="#MULTI_FILE.JOT">multi_file.jot</A></P>
+
+<P>Once it has read and inwardly-digested the ctags-generated index you can launch queries using macro ( 7 ), which is bound to key 7 on the numeric keypad ( &#123;KP_7&#125; ). If you do not have a numeric keypad or, if you have not set it up for jot (see <A HREF="jot_tech.html#X-WINDOWS SETUP">X-windows setup</A>) then Escape followed by 7 &#123;Esc 7&#125; will do. See <A HREF="jot_walkthrough.html#WORKING WITH COLLECTIONS OF SOURCE FILES">working with collections of source files</A> and <A HREF="jot_walkthrough.html#NOW A CTAGS-GENERATED INDEX">now a Ctags-generated index</A></P>
+
+<P>ctags.jot reads the ctags-generated index file and defines a macro which takes an index-key and checks to see if it has already read it's source file. If not, the source file is read and the editor focuses to the start of the relevant section.</P>
+
+<P>Without the -AtoZ qualifier, the script will always display the requested definition in a floating buffer - that is a buffer created on the stack, with the buffer key ( ~ ). This allows the session to hold and display any number of source files but it's impossible to switch between them using the highly-convenient <A HREF="jot_tech.html#Z">Z</A> command.</P>
+
+<P>In contrast, with the -AtoZ qualifier, the source files are read into buffers A, B, ... Z, this limits the number of viewable files to 26 but navigating between them is quick and convenient. For collections of 26 files or less, the buffer keys are allocated at the start of the session, then all sessions using the same ctags index will have the same, fixed, buffer-key assignments.</P>
+
+<P>If, however, there are more than 26 source files but you won't need to view more than 26, the buffer keys are allocated at query time - the firs will be ( A ), then ( B ) ... to ( Z ).</P>
+
+<P>This script may be combined with <A HREF="#IDE.JOT">ide.jot</A> if desired.</P>
+
+
+</UL><H3><A NAME="THES.JOT">thes.jot</H3>
+&#062; thes&#123;F2&#125;
+<P>This reads the Gutenberg Ebook version of Roget's thesaurus and sets up a simple macro to process queries. It reads the Ebook from $&#123;JOT_RESOURCES&#125;/thesaurus.txt, this can be downloaded from the gutenberg project - www.gutenberg.org.</P>
+
+<UL><P><LI>&#060;word1&#062;&#091; &#060;word2&#062;&#091; ...&#093;&#093;&#123;KP_8&#125;</P></LI>
+
+</UL><P>The query macro expects a list of words, it then returns all Roget's sections which contain all of the given words, the results are in the @ buffer.</P>
+
+
+</UL><H3><A NAME="DUPLICATES.JOT">duplicates.jot</H3>
+&#062; duplicates&#123;F2&#125;
+<P>The current buffer is searched for duplicated lines, starting from the current line. The script halts at a duplicated line or the end of the buffer.</P>
+
+
+</UL><H3><A NAME="PURGE.JOT">purge.jot</H3>
+&#062; purge&#091; -rev | -count&#093;&#123;F2&#125;
+<P>The current buffer is searched for duplicated lines, starting from the current line. Duplicated lines are removed leaving just the first instance of each unique line of text.</P>
+
+<P>If the optional qualifier -rev is given, then it is the unduplicated lines that are removed.</P>
+
+<P>If the optional qualifier -count is given then the number of purged duplicate lines is appended to the undeleted lines separated by a tab character.</P>
+
+
+</UL><H3><A NAME="MC.JOT">mc.jot</H3>
+&#062; mc&#091; -size=&#060;width&#062;x&#060;height&#062;&#123;F2&#125;
+<P>mc is useful for scanning through long files with very short lines. Such files are reasonably common when maintaining IT system files and CAD files etc - but it's not usually much use for viewing natural language documents.</P>
+
+<P>The mc script calculates your window size and then chops up a copy of your buffer into columns to fill the display. You may be more interested in printing the multicolumned text in which case the size of the window is irrelevant - you can specify the size of your paper with the -size qualifier.</P>
+
+<P>The script also defines macro 1 and macro 2 as page-up and page-down functions, respectively. The standard page-up and page-down functions are not suitable for viewing the mc result buffer.</P>
+
+<P>e.g:</P>
+
+<PRE>
+$ jot $&#123;JOT_HOME&#125;/docs/spell.dic -ini="%r=mc"
+$ ls /usr/lib64 | jot -ini=%r=mc
+$ ls /usr/lib64 | jot_dev -ini="%r=mc -size=80x90"
+</PRE>
+
+</UL><H3><A NAME="EXPAND_VERILOG_BUSSES.JOT">expand_verilog_busses.jot</H3>
+&#062; expand_verilog_busses&#123;F2&#125;
+<P>Locates verilog busses of the form name&#091;start:end&#093; (where end &#060; start), and replaces them with fully-expanded form</P>
+
+
+</UL><H3><A NAME="FINDCOL.JOT">findcol.jot</H3>
+&#062; findcol&#060;delim&#062;&#060;string&#062;&#060;delim&#062;&#123;F2&#125;
+<P>The current buffer is assumed to be text written written vertically top-to-bottom. The current column is searched for the string.</P>
+
+
+</UL><H3><A NAME="FINDHELP.JOT">findhelp.jot</H3>
+&#062; findhelp &#060;string&#062;&#123;F2&#125;
+<P>The $&#123;JOT_RESOURCES&#125;/help tree is searched for the string, results appear in the help menu buffer.</P>
+
+<P>This uses the unix find and egrep commands, this search is always case insensitive.</P>
+
+
+</UL><H3><A NAME="HEX2ASCII.JOT">hex2ascii.jot</H3>
+&#062; %i ... -binary;
+&#062; %r=hex2ascii
+<P>This simple script appends a text annotation to each line in the hex dump generated by the -binary option of <A HREF="jot_tech.html#%I">%I</A>.</P>
+
+<P>Example output - this is a fragment of hex dump of the test file $&#123;JOT_RESOURCES&#125;/l99.t, the text "80: abc ..." was added by hex2ascii.jot notice that any nonprinting characters are represented by carats ( ^ ).</P>
+
+</UL><H2><A NAME="1 1 A 20 61 62 63 20 64 65 66 20 67 68 69 20 80: ABC DEF GHI ">1 1 A 20 61 62 63 20 64 65 66 20 67 68 69 20 80: abc def ghi </H2>
+</UL><H2><A NAME="A 6B 6C 20 6D 6E 6F 20 70 71 72 20 73 74 75 20 JKL MNO PQR STU ">A 6B 6C 20 6D 6E 6F 20 70 71 72 20 73 74 75 20 jkl mno pqr stu </H2>
+</UL><H2><A NAME="1 1 1 1 A 3A 30 31 32 33 34 35 36 37 38 39 VWXYZ:0123456789 ">1 1 1 1 A 3A 30 31 32 33 34 35 36 37 38 39 vwxyz:0123456789 </H2>
+</UL><H2><A NAME="1 F 5F 37 39 3A 20 61 62 63 20 64 65 66 20 67 ^__79: ABC DEF G ">1 F 5F 37 39 3A 20 61 62 63 20 64 65 66 20 67 ^__79: abc def g </H2>
+
+</UL><H3><A NAME="UPDATEHELP.JOT">updatehelp.jot</H3>
+&#062; updatehelp&#091; -NODATEstamp&#093;&#123;F2&#125;
+<P>This command file is used after you've updated an entry in the help buffer (;). The current buffer must be the help buffer and the fold marks must be unchanged (these are used to locate the fold in the file). It locates the current file fold by searching for the previous file fold in the help buffer (:) then reads the file into a temporary buffer and updates it with your revised fold.</P>
+
+<P>The changes must not affect the fold structure in any way, or the script will fail.</P>
+
+<P>The updatehelp script will insert a datestamp mark near the start of the fold indicating when the change was made. The -nodatestamp qualifier will prevent it doing this</P>
+
+
+</UL><H3><A NAME="MANHELP.JOT">manhelp.jot</H3>
+&#062; manhelp &#060;manArgs&#062;&#091; -fold&#093;
+<P>Generates requested man page and adds it to sessions help repository.</P>
+
+<P>The manargs are passed directly to the man utility and the reply becomes a new page in the jot-sessions help repository.</P>
+
+<P>The -fold option folds sections inside the new help page.</P>
+
+
+</UL><H3><A NAME="NEAR.JOT">near.jot</H3>
+&#062; near &#060;string1&#062; &#060;string2&#062;&#091; &#060;n&#062;&#093;&#123;F2&#125;
+<P>If n is specified, this sets the search-window size - defaults to 5.</P>
+
+<P>Searches the current buffer, starting at the current line, for occurrences of the two strings in nearby lines - the definition of nearby is the optional window-size parameter.</P>
+
+
+</UL><H3><A NAME="NONPRINTING.JOT">nonprinting.jot</H3>
+&#062; nonprinting&#123;F2&#125;
+<P>Detects any nonprinting characters in the current buffer.</P>
+
+
+</UL><H3><A NAME="CLI.JOT">cli.jot</H3>
+&#062; cli &#060;cliCommand&#062;&#123;F2&#125;
+<P>The cli script assumes that the current buffer is a file image, the file's pathName is picked up and the specified CLI (Command-Line Interpreter - or shell, in unix parlance) command is applied to it.</P>
+
+
+</UL><H3><A NAME="PATH.JOT">path.jot</H3>
+&#062; path &#060;cliCommand&#062;&#123;F2&#125;
+<P>The path script assumes that the current buffer is a file image, the file's path is picked up and the specified command is applied to it.</P>
+
+
+</UL><H3><A NAME="SCCS.JOT">sccs.jot</H3>
+&#062; sccs &#060;sccsCommand&#062;&#123;F2&#125;
+<P>This assumes that the current buffer is a file image, it applies the sccs command to the current file.</P>
+
+
+</UL><H3><A NAME="PASCAL.JOT">pascal.jot</H3>
+<P>This replaces the contents of the current buffer with the first n rows of pascals triangle.</P>
+
+<P>The number of rows defaults to 30 but can be set as an argument to the script. Note that the size of the numerical values in the triangle increases very rapidly, 30 rows is about as many as can be accommodated with 64-bit integer arithmetic.</P>
+
+&#062; pascal&#123;F2&#125;
+<UL><P><LI>displays the first 30 rows.</P></LI>
+
+&#062; pascal 10&#123;F2&#125;
+<P><LI>displays the first 10 rows.</P></LI>
+
+
+</UL><H3><A NAME="PRINT.JOT">print.jot</H3>
+&#062; print&#091; -break&#093;&#123;F2&#125;
+<P>The current buffer is checked and, if there are no unresolved tabs or overlong lines, it is written out to a temporary file, this temporary file is printed using a2ps.</P>
+
+<P>The optional -break qualifier causes overlong lines ( &#062;80 characters) to be broken at a suitable point.</P>
+
+
+</UL><H3><A NAME="WIDEPRINT.JOT">wideprint.jot</H3>
+&#062; wideprint&#091; -break&#093;&#091; -preview&#093;&#091; -l &#060;n&#062;&#093;&#091; -1, 2, 3, ... 9&#093;&#123;F2&#125;
+<P>The current buffer is checked and, if there are no unresolved tabs or overlong lines, it is written out to a temporary file, this temporary file is printed using a2ps.</P>
+
+<UL><P><LI>The -break qualifier allows overlong lines to be broken.</P></LI>
+
+<P><LI>the preview qualifier displays the buffer with broken lines,</P></LI>
+
+<P><LI>the -l &#060;n&#062; sets the maximum line width, this is used to set the font size.</P></LI>
+
+<P><LI>the -1, -2, -3 ... -9 qualifiers set multicolumn mode.</P></LI>
+
+
+</UL><H3><A NAME="RENUMBER.JOT">renumber.jot</H3>
+&#062; renumber&#123;F2&#125;
+<P>The line numbers in the current buffer are reset so that the first line becomes line no. 1 again.</P>
+
+
+</UL><H3><A NAME="TIMEX.JOT">timex.jot</H3>
+&#062; timex&#123;F2&#125;
+<P>Sets up macro 1 to generate an activity summary report from your timex/titracks files.</P>
+
+
+</UL><H3><A NAME="TRACE.JOT">trace.jot</H3>
+&#062; trace&#091; &#060;args&#062;&#093;&#123;F2&#125;
+<P>This sets the trace-vector bits (see <A HREF="jot_tech.html#%S=TRACE">%s=trace</A>) symbolically. If no args are given, it displays the options (shown below) and prompts.</P>
+
+<P>Trace bits 0x0001 to 0x0040 define the trigger points - i.e. they select which class of event will trigger a trace or other diagnostic response. Trace bits 0x1000 to 0x8000 define the desired action.</P>
+
+<P>These can be set directly - e.g. to set a breakpoint on the start of each new command line we would say %s=trace 8002 to dump the stack we would OR with 0x1000 giving %s=trace 9002 - trace.jot sets these symbolically.</P>
+
+<P>Trace arguments - trigger points:</P>
+
+<UL><P><LI>a - trace all commands</P></LI>
+
+<P><LI>l - trace at start of each new command line.</P></LI>
+
+<P><LI>f - trace only failed commands.</P></LI>
+
+<P><LI>bl - trace at start of each new block.</P></LI>
+
+<P><LI>m - trace at start of each new macro.</P></LI>
+
+<P><LI>f - trace on entry to command files.</P></LI>
+
+<P><LI>i - trace Ctrl+C interrupts.</P></LI>
+
+</UL><P>Trace arguments - trace actions:</P>
+
+<UL><P><LI>s - dump stack at each trace point.</P></LI>
+
+<P><LI>p - print current line of current buffer at each trace point.</P></LI>
+
+<P><LI>c - show command line at each trace point.</P></LI>
+
+<P><LI>b - breakpoint - stop on trigger points.</P></LI>
+
+</UL><P>So to dump the stack and breakpoint at each new line of a script or macro:</P>
+
+&#062; trace lsb&#123;F2&#125;
+
+</UL><H3><A NAME="CAL.JOT">cal.jot</H3>
+&#062; cal&#091; &#060;year&#062;&#093;&#091; -split&#093;&#123;F2&#125;
+<P>This runs the unix cal command, by default, it takes the current year.</P>
+
+<P>The result is similar to that of the unix cal command except that week numbers are prefixed before each week.</P>
+
+<P>The -split qualifier splits the output listing each day on a separate line.</P>
+
+
+</UL><H3><A NAME="MATCH_WORDS.JOT">match_words.jot</H3>
+&#062; match_words &#060;bufferKey&#062;&#091;&#060;anotherBufferKey&#062;&#093;&#091;&#060;...&#062;&#093;&#093;&#091; -split&#093;&#091; -nosort&#093;&#091; -notab&#093;&#091; -map&#093;&#123;F2&#125;
+<P>This The object of this script is to match lists of words in various buffers. Typically, the words will be the names of objects defined in different places (e.g. file names in various directories or backup discs or module names from a linker map).</P>
+
+<UL><P><LI>-split - splits text at whitespace.</P></LI>
+
+<P><LI>-nosort - by default match_words begins by sorting the lists to improve the speed of the re-synchronization process. For unsorted lists it is necessary to search the entire buffer for a match - this becomes an n**2 process and can get tedious for long lists. The -nosort qualifier is used to leave the list ordering unchanged. N.B. match_words only sorts a copy of the buffer - the original list is always left unchanged.</P></LI>
+
+<P><LI>-notab - while processing match_words inserts tabs to indicate column boundaries. Normally these are resolved to create a nice neat table - -notab suppresses this last step.</P></LI>
+
+<P><LI>-map - the map qualifier simplifies the final table to put all words in the left column and subsequent columns contain either whitespace or a buffer-key character to indicate that the word was matched in the specified buffer.</P></LI>
+
+
+</UL><H3><A NAME="LINKDOCS.JOT">linkdocs.jot</H3>
+&#062; linkdocs&#091; -allxrefs&#093;&#091; -bufs &#060;BufferKey1&#062;&#091;&#060;BufferKey2&#062;&#091; ...&#093;&#093;&#093;&#123;F2&#125;
+<P>This script identifies links in <A HREF="#DOC.JOT">doc.jot</A>-style documents and add colour tags, hashtables and sets up a mouse-event handler to allow clicking through the links.</P>
+
+<P>The -bufs qualifier introduces a whitespace-separated list of buffer keys, these are the buffers to be analysed. If -bufs list is not given, then it analyses the primary buffer ( . ) and all buffer with an alphabetical buffer key (a, b, c ...). </P>
+
+<P>The -allxrefs matches references to headings in all text - by default it only matches to cross-references enclosed in backticks.</P>
+
+<P>Macro_1 is defined for users without mice - first navigate the cursor to a link (or a non-link if returning) then &#123;Esc 0&#125;</P>
+
+<P>The list of buffer keys specifies the buffers containing suitable documents, if this list is not given then linkdocs inspects each buffer in the range A-Z and processes those which appear to have doc.jot-style section headings.</P>
+
+<P>A good example to try would be the jot user documents:</P>
+
+<PRE>
+$ jot $&#123;JOT_HOME&#125;/docs/jot_qr.txt -in="%it=jot_tech; %ic=jot_coms; \
+</PRE>
+<UL><P>%iu=jot_ug; %iw=jot_walkthrough; %r=linkdocs -bufs=. c t u w;"</P>
+
+</UL><P>The file images are displayed normally except that links are highlighted in green (unresolved links are highlighted in red). Clicking the left button with the mouse over over a green link will switch context to that section.</P>
+
+<P>See also <A HREF="#QR.JOT">qr.jot</A></P>
+
+
+</UL><H3><A NAME="ICONV.JOT">iconv.jot</H3>
+&#062; iconv &#091;&#060;PathName&#062;&#091;&#060;BufferKey&#062;&#093;&#093;
+<P>or from a unix prompt:</P>
+
+<PRE>
+$ jot &#060;pathname&#062; -in=%r=iconv
+</PRE>
+<P>This uses the linux utility iconv to convert a UTF-n file to UTF-8 that jot can read and display. It uses the iconv utility to create a temporary version in /tmp/... and then reads the converted file into the specified buffer. </P>
+
+<P>If the buffer is not specified it reads the converted file into the current buffer. If the pathName is not specified then it assumes the current-buffers file requires converting and rereading.</P>
+
+<P>It defines macro '4, this will write the file back to it's original pathname and in it's original format.</P>
+
+<P>See also <A HREF="jot_tech.html#PRACTICALITIES OF UNICODE ETC. AND JOT.">Practicalities of unicode etc. and jot.</A></P>
+
+
+</UL><H3><A NAME="BOOKINGS.JOT">bookings.jot</H3>
+<PRE>
+$ jot $&#123;JOT_RESOURCES&#125;/resources.txt -in="%r=bookings -mail=$&#123;JOT_RESOURCES&#125;/mail -resource=The House"
+</PRE>
+<P>This is an application designed to simplify the process of maintaining a bookings register for a holiday let or some similar resource that's hired out on a weekly basis. One of the worst things that can happen, apart from getting the place totally trashed, is a double booking. This app is designed to provide strict control of the bookings calendar and the associated database to prevent double bookings keep track of payments and client details etc.</P>
+
+<P>Although few jot users will actually require such an application, it is a useful example of how to implement similar interactive applications. It maintains various different views (e.g. the calendar, the accounts table, emails and various lists relating to each booking. These views are linked by hash-tables and tags containing metadata (typically hashtable keys).</P>
+
+<P>Looking at the calendar (in buffer C) we notice that it's organized from Saturday to the following Saturday - this is because the letting week starts Saturday afternoon and ends the following Saturday morning - that's because Saturday is the default changeover day.</P>
+
+<P>The changeover day is an important day in the world of holiday letting. It's intended to give the previous weeks guests time to pack up their things and get off home while also allowing the incoming guests time for their travelling and getting themselves organized as well as giving the housekeeper a chance to prepare the house for the incoming guests.</P>
+
+<P>Many operators chose either Friday or Saturday for their changeover day - bookings.jot defaults to Saturday but can be set for changeover on any other day of the week.</P>
+
+<P>The most important document is the resources.txt file - this contains a list of resources (e.g. properties to let) and, for each resource, an accounts table and bookings, each consisting of lists of emails and notes relating to the booking.</P>
+
+<P>The bookings system also has a simple Email reader. Although this lacks even the ability to send emails, it can still be useful because incoming messages are integrated into the bookings system. It is assumed that most users will be using a modern webmail mailer based on a remote imap server, bookings.jot uses a local POP mail file. POP is a simple plain-text file containing mail messages. In most cases this will be copied from the remote imap server using a mail-retrieval agent (MRA) such as fetchmail. Messages are then assembled in a POP mail file using a mail delivery agent (MDA) such as procmail. See <A HREF="http://dev.mutt.org/trac/wiki/MailConcept">http://dev.mutt.org/trac/wiki/MailConcept</A> for a basic description of how this works and <A HREF="http://www.andrews-corner.org/mutt.html">http://www.andrews-corner.org/mutt.html</A> for a description of how to set up your MRA and MDA.</P>
+
+
+</UL><H4><A NAME="BUTTONS AND MENUS">Buttons and Menus</H4>
+<P>At the top of the screen are two lines with mauve-tagged text - clicking on these has the following effects:</P>
+
+<UL><P><LI>"Save and Exit" - saves the resources file and terminates the session.</P></LI>
+
+<P><LI>"Abandon" - terminates the session without saving anything.</P></LI>
+
+<P><LI>"Save resources" - saves resources without terminating the session.</P></LI>
+
+<P><LI>"Calendar" - switches focus to the calendar for the current booking.</P></LI>
+
+<P><LI>"Account" - switches to the accounts line for the current booking.</P></LI>
+
+<P><LI>"Booking" - switches to the booking entries for the current booking.</P></LI>
+
+<P><LI>"Errors" - switches view to the list of error messages.</P></LI>
+
+<P><LI>"Previous" opens the previous mail message.</P></LI>
+
+<P><LI>"Current" re-opens the current mail message.</P></LI>
+
+<P><LI>"Next" - opens the next mail message.</P></LI>
+
+<P><LI>"List" - returns to the main mail index.</P></LI>
+
+<P><LI>"Search" - prompts for a search string then returns a list of all messages containing the string.</P></LI>
+
+<P><LI>"Results" - returns to the list of messages from last message search.</P></LI>
+
+</UL><P>The "Options:" menu, below, changes according to view:</P>
+
+<UL><P><LI>In the Bookings view, it displays one option "Note", this prompts for a note-text message with the prompt "Note text&#062; " The note is added to the list of notes in the booking, and the notes appear after the booking on the calendar.</P></LI>
+
+<P><LI>In the Account view, it displays "Set cell", this prompts for "Column-name Values&#062; " you should respond with an exact column name followed a blank and by any number of values, each separated by either a semicolon or a tab. This causes the specified cell to be set i.e. the cell where the booking-ID line intersects the specified column. If more than one value is given, succeeding cells are set using these values.</P></LI>
+
+<P><LI>In the mail view there are two options offered: - "Add to mail thread" - this adds a pointer, to the currently-viewed</P></LI>
+
+<UL><P>mail, to the mailthread for the current booking.</P>
+
+</UL><P><LI>"Find more from sender" - this searches the mail archive for all messages from the sender of the current message - the list includes the current message.</P></LI>
+
+
+</UL><H4><A NAME="MOUSE AND KEYBOARD ACTIONS:">Mouse and keyboard actions:</H4>
+<P>In any view, position the cursor onto some colour-tagged text and the following actions are defined:</P>
+
+<UL><P><LI>Left-button click - refocus to indicated point, if it is tagged with a booking then this booking becomes the current booking. If the point is tagged as a mail message, this message is opened.</P></LI>
+
+<P><LI>Most colour-tagged text can be clicked through. The top two lines of the display are dedicated to two rows of mauve-tagged buttons. Their effect is as follows:</P></LI>
+
+<UL><P><LI>"Save and Exit" - Saves the resources.txt file and, if necessary, the POP mail file, then terminates the session.</P></LI>
+
+<P><LI>"Abandon" - terminates the session without saving anything.</P></LI>
+
+<P><LI>"Save resources" - Saves the resources file without terminating.</P></LI>
+
+</UL><P>The "Goto:" group of buttons:</P>
+
+<UL><P><LI>"Calendar" - switches view to the calendar for the current booking.</P></LI>
+
+<P><LI>"Account" - switches view to the accounts table entry for the current booking.</P></LI>
+
+<P><LI>"Booking" - switches view to the booking entries for the current booking.</P></LI>
+
+<P><LI>"Errors" - switches view to the error reports.</P></LI>
+
+</UL><P>The "Emails:" group of buttons:</P>
+
+<UL><P><LI>"Previous" - opens the mail before the currently-selected message.</P></LI>
+
+<P><LI>"Current" - (re)opens the currently-selected message.</P></LI>
+
+<P><LI>"Next" - opens the mail after the currently-selected message.</P></LI>
+
+<P><LI>"Paste" - Creates a new message from the system paste buffer and inserts it in the POP file - use this to import messages from your favourite mailer.</P></LI>
+
+<P><LI>"List" - switches view to the mail index (list of messages).</P></LI>
+
+<P><LI>"Search" - Prompts for a string and searches messages for the given string.</P></LI>
+
+<P><LI>"Results" - Returns view to the search results.</P></LI>
+
+</UL><P>When viewing a mail message it displays the mail "Options:" buttons:</P>
+
+<UL><P><LI>"Add to mail thread" - Adds current message to messages listed in the BOOKINGS: section of the resources file.</P></LI>
+
+<P><LI>"Find more from sender" - Searches the POP file for more messages from the sender of the current message.</P></LI>
+
+<P><LI>"Owners Direct Booking" - Extracts the booking information from the standard owners-direct enquiry message.</P></LI>
+
+</UL><P>When viewing the calendar it displays the calendar "Options:" buttons:</P>
+
+<UL><P><LI>"New booking" - After defining a pending booking by dragging the mouse across the calendar, this button changes it to a full booking.</P></LI>
+
+<P><LI>"Delete booking" - Removes the booking from the resources-file image and all views.</P></LI>
+
+<P><LI>"Re-make calendar" - Rebuilds calendar - this is sometimes necessary after deleting a booking, in order to remove redundant changeover days from the calendar.</P></LI>
+
+</UL><P><LI>Left-button drag - only valid in calendar view. Sets a pending booking in the calendar for the dragged-over days - this can later be changed to a booking by &#123;Ctrl B&#125;.</P></LI>
+
+<P>Alternatively, if you prefer, you can drive the bookings script with escape sequences:</P>
+
+<UL><P><LI>&#091;&#060;pathName&#062;&#093;&#123;Esc R&#125; - (re)Read mail - Either re-read the mail spool or append specified mail archive then re-index the messages.</P></LI>
+
+<P><LI>&#123;Esc A&#125; - Abandon - exits session without writing resources.txt</P></LI>
+
+<P><LI>&#091;&#060;Booking ID&#062;&#093;&#123;Esc B&#125; - Booking - creates a new booking entry.</P></LI>
+
+<P><LI>&#123;Esc D&#125; - Delete booking - removes currently-selected booking.</P></LI>
+
+<P><LI>&#123;Esc S&#125; - Save - saves the revised resources.txt</P></LI>
+
+<P><LI>&#060;column&#062; &#060;value&#062;&#123;Esc s&#125; - Set - sets specified cell in booking table.</P></LI>
+
+<P><LI>&#123;Esc a&#125; - Accounts - refocus to relevant row of the accounts</P></LI>
+
+<P><LI>&#123;Esc c&#125; - Calendar - refocus to relevant week in the calendar.</P></LI>
+
+<P><LI>&#123;Esc b&#125; - Booking - refocus to current booking section in resources.</P></LI>
+
+<P><LI>&#123;Esc n&#125; - Notes - Adds a text note to the booking - these sow up at the end of the booking line of the calendar.</P></LI>
+
+<P><LI>&#060;name&#062;&#123;Esc r&#125; - Resource - selects a named resource in resources.txt</P></LI>
+
+<P><LI>&#123;Esc t&#125; - add to mail Thread - add current mail message to mail thread for the current booking.</P></LI>
+
+<P><LI>&#123;Esc m&#125; - return to current &#091;or first&#093; mail message.</P></LI>
+
+<P><LI>&#123;Esc u&#125; and &#123;Esc d&#125; - Up/Down - moves up, to previous mail or down, to next mail message in the mail spool.</P></LI>
+
+<P><LI>&#123;Esc o&#125; Owners-direct - read bookings directly from an Owners-direct mail archive file.</P></LI>
+
+
+</UL></UL><H3><A NAME="XWORD.JOT">xword.jot</H3>
+&#062; xword&#123;F2&#125;
+<P>This is a little fun script primarily intended to demonstrate features of jot. It's a crossword puzzle assistant, it looks up words and phrases of a predetermined length matching various criteria.</P>
+
+<P>The words and phrases are read from the on-line Roget's (see <A HREF="#THES.JOT">thes.jot</A>), these are munged into a database that's designed for speedy searching. It takes a few moments to do this, when complete it prompts you before writing out the file to your JOT_RESOURCES area, thereafter it only needs to read that file.</P>
+
+<P>The query syntax is</P>
+
+<UL><P>&#060;n&#062; &#060;c1&#062;=&#060;l1&#062;&#091;&#060;l2&#062;&#091;&#060;l3&#062;...&#093;&#093;&#093; &#091;&#060;c2&#062;=&#060;l1&#062;&#091;&#060;l2&#062;&#091;&#060;l3&#062;...&#093;&#093;&#093;...</P>
+
+</UL><P>where</P>
+
+<UL><P><LI>n is the number of characters in the word or phrase you're looking for.</P></LI>
+
+<P><LI>c1 denotes the character number of the first character in the first query element.</P></LI>
+
+<P><LI>l1 is the first letter of a substring beginning at c1.</P></LI>
+
+<P><LI>l2, l3 are the letters immediately after l1.</P></LI>
+
+<P><LI>Any number of query elements are allowed in any order.</P></LI>
+
+<P><LI>Any single character may be replaced by the wildcard character '?'.</P></LI>
+
+</UL><P>Queries are entered using macro 4, defined by xword and attached to &#123;KP_4&#125;. Suppose we're looking for a 6 letter word with the 3rd. letter t and the 5th letter e - then any of these queries would identify the same set of matching words:</P>
+
+&#062; 6 3=t 5=e&#123;KP_4&#125;
+&#062; 6 5=e 3=t&#123;KP_4&#125;

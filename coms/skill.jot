@@ -1,0 +1,142 @@
+%%Sets up buttons specific to editing skill files.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+
+%g?
+  Skill-code browser, the following functions have been assigned to
+  numeric-keypad buttons.
+  
+  1 - scan back to keyword at start of current block. 
+  2 - scan forwards to keyword at end of current block.
+  3 - scan forwards to next "( ... )" block-start.
+  4 - scan back to start of current "( ... )" block.
+  5 - scan forwards to end of current "( ... )" block.
+  
+Notes 
+  1/Block-start keywords recognized: 
+    if, when, unless, for, foreach, while, case, cond and procedure.
+     
+  2/When scanning backwards it can get confused by comment delimiters
+    in strings e.g. 
+      unless(t
+        printf("This is OK; !!! ")
+        printf("something") ; ( This bracket is counted.
+        )
+:
+
+%%Find previous block-end then find its matching block-start.
+%g1
+%%Initially search for block start for this block.
+( v"*/"f-"/*", v/"/(r-f-1/"/v-/*/)0, q/()/\ (r-, m- (f1/;/, r0)))0 
+(v/)/(r-, m-f1/;/, r0), )
+( %%Loop searches for block-start with valid keyword.
+  %%Search for block start of parent block.
+  ol-1
+  ( ( ( v"*/"f-"/*", v/"/(r-f-1/"/v-/*/)0 , q/)/ol1o-, q/(/\)(r-, m-(f1/;/f-1/"/\, r0))), o~r-)0ok
+  v/(/
+  %%Is the keyword before or after the '('?
+  (q-/a-z/(q-/a-z/r-)0, r)
+  %%check current '('.
+  ( ( v/if/r2, v/when/r4, v/unless/r6,
+      v/foreach/r7, v/for/r3, v/while/r5,
+      v/case/r4, v/cond/r4, v/procedure/r9)\, q/a-z/)
+  %%Not a valid keyword continue search from next block start.
+  (v-/(/r-2,)
+  )0
+(q-/a-z/r-)0
+:
+
+%%Find previous block-start command then find its matching block-end.
+%g2
+(v/)/r, )
+(q/()/\ ( v/;/m, ( v"/*"f"*/", v/"/((r, m)v/\/r, v/"/\)0, ) (r, m) ) )0
+%%Initially search for block start for this block.
+( v"*/"f-"/*", v/"/(r-f-1/"/v-/*/)0, q/()/\ (r-, m- (f1/;/, r0)))0 (q/)/(r-, m-(f1/;/, r0)), )
+( %%Loop searches for block-start with valid keyword.
+  %%Search for block start of parent block.
+  ol-1
+  ( ( ( v"*/"f-"/*", v/"/(r-f-1/"/v-/*/)0 , q/)/ol1o-, q/(/\)(r-, m-(f1/;/, r0))), o~r-)0r-ok
+  %%Is the keyword before or after the '('?
+  (q/a-z/(q-/a-z/r-)0, r2)
+  %%check current '('.
+  ( ( v/if/r2, v/when/r4, v/unless/r6,
+      v/foreach/r7, v/for/r3, v/while/r5, v/case/r4,
+      v/cond/r4, v/procedure/r9)\, q/a-z/)
+  %%Not a valid keyword continue search from next block start.
+  (v-/(/r-2,)
+  )0
+(q-/a-z/r-)0
+(v/)/r, )
+(q/()/\ ( v/;/m, ( v"/*"f"*/", v/"/((r, m)v/\/r, v/"/\)0, ) (r, m) ) )0
+v/(/\, ol0
+( ( v/;/m, ( v"/*"f"*/", v/"/((r, m)v/\/r, v/"/\)0, q/(/ol1o-, q/)/\)(r, m)), o~(r, m))0 ok
+:
+
+%%Find next block-start keyword.
+%g3
+( %%Loop searches for block-start with valid keyword.
+  (v/(/r, )
+  %%Find next "("
+  (q/(/\ ( v/;/m, ( v"/*"f"*/", v/"/((r, m)v/\/r, v/"/\)0, ) (r, m) ) )0
+  v/(/
+  %%Search for block start of parent block.
+  %%Is the keyword before or after the '('?
+  (q-/a-z/(r-q-/a-z/)0, )
+  %%Valid keyword ?
+  ( ( v/if/r2, v/when/r4, v/unless/r6,
+      v/foreach/r7, v/for/r3, v/while/r5, v/case/r4,
+      v/cond/r4, v/procedure/r9)\, q/a-z/)
+  %%Not a valid keyword continue search from next block start.
+  (q/a-z/r)0
+  )0
+:
+
+%%Find start of previous subblock.
+%g4
+%%If already at a block start step back.
+(v/(/r-, )
+%%Find previous block start/end.
+(q/()/\ ( v"*/"f-"/*", v/"/(r-f-/"/v-/\/)0, ) (r-, m- (f1/;/f-1/"/\, r0)) )0
+%%If we're at a block start then stop now, if block end, start counting.
+v/)/\, ol0
+( 
+  ( %%Find next block start.
+    (v"*/"f-"/*", v/"/(r-f-/"/v-/\/)0, q/)/ol1o-, q/(/\)
+      (r-,
+      %%At start of line - move back to predecessor.
+      m- 
+      %%If there's a ';' on this line - count quotes - it may be in a string.
+      (f1/;/ol0 (f-1/"/(v-/\/,o~)r-)0 ol2 o%ol0(o=f1/;/, r0) ok)0 )
+    ), 
+    o~(r-, m-(f1/;/f-1/"/\, r0) )
+  )0 ok
+:
+
+%%Find next subblock-start keyword.
+%g5
+(v/)/r, )
+(q/()/\ ( v/;/m, ( v"/*"f"*/", v/"/((r, m)v/\/r, v/"/\)0, ) (r, m) ) )0
+v/(/\, ol0
+( ( v/;/m, ( v"/*"f"*/", v/"/((r, m)v/\/r, v/"/\)0, q/(/ol1o-, q/)/\)(r, m)), o~(r, m))0 ok
+:
+

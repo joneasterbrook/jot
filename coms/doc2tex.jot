@@ -1,0 +1,117 @@
+%%Translates document in plain text (see doc.jot) to simple latex source.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Conventions:
+%%Section headings are the only lines with numbers in column 1 these can
+%%  only contain digits with heading levels delimited by dots and are terminated
+%%  by at least one blank.
+%%The bullet string must not contain leading blanks, these will confuse
+%%  anything that searches for bullets, pargraphs etc.
+%%Recognizes the following special paragraph types if the keyword starts at 
+%%column 1, insensitive to case of keyword:
+%%    From <author name>
+%%    Date <creation date>
+%%    Subject <subject description>
+%%    To <To-list, each name on a new line>
+%%    CC <CC-list, each name on a new line.>
+%%
+%%The document title is taken to be the first non-blank line of the file if this
+%%is centred and underlines and is not a bullet or heading line. If a title 
+%%line is not found then no title is given.
+%%
+%%Buffer assignments (part 1 - macros etc. assumed to set up by doc.jot):
+%% '<' - Macro finds start of current paragraph.
+%% '>' - Macro finds end of current paragraph.
+%% '+' - Find next paragraph start.
+%%
+%%Buffer assignments (temporary or set up here):
+%% '&' - Current total indentation.
+
+%%For debugging only.
+%%%t 2
+%%%w
+%%%w 20
+%%%w 0
+
+%%%%Check that doc.jot has been run.
+%%%g$
+%%  obz]m-0m\rl(q/0-9/r)0r\m\oz,
+%%  oz
+%%  %x Error - Run doc.jot before running doc2tex.
+%%:
+%%'$
+%r=doc.jot
+
+%%Check that this is a .doc file, change to .tex
+m0r0v-/.doc/s/.tex/m-0
+
+%%Make backslashes safe.
+(f/\/s/\begin{math}\backslash\end{math}/r)0m\m-0
+%%Put in preliminary rubbish.
+m-0
+i/\documentstyle{memo}/b
+i/\headedpaper/b
+i/\begin{document}/b
+
+%%Find author etc. paragraphs and delimit with blank lines.
+%g$
+((mm-(f/to/lf//)0f1//-q/	 /\)0(q/	 /e)0v-//s/\begin{memo}{/
+(mq/	 /(q/	 /e)0j-i/ \\ /)0m-r0i/}/
+  na_
+  ,n.a_obz_i/\begin{memo}{}/boz)
+m0b-i/\end{memo}/m-0
+:
+'$
+
+%g$
+((mm-(f/cc/lf//)0f1//-q/	 /\)0(q/	 /e)0v-//s/\cc{/
+  (mq/	 /(q/	 /e)0j-i/ \\ /)0m-r0i/}/
+  na_+)?m-0
+:
+'$
+((mm-(f/from/r-f//)0f1//-q/	 /\)0(q/	 /e)0v-//s/\from{/(q/	 /e)0r0i/}/na_+)?m-0
+((f/date/r-f//)0f1//-q/	 /\)0(v//bna_+)?m-0
+%%and put in a blank line before the first heading.
+(q/0-9/\m)0(q//b,)m-0
+%%Now make to and cc lists.
+(f/\begin{memo}{/(mrm-r0i/ \\/m)0m-r0i/ }/,)m-0
+(f/\cc{/(mrm-r0i/ \\/m)0m-r0i/ }/,)m-0
+m-0f/\begin{/mh_
+ 
+%%Identify any centred and underlined text.
+((v/ /\m)0(v/ /r)0v/-/ocm-(orq/a-zA-Z/v-/ /e-0i/{\centre /r0i/}/mk,m?\),m)0m\m-0
+%%Change first centred header to document title and move it to start of text.
+(v/{\centre /\m)0(v//s-/\subject{/na_(q/0-9/\m)0h_b-m-b,)m-0
+%%Find date and move it ahead of first heading.
+(f/date /r-f//)0(v//m-nma_m-0(q/0-9/\m)0b-h_,)m-0
+
+%%Change bullets.
+%%%%((v/ /\m)0(v/ /r)0q/A-Z/\e-0q/A-Z/\ei/\item /m,m)0m\m-0
+%%Next line was in the current version - hangs up at first paragraph.
+%%((v/ /\m)0(v/ /r)0q/A-Z/\'>m-r0i/\end{itemize}/'<s/\begin{itemize}\item /m,m)0m\m-0
+
+%%Change section headings
+((q/0-9/\m)0(q/0-9/i/{\Large \\ \\ /r0i/}/(m-(v/ /r)0r\k)0m2(v/-/k,)b,m))0m\m-0
+
+%%And ensure that \end{document} is the last \end.
+m0b-i/\end{document}/m-0
+w

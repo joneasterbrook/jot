@@ -1,0 +1,15 @@
+
+/* From http://hed.st.com/styles.v4/main.css */
+ 
+H1 {font: 16pt Helvetica; color: black; background: #00C000; text-align: left }
+H2 {font: 16pt Helvetica; color: black; background: #00C000; text-align: left }
+H3 {font: 14pt Helvetica; color: black; background: #00F000; text-align: left }
+H4 {font: 12pt Helvetica; color: black; background: #00F800; text-align: left }
+H5 {font: 14pt Helvetica; color: black; background: #00FC00; text-align: left }
+
+
+/* General */
+body { margin: 10px; 
+       font: normal 14px "Verdana","Arial","Helvetica",sans-serif } 
+       
+        

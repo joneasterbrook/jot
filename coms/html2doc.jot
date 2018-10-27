@@ -1,0 +1,145 @@
+%%Translates HTML to a .DOC-format file.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%M=Check that doc.jot has been run.
+( obz*m-0f1/reformats current paragraph/oz, oz %r=doc.jot; )
+
+%g#
+%%copy entire document to @.
+m-0n.m0r0a@&
+ 
+%m=Add pathName.
+%%Get original pathname and modify to .doc
+%q~=buffer; f/pathName = /-br0(f-1/./-e0, r0i/./)i/doc/
+%%Set the pathname in the temp buffer.
+z@%b=pathname '~;
+ 
+%m=Remove html commants now. 
+m-0 (f/<!--/n.f/-->/-a$)0
+
+%m=Strip out code, style sections. 
+m-0(f/<script/n.f"</script>"-a$(r-\r\k,))0 m-0(f/<style/n.f"</style>"-a$(r-\r\k,))0
+
+%m=Indent any text in column 1.
+%%m-0 ((q/</, i/  /)m2m-)0
+ 
+%m=%M=Strip out any "<A NAME=...>" rubbish. 
+%%m-0 (f"<A NAME="n.f-1">"a%+ f"</A>-"n.r4a%+)0
+
+%m=Translate HTML paragraph markers. 
+m-0 (f/<p>/n.r3a%+ (rr-b,) b)0
+
+%m=Deal with whole lines of literal text - ignore mid-line snippits.
+m-0 
+( f/<div class="literallayout">/ (f1/<br>/\ f1"</div>"\m)0
+  ( v/<br>/ %%The literal-text extends over more than one line - tag each line as literal.
+    f-/<div / (f1/<br>/e4(rr-b,), f1"</div>"\r-0i/	/m )0
+    )0
+  )0
+m-0 ( f/<pre /b (r-0i/	/f1"</pre>"\m)0 r6b )0
+
+%m=Translate section headings.
+m-0
+( %%Find the next level-numbered heading.
+  ((f"<h" n.r2q"1-9"\(r,m))0 oid(f">", )\)0 v">"ra%+ 
+  %%Tidy up the end of the heading - may be on next line.
+  (r-rb,) (f1"</h"\j(v"  "e, i" "), n.f1/>/-a%+(v-/ /e-)0(rr-b-,)\)0 (rr-b-,)
+  
+  %%This stuff was stolen from doc.jot
+  on
+  %%Find last header.
+  (m-q/0-9/\)0
+  %%Pick it up.
+  (q/0-9/n.f1/ /a_h_ono-omh_, ono-omi/0/)
+  ol0oso- r-0(o~(q/ 0-9/r)0(v/./r,i/./i-/0/))0ok oido~oo/%d/i/ / (q/.0-9/e)0
+  
+  %%Remove any html tags etc. 
+  r-0(f1/</n.f1/>/-a$)0
+  %%Remove any blank lines before start of text.
+  mn. ((v/ /r)0r\m)0 r-0a%+
+  )0
+
+%M=Take out Leading whitespace on blank lines.
+m-0 ((v/ /r)0 (r, e-0)m)0
+
+%M=Delete any redundant blank lines.
+%%m-0 ((rm)0 m(rl, n.(mr\)0l a%+))0
+
+%M=Translate quotes.
+m-0 (f/&quot;/s/"/)0
+
+%M=Translate amphesends.
+m-0 (f/&amp;/s/&/)0
+
+%M=Translate blanks.
+m-0 (f/&nbsp;/s/ /)0
+
+%M=Those "<HR>" things - horizontal lines?? - ignore them. 
+m-0 (f"<HR"n.f1">"-a%+)0
+
+%m=Bullet points
+m-0 
+%%f/Indicates the title of the document that/dm-
+%%f/&lt;HTML&gt/m-d
+( %%Search each record loop.
+  (f1/<li>/, f1/<li /, m) (f-1"</li>"-b, )
+  r-0i/  - /(v/ /e)0
+  %%If this is a multi-line list item indent subsequent lines n.b. list item may be terminated by </li>, <ol> or <ul>.
+  ( (f1"</li>", (mi/    /(v/ /e)0 (f1"</li>"\ f1/<ul>/\ f1/<ol>/\))0 r5b-), )
+  m )0
+
+%M=Format the paragraphs.  
+m-0
+( %%Paragraph loop - N.B. some text is not wrapped up in <p> ... </p> - this is not processed here.
+  %%Make next paragraph into one big line.
+  (f"<p"n.r2 q/ >/\)0f1/>/-a$ n.f"</p>"a$e4 z$ m-0(v/ /e)0 r-0((f1/	/, )v/	/m, i/  /ji/ /)0 r-0z@h$ b-
+  %%Remove all remaining html tags in this line.
+  r-0(f1/</n.f1/>/-a$)0
+  %%If there's any text left run the paragraph formatter then return.
+  r-0(v/ /r)0 (rr-(v/- /, e-0i/  /)'*, m-k2)
+  %%Return.
+  z@ )0
+
+%m=Remove any remaining HTML tags.   
+m-0 (f/</n.f/>/-a$)0
+
+%m=Restore ASCII character encoding. 
+m-0(f/&gt;/s/>/)0
+m-0(f/&lt;/s/</)0
+m-0(f/&#060;/s/</)0
+m-0(f/&#062;/s/>/)0
+m-0(f/&#091;/s/[/)0
+m-0(f/&#093;/s/]/)0
+m-0(f/&#123;/s/{/)0
+m-0(f/&#125;/s/}/)0
+m-0 (f/=/-(q/0-7/e-n.r2a$z$r-0oixz@oo/%c/, r, e-j(v/ /e)0) r)0
+
+%m=Remove unnecessary blank lines. 
+m-0 (((q/	 /r)0rm)0 e-0m((q/	 /r)0r\ k)0m)0
+
+%m=Find section headings, restore any original header numbers, underline and remove following blank lines.
+m-0 ( (q/0-9/\m)0 (q/0-9./r)0(v/ /r)0(q/0-9/(q-/0-9. /e-)0, )na_h_2 m-(ei/-/)0 (m(v/ /r)0 r, k) )0
+
+m-0
+:
+'#

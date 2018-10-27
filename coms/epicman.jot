@@ -1,0 +1,51 @@
+%%Translates the output of mif2doc from the epicMan
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%%g#
+%%%%Check that doc.jot has been run.
+%%( obz]m-0m\rl(q/0-9/r)0r\m\oz,
+%%  oz
+%%  %r=doc
+%%  %M Default document style assumed.
+%%  )
+%%:
+%%'#
+%r=doc.jot
+
+%g#
+%%Find first heading and force it to level 1.
+m-0(v/--/\m)0m-
+on(m-q/0-9/\)0(q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)r-0n.oida%o~oo/%d/i/ /(q/0-9. /e)0r-0ol0((q/0-9/r)0v/./ro~)0m(v/-/k,)m-r0ol4o-n.a%obz%oo/%d/r-0v/-/oz(v-/ /e-)0ol0oco-b(i/-/o~)0okm,ok
+ 
+%%Find remianing level-1 headings and translate. 
+(
+  (v/*Head1 /\m)0 w (k(v/ /r)0r\)0
+on
+%%Find last header.
+(m-q/0-9/\)0
+%%Pick it up.
+(q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+r-0n.oida%o~oo/%d/i/ /(q/0-9. /e)0
+)0
+  
+:

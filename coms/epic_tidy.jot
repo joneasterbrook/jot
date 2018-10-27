@@ -1,0 +1,164 @@
+%%Tidies output of ps2doc script used after translating an epic user manual.
+
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%M=Tidies output of ps2doc script.
+
+%M=Documents
+%r=doc
+
+%g#
+%M=Remove trailing blanks. 
+m-0 (r0(v-/ /e-)0m)0
+%M=Trim back abnormally long runs of blank lines.
+m-0 (rm, (mr\)3 n.(mr\)0r-aa+, mm-)0
+(m\, %x=Failed in long runs processing.
+  )
+  
+%M=Top & tail margins
+m-0(v/TOP_MARGIN	/\ v/BOTTOM_MARGIN	/\m, k)0
+
+%M=Headings.
+%%Fix up these - it's a bug in ps2doc:
+m-0 (v/SUBHEADING	HEADING	/s/SUBHEADING	/m,m)0
+ 
+m-0 ((v/HEADING	/\m)0 s-/ /((v/ /e)0r\m)0 r-i/0 /)0
+(m\, %x=Failed in "HEADING" processing.
+  )
+m-0 ((v/SUBHEADING	/\m)0 s-/ /(v/ /e)0rr-i/0.0.0 /, m)0
+(m\, %x=Failed in "SUBHEADING" processing.
+  )
+
+%M=Bullets 
+m-0 ((v/DINGBATS	/\m)0 
+  s/ /e-((v/ /r)0r\m)0 q-/nu/e-(v/ /r)0v-/   /s/  - /
+  %%Restore corrupted indentation of first line (frequently the bullet size is wrong). 
+  (mv/ /(v/ /r)0r-2ocm-(v/ /e)0 ol0oso- (i/ /o~)0 ok, )
+  )0
+(m\, %x=Failed in "DINGBATS" processing.
+  )
+  
+%M=Chapters take level-0 headings.
+m-0 ((v/0 /\m)0 r2v/ /m,
+  v/Chapter /
+    %%Assume epic-style chapters - the next heading is the chapter name.
+    m((v/ /r)0r\k)0 r-v/0 /ej-,
+  v/Appendix /m
+    %%Assume epic-style appendices - the next heading is the appendix name.
+    m((v/ /r)0r\k)0 r-v/0 /ej-,
+  %%Other headings set to level-2.
+  mm-ri/.0/m)0
+(m\, %x=Failed in level-0 headings/Appendix processing.
+  )
+
+%M=Left-shift epic special paragraphs. 
+%M=Turn on case sensitivity for this.
+%s=case 1
+%M=Epic "NOTE:" paragraphs.
+m-0 ((f/ NOTE:/ (v-/ /r-)0r-m)0
+  %%Trim the paragraph
+  mm- (v/ /e)0f1/:/-(v/ /e)0 (rr-b, m) (r\k)0r- ((v/ /e)0 (f1/	/, i/    /)mrr-)0 )0
+(m\, %x=Failed in NOTE processing.
+  )
+  
+%M=Epic "SYNTAX:" paragraphs.
+m-0 ((f/ SYNTAX:/ (v-/ /r-)0r-m)0
+  %%Trim the paragraph
+  mm- (v/ /e)0f1/:/-(v/ /e)0 (rr-b, m) (r\k)0r- ((v/ /e)0 (f1/	/, i/    /)mrr-)0 )0
+(m\, %x=Failed in SYNTAX processing.
+  )
+  
+%M=Epic "DESCRIPTION:" paragraphs.
+m-0 ((f/ DESCRIPTION:/ (v-/ /r-)0r-m)0
+  %%Trim the paragraph
+  mm- (v/ /e)0f1/:/-(v/ /e)0 (rr-b, m) (r\k)0r- ((v/ /e)0 (f1/	/, i/    /)mrr-)0 )0
+(m\, %x=Failed in DESCRIPTION processing.
+  )
+  
+%M=Epic "CAUTION:" paragraphs.
+m-0 ((f/ CAUTION:/ (v-/ /r-)0r-m)0
+  %%Trim the paragraph
+  mm- (v/ /e)0f1/:/-(v/ /e)0 (rr-b, m) (r\k)0r- ((v/ /e)0 (f1/	/, i/    /)mrr-)0 )0
+(m\, %x=Failed in CAUTION processing.
+  )
+  
+%M=Epic "EXAMPLE:" paragraphs (there may be an example number).
+m-0 ((f/ EXAMPLE/ (v-/ /r-)0r-m, f1/:/\m)0
+  %%Trim the paragraph
+  mm- (v/ /e)0f1/:/-(v/ /e)0 (rr-b, m) (r\k)0r- ((v/ /e)0 (f1/	/, i/    /)mrr-)0 )0
+(m\, %x=Failed in EXAMPLE processing.
+  )
+%s=case 0
+
+%M=Sort out tabulated paragraphs. 
+m-0((v/TABLE	/\m)0 s/ /e-m)0
+
+%M=Collapse indentation of paragraphs, preserving sub-bullet paragraphs.
+m-0 ((v/      /\m)0 (v/ /r)0
+  ( v/- / %%A bullet paragraph - count the indentation levels.
+    r2oc e-0i/    - / 
+    ( %%Line loop.
+      (mr\)0 (v/ /r)0 
+      (v/- / %%A sub-bullet, add more indents.
+        ( (v/ /r)0 (v/- /, r-2) oco<e-0i/      / (mr\)0 )0
+        %%Force sudden death of the line loop.
+        m-\
+      , %%Not a sub-bullet.
+        oco=e-0i/      /) 
+      )0 ok
+    
+  , rr- %%An ordinary text paragraph - leave them for later.
+    ,
+    
+     
+  , %%A blank line - ignore.
+    )
+  m2m- )0
+   
+  (m\, %x=Failed in paragraph-reindentation processing.
+    )
+
+%M=Code examples 
+m-0 (v/CODE	/\m, ((v/CODE	/\ v/TABLE	/\) m, f1/	/-e-0)0(v/ /r m)0 r-e-0i/     /m)0
+
+%M=Collapse indentatiion of all other paragraphs.
+%%Locate any paragraphs where it's all over-indented and shift it to the left.
+m-0 ( %%Main paragraph search loop.
+  (r\m)0 r mm- 
+  (v/                /\m)0 n.(v/ /r)0a$h$
+  %%Valid first line of paragraph must be preceded either by a blank line or a heading.
+  m- ((r\, v-/ /\)
+    %%Valid paragraphs must be indented throughout to at least the starting-indentation level.
+    (mv'$)0 
+    %%If at an empty line it's ok now to  go back and collapse the indentation.
+    (r\ (m-v'$s/  /)0) , m)
+  %%Skip to end of current paragraph.
+  (rm)0 )0
+
+%m=That is almost it - just check that nothing obvious has gone wrong.
+m-0 (f/	/\m-0, %x=Failure - tab found, failed to remove all tagged lines?
+  )
+:
+'#
+%l
+ 
+%m=ps2doc_tidy completed successfully.
+

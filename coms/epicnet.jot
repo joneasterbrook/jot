@@ -1,0 +1,62 @@
+%%Finds a transistor in a nelist from an epic-style expanded instance name.
+%%Point the cursor at the expanded pathname (dots used as separators).
+%%Finds the lowest level instance (typically a transistor) in the epic
+%%netlist - must be in buffer 'p
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%
+%%Macro # does the work
+%g#
+(
+  %%Read the next netlist file.
+  r-0f1/include /-(v/ /r)0n.r0a!h!z!
+  %%Select correct hierarchy buffer and check to see if it's the correct file.
+  o~o#oz m0r0(v-'!m-0 , z!
+    %i!
+    %%Copy it into hierarchy buffer.
+    o#oz m-0k0e0 h! m-0ol1o. n.a! )
+  %%Go back to original path and get next path element.
+  oso#oz n.(q/. /\r)0a$h$(v/./rz$r-0i/(en=/, z$r-0i/=/)r0i/)/ oso#oz
+  %%Find the instance then the master name.
+  f'$ f/;/f-/(ef=/-n.f1/)/a@h@z@r-0i"/"r0i".epic"znm0f-'@
+  )0
+%%Modify search to find either nets or instances.
+z$r-0i"v/"(v/=/e,) r0(v-/)/e-,)i"/?" ozok
+m-0'$ (f//(q-/_A-Za-z0-9/r?,rr-f1//-q/_A-Za-z0-9/))0f-1//
+%%Clear out the remaining buffers (up to '9').
+obo# (o~o#ozm-0k0e0ol57o=\)0 ok oz
+%l
+%MHit the find button to see more connections to this net.
+:
+
+%%Initialize.
+ob
+(v/ /r)0
+%%Point the netlist at the top-level include.
+z.m-0f/ -m /-(v/ /r)0n.f1/ /a$h$z$r0i/.epic/znm0f-'$
+%%ASCII '0' - the top-level cell-1
+ol48
+%%Go.
+'#
+w
+ 

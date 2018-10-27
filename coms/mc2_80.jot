@@ -1,0 +1,42 @@
+%%Command file to multicolumn a document to 2 columns for 90 by 66-line forms.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%
+%%Save filespec.
+m0n.r0a@
+
+%%Substitute formfeeds with correct number of blank lines.
+m-0(n.mf64//-ob(a2z2m0f-//eb68m-0m65k0ozh2),ozm)0
+%%m-0(n.mt64//(a2z2m0f-//eb68m-0m65k0z~h2),z~m)0
+
+%%Initialize then load column buffer 2.
+n.a2
+m-0(mm-m45?mm-n.m65?a2+)0
+m-0r0i-/ /132n.r0a%(r0h%m)0
+m-0r45h2*
+
+%%Trim off any trailing spaces (and other characters too!).
+m-0(r90?e0m)0
+%%Insert Form-Feeds - Comment-out this line for old version of FEPos.
+m-0(m67i-//)0
+%%Restore filespec.
+m0e0h@

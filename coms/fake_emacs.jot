@@ -1,0 +1,1242 @@
+%%Defines the hot-keys, functions and function mappings for emacs-like operation.
+%%
+%%
+%%    Copyright (C) 2017-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%%Call the standard startup now.
+%r=startup -nofinalize;
+  
+%%Now the function to key-name mapping, these are appended to buffer ( ! ).
+%g$
+^[q         <<emacs_QuitDebugger>>
+^[i         <<emacs_ToggleEmacsMode>>
+^X^[c       <<emacs_Exit>>
+^X^F        <<emacs_ReadFile>>
+^X^S        <<emacs_SaveFileImage>>
+^XS         <<emacs_SaveAllFiles>>
+^Xi         <<emacs_InsertFileImage>>
+^X^V        <<emacs_ReplaceFileImage>>
+^X^W        <<emacs_WriteToPathName>>
+^X^Q        <<emacs_ToggleReadOnly>>
+^H          <<emacs_Help>>
+^Ht         <<emacs_HelpTutorial>>
+^X1         <<emacs_HelpClose>>
+^[^V        <<emacs_HelpScroll>>
+^Ha         <<emacs_HelpApropos>>
+^Hk         <<emacs_HelpDescribeKey>>
+^Hf         <<emacs_HelpFunction>>
+^Hm         <<emacs_HelpMode>>
+^[x         <<emacs_RecoverSession>>
+^Xu         <<emacs_Undo>>
+^[x         <<emacs_RestoreOriginal>>
+^L          <<emacs_WindowRedraw>>
+^S          <<emacs_IncrementalSearchNext>>
+^R          <<emacs_IncrementalSearchPrev>>
+^[^S        <<emacs_SearchRexNext>>
+^[^R        <<emacs_SearchRexPrev>>
+^[p         <<emacs_SearchHistoryPrev>>
+^[n         <<emacs_SearchHistoryNext>>
+^M          <<emacs_SearchExit>>
+delete      <<emacs_UndoChr>>
+^B          <<emacs_GotoChrBack>>
+^F          <<emacs_GotoChrForwards>>
+^[b         <<emacs_GotoWordBack>>
+^[f         <<emacs_GotoWordForwards>>
+^P          <<emacs_GotoLineBack>>
+^N          <<emacs_GotoLineForwards>>
+^A          <<emacs_GotoLineStart>>
+^E          <<emacs_GotoLineEnd>>
+^[a         <<emacs_GotoSentanceStart>>
+^[e         <<emacs_GotoSentanceEnd>>
+^[{         <<emacs_GotoParaStart>>
+^[}         <<emacs_GotoParaEnd>>
+^X[         <<emacs_GotoPageStart>>
+^X]         <<emacs_GotoPageEnd>>
+^[^B        <<emacs_GotoSexpStart>>
+^[^F        <<emacs_GotoSexpEnd>>
+^[^A        <<emacs_GotoFunctionStart>>
+^[^E        <<emacs_GotoFunctionEnd>>
+^[<         <<emacs_GotoBufferStart>>
+^[>         <<emacs_GotoBufferEnd>>
+^[v         <<emacs_GotoPagePrev>>
+^V          <<emacs_GotoPageNext>>
+^X<         <<emacs_ViewScrollLeft>>
+^X>         <<emacs_ViewScrollRight>>
+^L          <<emacs_ViewCentTopBot>>
+^[gg        <<emacs_GotoLineNo>>
+^[gc        <<emacs_GotoChrNo>>
+^[m         <<emacs_GotoFirstNonBlank>>
+^?          <<emacs_DeleteChrPr>>
+^D          <<emacs_DeleteChrNx>>
+^[d         <<emacs_DeleteWordNx>>
+^[^?        <<emacs_DeleteWordPr>>
+^[0^K       <<emacs_DeleteToLineStart>>
+^K          <<emacs_DeleteToLineEnd>>
+^X^?        <<emacs_DeleteToSentanceEnd>>
+^[k         <<emacs_DeleteToSentanceStart>>
+^[-^[^K     <<emacs_DeleteSexpBackwards>>
+^[^K        <<emacs_DeleteSexpForwards>>
+^W          <<emacs_RegionKill>>
+^[w         <<emacs_RegionCopy>>
+^[z         <<emacs_KillToChar>>
+^Y          <<emacs_YankLastKilled>>
+^[y         <<emacs_YankReplaceKill>>
+^@          <<emacs_MarkHere>>
+^X^X        <<emacs_SwapMark>>
+^[@         <<emacs_RegionMarkNWords>>
+^[h         <<emacs_MarkParagraph>>
+^X^P        <<emacs_MarkPage>>
+^[^@        <<emacs_MarkSexp>>
+^[^H        <<emacs_MarkFunction>>
+^Xh         <<emacs_MarkBuffer>>
+^[%         <<emacs_ReplaceText>>
+^[x         <<emacs_RegxReplace>>
+^R          <<emacs_RecursiveEdit>>
+^X1         <<emacs_WindowDeleteallButCurrent>>
+^X2{^X52    <<emacs_WindowHorizSplit>>
+^X0{^X50    <<emacs_WindowDeleteCurrent>>
+^X3         <<emacs_WindowVertSplit>>
+^[^V        <<emacs_ScrollOtherWindow>>
+^Xo         <<emacs_WindowSwapFocus>>
+^X5o        <<emacs_FrameSwapFocus>>
+^X4b        <<emacs_WindowSwap>>
+^X5b        <<emacs_FrameSwapFocus>>
+^X4Ctrl-o   <<emacs_WindowDisplayBuffer>>
+^O^X5^O     <<emacs_FrameDisplayBuffer>>
+^X4f        <<emacs_WindowFile>>
+^X5f        <<emacs_FrameFile>>
+^X4r        <<emacs_WindowROFile>>
+^X5r        <<emacs_FrameROFile>>
+^X4d        <<emacs_WindowDired>>
+^X5d        <<emacs_FrameDired>>
+^X4.        <<emacs_WindowGotoTag>>
+^X5.        <<emacs_FrameGotoTag>>
+^X^         <<emacs_WindowTaller>>
+^X{         <<emacs_WindowSlimmer>>
+^X}         <<emacs_WindowFatter>>
+^[^\        <<emacs_IndentRegion>>
+^[^Q        <<emacs_IndentSexp>>
+^XTAB       <<emacs_IndentRegionTab>>
+^[;         <<emacs_IndentForComment>>
+^O          <<emacs_Break>>
+^[^O        <<emacs_BreakShift>>
+^X^O        <<emacs_DeleteSurroundingBlankLines>>
+^[^         <<emacs_JoinPrev>>
+^[\         <<emacs_DeleteSurroundingBlanks>>
+^[SPC       <<emacs_InsertBlank>>
+^[q         <<emacs_ParagraphFill>>
+^Xf         <<emacs_FillColumn>>
+^X.         <<emacs_PrefixSet>>
+^[o         <<emacs_FaceSet>>
+^[u         <<emacs_UppercaseWord>>
+^[l         <<emacs_LowercaseWord>>
+^[c         <<emacs_CapitalizeWord>>
+^X^U        <<emacs_uppercaseRegion>>
+^X^L        <<emacs_LowercaseRegion>>
+TAB         <<emacs_CompleteAll>>
+SPC         <<emacs_CompleteWord>>
+^M          <<emacs_CompleteAndExecute>>
+?           <<emacs_CompleteSuggestions>>
+^[p         <<emacs_PreviousInput>>
+^[n         <<emacs_LaterInput>>
+^[r         <<emacs_HistorySearchBack>>
+^[s         <<emacs_HistorySearchForwards>>
+^X^[^[      <<emacs_HistoryRepeat>>
+^Xb         <<emacs_BufferSelect>>
+^X^B        <<emacs_BufferList>>
+^Xk         <<emacs_BufferKill>>
+^T          <<emacs_TransposeCharacters>>
+^[t         <<emacs_TransposeWords>>
+^X^T        <<emacs_TransposeLines>>
+^[^T        <<emacs_TransposeSexps>>
+^[$         <<emacs_SpellWord>>
+^[x         <<emacs_SpellRegion>>
+^[x         <<emacs_SpellBuffer>>
+^[x         <<emacs_SpellOnOff>>
+^[.         <<emacs_IndexFindDef>>
+^[.         <<emacs_IndexFindNx>>
+^U^[.       <<emacs_IndexFindPr>>
+^[x         <<emacs_IndexNewFile>>
+^[x         <<emacs_IndexSearchAllFiles>>
+^[x         <<emacs_IndexQueryReplace>>
+^[,         <<emacs_IndexContinueSearch>>
+^[!         <<emacs_ShellCommand>>
+^[&         <<emacs_ShellCommandNowait>>
+^[|         <<emacs_ShellCommandRegion>>
+^U^[|       <<emacs_ShellCommandFilterRegion>>
+^[x         <<emacs_ShellStartInWindow>>
+^Xrr        <<emacs_RectCopy>>
+^Xrk        <<emacs_RectKill>>
+^Xry        <<emacs_RectYank>>
+^Xro        <<emacs_RectOpen>>
+^Xrc        <<emacs_RectBlank>>
+^Xrt        <<emacs_PrefixLines>>
+^Xag        <<emacs_AbbrAddGlobal>>
+^Xal        <<emacs_AbbrAddLocal>>
+^Xaig       <<emacs_AbbrAddGlobalExp>>
+^Xail       <<emacs_AbbrAddLocalExp>>
+^Xae        <<emacs_AbbrExpand>>
+^[/         <<emacs_AbbrExpandPrev>>
+^U          <<emacs_PosArg>>
+^[-         <<emacs_NegArg>>
+^Q          <<emacs_String>>
+^X^Ml       <<emacs_LanguageSet>>
+^[x         <<emacs_LanguageListInput>>
+^\          <<emacs_LanguageInputToggle>>
+^X^Mc       <<emacs_LanguageSetCoding>>
+^[x         <<emacs_LanguageListCoding>>
+^[x         <<emacs_LanguagePrefer>>
+^Hi         <<emacs_InfoStart>>
+^HS         <<emacs_InfoFind>>
+spc         <<emacs_InfoScrollFwd>>
+^?          <<emacs_InfoScrollRev>>
+^Xrs        <<emacs_RegSaveRegion>>
+^Xri        <<emacs_RegInsertHere>>
+^XrSPC      <<emacs_RegSaveValue>>
+^Xrj        <<emacs_RegJump>>
+^X(         <<emacs_KbdDefineStart>>
+^X)         <<emacs_KbdDefineEnd>>
+^Xe         <<emacs_KbdExLast>>
+^U^X(       <<emacs_KbdAppend>>
+^[x         <<emacs_KbdName>>
+^[x         <<emacs_KbdLisp>>
+^X^E        <<emacs_EvalSesp>>
+^[^X        <<emacs_EvalCurrent>>
+^[x         <<emacs_EvalRegion>>
+^[:         <<emacs_EvalRead>>
+^[x         <<emacs_LoadLibLisp>>
+^[x         <<emacs_Customize>>
+^Hf         <<emacs_InteractiveSpec>>
+^M          <<emacs_Interactive>>
+:
+z!
+m-0f/^[i   /k      %%Function for {Esc i} is redefined - now changes in and out of emacs insert mode.
+m-0f/^[e   /k      %%{Esc e}  Collides with {Alt+e}
+m-0(f/^[f/k)0      %%All {Esc f?}  Escape keys collide with {Alt+f}
+m-0(f/^[b/k)0      %%All {Esc b?}  Escape keys collide with {Alt+b}
+%%Append new entries in the function map.
+z!m0r0bh$
+
+%%These are keycodes used when navigating info files.
+%g$
+b           <<emacs_InfoNodeStart>>
+n           <<emacs_InfoNodeNext>>
+p           <<emacs_InfoNodePrev>>
+u           <<emacs_InfoUp>>
+m           <<emacs_InfoSelName>>
+n           <<emacs_InfoSelNumber>>
+f           <<emacs_InfoFollowLink>>
+l           <<emacs_InfoBack>>
+d           <<emacs_InfoDir>>
+t           <<emacs_InfoTop>>
+g           <<emacs_InfoNode>>
+h           <<emacs_InfoTutorial>>
+i           <<emacs_InfoLookup>>
+s           <<emacs_InfoSearch>>
+q           <<emacs_InfoQuit>>
+:
+
+%%
+%%Now define the fake-emacs functions.
+%g$
+<<emacs_QuitDebugger>>
+%% {Esc q} - exit the jot debugger, returning to vim-style command mode.
+%s=trace 0; %s=commandmode 12;
+  
+<<emacs_ToggleEmacsMode>>
+%%Toggle vim insert mode, also used to reset commandmode after a {Ctrl+c} interrupt -- {Esc i}
+%%Also resets trace mode.
+%%
+ob %q$=system;
+( %%Reset command mode as appropriate for current command-mode setting.
+  f/ Command mode = /r0
+  v-/ A/ %%In emacs insert mode - change to sane mode.
+  %s=commandmode 0;
+,  v-/ 8/ %%In emacs info mode - change to emacs-insert mode.
+  %s=commandmode 12;
+, v-/ 0/ %%Currently in sane mode - change to emacs-insert mode.
+  %s=commandmode 12;
+, %%Catch all case turn off debugger etc. and return to emacs insert mode.
+  %s=trace 0;
+  %s=commandmode 12; )
+oz %s=trace 0;
+  
+<<emacs_Exit>>
+%%  {Ctrl+x Alt+c}		exit Emacs permanently ;
+%A
+  
+<<emacs_ReadFile>>
+%%  {Ctrl+x Ctrl+f}		read a file into Emacs ;
+%%Setup initial search path.
+ob %q$=buffer; f/ pathName = /-b-k-0r0(f-1./.b, e-0i"./"m)k0 oz
+( %%Search loop. 
+  %%Prompt and pick up next character of search string.
+  %s=prompt Find file: '$; og 
+  %%Erase last character and re-prompt on backspace.
+  ol127o=ok
+, %%Exit on {Return} - (ASCII-code 10).
+  ol10o=\ 
+  %%Add character to the pathname and return to original point.
+  obz$r0osoo/%c/oz )0 k
+%s=prompt > ;
+%%Check that the file exists and is readable.
+okob %q@=file '$; (f/writable by this UID = yes/oz, m-0f/nonexistent/oz %x=Error: File '$ not found;, oz %X=File '$ not readable; )
+%%Identify the next available minibuffer and read the file into that buffer (A, B, ...).
+oq/.=CurrentMinibuffer/o#o~ov/.=CurrentMinibuffer/ z$r-0oo/%%i%c=/r0i/;/ '$ 
+  
+<<emacs_SaveFileImage>>
+%m={Ctrl+x Ctrl+s}		save a file back to disk ;
+  
+<<emacs_SaveAllFiles>>
+%m={Ctrl+x s}		save all files ;
+  
+<<emacs_InsertFileImage>>
+%m={Ctrl+x i}		insert contents of another file into this buffer ;
+  
+<<emacs_ReplaceFileImage>>
+%m={Ctrl+x Ctrl+v}		replace this file with the file you really want ;
+  
+<<emacs_WriteToPathName>>
+%m={Ctrl+x Ctrl+w}		write buffer to a specified file ;
+  
+<<emacs_ToggleReadOnly>>
+%m={Ctrl+x Ctrl+q}		toggle read-only status of buffer ;
+  
+<<emacs_Help>>
+%m={Ctrl+h} (or F1)}		and follow the directions. The help system is simple. Type ;
+  
+<<emacs_HelpTutorial>>
+%m={Ctrl+h t}		For a tutorial. If you are a first-time user, type ;
+  
+<<emacs_HelpClose>>
+%m={Ctrl+x 1}		remove help window ;
+  
+<<emacs_HelpScroll>>
+%m={Ctrl+Alt+v}		scroll help window ;
+  
+<<emacs_HelpApropos>>
+%m={Ctrl+h a}		apropos: show commands matching a string ;
+  
+<<emacs_HelpDescribeKey>>
+%m={Ctrl+h k}		describe the function a key runs ;
+  
+<<emacs_HelpFunction>>
+%m={Ctrl+h f}		describe a function ;
+  
+<<emacs_HelpMode>>
+%m={Ctrl+h m}		get mode-specific information ;
+  
+<<emacs_RecoverSession>>
+%m={Alt+x} recover-session		recover files lost by a system crash;
+  
+<<emacs_Undo>>
+%m={Ctrl+x u}, {Ctrl+_} or {Ctrl+/}		undo an unwanted change ;
+  
+<<emacs_RestoreOriginal>>
+%m={Alt+x} revert-buffer		restore a buffer to its original contents;
+  
+<<emacs_WindowRedraw>>
+%m={Ctrl+l}		redraw garbaged screen ;
+
+<<emacs_IncrementalSearchNext>>
+%%  {Ctrl+s}		search forward ;
+%%Get the current effective window height.
+%h'=call emacs_GetWindowHeight;
+%%Initialize.
+oboq/.=SearchSubstring/z~m-0k0 z$okm-0k0oz
+( %%Search loop. 
+  %%Set up prompt and pick up next character of search string.
+  ( %s=prompt Search string> '$; og 
+    %%Erase last character and re-prompt on backspace.
+    ol127o= okobz$e- oq/.=SearchSubstring/z~m-0r0e- osozok)0
+  %%Exit on {Ctrl+g} (ASCII-code 7)
+  ol7o=okok %x=All done;
+, %%Clear any old substring tags.
+  %h'=call emacs_ClearSubstringTags;
+  %%Restore search string and add latest character.
+  obosoq/.=SearchSubstring/z~osm-0r0oo/%lc/ r-0n.r0a$&osozok 
+  %%Find next instance, if not found return to original point.
+  ofocon( f'$\ono-omorok, okok
+    %%If it's moved off the current screen, move to centre-screen.
+    (w ofo=ok, okoso#ol2o/owos) ocon
+    %%Highlight current instance and search for further on-screen instances
+    %%This loop exits when the most recent instance is out of view or there are no more instances.
+    of(%b=addtag Substring; osf'$wosofo=)0 )
+  %%Adjust view, save search string, return to first instance then repeat.
+  ofo-ow obz$m-0n.r0a~&ov/.=SearchSubstring/oz ono-omor %l; w )0
+%%Final cleanup.
+okok
+  
+<<emacs_IncrementalSearchPrev>>
+%%  {Ctrl+r}		search backward ;
+%%Get the current effective window height.
+%h'=call emacs_GetWindowHeight;
+%%Initialize.
+oboq/.=SearchSubstring/z~m-0k0 z$okm-0k0oz
+( %%Search loop. 
+  %%Set up prompt and pick up next character of search string.
+  ( %s=prompt Search string> '$; og 
+    %%Erase last character and re-prompt on backspace.
+    ol127o= okobz$e- oq/.=SearchSubstring/z~m-0r0e- osozok)0
+  %%Exit on {Ctrl+g} (ASCII-code 7)
+  ol7o=okok %x=All done;
+, %%Clear any old substring tags.
+  %h'=call emacs_ClearSubstringTags;
+  %%Restore search string and add latest character.
+  obosoq/.=SearchSubstring/z~osm-0r0oo/%lc/ r-0n.r0a$&osozok 
+  %%Find next instance, if not found return to original point.
+  ofocon( f-'$\ono-omorok, okok
+    %%If it's moved off the current screen, move to centre-screen.
+    (w ofo=ok, okoso#ol2o/owos) ocon
+    %%Highlight current instance and search for further on-screen instances
+    %%This loop exits when the most recent instance is out of view or there are no more instances.
+    of(%b=addtag Substring; osf-'$wosofo=)0 )
+  %%Adjust view, save search string, return to first instance then repeat.
+  ofo-ow obz$m-0n.r0a~&ov/.=SearchSubstring/oz ono-omor %l; w )0
+%%Final cleanup.
+okok
+  
+<<emacs_SearchRexNext>>
+%%  {Ctrl+Alt+s}		regular expression search ;
+%%Get the current effective window height.
+%h'=call emacs_GetWindowHeight;
+%%Initialize.
+oboq/.=SearchSubstring/z~m-0k0 z$okm-0k0oz
+( %%Search loop. 
+  %%Set up prompt and pick up next character of search string.
+  ( %s=prompt Search string> '$; og 
+    %%Erase last character and re-prompt on backspace.
+    ol127o= okobz$e- oq/.=SearchSubstring/z~m-0r0e- osozok)0
+  %%Exit on {Ctrl+g} (ASCII-code 7)
+  ol7o=okok %x=All done;
+, %%Clear any old substring tags.
+  %h'=call emacs_ClearSubstringTags;
+  %%Restore search string and add latest character.
+  obosoq/.=SearchSubstring/z~osm-0r0oo/%lc/ r-0n.r0a$&osozok 
+  %%Find next instance, if not found return to original point.
+  ofocon( %f='$;\ ono-omorok, okok
+    %%If it's moved off the current screen, move to centre-screen.
+    (w ofo=ok, okoso#ol2o/owos) ocon
+    %%Highlight current instance and search for further on-screen instances
+    %%This loop exits when the most recent instance is out of view or there are no more instances.
+    of(%b=addtag Substring; os %f='$; wosofo=)0 )
+  %%Adjust view, save search string, return to first instance then repeat.
+  ofo-ow obz$m-0n.r0a~&ov/.=SearchSubstring/oz ono-omor %l; w )0
+%%Final cleanup.
+okok
+  
+<<emacs_SearchRexPrev>>
+%%  {Ctrl+Alt+r}		reverse regular expression search ;
+%%Get the current effective window height.
+%h'=call emacs_GetWindowHeight;
+%%Initialize.
+oboq/.=SearchSubstring/z~m-0k0 z$okm-0k0oz
+( %%Search loop. 
+  %%Set up prompt and pick up next character of search string.
+  ( %s=prompt Search string> '$; og 
+    %%Erase last character and re-prompt on backspace.
+    ol127o= okobz$e- oq/.=SearchSubstring/z~m-0r0e- osozok)0
+  %%Exit on {Ctrl+g} (ASCII-code 7)
+  ol7o=okok %x=All done;
+, %%Clear any old substring tags.
+  %h'=call emacs_ClearSubstringTags;
+  %%Restore search string and add latest character.
+  obosoq/.=SearchSubstring/z~osm-0r0oo/%lc/ r-0n.r0a$&osozok 
+  %%Find next instance, if not found return to original point.
+  ofocon( %f-='$\;ono-omorok, okok
+    %%If it's moved off the current screen, move to centre-screen.
+    (w ofo=ok, okoso#ol2o/owos) ocon
+    %%Highlight current instance and search for further on-screen instances
+    %%This loop exits when the most recent instance is out of view or there are no more instances.
+    of(%b=addtag Substring; os %f-='$; wosofo=)0 )
+  %%Adjust view, save search string, return to first instance then repeat.
+  ofo-ow obz$m-0n.r0a~&ov/.=SearchSubstring/oz ono-omor %l; w )0
+%%Final cleanup.
+okok
+
+<<emacs_SearchHistoryPrev>>
+%m={Alt+p}		select previous search string ;
+  
+<<emacs_SearchHistoryNext>>
+%m={Alt+n}		select next later search string ;
+  
+<<emacs_SearchExit>>
+%m={^m}		exit incremental search ;
+  
+<<emacs_UndoChr>>
+%m={delete}		undo effect of last character ;
+  
+<<emacs_GotoChrBack>>
+%%  {Ctrl+b}		previous character;
+(r-, m-r0) %h'=call emacs_PostMovement;
+  
+<<emacs_GotoChrForwards>>
+%%  {Ctrl+f}		next character ;
+(r, m) %h'=call emacs_PostMovement;
+  
+<<emacs_GotoWordBack>>
+%%  {Alt+b}		previous word;
+%h'=call emacs_BackwardsWord; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoWordForwards>>
+%%  {Alt+f}		next word ;
+%h'=call emacs_ForwardsWord; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoLineBack>>
+%%  {Ctrl+p}		previous line;
+y- %h'=call emacs_PostMovement;
+  
+<<emacs_GotoLineForwards>>
+%%  {Ctrl+n}		next line ;
+y %h'=call emacs_PostMovement;
+  
+<<emacs_GotoLineStart>>
+%%  {Ctrl+a}		go to line beginning;
+r-0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoLineEnd>>
+%%  {Ctrl+e}		go to line end;
+r0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoSentanceStart>>
+%%  {Alt+a}		sentence start;
+%h'=call emacs_BackwardsSentance; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoSentanceEnd>>
+%%  {Alt+e}		sentence end;
+%%NB. {Esc e} is also the normal jot escape sequence to enter a new line of text - in command mode.
+%%Hence, in command mode it enters a line of text, in insert mode it goes to the end of the current sentance.
+%%
+( %q=commandmode; r-0(q/ /r)0 r-0n.(v/ /r)0a$& r0bh$i`## `e-, %h'=call emacs_ForwardsSentance; %h'=call emacs_PostMovement; )
+  
+<<emacs_GotoParaStart>>
+%%  {Alt+{}		paragraph back;
+m- (rm- (v/ /r)0 )0 r-0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoParaEnd>>
+%%  {Alt+}}		paragraph forwards;
+m (rm (v/ /r)0)0 r-0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoPageStart>>
+%%  {Ctrl+x[}		page up;
+m-0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoPageEnd>>
+%%  {Ctrl+x]}		page down;
+m0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoSexpStart>>
+%%  {Ctrl+Alt+b}		sexp backwards;
+%h'=call emacs_BackwardsMatchSexp; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoSexpEnd>>
+%%  {Ctrl+Alt+f}		sexp forwards;
+%h'=call emacs_ForwardsMatchSexp; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoFunctionStart>>
+%%  {Ctrl+Alt+a}		function backwards;
+%h'=call ParagraphUp; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoFunctionEnd>>
+%%  {Ctrl+Alt+e}		function forwards ;
+%h'=call ParagraphDown; %h'=call emacs_PostMovement;
+  
+<<emacs_GotoBufferStart>>
+%%  {Alt+<}		go to buffer beginning;
+m-0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoBufferEnd>>
+%%  {Alt+>}		go to buffer end;
+m0 %h'=call emacs_PostMovement;
+  
+<<emacs_GotoPagePrev>>
+%%  {Alt+v}		scroll to previous screen ;
+m-* %h'=call emacs_PostMovement;
+  
+<<emacs_GotoPageNext>>
+%%  {Ctrl+v}		scroll to next screen ;
+m* %h'=call emacs_PostMovement;
+  
+<<emacs_ViewScrollLeft>>
+%%  {Ctrl+x <}		scroll left ;
+%q=inview;? okoko~%b=leftoffset '~;
+  
+<<emacs_ViewScrollRight>>
+%%  {Ctrl+x >}		scroll right ;
+%q=inview;? okokol0(o>\okol0, ol-1o+) %b=leftoffset '~;
+  
+X021F
+<<emacs_ViewCentTopBot>>
+%%  {Ctrl+l}		scroll current line to center, top, bottom ;
+onof
+( o= %%Currently at top of screen - move toBottom.
+  obo#z$m-0k0oo/( %c )/ %q@=window; f'$f1/), /-oidobomm-
+, %%Test for cursor at end of window.
+  obo#z$m-0k0oo/( %c )/ %q@=window; f'$f1/), /-oidosozoso+
+  o= %%Yes we're at the end of the window - move to centre.
+  oboidosozol0o-ol2o/omm
+, %%From anywhere else move to Top.
+  obofono-om )
+  
+<<emacs_GotoLineNo>>
+%%  {Alt+g g}		goto line ;
+ob %s=prompt Goto line: ; z$g m-oid osozono-om %h'=call emacs_PostMovement;
+  
+<<emacs_GotoChrNo>>
+%%  {Alt+g c}		goto char ;
+ob %s=prompt Chr: ; z$g m-oid osozm-0 (r0oco- ol0o<\m)0 oco+r-0or %h'=call emacs_PostMovement;
+  
+<<emacs_GotoFirstNonBlank>>
+%%  {Alt+m}		back to indentation ;
+r-0(q/ 	/r)0 %h'=call emacs_PostMovement;
+  
+<<emacs_DeleteChrPr>>
+%%  {^?}		character delete back, not kill);
+n.r-a%-
+  
+<<emacs_DeleteChrNx>>
+%%  {Ctrl+d}		character delete forwards, not kill) ;
+n.ra%+
+  
+<<emacs_DeleteWordNx>>
+%%  {Alt+d}		word-delete forwards ;
+n.  %h'=call emacs_ForwardsWord;  a%+
+  
+<<emacs_DeleteWordPr>>
+%%  {Alt+^?}		Word-delete backwards.;
+n.  %h'=call emacs_BackwardsWord;  a%-
+  
+<<emacs_DeleteToLineStart>>
+%%  {Alt+0 Ctrl+k}		Delete line (backwards to start of);
+n.r-0a%-
+  
+<<emacs_DeleteToLineEnd>>
+%%  {Ctrl+k}		Delete line (forwards to end of) ;
+n.r0a%+
+  
+<<emacs_DeleteToSentanceEnd>>
+%%  {Ctrl+x DEL}		Delete sentance, forwards to end.;
+n.  %h'=call emacs_ForwardsSentance;  a%+
+  
+<<emacs_DeleteToSentanceStart>>
+%%  {Alt+k}		Delete sentence, backwards to start.;
+n.  %h'=call emacs_BackwardsSentance;  a%-
+  
+<<emacs_DeleteSexpForwards>>
+%%  {Ctrl+Alt+k}		Delete sexp forwards.;
+n. %h'=call emacs_ForwardsMatchSexp; a%+
+  
+<<emacs_DeleteSexpBackwards>>
+%m={Alt+- Ctrl+Alt+k}		Delete sexp backwards.;
+n. %h'=call emacs_BackwardsMatchSexp; a%-
+
+<<emacs_RegionKill>>
+%m={Ctrl+w}		kill region ;
+  
+<<emacs_RegionCopy>>
+%m={Alt+w}		copy region to kill ring ;
+  
+<<emacs_KillToChar>>
+%m={Alt+z} char		kill through next occurrence of char ;
+  
+<<emacs_YankLastKilled>>
+%m={Ctrl+y}		yank back last thing killed ;
+  
+<<emacs_YankReplaceKill>>
+%m={Alt+y}		replace last yank with previous kill ;
+  
+<<emacs_MarkHere>>
+%%  {Ctrl+@} or {Ctrl+SPC}		set mark here ;
+onov/.=RegionLine/ ocov/.=RegionChr/
+  
+<<emacs_SwapMark>>
+%m={Ctrl+x Ctrl+x}		exchange point and mark ;
+  
+<<emacs_RegionMarkNWords>>
+%m={Alt+@}		set mark arg words away ;
+  
+<<emacs_MarkParagraph>>
+%m={Alt+h}		mark paragraph ;
+  
+<<emacs_MarkPage>>
+%m={Ctrl+x Ctrl+p}		mark page ;
+  
+<<emacs_MarkSexp>>
+%m={Ctrl+Alt+@}		mark sexp ;
+  
+<<emacs_MarkFunction>>
+%m={Ctrl+Alt+h}		mark function ;
+  
+<<emacs_MarkBuffer>>
+%m={Ctrl+x h}		mark entire buffer ;
+  
+<<emacs_ReplaceText>>
+%m={Alt+%}		interactively replace a text string ;
+  
+<<emacs_RegxReplace>>
+%m={Alt+x} query-replace-regexp		using regular expressions ;
+  
+<<emacs_RecursiveEdit>>
+    %m={Ctrl+r}		enter recursive edit ({Ctrl+Alt+c to exit) ;
+  
+<<emacs_WindowDeleteallButCurrent>>
+%m={Ctrl+x 1} {Ctrl+x 5 1}		delete all other windows ;
+  
+<<emacs_WindowHorizSplit>>
+%m={Ctrl+x 2 {Ctrl+x 5 2}		split window, above and below ;
+  
+<<emacs_WindowDeleteCurrent>>
+%m={Ctrl+x 0 {Ctrl+x 5 0}		delete this window ;
+  
+<<emacs_WindowVertSplit>>
+%m={Ctrl+x 3}		split window, side by side ;
+  
+<<emacs_ScrollOtherWindow>>
+%m={Ctrl+Alt+v}		scroll other window ;
+  
+<<emacs_WindowSwapFocus>>
+%m={Ctrl+x o}		switch cursor to another window ;
+  
+<<emacs_FrameSwapFocus>>
+%m={Ctrl+x 5 o}		switch cursor to another frame ;
+  
+<<emacs_WindowSwap>>
+%m={Ctrl+x 4 b}		select buffer in other window ;
+  
+<<emacs_FrameSwapFocus>>
+%m={Ctrl+x 5 b}		select buffer in other frame ;
+  
+<<emacs_WindowDisplayBuffer>>
+%m={Ctrl+x 4 Ctrl-o}		display buffer in other window ;
+  
+<<emacs_FrameDisplayBuffer>>
+%m={Ctrl+o Ctrl+x 5 Ctrl+o}		display buffer in other frame ;
+  
+<<emacs_WindowFile>>
+%m={Ctrl+x 4 f}		find file in other window ;
+  
+<<emacs_FrameFile>>
+%m={Ctrl+x 5 f}		find file in other frame ;
+  
+<<emacs_WindowROFile>>
+%m={Ctrl+x 4 r}		find file read-only in other window ;
+  
+<<emacs_FrameROFile>>
+%m={Ctrl+x 5 r}		find file read-only in other frame ;
+  
+<<emacs_WindowDired>>
+%m={Ctrl+x 4 d}		run Dired in other window ;
+  
+<<emacs_FrameDired>>
+%m={Ctrl+x 5 d}		run Dired in other frame ;
+  
+<<emacs_WindowGotoTag>>
+%m={Ctrl+x 4 .}		find tag in other window ;
+ %h'=call emacs_PostMovement;
+  
+<<emacs_FrameGotoTag>>
+%m={Ctrl+x 5 .}		find tag in other frame ;
+ %h'=call emacs_PostMovement;
+  
+<<emacs_WindowTaller>>
+%m={Ctrl+x ^}		grow window taller ;
+  
+<<emacs_WindowSlimmer>>
+%m={Ctrl+x {}		shrink window narrower ;
+  
+<<emacs_WindowFatter>>
+%m={Ctrl+x }}		grow window wider ;
+  
+<<emacs_IndentRegion>>
+%m={Ctrl+Alt+\}		indent region (mode-dependent) ;
+  
+<<emacs_IndentSexp>>
+%m={Ctrl+Alt+q}		indent sexp (mode-dependent) ;
+  
+<<emacs_IndentRegionTab>>
+%m={Ctrl+x TAB}		indent region rigidly arg columns ;
+  
+<<emacs_IndentForComment>>
+%m={Alt+;}		indent for comment ;
+  
+<<emacs_Break>>
+%m={Ctrl+o}		insert newline after point ;
+  
+<<emacs_BreakShift>>
+%m={Ctrl+Alt+o}		move rest of line vertically down ;
+  
+<<emacs_DeleteSurroundingBlankLines>>
+%m={Ctrl+x Ctrl+o}		delete blank lines around point ;
+  
+<<emacs_JoinPrev>>
+%m={Alt+^}		join line with previous (with arg, next) ;
+  
+<<emacs_DeleteSurroundingBlanks>>
+%m={Alt+\}		delete all white space around point ;
+  
+<<emacs_InsertBlank>>
+%m={Alt+SPC}		put exactly one space at point ;
+  
+<<emacs_ParagraphFill>>
+%m={Alt+q}		fill paragraph ;
+  
+<<emacs_FillColumn>>
+%m={Ctrl+x f}		set fill column to arg ;
+  
+<<emacs_PrefixSet>>
+%m={Ctrl+x .}		set prefix each line starts with ;
+  
+<<emacs_FaceSet>>
+%m={Alt+o}		set face ;
+  
+<<emacs_UppercaseWord>>
+%m={Alt+u}		uppercase word ;
+  
+<<emacs_LowercaseWord>>
+%m={Alt+l}		lowercase word ;
+  
+<<emacs_CapitalizeWord>>
+%m={Alt+c}		capitalize word ;
+  
+<<emacs_uppercaseRegion>>
+%m={Ctrl+x Ctrl+u}		uppercase region ;
+  
+<<emacs_LowercaseRegion>>
+%m={Ctrl+x Ctrl+l}		lowercase region ;
+  
+<<emacs_CompleteAll>>
+%m={TAB}		complete as much as possible in minibuffer.;
+  
+<<emacs_CompleteWord>>
+%m={SPC}		complete up to one word in minibuffer.;
+  
+<<emacs_CompleteAndExecute>>
+%m={^m}		complete and execute in minibuffer. ;
+  
+<<emacs_CompleteSuggestions>>
+%m={?}		show possible completions in minibuffer. ;
+  
+<<emacs_PreviousInput>>
+%m={Alt+p}		fetch previous minibuffer input ;
+  
+<<emacs_LaterInput>>
+%m={Alt+n}		fetch later minibuffer input or default ;
+  
+<<emacs_HistorySearchBack>>
+%m={Alt+r}		regexp search backward through history ;
+  
+<<emacs_HistorySearchForwards>>
+%m={Alt+s}		regexp search forward through history ;
+  
+<<emacs_HistoryRepeat>>
+%m={Ctrl+x Ctrl+[ Ctrl+[}		to edit and repeat the last command that used the minibuffer. Type F10 to activate menu bar items on text terminals.;
+  
+<<emacs_BufferSelect>>
+%m={Ctrl+x b}		select another buffer ;
+  
+<<emacs_BufferList>>
+%m={Ctrl+x Ctrl+b}		list all buffers ;
+  
+<<emacs_BufferKill>>
+%m={Ctrl+x k}		kill a buffer ;
+  
+<<emacs_TransposeCharacters>>
+%m={Ctrl+t}		transpose characters ;
+  
+<<emacs_TransposeWords>>
+%m={Alt+t}		transpose words ;
+  
+<<emacs_TransposeLines>>
+%m={Ctrl+x Ctrl+t}		transpose lines ;
+  
+<<emacs_TransposeSexps>>
+%m={Ctrl+Alt+t}		transpose sexps ;
+  
+<<emacs_SpellWord>>
+%m={Alt+$}		check spelling of current word ;
+  
+<<emacs_SpellRegion>>
+%m={Alt+x} ispell-region		check spelling of all words in region ;
+  
+<<emacs_SpellBuffer>>
+%m={Alt+x} ispell-buffer		check spelling of entire buffer ;
+  
+<<emacs_SpellOnOff>>
+%m={Alt+x} flyspell-mode		toggle on-the-fly spell checking ;
+  
+<<emacs_IndexFindDef>>
+%m={Alt+.}		find a tag (a definition) ;
+  
+<<emacs_IndexFindNx>>
+%m={Alt+.}		find next occurrence of tag ;
+  
+<<emacs_IndexFindPr>>
+%m={Ctrl+u Alt+.}		Find previous occurrence of tag.;
+  
+<<emacs_IndexNewFile>>
+%m={Alt+x} visit-tags-table	specify a new tags file ;
+  
+<<emacs_IndexSearchAllFiles>>
+%m={Alt+x} tags-search		regexp search on all files in tags table ;
+  
+<<emacs_IndexQueryReplace>>
+%m={Alt+x} tags-query-replace		run query-replace on all the files ;
+  
+<<emacs_IndexContinueSearch>>
+%m={Alt+,}		continue last tags search or query-replace ;
+  
+<<emacs_ShellCommand>>
+%m={Alt+!}		execute a shell command ;
+  
+<<emacs_ShellCommandNowait>>
+%m={Alt+&}		execute a shell command asynchronously ;
+  
+<<emacs_ShellCommandRegion>>
+%m={Alt+|}		run a shell command on the region ;
+  
+<<emacs_ShellCommandFilterRegion>>
+%m={Ctrl+u Alt+|}		filter region through a shell command ;
+  
+<<emacs_ShellStartInWindow>>
+%m={Alt+x} shell		start a shell in window *shell* ;
+  
+<<emacs_RectCopy>>
+%m={Ctrl+x r r}		copy rectangle to register ;
+  
+<<emacs_RectKill>>
+%m={Ctrl+x r k}		kill rectangle ;
+  
+<<emacs_RectYank>>
+%m={Ctrl+x r y}		yank rectangle ;
+  
+<<emacs_RectOpen>>
+%m={Ctrl+x r o}		open rectangle, shifting text right ;
+  
+<<emacs_RectBlank>>
+%m={Ctrl+x r c}		blank out rectangle ;
+  
+<<emacs_PrefixLines>>
+%m={Ctrl+x r t}		prefix each line with a string ;
+  
+<<emacs_AbbrAddGlobal>>
+%m={Ctrl+x a g}		add global abbrev ;
+  
+<<emacs_AbbrAddLocal>>
+%m={Ctrl+x a l}		add mode-local abbrev ;
+  
+<<emacs_AbbrAddGlobalExp>>
+%m={Ctrl+x a i g}		add global expansion for this abbrev ;
+  
+<<emacs_AbbrAddLocalExp>>
+%m={Ctrl+x a i l}		add mode-local expansion for this abbrev ;
+  
+<<emacs_AbbrExpand>>
+%m={Ctrl+x a e}		explicitly expand abbrev ;
+  
+<<emacs_AbbrExpandPrev>>
+%m={Alt+/}		expand previous word dynamically ;
+  
+<<emacs_PosArg>>
+%m={Ctrl+u} num		numeric argument ;
+  
+<<emacs_NegArg>>
+%m={Alt+-}		negative argument ;
+  
+<<emacs_String>>
+%m={Ctrl+q} char		quoted insert ;
+  
+<<emacs_LanguageSet>>
+%m={Ctrl+x ^m l}		specify principal language ;
+  
+<<emacs_LanguageListInput>>
+%m={Alt+x} list-input-methods		show all input methods ;
+  
+<<emacs_LanguageInputToggle>>
+%m={Ctrl+\}		enable or disable input method ;
+  
+<<emacs_LanguageSetCoding>>
+%m={Ctrl+x ^m c}		set coding system for next command ;
+  
+<<emacs_LanguageListCoding>>
+%m={Alt+x} list-coding-systems		show all coding systems ;
+  
+<<emacs_LanguagePrefer>>
+%m={Alt+x} prefer-coding-system		choose preferred coding system ;
+  
+<<emacs_InfoStart>>
+%m={Ctrl+h i}		enter the Info documentation reader ;
+  
+<<emacs_InfoFind>>
+%m={Ctrl+h S}		find specified function or variable in Info ;
+  
+<<emacs_InfoScrollFwd>>
+%m={spc}		scroll forward;
+  
+<<emacs_InfoScrollRev>>
+%m={DEL}		scroll reverse;
+  
+<<emacs_InfoNodeStart>>
+%m={b}		beginning of node;
+  
+<<emacs_InfoNodeNext>>
+%m={n}		next node;
+  
+<<emacs_InfoNodePrev>>
+%m={p}		previous node;
+  
+<<emacs_InfoUp>>
+%m={u}		move up;
+  
+<<emacs_InfoSelName>>
+%m={m}		select menu item by name ;
+  
+<<emacs_InfoSelNumber>>
+%m={n}		select nth menu item by number (1-9);
+  
+<<emacs_InfoFollowLink>>
+%m={f}		follow cross reference (return with l);
+  
+<<emacs_InfoBack>>
+%m={l}		return to last node you saw;
+  
+<<emacs_InfoDir>>
+%m={d}		return to directory node;
+  
+<<emacs_InfoTop>>
+%m={t}		go to top node of Info file;
+  
+<<emacs_InfoNode>>
+%m={g}		go to any node by name;
+  
+<<emacs_InfoTutorial>>
+%m={h}		run Info tutorial;
+  
+<<emacs_InfoLookup>>
+%m={i}		look up a subject in the indices;
+  
+<<emacs_InfoSearch>>
+%m={s}		search nodes for regexp ;
+  
+<<emacs_InfoQuit>>
+%m={q}		quit Info;
+  
+<<emacs_RegSaveRegion>>
+%m={Ctrl+x r s}		save region in register ;
+  
+<<emacs_RegInsertHere>>
+%m={Ctrl+x r i}		insert register contents into buffer ;
+  
+<<emacs_RegSaveValue>>
+%m={Ctrl+x r SPC}		save value of point in register ;
+  
+<<emacs_RegJump>>
+%m={Ctrl+x r j}		jump to point saved in register ;
+  
+<<emacs_KbdDefineStart>>
+%m={Ctrl+x (}		start defining a keyboard macro ;
+  
+<<emacs_KbdDefineEnd>>
+%m={Ctrl+x )}		end keyboard macro definition ;
+  
+<<emacs_KbdExLast>>
+%m={Ctrl+x e}		execute last-defined keyboard macro ;
+  
+<<emacs_KbdAppend>>
+%m={Ctrl+u Ctrl+x (}		append to last keyboard macro ;
+  
+<<emacs_KbdName>>
+%m={Alt+x} name-last-kbd-macro		name last keyboard macro ;
+  
+<<emacs_KbdLisp>>
+%m={Alt+x} insert-kbd-macro		insert Lisp definition in buffer ;
+  
+<<emacs_EvalSesp>>
+%m={Ctrl+x Ctrl+e}		eval sexp before point ;
+  
+<<emacs_EvalCurrent>>
+%m={Ctrl+Alt+x}		eval current defun ;
+  
+<<emacs_EvalRegion>>
+%m={Alt+x} eval-region		eval region ;
+  
+<<emacs_EvalRead>>
+%m={Alt+:}		read and eval minibuffer ;
+  
+<<emacs_LoadLibLisp>>
+%m={Alt+x} load-library		load a Lisp library from load-path ;
+  
+<<emacs_Customize>>
+%m={Alt+x} customize		customize variables and faces ;
+  
+<<emacs_InteractiveSpec>>
+%m={Ctrl+h f} interactive {RET}		The interactive spec says how to read arguments interactively.;
+  
+<<emacs_Interactive>>
+%m={^m}		interactive for more details.;
+
+<<emacs_ForwardsMatchSexp>>
+%%Called by various sexp-matching functions
+%%Plods forwards one word until one of '(', '{' or '[' is encountered.
+%%Then locates matching end brace.
+%%
+(rr-, m)
+%%Skip past leading whitespace and linebreaks.
+(q/ 	/(r, m))0
+(
+  q"A-Za-z0-9_+*/=-"  %%A word or expression - go to end.
+  (q//r)0
+, q/({[/   %%A bracketed expression starts - skip to end.
+  %%Save start-brace point
+  ocon
+  ( v/(/ (ol0(v./*.f.*/., v/"/r(f1/"/v-/*/r)0r, v/'/f1/'/, q/(/ol1o-r, q/)/\(r, m, r0okol-1?\), o~r)0ok)?
+  , v/{/ (ol0(v./*.f.*/., v/"/r(f1/"/v-/*/r)0r, v/'/f1/'/, q/{/ol1o-r, q/}/\(r, m, r0okol-1?\), o~r)0ok)?
+  , v/[/ (ol0(v./*.f.*/., v/"/r(f1/"/v-/*/r)0r, v/'/f1/'/, q/[/ol1o-r, q/]/\(r, m, r0okol-1?\), o~r)0ok)? )
+  (ocmm-orrokok, okono-omor %X=Error: Unbalanced parentheses.; )
+, q/({[/ %x=Error: Containing expression ends prematurely;
+, (q"(){}[]A-Za-z0-9_+*/=-"\r)0 )
+  
+<<emacs_BackwardsMatchSexp>>
+%%Called by various sexp-matching functions
+%%Plods backwards one word until one of ')', '}' or ']' is encountered.
+%%Then locates matching open brace.
+%%
+(r-r, m-r0)
+%%Skip past trailing whitespace and linebreaks.
+(q-/ 	/(r-, m-r0))0
+(
+  q-"A-Za-z0-9_+*/=-"  %%A word or expression - go to start.
+  (q-//r-)0
+, q-/)}]/   %%A bracketed expression ends - skip back to start.
+  %%Save end-brace point
+  ocon
+  ( v-/)/ (ol0(v.*/.f-./*., v/"/(r-f-1/"/v-/*/)0r-, v/'/f-1/'/r-, q/)/ol1o-r-, q/(/\(r-, m-r0), o~r-)0ok)?
+  , v-/}/ (ol0(v.*/.f-./*., v/"/(r-f-1/"/v-/*/)0r-, v/'/f-1/'/r-, q/}/ol1o-r-, q/{/\(r-, m-r0), o~r-)0ok)?
+  , v-/]/ (ol0(v.*/.f-./*., v/"/(r-f-1/"/v-/*/)0r-, v/'/f-1/'/r-, q/]/ol1o-r-, q/[/\(r-, m-r0), o~r-)0ok)? )
+  (((r-r)\ (m-m\)\)\okok, ono-omor %X=Error: Unbalanced parentheses.; )
+, q-/({[/ %x=Error: Containing expression ends prematurely;
+, (q-"(){}[]A-Za-z0-9_+*/=-"\r-)0 )
+  
+<<emacs_BackwardsSentance>>
+%%Called by emacs_GotoSentanceEnd etc - finds the start of the current or previous sentance.
+%%
+%%An emacs sentance sems to be a bunch of words terminated by a full stop followed by either:
+%%  - end of line,
+%%  - one blank at end of line or
+%%  - two or more blanks,
+%%
+%%Step back through whitespace and line breaks - if chr is a fullstop then discount that one.
+((q-/ 	/r-)0 r-\m-r0)0 (v/./f-/ /(v-/ /r-)0, )
+%%Find the previous-sentance terminating fullstop, discount any that don't meet emacs sentance-ending criteria.
+(f-/./- ( v/  /\ (v/ /r\)\ r r-) f-/./)0 
+%%Advance to the start of the sentance.
+((q/ 	/r)0 r\m)0 r-
+  
+<<emacs_ForwardsSentance>>
+%%Called by emacs_GotoSentanceStart etc - finds the end of the current or next sentance.
+%%
+%%An emacs sentance sems to be a bunch of words terminated by a full stop followed by either:
+%%  - end of line,
+%%  - one blank at end of line or
+%%  - two or more blanks,
+%%
+%%Much simpler than emacs_BackwardsSentance since we stop immediately after the terminating fullstop.
+(f/./- ( v/  /\ (v/ /r\)\ r r-) )0 f-/./-
+  
+<<emacs_BackwardsWord>>
+%%Called by emacs_GotoWordBack etc. moves back 1 word/non-word as emacs might.
+(v-/ /r-)0(r-, m-r0) (q-/A-Za-z0-9_/\r-)0 (q-//r-)0 
+  
+<<emacs_ForwardsWord>>
+%%Called by emacs_GotoWordForwards etc. moves forwards 1 word/non-word as emacs might.
+(r, m) (q/A-Za-z0-9_/\r)0 (q//r)0 
+
+<<emacs_PostMovement>>
+%%Updates the region display etc. - called by all emacs functions that may have caused the cursor to move.
+oq/.=RegionChr/ol0
+( o< %%Non-negative RegionChr indicates that region is active - update region tags.
+  %%Remove all tags.
+  %h'=call emacs_ClearRegionTags;
+  %%Calculate lines range.
+  ( oq/.=RegionTopLine/ on 
+    ( o= %%Top and Bot lines are the same - compare Top and Bot Chrs and set Top or Bot parameters as appropriate.
+      okoq/.=RegionTopOrBot/ (ol0o=onov/.=RegionTopLine/ ocov/.=RegionTopChr/, onov/.=RegionBotLine/ ocov/.=RegionBotChr/ )
+    , ono<\ %%We're above the previous top of the region.
+      okoq/.=RegionTopOrBot/( ol0o=onov/.=RegionTopLine/ ocov/.=RegionTopChr/, onov/.=RegionBotLine/ ocov/.=RegionBotChr/ )
+    , %%We're below the previous top of region.
+      okoq/.=RegionTopOrBot/( ol1o=onov/.=RegionBotLine/ ocov/.=RegionBotChr/, onov/.=RegionTopLine/ ocov/.=RegionTopChr/ ) ) ok
+      %%Tag all untagged lines in the range - first set up line counter and go to the top line.
+    oq/.=RegionTopLine/o# oq/.=RegionBotLine/o~o- 
+    %%If there's been a crossover swap and redo the calculation of the counter.
+    ol0 o<\ oq/.=RegionTopLine/oq/.=RegionTopChr/oq/.=RegionBotLine/oq/.=RegionBotChr/ ov/.=RegionTopChr/ov/.=RegionTopLine/ 
+    ov/.=RegionBotChr/ov/.=RegionBotLine/ oq/.=RegionTopOrBot/o!ol1o&ov/.=RegionTopOrBot/
+    )2?
+  osono-om
+  
+<<emacs_ClearRegionTags>>
+%%Removes any instance of a RegionTag and returns cursor to original position.
+oconob %q$=tags; 
+(f/Region/f-1/ At rec /-oidosozono-om obz$f1/, chr /-oidosf/ to /-oido~osoz oso#oro-ou %b=remove_tag colour Region; obz$m)0
+%%Return to original position.
+ozono-omor w
+
+<<emacs_ClearSubstringTags>>
+%%Removes any instance of a Substring and returns cursor to original position.
+oconob %q$=tags; 
+(f/Substring/f-1/ At rec /-oidosozono-om obz$f1/, chr /-oidosf/ to /-oido~osoz oso#oro-ou %b=remove_tag colour Substring; obz$m)0
+%%Return to original position.
+ozono-omor w
+
+<<emacs_GetWindowHeight>>
+%%Get overall size of window and allow for delimiter line, returns effective height in top of stack.
+%%
+ob %q@=window; z$m-0k0o#oo/ ( %c ), / z@f'$-oid (f1/end delimiter./ol1o-, )
+%%Allow for header line.
+oso#ozos %q@=buffer; (f/ Header = /-v/(null)/, ol1o-) osoz
+
+:
+z'm0bh$
+  
+%%Append new entries in the function map.
+okoz '#
+  
+%%Set up hash table and region tag.
+%h=create 100; 
+%b=tagtype Region colour 0 7; 
+%b=tagtype Substring colour 0 5; 
+%%
+%%Region data - setting the region-start character negative indicates that there os no current region.
+%h=data .=RegionTopLine; ol0ov/.=RegionTopLine/  %h=data .=RegionTopChr; ol-1ov/.=RegionTopChr/
+%h=data .=RegionBotLine; ol0ov/.=RegionBotLine/  %h=data .=RegionBotChr; ol-1ov/.=RegionBotChr/  
+%h=data .=RegionTopOrBot; ol0ov/.=RegionTopOrBot/
+%h=data .=SearchSubstring; n.a~ov/.=SearchSubstring/
+%%Start the minibuffers at jot-buffer A (ASCII-code 65).
+%h=data .=CurrentMinibuffer; ol65ov/.=CurrentMinibuffer/
+%%
+%%For debugging.
+%w; %w 20; %w 0;
+%%Enter command mode.
+%s=commandmode 12;
+%%
+%%emacs setup complete - off we go.
+
+
+
+  

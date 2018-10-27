@@ -1,0 +1,90 @@
+%%Starting at current position in buffer, searching for duplicated lines.
+%%Ignores empty lines (lines containing only blanks are checked).
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  By default this script searches through the current buffer until it finds  a
+  line that's been duplicated somewhere further down the way. It then  returns
+  to the first instance of the duplicated line and halts.
+  
+  With the -list qualifier, it rewinds to the start of the buffer and collects
+  a list of duplicated lines in the @ buffer. On completion, if no  duplicates
+  were found, it returns to the original position in the original  buffer.  If
+  duplicate lines were found, then it stops in the @ buffer displaying a  list
+  of duplicated lines.
+  
+  It's always done with case sensitivity on. On completion case sensitivity is
+  restored to it's original setting.
+  
+Valid args:
+  - list  -- lists duplicated lines.
+  - not   -- Reverses logic, detects line which ar *not* duplicated
+  
+Buffer usage:
+  - @ is used to collect a report on duplicated lines.
+  - $ initially holds args, then used as temporary storage.
+:
+
+%g#
+%%Check args.
+obz$m-0(v/ /r)0 ((v/-list/\v/-not/\ r)\, oz %x=Invalid argument - only -list or -not are allowed.; ) oz
+%%Remember original case-sensitivity setting.
+ob %q@=system; f/Case sensitivity =    /-oid osoz
+%%Make it case sensitive.
+%s=case 1;
+%%
+obz$m-0(f/-not/oz %%With -not find non-duplicated lines.
+  obz$m-0(f/-list/ %%With -list collect a list of non-duplicates in @ buffer.
+    oz ocon n. (a@, %s=case '~; %x=duplicates -list can not work in the @ buffer;, )m-0
+    (rr-0, m)
+    %%Search now.
+    ((r\m)0r- on n.r0a$h$ (f'$ r-m, r0v-'$\ m)0 (mm-, obz@h$boz) ono-om m)0
+    %%Report number in list and exit.
+    obz@(m-\ozono-omor, okokok %s=case '~; on %x=There were '~ unduplicated lines.; )
+    %%
+    %m=No unduplicated lines were found.
+  , %%No -list qualifier given, just stoop at next duplicated line.
+    oz(rr-0,m)
+    %%Search for next duplicated line.
+    ((r\m)0r- on n.r0a$h$ (f'$ r-m, r0v-'$\ m)0 mono-om m)0
+    %%On exit from unduplicate-line-search loop return to original line.
+    (m\, ono-omf1'$, ) )
+, oz %%Without -not list duplicated lines.
+  obz$m-0(f/-list/ %%With -list collect a list of duplicates in @ buffer.
+    oz ocon n. (a@, %s=case '~; %x=duplicates -list can not work in the @ buffer;, )m-0
+    (rr-0, m)
+    %%Search now.
+    ((r\m)0r- on n.r0a$h$ (f'$ r-m, r0v-'$\ m)0 (mm-obz@h$boz, ) ono-om m)0
+    %%Report number in list and exit.
+    obz@(m-\ozono-omor, okokok %s=case '~; on %x=There were '~ duplicated lines.; )
+    %%
+    %m=No duplicated lines were found.
+  , %%No -list qualifier given, just stoop at next duplicated line.
+    oz(rr-0,m)
+    %%Search for next duplicated line.
+    ((r\m)0r- on n.r0a$h$ (f'$ r-m, r0v-'$\ m)0 m\ ono-om m)0
+    %%On exit from duplicate-line-search loop return to original line.
+    (m\, ono-omf1'$, ) ) )
+%s=case '~;
+:
+'#

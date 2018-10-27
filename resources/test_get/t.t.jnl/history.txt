@@ -1,0 +1,7 @@
+<<readFile [ From CLI command uname -sr ] (1)  to buffer ~ >>
+<<readFile /help.hlp (2)  to buffer : >>
+<<Startup Sequence ends, buffer .>>
+get lloX10A    
+q
+<<readFile /hello.c ] (3)  to buffer ~ >>
+<<readFile /hello.c (4)  to buffer Q >>

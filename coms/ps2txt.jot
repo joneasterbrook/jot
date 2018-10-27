@@ -1,0 +1,33 @@
+%%Script to translate the output obtained from ghostscript to readable text in jot's doc format.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%%Typical gs command:
+%%    \gs -q -dNODISPLAY -dDELAYBIND -dWRITESYSTEMDICT ps2ascii.ps t.pdf quit.ps > t.ascii
+%%    \gs -q -dNODISPLAY -dDELAYBIND -dWRITESYSTEMDICT ps2ascii.ps e_02.pdf quit.ps > e_02.ascii
+%%    \gs -q -dNODISPLAY -dDELAYBIND -dWRITESYSTEMDICT ps2ascii.ps ../Lumix_manual.pdf quit.ps > lumix.ascii
+%%    \gs -q -dNODISPLAY -dDELAYBIND -dWRITESYSTEMDICT ps2ascii.ps dcp171778_315074.pdf quit.ps > dcp171778_315074.ascii
+ 
+%d3=ol-99 (f1/ /-2o#oidos o=okf1/(/-e-0j-f1/)/e0m, osokf1/(/-i/  /f1/)/e0m, m)0
+
+%%Start by creating an list of min and max spacings, indexed by font name and size.
+
+ 

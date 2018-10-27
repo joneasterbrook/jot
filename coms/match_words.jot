@@ -1,0 +1,159 @@
+%%Matches words listed in current and nominated buffers results tabulated in '@' buffer.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%  Matching words are inserted into a table, when a word-match failure is detected, 
+%%  it resynchronizes by finding the word, from either buffer, who's matching word,
+%%  in the other buffer, is earliest.
+%%
+%%History
+
+%%Buffer usage:
+  %%Buffers nominated by user - unchanged.
+  %% $ - argument list.
+  %% & - temporary workspace - takes summary from sorting process also used as a format string, in buffer loop holds tabs prefix.
+  %% ! - temporary workspace - sorted copy of current buffer.
+  %% " - Temporary workspace - current word.
+  %% @ - takes result table.
+  %% # - Command macro.
+  
+%%Options:
+  %%  -nosort - prevents sorting of the temporary copy of each buffer before matching.
+  %%  -split  - splits words at spaces (n.b. not tabs).
+  %%  -notab  - does not resolve tabs on completion.
+  %%  -map    - Reduces table to a simple map format with each word listed in the first column then with list of keys indicating the buffers with matching word.
+  
+%%At present we make simplistic assumptions - records are sorted. 
+%%
+%%Ignore the following for now.
+%%   %%e.g:
+%%   %%(1)   aaa   xxx
+%%   %%(2)   zzz   xyz
+%%   %%(3)   bbb   yyy
+%%   %%(4)   uuu   ccc
+%%   %%(5)   ccc   ttt
+%%   %%(6)   sss   bbb
+%%   %%
+%%   %%  Here synchronization was lost in line 1 (xxx does not match aaa),
+%%   %%  although the next word in the first column  (bbb) is matched later, 
+%%   %%  searching forwards, we find that ccc has a match before bbb - hence 
+%%   %%  we re-sunchronize to line 4 not line 3.
+%%   %%
+  
+%g#
+%%Read and check list buffers key and any other arguments.
+  obz$ (m-0mf1/ /(v/ /e)0 (v/-/(q/-a-zA-Z/r)0, ) (v/ /r)0 
+  %%Shift secondary buffer list to end of $ and tidy up.
+  rr-n.(v/-/\r)0a"m0r0b3h" r-0(q/a-z/c, v/ /e, r)0, 
+  oz
+  %x=No secondary buffers nominated.
+  )
+  
+%%Make a copy of the primary buffer in @.
+o#ozm-0n.m0r0a@h@
+%%Split text if -split qualifier is given.
+z$m-0 ( f/-break/ z@m-0(f/ /(v/ /e)0b)0 )?
+%%Sort text unless -nosort qualifier was given - if there was a file name then save it for use as a header.
+z@m0n.r0a" z$m-0 (f/-nosort/,
+  z@
+  %b=sort
+  z@m0r0b )
+z@m-0b-oo/%c/i/  /h" m-0m(r\k, r-i/ /r0i/ /m)0 n.a&
+
+( %%Secondary-buffer loop - take each secondary buffer key, in turn, from the argument list.
+  %%Make a copy of next secondary buffer in !   
+  z$m0oicb o#ozm-0n.m0r0a!h!m-0
+  %%Split text if -split qualifier is given.
+  z$m-0 ( f/-break/ z!m-0(f/ /(v/ /e)0b)0 )?
+  %%Sort text unless -nosort qualifier was given - if there was a file name then save it for use as a header.
+  z!m0n.r0a" z$m-0 (f/-nosort/,
+    z!
+    %b=sort
+    z!m0r0b )
+  %d&=%c
+  z!m-0b-oo/%c/i/  /h" m-0m(r\k, r-i/ /r0i/ /m)0
+  %%Set up tabs prefix buffer &.
+  z@m-0n.r0a&h&z&r-0(v/	/r,e)0i/	/
+  
+  %%Add trailing tab to each line in @ 
+  z@m-0(rr0i/	/m2m-)0
+  %%Skip the first word in each buffer - this is the table heading.
+  z!m-0n.r0a"h"m z@m-0r0h"m
+    ( %%Word loop - if next word in @ buffer matches that in ! buffer that's fine - otherwise locate next matching word in either buffer.
+      v'!
+%%ob(z!f1/c8c090c11e0eb117369c0a5a88b75/o?d, )oz
+      %%Word match - add the table entry then advance to next word. 
+      r0i'!m2m-z!m2m-z@, 
+      ( %%Match failure - with simplistic assumptions (sorted lists) we just work our way down both buffers 
+%%ob(z!f1/c8c090c11e0eb117369c0a5a88b75/o?d, )oz
+        %%until we find a word that matches anywhere in the other buffer. 
+        ( %%Resync search loop - first try matching to current word in @.
+          z@r-0(v/	/r)0n.f1/	/a"h"r-0 z!onf'"\ ono-om
+          %%Failed to find a match to word from the @ buffer - reset ! and try the next word.
+          z@r-0onf'!\ ono-om
+          %%Failed to find a match to word from the ! buffer - create new entry in @ then reset @ and try next pair of words.
+          r-0b-h&i'!mz!m )0 
+        %%Resync successful or at the end of a buffer.
+        ( obz@v'!
+          ( %%It was a successful resync identify the matching buffer and copy intermediate records if master word was from !.
+            obo=okok r0i'!,
+            %%Master word was from ! - copy in the intermediate words into @
+            z!okono-o#omol1o- (o~z@r-0b-h&i'!mz!m)0 okz@r0i'! ),
+          %%Resync failed - copy ! word into @ and try next pair of words.
+          z@r-0b-h&i'! ) )
+      %%If at end of one or other of the buffers - exit now.
+      z!m2m- z@m2m-)0  %%Word loop ends.
+  )0                   %%Secondary-buffer loop ends.
+
+%%For the optional map format a new column is inserted befor the first one, to contain the keyword, all other columns contain * or whitespace.
+(z$m-0f/-map/\,
+  %%First build the new column.
+  z@m-0i/	/m((v/	/r)0n.(f1/	/, r0)a"h"r-0h"i/	/m)0
+  %%Remove any buffer pathnames.
+  m-0(f1/  /e2n.(f1/	/, r0)a")0
+  %%Simplify any subsequent entries to '*'.
+  m-0m (f1/	/ (r2r- (v/	/, n.(f1/	/, r0)a"i/*/) )0 m)0
+  %%Substitute * for the buffer key - first prepare a buffer-key lookup table in ".
+  m-0n.r0a"h"z"r-0eb (f1/	/eb)0
+  %%Now replace the * characters.
+  z@m-0m (f/*/ ol0(f-1/	/o~)0 z"m-0omz@f1/*/s'")0 )
+%%  z@m-0m (f1/	/oc (f1/*/o#ocoso- z"m-0omz@s'")0 okm)0 )
+ 
+%%Underscore the headings before resolving the tabs.
+z@m-0na"h"2 m-(v/	/r,ei/=/)0
+%%Remove tabs from last line.
+m0(q/ 	/e)0
+%%
+%%Resolve tabs
+( z$m-0f/-notab/z@, z@
+  (m-0f/	/
+    %%Lifted from autotab.jot.
+    %%init
+    m-0 ol0 (ol0o=m-0,)okonol0
+    %%Find rightmost tab.
+    (f/	/roc (o<okoc,) m)0 osono-om
+    %%Resolve the first tabs.
+    (f/	/ei/ /o#oc (o> ocoso- (i/ /o~)0, ) ok m)0 ok ) )0
+
+m-0
+:
+'#
+

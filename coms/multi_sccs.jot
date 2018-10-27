@@ -1,0 +1,139 @@
+%%Performs an edit on all file pathnames listed in main buffer "." -  with SCCS housekeeping.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Revision history: 
+
+%g? 
+Buffer usage:
+  . - list of file paths
+  c - jot commands to obey.
+  s - SCCS comment string.
+  m - buffer files
+  l - log of all sccs resposes.
+  
+  $ - temporary command buffer.
+   
+  # - Main command buffer.
+  1 - Command - if current file is checked out, writes and checks in,
+                then resumes. I no file then restarts with file at
+                current line in buffer '.
+  2 - Command - performs an SCCS unedit on current file.
+  3 - Command - Advance to next file
+  
+  At the start of day, the buffers s and m should be clear -
+  if not the process halts without changing anything.
+   
+  In the event that the jot command fails  then  the  process  halts  with  a
+  warning, at this point the file is  opend  for  editing  but  is
+  unchanged - proceed to make changes manually or unedit. The process can then
+  be restarted by hitting '1' on the numeric keypad.
+  
+  In the event that the SCCS checkout or the read fails, then do  whatever  is
+  necessary to fix it (or move to the next  file  in  the  '.'  buffer)  and
+  restart - use the '1 button on the numeric keypad.
+:
+
+%g#
+%%Initial checks and load buffers - skip this for testing.
+%%
+%%Check that we are in buffer '.
+( obz.obo=ok, oz
+  %X=The list of pathnames must be in the main buffer.
+  )
+ 
+%%Next check that all buffers are clear:
+(zcm-0m\r\ zsm-0m\r\ zmm-0m\r\,
+  %m=Error:Not all of the  buffers c, s and m are clear. To resume multi_sccs hit
+  %x=the 1 on the numeric keypad, to start anew, first clear buffers s, and m.
+  )
+  
+%%
+%%Load the buffers
+(zsm-0r, m, z?w
+  %s=prompt now the SCCS comment: 
+  g1m-n.r0ask)
+(zcm-0r, m, z?w
+  %s=prompt jot commands: 
+  g1m-n.r0ack)
+%s=prompt > ;
+:
+
+%g1 
+%%On entry we may be recovering from a break.
+%%If file is current and writable then assume that it's been manually
+%%edited following a trapped editor error. 
+
+zmm-0 
+( %%Is it the current file?
+  m0v'.rr-f1'.-r\
+  %%can we write it?
+  %o
+  %%File was writable - restore it to it's former state and restart edit loop.
+  z?n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs unedit "r0i" > /tmp/sccs.log" '$
+  zlm0bi/Restarted using /h$b
+  %i$=/tmp/sccs.log
+  zlh$e-0
+  , )
+   
+( %%Main loop - read and check-out, edit then write and check-in.
+  %%read
+  z?n.a$z$i"%im="i'. '$
+  %%Check out
+  z?n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs edit "r0i" > /tmp/sccs.log" '$
+  zlm0bi/Checked out using /h$b
+  %i$=/tmp/sccs.log
+  zlh$e-0
+  %%edit
+  zm'c
+  %%Write
+  %o
+  %%and check in.
+  n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs delget "r0i" -y'"i'si"' > /tmp/sccs.log" '$
+  zlm0bi/Checked in using /h$b
+  %i$=/tmp/sccs.log
+  zlh$e-0
+  z.wmrr-
+  %l
+  )0
+  
+%%On completion or fail
+zlm0bi/On completion or fail /h$b
+%i$=/tmp/sccs.log
+zlh$e-0
+
+:
+
+%g2
+%%Unedit the current file - then move to next.
+z?n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs unedit " '$
+zdmrr-
+:
+
+%g3
+%%Advance to the next file.
+zdmwrr-p
+:
+
+%%Time to get cracking.
+'#
+z.
+%m=Hit the "1" button on the numeric keypad to start.

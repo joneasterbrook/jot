@@ -1,0 +1,70 @@
+%%Makes a calendar with week numbers.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Revision history.
+
+%g#
+%%What year is it?
+%%
+z$m-0
+%%( f/%%/-(v/ /r)0q/0-9/
+( (v/ /r)0q/0-9/
+  ,  %%Year not specified - take this year.
+  %e=date | cut -d' ' -f6 > /tmp/cal
+  %i$=/tmp/cal
+  )
+n.(q/0-9/r)0a@z@r-0 i"%e=cal -s "r0i" > /tmp/cal"
+'@
+%i@=/tmp/cal
+%e=rm /tmp/cal
+
+%%First resolve tabs - stolen from tab.jot
+%%
+%%Set tabs at 8 character intervals.
+ol8 n.a$z$i/ /8z@
+%%First perform simple substitution of easy tabs at left margin.
+m-0((v/	/s'$)0m)0
+%%Now for the more complicated task of translating embedded tabs.
+m-0 (f/	/o#o#eocoso%oso-(i/ /o~)0ok)0ok m\m-0
+
+%%Set up format for two-digit writes
+n.a$z$i/%2d:/ z@
+ 
+%%Initialize first week no. - 1 if starts on Sunday or Monday, otherwise 2
+%%f/ S  M Tu  W Th  F  S/m(v/     /ol0, ol1) m-0
+f/Su Mo Tu We Th Fr Sa/m(v/     /ol0, ol1) m-0
+ 
+%%Now add week numbers.
+( %%Block loop there are four blocks of three months.
+  %%Month 1 of the three months in current block.
+  f/Su /    i-/   /   ocmo#or(r-0o#oroso#oo'$(r20\, v-/  /, o~)osmo#or(v/ /r)19? q/0-9/)0 ((v/ /r)0q/0-9/i/   /,)ok
+  %%Month 2
+  f-/  Su /2i-/   / r2ocmo#or(r-0o#oroso#oo'$(r20\, v-/  /, o~)osmo#or(v/ /r)19? q/0-9/)0 ((v/ /r)0q/0-9/i/   /,)ok 
+  %%Month 3
+  f-/  Su / i-/   / r2ocmo#or(r-0o#oroso#oo'$(r20\, v-/  /, o~)osmo#or(v/ /r)19? q/0-9/)0 ok 
+  )4
+ok
+
+%%Finish off by justifying month names.
+m-0 (f/Mo /m-(i/   /r23?)3 m2)4
+:
+'#

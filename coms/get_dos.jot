@@ -1,0 +1,238 @@
+%%Picks up a file relative to current file.
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+ 
+%g?
+   [Arg 1  -  File spec stub.
+   [Arg 2  -  Destination buffer.]]
+  
+Buffer usage:
+  # - Main command macro, then used to build directory-listing command.
+  + - Holds directory listing.
+  0 - Holds main get macro.
+  $ - Temporary - holds Args.
+  ! - Holds data parsed from original query:
+      record 1 - pathName from arg
+      record 2 - fileName from arg
+      record 3 - destination buffer
+      record 4 - pathName from text.
+      record 5 - pathName of original file.
+      record 6 - when descending a directory, contains the previous directory name.
+  
+Behaviour
+  - With no arguments, get assumes that the cursor points to a valid path - either absolute or relative to the original file's path.
+  - With no arguments and no valid path in the current text, get offers the contents of the users PWD.
+  - If the given path begins ~/ then it is assumed to be below the users home area.
+  - If the given path begins ~<name> then it is assumed to be below the specified users home area.
+  - A '*' argument matches with all files in directory.
+  - If a relative file name is given then this is first assumed to be with respect to the original file path.
+  - If the given subpath is not relative to the original file's path then it is assumed to be relative to users PWD.
+  - If path is not relative to PWD, it is next checked against the value of env GetDefaultPath, if this env is set.
+  - If the argument specifies a pathname, then get offers a list of all files matching the name part given in the given path.
+  - All references to the users environmental globals are translated e.g. $<globName> or ${<globName>}.
+:
+
+%g0
+%%Construct complete path in $ buffer - buffer + contains either a directory or a tar archive listing.
+onr0r-0n.r0a$& (m-r)0m z$i'+i/	/
+( r-0v/dir /e4f1/	/e %%It's in a simple directory.
+  %%If path ends with ../ return to line following original start point.
+  z!m-0(m5k0, ) z$z$r0(v-"/../"e-3r-2f-1./.-n.r0a!+, )
+  %%If the path contains "/../", '/./" or "//" then trim as approriate.
+  r-0(f1"//"e)0 r0(f-1"/../" r3r-v"/"re-4(v-"/"\e-)0)0 r-0(f1"/./"e2)0 r0(v-"/"r-2re, )
+  %%Is it a file or a directory?
+  %q#=file '$
+  ( f/directory = 1/
+    %%It's a directory alright.
+    ok
+    %q$=dir '$
+    z+m0r0b2 z$n.r0a++ 
+    %b=sort
+    (r\k)0 z+r0i"/"
+    %%If descending from a child directory this will be in the 6th. line of buffer !.
+    (z!m-0m5rz+m(v'!\m)0 m, z+m0r0bh$ w (m-r)0 m) w
+    %x=Select again.
+  , %%It's a file.
+    %%If destination buffer undefined - prompt for it.
+    (z!m-0m2r, %s=prompt Buffer key ?; g1j- %s=prompt > ; )
+    %%
+    %%There's no \file command in  in DOSland.
+    %q~=version; z~m
+    ( f1/linux/ %%This only works in Linuxland.
+      %%If it's been compressed, encoded or it's an archive file more work is required.
+      z$m-0oki/%e~=\file -z / r(f1/ /i/\/r)0'$
+        
+      ( f1/ text (gzip compressed data/ %%It's compressed text - read now.
+        z!okm-0m2 z$f1/-z /-e-0i/%e/i'!i/=\cat /r0i/ | \gunzip -/z!r-0e0 z+ono-om '$
+        %x=Read a decompressed version of your file.
+         
+      , (f1/zip archive data/) %%It's a zip archive.
+        z!okm-0m2 z$f1/-z /-e-0i/%e$=\unzip -l / z+m0r0b2h$b '$ z+h$w(m-r)0m ok
+       
+      , f1/Excel/ %%It's an spreadsheet.
+        (%e=which xls2csv; %%xls2csv is available - use it.
+          z$okr-0f1/-z /-e-0i/%e$=\xls2csv /r0i/ -l/ z+m0r0b2h$ '$ z+h$w(m-r)0m ok
+        , %%Use xlio 
+          z$okr-0f1/-z /-e-0i"%e$=perl ${JOT_HOME}/perl/xlio -fromXls "r0i" -listSheets " z+m0r0b2h$ '$ z+h$w(m-r)0m ok )
+        %x=select a sheet.;
+       
+      , (f1/Composite Document File/) %%It's an MS word document.
+        z$r-0f1/file -z /-e-0 z!m-0m2n.ra$-& z$r-0i/%e/ri/=\unoconv --format text --stdout / '$
+       
+%%      , (f1/XZ compressed data/) %%It's an XZ archive.
+%%        z!okm-0m2 z$f1/-z /-e-0i/%e+=\xz --decompress / z+ono-om '$ b-i'$
+       
+      , (f1/ text/, f1/ empty/) %%It's plain text or empty.
+        z!okm-0m2 z$r-0f1/-z /-e-0(f1/\ /e)0r-0i/%i/i'!i/=/z!r-0e0 z+ono-om '$
+        %x=Read your file.
+         
+      , f1/tar archive/ %%It's a, possibly compressed, tar archive.
+        z$okr-0f1/-z /-e-0i/%e$=\tar -tvf / z+m0r0b2h$b '$ z+h$w(m-r)0m ok
+        %x=select a member of the archive.;
+           
+      , f1/PE32 executable/ %%Maybe a cabenet?
+        z$okr-0f1/-z /-e-0i/%e$=\cabextract -l / z+m0r0b2h$b '$ z+h$w(m-r)0m ok
+        %x=select a member of the archive.;
+        
+      , %%Any other file - assume it's some sort of text.
+        r-0f1/: /-e-0z!%m=File was type "'~" reading it anyway.;
+        m-0m2 z$r-0f1/-z /-e-0(f1/\ /e)0r-0i/%i/i'!i/=/z!r-0e0 z+ono-om '$
+        %x=The file is assumed to be some sort of plaintext; )
+           
+    , %%DOS only
+      z!okm-0m2 z$r-0i/%i/i'!i/=/z!r-0e0 z+ono-om '$
+      %x=Read your file.; ) ) 
+%%
+%%Deal with the various known multiple-document file types - e.g. archives like tar/zip/ar and spreadsheets, which have multiple sheets.
+, f1/\tar -tvf /- %%File is in a tar archive.
+  e-0 f1/	/-ebr0f-1/ /-e-0j-r-0 z!m-0m2 z$i/%e/i'!i/=\tar -Oxf / z+ono-om '$
+   
+, ( (f1/\xls2csv /\  f1/xlio /\)\ %%It's a spreadsheet.
+  ( v/\xls2csv / %%Use xls2csv to read spreadsheet.
+    (v/ /r)0f1/-l/(v/	/\e)0e i/ -t / z!m-0m2 z$r-0e3i/%e/i'! z+ono-om '$
+  , %%Use xlio to read spreadsheet.
+    (v/ /r)0f1/-listSheets/s/ -toCsv - /r0f-1/ /e-7i/ -sheet / z!m-0m2 z$r-0e3i/%e/i'! z+ono-om '$ )
+  %%Now set up basic spreadsheet viewing environment for this buffer.
+  %%
+  %%Define a header line.
+  %%Find line with most tabs.
+  ol0 (ol0 (f1/	/o~)0 (o<okol0r-0(f1/	/o~)0, ) m)0 m-0
+  %%Prepare the header line in buffer $
+  obosn.a$z$
+  %%Add least-significant letter of header A-Z.
+  m-0b- o# (ol-1o=\ o#ol26o%ol65o+oo/%c	/r-0 ol-1o+)0 ok
+  %%Add 2nd.least-significant letter of header A-Z.
+  r0o# (ol-1o=\ o#ol26o/ol0o=\ol64o+r-2oo/%c/r- ol-1o+)0 okok
+  %%Define the header record.
+  okoz %b=header '$
+  %b=tabcells -1; )
+   
+, f1/\unzip -l/- %%File is a zip archive.
+  e-0 (v/ /r)0f1/	/ebr0f-1/ /e-0j-r-0 z!m-0m2 z$i/%e/i'!i/=\unzip -cq / z+ono-om '$
+   
+, f1/\cabextract -l/- %%File is an MS cabenet.
+  e-0 (v/ /r)0f1/	/e0r-0 z!m-0m2 z$i/%e/i'!i/=\cabextract -p -F / z+ono-omr0n.f-1/ /-a$.&r-0 '$
+   
+, z+ %x=Unknown archive type. 
+  )
+:
+
+%g#
+%%First gather up all known data into the ! buffer.
+%%Init.
+ob
+%%Sort the arguments into path, fileName and destination buffer key in first 3 records of ! buffer.
+z$m-0 (f/%%/-, r0) (v/ /r)0b (f1/\ /e)0r-0(f1"\"s"/")0 r-0n.r0a! 
+%%Split the path from file name, in dosland, the path may start <driveLetter>:\...
+z!r-0(q/a-zA-Z/rv/:/r(v"\"r, i"\")(v"/", i"/"), ) r0(f-1"/"-b, r-0b) 
+%%If -to arg given take the destination key now.
+r0b2(f1/ -to /e4(v-/ /e-)0(v/ /e)0b-, r0b-) r-0(v/ /r)0(rr-e-0, )
+%%
+%%Record 1 is the given path, record 2 is the given name part (N.B. it could a directory!).
+r0(f-1./.-, r-0)bm
+%%
+%%Extract anything that looks like a path or file name from the text - to record 4 of ! buffer.
+o#oz (q/ "'/r)0 ocn.(q/a-zA-Z/rv/:/r, )(q"- /~\{}$.@_0-9a-zA-Z"(q//r)0, ) a$&oco-or z!m-0m3h$
+%%
+%%Extract pathName from current buffer - to record 5 of ! buffer.
+o#oz%q~=buffer; f/pathName = /-b(f1/\ /e)0r-0(f1"\"s"/")0 
+%%If it's a relative path then prefix with ,/
+r-0n.r0(f-1./., r-0i"./") a$& z!m-0m4h$ oko#oz
+  
+%%Now analyze paths in ! buffer, if it's a '~' this gets translated now.
+z!m-0 (rr-, m3)
+( v"~/"e2 
+  %q+=env HOME 
+  mz!i'+i./.
+, 
+  v/~/s"/home/", )
+   
+%%Translate any env-variable references.
+z!m-0
+( f1/$/(v/{/en.f1/}/a$e, n.(q/a-zA-Z0-9_-/r)0a$)
+  %q$=env '$
+  z!i'$ )0
+   
+%%Path prioritization behaviour implemented here:
+%%
+( %%Search the given path, if it's a relative path, first try prefixing the file's path then pwd.
+  %%
+  z!m-0n.r0a$&z$ 
+  ((v"/", q/a-zA-Z/rv/:/) %%It's an absolute path - no prefixing required but if this fails then exit immediately.
+    ( %q+=dir '!;, %X=Absolute path '! failed; )
+    %%Does the given name element match anything in there?
+    ( z!m-0m (v/*/z+m0, r\z+m0, z+m) (f1'!m, k)0 m-2 )
+  , %%If there was a given-name element, then try <filePath>/<givenSubpath> 
+    z!m-0mrr-
+    ( z$i"/"z!m-0m4n.r0a$-& ( %q+=dir '$;
+    , %%That did not yield a valid directory, try prefixing with PWD.
+      z!m-0 %q+=dir ./'!; )
+    %%Does the given name element match anything in there?
+    z!m-0m r-v/*/z+m0, r\z+m0, z+m) (f1'!m, k)0 m-2 )
+   
+, %%Search for an *exact* match of text string in file's text and then ${GetDefaultPath}.
+  ( %%Path in text might be absolute.
+    z!m-0m3 (v"/"\q/a-zA-Z/rv/:/) %q+=file '!; r-0v/file/s/dir/(f1.\.s./.)0r0f-1"/"-bmk0m-, 
+    %%Not absolute then, maybe, relative to file's path?
+    z!m-0m4n.r0a$&m- %q+=file '$/'!; r-0v/file/s/dir/r0f-1"/"-bmk0m-, 
+    %%Maybe it's an include file or something similar, try prepending GetIncludePath.
+    %q~=env GetDefaultPath;\z+ok, m z!m-0m3z$%q+=file '~/'!; r-0v/file/s/dir/r0f-1"/"-bmk0m- )
+  %%Did anything match?
+  m-0mr 
+     
+, %%Give up with a suitable message and offer the contents of the current file's path or pwd.
+  z!m-0m4n.(f1"\"s"/")0r0a$& m-0(rr-n.r0a$+&, ) ( %q+=dir '$;, %q+=dir .;) n.ma$%b=sort; h$j
+  %x=Path Validation failed; )
+ok
+  
+%%If no match then exit with a suitable message.
+z+m-0(mr, z+ %x=Invalid path '$; )
+%%
+%%Sort the directory listing in + buffer.
+z+m-0n.r0a$ %b=sort; (r\k)0r-b-h$ (v-"/", i"/")
+%%
+%%Add original query to +:
+z!m-0n.m2a+-& z+b-m-j-r-0i/GET /m2
+%%If there is only one match then take that one.
+(m2\ '0, (m-r)0m %x=Select one of these matching names and then hit {KP_0}; )
+:
+'#
+w
+

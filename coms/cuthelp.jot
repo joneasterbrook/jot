@@ -1,0 +1,32 @@
+%%Copies a help fold to the paste buffer.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%
+ob
+
+%%Go to help buffer check that current item in help is a folded file.
+z:m-0f';v/{{{/ n.
+%%Now extract the main gubbins.
+ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 okma_h_
+%%Return to original buffer.
+oz

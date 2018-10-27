@@ -1,0 +1,31 @@
+%%Transposes a block of text.
+
+%%
+%%Copyright (C) 2013-2018 Jon. Easterbrook
+%%This programme, it's associated scripts and documentation is free software.
+%%It is distributed for the benefit of anyone who find it useful,
+%%it can be modified and redistributed without restriction.
+%%No warrenty is given or implied for whatever purpose.
+%%
+%%
+
+%%Initialize
+m-0n.a$
+%%
+%%Strip off trailing blanks.
+m-0 (r0(v-/ /e-)0m)0
+%%
+%%How long is the longest line?
+m-0 ol0 (r0oc(o<okoc,)m)0
+%%
+%%Pad out shorter lines.
+m-0 (r0o#o~ocoso-(o~i/ /)0okm)0 ok
+%%
+%%Transpose into '$ buffer.
+m-0 ((n.ra$+m)0 rm-0b-n.ma$+)0
+%%
+%%Copy in the transposed text.
+m-0k0h$m-0
+%%
+%%Strip off trailing blanks.
+m-0 (r0(v-/ /e-)0m)0

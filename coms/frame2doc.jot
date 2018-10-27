@@ -1,0 +1,149 @@
+%%Makes a save document out of a framemaker plain-text dump.
+%%Always dump with line breaks at paragraph ends only.
+%%Dump table entries on separate lines.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+%%Change log.
+%%
+%g?
+  There seems to be  no  reliable  way  of  distinguishing  between  top-level
+  headings and numerical bullets.
+  
+  The current version of frame2doc treats such  paragraphs  of  less  than  80
+  characters as hedings and the remainder as bullet  paragraphs.  It  can  and
+  does get it wrong. The button '1' has been  defined  as  make  this  heading
+  into a bullet.
+:
+%d1=i/  - /mv/--/k((v/ /r)0r\k)2
+
+
+%%%%Check that doc.jot has been run.
+%%%g$
+%%  obz]m-0m\rl(q/0-9/r)0r\m\oz,
+%%  oz
+%%  %r=doc
+%%  %M Default document style assumed.
+%%:
+%%'$
+%r=doc.jot
+
+%M Heading
+%%Heading
+%g$
+  r-0(v/ /e)0r0(v-/ /e-)0
+  ocobz[r-0oido#z]r-0oidosozoso-oco-ol-2o/oso-r-0
+%%  ocz[l0opz~o#z]l0opz~oso-oco-ol-2o/oso-l0
+  (o~i/ /)0okn.r-0a%h%r0bh%ol0oso-(i/-/o~)0okm(v/ /r)0(v/--/k,)
+:
+m-0(v/ /r)0 (q/a-zA-Z/r80\'$,)
+m-0b
+
+
+%M Bullets.
+%%Bullets.
+(f/·	/s/  - /)0m\m-0
+%g$
+  %%All bullets have a tab
+  (f/	/
+    %%If more tabs on line assume it's a table.
+    f1/	/m,
+    %%Lines shorter than 80 characters are assumed to be headings.
+    (r0ocol80o>
+    %%Long enough to qualify as a bullet, is it a numeric bullet.
+    ok r-0f1/	/(q-/0-9/ei-/ /(q-/0-9/r-)0i/  - /, r),
+    %%Short line - assume it's a heading.
+    ok r-0f1/	/(r-rei/ /m,m)))0m\m-0
+:
+'$
+
+%M Tables characterized by short paragraphs folowed by more short paragraphs
+%%Tables characterized by short paragraphs folowed by more short paragraphs
+%%repeated over several cycles or by paragraphs containing more than one tab
+%g$
+  ((v/	/\m)0 v/	/
+    ((ol0(v/	/rv/	/\m o~)0 m, ol-1)2
+      o=ol0o=\ok
+      %%Yes - two sets of table-like entries had same number of entries.
+      %%Go back to start.
+      (m-(m-v/	/)0)2
+      %%and make them all into a table.
+      (mv/	/ (v/	/j-ri/|/m)0)0,
+    %%Tab-matching block - else clause.
+    ok(v/	/m)0) )0m\m-0
+:
+'$
+
+%M Headings
+%%Headings
+((q/0-9/\,bna_h_2m-(ei/-/)0)m2m-)0m\m-0
+
+%%Paragraphs
+%g$
+  %%An ordinary text paragraph? - if so then separate it from neighbours.
+  (q/A-Z/(m-rv-/-/\mb,m)m(rr-b-,)m-i/  /m2,
+    %%Otherwise, if not a heading, bullet or underline - add tab.
+    ((v/ /r)0 q/0-9/m2, v'-m, v/--/m, 
+    (m-rv-/-/\mb,m)m(rr-b-,)m-i/	/m2))0m-0
+:
+'$
+ 
+%g+
+%% '+' Locates start of next (or current) paragraph.
+%%
+(
+  %%At end of document?
+  mm-(
+    %%Walk past blank lines and lines with tabs.
+    ((f1/	/m)0(v/ /r)0v/--/m)0
+    %%Walk past underlined lines.
+    m(v/ /r)0v/--/m
+    )0
+  m-(v/ /r)0r\m,r-q/0-9/m
+)0
+:
+
+%%Go for it - this is the format-all-paragraphs command from doc.jot.
+(w'+mm-(v/ /\m)0'*)0 m\m-0
+
+%M Now do tables. 
+%%Now do tables. 
+%g$
+%%Autotab each table individually.
+m-0
+( f/	/
+  %%Pick up rest of table.
+  r-0n. (m(r,m)f1/	/)0 a%obz%m-0
+  %%Remove any empty lines.
+  (m(r,k))0
+  ( m-0f/	/
+    %r=autotab
+    )0
+  %%Restore a blank line at top and bottom then replace table.
+  m-0bm0b ozh%)0
+:
+'$
+
+%M Clear up any remaining tabs ( should all be in column 1).
+%%Clear up any remaining tabs ( should all be in column 1).
+m-0 (f/	/r-\e)0
+w
+

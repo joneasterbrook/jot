@@ -1,0 +1,62 @@
+%%Startup script - transforms function-key modifiers to prefixes, for the benefit of those having trouble reaching awkward combinations of {Ctrl|Shift|Alt} modifier keys.
+%%
+  
+%%    Copyright (C) 2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%%The user calls this script as a -startup=nomod.jot                                                                                                                                                                                                               Q    
+%%but this script actually needs to run after the standard mapping tables and functions have been defined.
+%%
+
+%%Call the standard startup now.
+%r=startup -nofinalize;
+%%
+
+%%Modify the key mappings, substituting {Ctrl|Shift|Alt} modifiers for {Esc+0-7} prefixes.
+%%First the assignment of functions to key-names map in buffer ( ! ):
+z!
+m-0 (f/ {Ctrl+Shift+Alt+/s/ {^[7 /)0
+m-0 (f/ {Ctrl+Shift+/s/ {^[3 /)0
+m-0 (f/ {Shift+Alt+/s/ {^[6 /)0
+m-0 (f/ {Ctrl+Alt+/s/ {^[6 /)0
+m-0 (f/ {Shift+/s/ {^[1 /)0
+m-0 (f/ {Ctrl+/s/ {^[2 /)0
+m-0 (f/ {Alt+/s/ {^[4 /)0
+  
+%%Now the assignment of functions to key-names map in buffer ( @ ):
+%%
+%%For these we need to replace the modified keycode with the unmodified keycode
+z*m-0k0 %h=create 1000; z@
+%%
+%%First copy all unmodified keycodes to buffer ( * ) entering them into the hash table.
+m-0 (f/ -- {/-f1/+/, n.f1/}/a$& r-0n.r12a*+&z*r0b- %h=add '$;z@m)0
+%%
+%%Now we modify the key description as before but change the keycodes to the unmodified keycode with the new prefix.
+m-0 (f/ {Ctrl+Shift+Alt+/s/ {^[7 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[7/i'*)0
+m-0 (f/ {Ctrl+Shift+/s/ {^[3 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[3/i'*)0
+m-0 (f/ {Shift+Alt+/s/ {^[5 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[5/i'*)0
+m-0 (f/ {Ctrl+Alt+/s/ {^[6 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[6/i'*)0
+m-0 (f/ {Shift+/s/ {^[1 /n.f1/}/a$& %h*=jump '$; z@ r-0e11 i/^[1/i'*)0
+m-0 (f/ {Ctrl+/s/ {^[2 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[2/i'*)0
+m-0 (f/ {Alt+/s/ {^[4 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[4/i'*)0
+%%
+%%Finalize the startup now.
+'#
+z.

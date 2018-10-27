@@ -1,0 +1,29 @@
+
+
+
+{{{ What's this?
+  Have a go at setting up your own help files 
+  
+{{{ This is a lower-level section
+  All there is in here is this message.
+}}}
+
+  This is some text that appears at the tom level. 
+  
+{{{ This is another sectiom at the same level as the previous one.
+  Not much in here either.
+}}}
+
+[demo]fred        - This is a file fold, selecting this one opens the file:
+[demo/deeper]jim  - Another file fold, this one's lower down the filing-system tree.
+ 
+ 
+  ${JOT_RESOURCES}/help/your_stuff/fred.hlp
+  
+{{{ Yet another sectiom at the same level as the previous one.
+  Not much at this level - but maybe there's something in the child fold?
+{{{ Child fold  
+  Nah - just more of the same.  
+   
+}}}
+}}}

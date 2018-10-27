@@ -1,0 +1,219 @@
+%%Sets up cross linking of any number of doc.jot style text documents.
+
+%%
+%%    Copyright (C) 2015-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+ 
+%g?
+  Resolves local links in one or more documents. The documents must be in  the
+  form supported by doc.jot with  references  in  the  form  of  text  strings
+  enclosed in backticks - eg: 
+    This  is  some  text `this  is  a  ref`  this  some  more  text.
+  In this case, the link will be directed to a section  heading  that  exactly
+  matches "this is a ref" - the following section heading will match:
+12.34.45 This is a Ref
+---------------------
+  Note that the whitespace has been simplified to single blanks and  that  the
+  case pattern is ignored.
+
+Usage - linkdocs[ -allxrefs][ -bufs=<bufKey1>[ <bufKey2>[ ... ]]]{Do}
+  If -bufs is given, the specified buffers are scanned for doc-style section 
+    headings and references.
+  If no list of buffers is specified, linkdocs scans the primary buffer and
+    all active buffers A-Z selecting those it deems to contain doc.jot-style text.
+  If -allxrefs is given it searches the text for all references to indexed terms 
+    including any not identified by backticks and highlights them.
+  The references are colour-tagged to white on blue and left-mouse clicks in these
+     switch context to the target section heading.
+e.g:
+$ jot_dev ${JOT_HOME}/docs/jot_qr.txt -in="%it=jot_tech; %ic=jot_coms; %iu=jot_ug; %iw=jot_walkthrough; %r=linkdocs -bufs=. c t u w;"
+
+> linkdocs -bufs=d t c g
+  - This will search buffers D, T, C and G for anchor points creating a master hash table in buffer D
+    tagging only explicit links - these are indicated by text inclosed in backticks - `<refKey>`
+  
+> linkdocs -bufs=s -allxrefs
+  - This will search buffer S for anchor points creating a master hash table in buffer S
+    tagging explicit links and any sequence of words matching a detected anchor point.
+    
+Clicking on unhighlighted text returns to previous view.
+  
+Buffer usage:
+  $ - Temporary.
+  ! - Args (line no. 1), followed by list of buffers (line no. 2).
+  # = Macros.
+  @ - contains  the text buffer containing the master hashtable.
+      After indexation @ contains the history stack.
+  ; - List of missing or duplicate targets
+  * - Temporary.
+  A-Z - First of nominated (or detected) text buffers to hold the master hash table.
+  1 - Macro 1 - simulates mouseclicks for mouseless users
+      First move the cursor to a link, then {Esc 1}.
+  3 - Macro 3 - toggles the mousemask.
+:
+
+%%Collect arguments - if none then search buffers in range A-Z.
+%g#
+z$m-0n.m0r0a!z!m-0i/ /r0i/ /r-0
+( f/ -bufs=/- %%A list of buffer keys is given then take them.
+  n.(f1/ -/, r0)a$&z$m-0(f/ /e)0r-0(q/a-z/cb, rb)0
+, %%Work on a list of active buffers from %q=system
+  %q$=system; f/Buffers:/k-0 (f/:/r-q/.A-Z/\k, oicoz m-0((q/0-9/\m)0mv/---/z$e0r-e-0m, z$k) )0 )
+z!(m+2, m0r0b) e0h$r-0n.ra@&
+:
+'#
+
+%%Define the left-click mouse function.
+%g$
+
+<<linkdocs_FollowLink>>
+%%On a left-button click on tagged text, switch context to the relevant mail thread in the bookings file.
+%%If no tags on clicked area, returns to previous view.
+%%
+%%Create the entry in the history stack.
+%%
+%%Collect the view to stack.
+obo# oe(rr-,)oe(o=okol0,) oc on of ob z@r-0 
+%%Check the history stack - initialize if necessary.
+( v/linkdocs history:/mk0r0b, m-0k0)
+%%write the view entry.
+oo/linkdocs history: Buffer %c, / r0oo/top line %d, / r0oo/line %d, / r0oo/chr %d, / r0oo/substring %d/ bm-oz
+  
+( %%Go to the mouse-click position.
+  opozono-omor
+  %%Find text tags - if one exists this is deemed to be a key for the local hashtable.
+  %q$=tags -here; 
+  f/Type text from/f1/"/-e-0f1/"/e0 %h$$=jump '$; on(rm)0wono-omr0ocr-0ou ok
+, %%Clicked to untagged text - return to previous view.
+  ( %%Check and pick up history-stack entry.
+    z@k-v/linkdocs history/ok f1/, substring /-oid f-1/, chr /-oid  f-1/, line/-oid f-1/, top line /-oid  f-1/ Buffer /-oic k-?
+    %%Restore original view.
+    oz osono-om wofo-ow or ou
+  , %%Not a history-stack entry.
+  oz )
+)
+:
+%%Modify the final line of the linkdocs_FollowLink function references the hashtable in first indexed buffer.
+z!m+2oicz$m-0f/$$/oo/%c/
+
+%g#
+( %h'=jump linkdocs_FollowLink;
+, %%Add the new function to the code repositary.
+  z'm0h$ f-/<<linkdocs_FollowLink>>/ r0 %h=new linkdocs_FollowLink;
+  %%Now bind it to the keycode for left-click.
+  ( %q=windows; %r=WindowsNT_keys;, %q@=version; mf1/ chrome / %r=curses_keys_chrome;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$ )
+  z@m-0 (z@f/{Button1Click}/ r-0r12e0z^m-0 (f'@r12e0, m-0i'@b-) i/%h'=call linkdocs_FollowLink;/)?
+  )
+:
+'#
+
+%g#
+%%Set up the master hash table in first nominated buffer (indicated by $$ buffer) - 10000 entries should do.
+%h$$=create 10000 -destroy;
+z!m+2
+( %%Buffer loop - construction of master hashtable.
+  oicoz m-0
+  ( %%Target loop.
+    ( ( (q/0-9/ (q/0-9. /r)0n.r0, q/A-Za-z/f1/:/v-/ /\n.r-0)a$&)\ m)0 mm-
+      %%Change to upper-case and modify ( = ) and ( | ) characters.
+      obz$r-0(q/a-z/c,r)0 r-0(f1/|/s/\VB/)0(f1/=/s/\EQ/)0 oz
+      ( %%Does this target already exist in the master hash table?
+        %h$$=new '$;
+      , %%Yes - construct a warning message.
+        obz;i/Duplicate heading /i'$i/ - ignored/boz)
+    m)0 %%Target loop ends.
+  z!m2m- )0  %%Buffer loop ends.
+
+%%Now find the references, add colour tags and links.
+z!m+2z;i/Unresolved references follow (no matching header line could be found for these references):/b
+( %%Buffer loop.
+  z!oicoz m-0
+  
+  %%Define the colour tags.
+  %b=tagtype ValidRef colour 0 2;
+  %b=tagtype BadRef colour 0 1;
+  
+  %%find first valid line
+  (q/ |	/\m)0
+  ( %%Reference loop.
+    %%Find and pick up the next reference.
+    ((f1/`/(((v-/\/rf/`/)0, rr-?\)v/`http:/\)\rf/`/r)0 v/`/\(mq/ |	/\)0mm-)0 rn.f/`/a$&oconob 
+    %%Tweak string to make a valid key.
+    z$j-0r-0(f/  /e)0 r-0(q/a-z/c, r)0 r-0(f1/|/s/\VB/)0 r-0(f1/=/s/\EQ/)0
+    ( %h$$=jump '$; %%This reference is OK - it exists in the master hash table.
+      ozono-omorr-f-/`/(f1/`/, r0)ocf-1/`/-oco-ou %b=addtag ValidRef; %b=addtag -text='$; (f1//r-, m(v/ /r)0ocf1/`/oco-ou %b=addtag ValidRef; %b=addtag -text='$;) f//-
+    , %%Bad reference - could not find it in the master hashtable.
+      z;i/  Line /r0 o#ozonz;oo/%4d/r0o#oo/, in buffer %c: "/h$i/"/b
+      %%Add BadRef tag colour.
+      ozono-omorr- f-/`/(f1//, r0)ocf-1//-oco-ou %b=addtag BadRef; f//- ) %%God/Bad reference block ends.
+    )0  %%Reference loop ends.
+  z!m2m-)0 %%Buffer loop ends.
+  
+%%If -allxrefs is given, then find all references to indexed keys and tag those too.
+z!m-0 
+( f/ -allxrefs / %%Index all references to any defined keyword.
+  %%Get a list of keys.
+  z$$ %q*=keys; f/Keys for buffer $$:/m
+  ( %%Key loop.
+    r3(v/ /r)0e-0f1/,/e0n.r-0a$& z!m+2
+    ( %%Buffer loop.
+      oicozm-0
+      %%Find all instances of key in buffer and tag all except the definition.
+      ( ( %h'=call FindSequence; v'@ oc obz@m0ozrr-f1'@-(v/:/\ocoso-o#ol0oso-orou, ok\) %b=addtag ValidRef; %b=addtag -text='*;, m) )0
+    z!m2m-)0
+  z*m)0
+, %% -allxrefs was not given.
+  )
+
+%%If there are errors, display list, otherwise return to primary document.
+z;m-(v/Unresolved references follow /z!m+2oicoz, ) m-0
+%%
+%%Enable left-button clicks.
+%s=mousemask 0004;
+:
+  
+%%Pick up master-hashtable buffer key.
+z!m+2oic
+%%Modify command macro - substitute $$ for first text buffer, except in comment lines.
+z#m-0(f/$$/f-1/%%/m, v/$$/o#oo/%c/)0 ok
+  
+'#
+n.a@
+
+%g1
+%%Emulates a mouse click for non-mouse systems.
+%s=setmouse;
+%h'=call linkdocs_FollowLink;
+:
+
+%g3
+%%Macro 3 toggles mousemask setting.
+ob %q~=system; f/mouse mask = /r0  (v-/   0/ %s=mousemask 4;, %s=mousemask 0; ) osozok
+:
+
+w
+%m
+%m=These instructions will disapear after initial keyboard or mouse activity.
+%m===========================================================================
+%m=Any green-background text is a link (red-background text - broken links)
+%m=  - left-button-click on links to follow link,
+%m=  - left-button-click anywhere else to return to previous view.
+%m=  - If you\\'re lacking a mouse or  touchpad,  navigate  the  cursor  using  the
+%m=    cursor-control keys and simulate a left-button click with {Esc 1}
+%m

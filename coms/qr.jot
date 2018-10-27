@@ -1,0 +1,68 @@
+%%Starts a session dedicated to an exploration of the jot documentation suite with jot_qr.txt in the top buffer.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  Usage (an image of the file <anyFileName> is loaded then discarded.):
+$ jot <anyFileName> -st=qr
+$ jot <anyFileName> -st="qr -nomod"
+  The -nomod qualifier converts the modified-key expressions to prefixed-key expressions 
+  This is for the benefit of those using the nomod.jot startup script.
+  
+:
+
+%%Read the docs.
+%i.=${JOT_HOME}/docs/jot_qr.txt;
+%it=jot_tech; 
+%ic=jot_coms; 
+%iu=jot_ug; 
+%iw=jot_walkthrough; 
+%ii=index.txt
+%ie=jot_eval;
+%is=jot_test;
+%l;
+
+%g#
+%%If -nomod qualifier was given, change the key descriptions in the whole set of documents.
+( z$m-0f/ -nomod/\, %%-nomod was given.
+  %%Set the stack with a list of buffer keys.
+  ol46 ol84 ol67 ol85 ol87 ol73 ol69 ol83
+  ( %%Buffer loop - apply translation to each document.
+    oz
+    m-0 (f/{Ctrl+Shift+Alt+/s/{Esc 7          /)0
+    m-0 (f/{Ctrl+Shift+/s/{Esc 3      /)0
+    m-0 (f/{Shift+Alt+/s/{Esc 5     /)0
+    m-0 (f/{Ctrl+Alt+/s/{Esc 6    /)0
+    m-0 (f/{Shift+/s/{Esc 1 /)0
+    m-0 (f/{Ctrl+/s/{Esc 2 /(v/ /e)?)0
+    m-0 (f/{Alt+/s/{Esc 4 /(v/ /e)2?)0 )0
+  )
+:
+'#
+z.
+%r=${JOT_HOME}/coms/startup.jot;
+
+ob
+%r=linkdocs -bufs=. c t w u i e s; 
+oz
+
+m-0

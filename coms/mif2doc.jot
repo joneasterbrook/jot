@@ -1,0 +1,320 @@
+%%Translates mif files to .doc form.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%Buffer usage:
+%%  $ - general purpose.
+%%  % - general purpose.
+%%  _ - general purpose.
+%%  # - main command macro.
+%%  ! - Tables
+%%  @ - temporary currently processing table.
+
+%g#
+%%First check that this is indeed a mif file. 
+m-0
+(v/<MIFFile /, %x This does not appear to be a mif file
+  )
+   
+%%%%Check that doc.jot has been run.
+%%( obz]m-0m\rl(q/0-9/r)0r\m\oz,
+%%  oz
+%%  %r=doc
+%%  %M Default document style assumed.
+%%  )
+%r=doc.jot
+:
+'#
+
+%%Load up the easy buttons for scanning mif - stolen from mif.jot.
+%g2
+ol0
+( %%Main loop.
+  %%If a '<' - decriment depth.
+  (v/</ ol1o-,)
+  %%If a '>' depth is indexed and tested.
+  (v/>/\, (ol0o= rok %X Found a ">" while searching for initial "<"
+    , o~))
+  %%If a comment skip to end.
+  (v"#"r0, )
+  %%If a string then skip to end.
+  (v/`/r (v/\/(r2, m), v/'/\r)0, )
+  (r, m, ok %X Reached end of buffer.
+    )
+)0
+ok
+:
+
+%%Remove %l from '* macro.
+obz*m0(v/%l/e2,)oz
+%%Initialize '? buffer for list of unknown page tags etc.
+n.a?
+
+%g# 
+%%%%  %m=Pick up variables and instanciate them
+%%%%  m-0 n.a!
+%%%%  ( f/<VariableDef `/- %%Variable loop
+%%%%    %%Pick up value.
+%%%%    n.f1/'/a$h$
+%%%%    %%Pick up search string.
+%%%%    f-/<VariableName `/n.t/'>/a%h%
+%%%%    obz!h%i/~/h$boz f/<VariableDef `/m)0
+%%%%  %%instanciate the values. 
+%%%%  m-0 
+%%%%  ( %%Variable-instance search loop.
+%%%%    f/ <Variable /f/ <VariableName `/ee-0
+%%%%    %%Locate and substitute value.
+%%%%    ( obz!m-0f'.f1/~/-n.r0a$h$oz f-/<Variable /-m-(f1/<String /f1/'>/h$,) ,) m)0
+
+%m=Format table definitions./
+m-0n.a!
+obn.a]z]i/50/oz
+( %%Extract and reformat each complete table loop.
+  f/<Tbl / n.(f/> # end of Tbl/-r)0 ma@obz@
+  %%Format each table marking the table size and heading para.
+  m-0 f/<TblNumColumns /ee-0i/*/f1/>/e 
+  m-0 f/<TblID /ee-0i/**/f1/>/s/ / 
+  m-0 (f/<TblTitle /ee-0i/*/f/<String `/-e-0i/  /f/'>/e0, )m-0
+  m-0
+  ( %%Cell loop
+    f/<Cell /n.'2a$z$m-0 n.a_
+    ( %%Cell line loop.
+      f/<String `/-n.f1/'>/a_+k 
+      %%If a new paragraph then add a break. 
+      (f-/<Para / kz_b2z$,)
+      )0
+    %%If there's any text in the cell then format it.
+    z_
+    %%Translate any special characters.
+    m-0(f/>/e)0
+    m-0(f/"/s/"/(v/ /e)0)0
+    m-0(f/"/s/"/(v/ /e,))0
+    m-0(f/`/s/`/(v/ /e,))0
+    m-0(f/'/s/'/(v/ /e,))0
+    %%These were found in the epic documentation.
+    m-0(f/\q/s/'/)0
+    m-0(f/\\/e)0
+    m-0
+    ( %%Cell-paragraph loop - call the paragraph formatter  with reduced right margins.
+      (r\m)0(mm-, r0b-r-0)rr-i/  /'*)0
+    m-0i/*cell /m0 j-?z@r-0b-h_i/  /)0 z@
+  %%Remove any remaining mif crap. 
+  m-0 ((v/ /r)0 q/<>/k, m)0
+  
+  %%Reform tables - First mark left-boundaries of each cell with tabs.
+  n.a$ m-0(v/ /i/	/m, m)0
+  %%Merge cells in a row - first find out how many to a row.
+  m-0f/*TblNumColumns /-ol0oido-k
+  ( %%Row loop.
+    ( %%Line line-of cell loop - if line is empty includes a tab.
+      o#
+      ( %%Build-line loop.
+        f/*cell /m(rr-, k)(v/*cell /b-i-/	/,)n.r0a$+k o~)0 ok m-0
+      %%If last line was all tabs then exit line-of cell loop.
+      z$m0(v/	/r)0r r0bz@)0 b
+    %%Done that row - remove it's *cell tags. 
+    z@m-0o# (f/*cell /k o~)0 ok f/*cell /r-0)0 
+    %%Put it back with it's header.
+    okz@m0h$
+    
+    %%All that's left is to resolve the tabs.
+    m-0
+    ( %%Resolve-tabs loop.
+      ol0
+      %%init
+      (ol0o=m-0,)okonol0
+      %%Find rightmost tab.
+      (f/	/roc (o<okoc,) m)0 osono-om
+      %%Resolve the first tabs.
+      (f/	/ei/ /o#oc (o> ocoso- (i/ /o~)0, ) ok m)0 ok m-0f/	/m-0)0
+       
+  %%add new table to list of tables.
+  z!h@oz)0
+obn.a]z]i/78/oz
+
+%m=Mark (and protect) table instanciations.
+m-0 (f/<ATbl /ei/<String `**/f1/>/s/ '>/)0
+  
+%%Extract the real text pages from all the other crap.
+%m=Locate the page tag of the first page.
+m-0
+(f/<PageNum `1'>/, m-0f/<PageType BodyPage>/)
+f/<TextRect /f/<ID /-n.(q/0-9/r)0a$h$v/>/
+%%Now go find the first page.
+(f/<TextRectID /-v'$\m, f1/>/v-'$\m)0
+%%Delete all crap outside this textFlow.
+f-/<TextFlow /m-k-0  f/> # end of TextFlow/k0
+%%Extract strings, mark the paragraph types and remove all the remaining MIF crap.
+m-0(v/*/m, f1/<String `/-e-0f1/'>/e0m, f1/<PgfTag `/-e-0i/*/f1/'>/i/ /e0m, k)0
+%%Mark the end.
+m0b-i/**/
+
+%M=Instanciate any tables.
+m-0 (f/**Atbl /s-/**TblID /n.f1/ /-(q/0-9/r)0a$ obz!m-0f'$n.m(f/**TblID /, m0)a$h$ozbh$)0
+m-0 (f/**TblID /e0i/**Table /)0
+
+%m=protect code and ... paragraph types.
+m-0 ((v/*/\m)0r (v/code /\, i/*/)m)0
+  
+%m=Prepare all other paragraph types.
+m-0 (v/*/\m, v/**/m, mm- i/*/((mv/*/\)2(j-mv/*/\)0, ) )0
+
+%M=Restore Author lines. 
+m-0 ((v/**author /\m)0 s/**Head_num /bi/Author/bi/**Body /)0
+
+%M=The document title - change to centre text. 
+m-0
+( %%If there is a title then pick it up.
+  f/**Title /e0m
+  %%This next bit was stolen from doc.jot
+    r-0(v/ /e)0r0(v-/ /e-)0
+    ocobz[r-0oido#z]r-0oid ozoso-oco-ol-2o/oso-r-0
+%%    ocz[l0opz~o#z]l0opz~oso-oco-ol-2o/oso-l0
+    (o~i/ /)0okn.r-0a%h%r0bh%ol0oso-(i/-/o~)0okm(v/ /r)0(v/--/k,) , )
+  
+%M=Extract all the top-level headings.
+m-0
+( %%First get the heading number.
+  f/**Head_num / e0m
+  %%Now create the new heading.
+  on
+  %%Find last header.
+  (m-q/0-9/\)0
+  %%Pick it up.
+  (q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+   
+  r-0n.oida%o~oo/%d/i/ /(q/0-9. /e)0
+  
+  r-0ol0
+  %%Count up heading levels.
+  ((q/0-9/r)0v/./ro~)0
+  %%Kill off any pre-existing underlines.
+  m(v/-/k,)m-r0 
+  %%Add new underlines.
+  oco-b(i/-/o~)0okm )0
+  
+%M=Extract all the 2nd-level headings.
+m-0
+( %%First get the heading number.
+  f/**Headsub_num / e0m
+  %%Now create the new heading.
+  r-0n.(q/ .0-9/r)0a%
+  on
+  %%Find last header.
+  (m-q/0-9/\)0
+  %%Pick it up.
+  (q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+  
+  r-0((q/ 0-9/r)0(v/./r,i/./i-/0/)) oido~oo/%d/i/ / (q/.0-9/e)0 
+  
+  r-0ol0
+  %%Count up heading levels.
+  ((q/0-9/r)0v/./ro~)0
+  %%Kill off any pre-existing underlines.
+  m(v/-/k,)m-r0 
+  %%Add new underlines.
+  oco-b(i/-/o~)0okm )0
+  
+%M=Extract all the 3rd-level headings.
+m-0
+( %%First get the heading number.
+  f/**Headsubsub_num / e0m
+  %%Now create the new heading.
+  r-0n.(q/ .0-9/r)0a%
+  on
+  %%Find last header.
+  (m-q/0-9/\)0
+  %%Pick it up.
+  (q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+  
+  r-0((q/ 0-9/r)0(v/./r,i/./i-/0/))2 oido~oo/%d/i/ / (q/.0-9/e)0
+  
+  r-0ol0
+  %%Count up heading levels.
+  ((q/0-9/r)0v/./ro~)0
+  %%Kill off any pre-existing underlines.
+  m(v/-/k,)m-r0 
+  %%Add new underlines.
+  oco-b(i/-/o~)0okm )0
+  
+%M=Extract all the 4th-level headings.
+m-0
+( %%First get the heading number.
+  f/**Headsubsubsub_num / e0m
+  %%Now create the new heading.
+  r-0n.(q/ .0-9/r)0a%
+  on
+  %%Find last header.
+  (m-q/0-9/\)0
+  %%Pick it up.
+  (q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+  
+  r-0((q/ 0-9/r)0(v/./r,i/./i-/0/))2 oido~oo/%d/i/ / (q/.0-9/e)0
+  
+  r-0ol0
+  %%Count up heading levels.
+  ((q/0-9/r)0v/./ro~)0
+  %%Kill off any pre-existing underlines.
+  m(v/-/k,)m-r0 
+  %%Add new underlines.
+  oco-b(i/-/o~)0okm )0
+   
+%M=Extract any other flavour of headings.
+m-0
+( %%Misc. headings loop.
+  f/**head / e0m r-0(v/ /e)0r0i/:/)0
+
+%M=Extract the body text.
+m-0 ((f/**Body /kr\)0r-i/  /'* (v/**body /b-i/  /, m-) )0
+m-0 ((f/**SameBody /kr\)0r-bi/  /mb-m- '* jm-'<j- )0
+m-0 ((f/**SubBody /kr\)0r-i/    /'* (v/**subbody /b-i/    /, m-) )0
+  
+%M=Extract any numbered-bullet text. 
+m-0 ol1
+( (v/**/\m)0 (v/**Item_num_reset /\ v/**Item_num /\m, 
+  %%Reset counter if necessary.
+  (v/**Item_num_reset /okol1, ) k
+  %%Write and correct to 2wo digits then increment counter.
+  b-i/  /r0o#oo/%d/i/ /r-0r4e0o~mi/    /
+  %%Run the formatter then append the index number.
+  '* b-i/  /m-'<j-e4) )0
+  
+%M=Extract any bullet text. 
+m-0 ( f/**bullet /ki/  - /'* (v/**bullet /, b-i/  /)m-)0
+  
+%M=Extract any sub-bullet text. 
+m-0 ( f/**sub_bullet /ki/    - /'* (v/**sub_bullet /, b-i/  /)m-)0
+
+%M=note paragraphs. 
+m-0 (f/**note / s/Note:/m(v/ /e)0i/  /'*b-i/  /)0
+   
+%M=Extract any Code text. 
+m-0 (f/**code /k)0
+
+%M=Final tidy up. 
+%%Change file name.
+m0r0(v-/.mif/s/.doc/,)
+(m-v/**/e0 m-0w,)
+
+:
+'#
+   

@@ -1,0 +1,8 @@
+
+  Focus to required category with the cursor-up/down buttons.
+  To open a help entry or file hit the help button {F1}.
+  To go back up the help hierarchy select any non-foldmark line.
+  
+[jot]jot            - Help on this editor.
+[demo]play          - An (almost) empty help category for you to play with.
+[your_stuff]play    - For you put your own stuff in.

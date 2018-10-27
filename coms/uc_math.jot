@@ -1,0 +1,112 @@
+%%Provides basic unicode translations for european alphabets.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%Basic unicode from http://en.wikipedia.org/wiki/Compose_key
+%%
+%%  Usage - hit {Esc}<Ch1><Ch2> - if the two characters are recognized as 
+%%  inidicating a unicode character, the unicode character is inserted into
+%%  the command input stream.
+%%
+%%  e.g: {Esc u = Y} inserts ¥
+%%       {Esc u ~ a} inserts ã
+%%
+%%Based on vim digraphs - with thanks to http://www.alecjacobson.com/weblog/?p=443
+
+%g$
+^[u+-       %s=commandstring ##±  --  plus minus 
+^[u2S       %s=commandstring ##²  --  squared (superscript 2) 
+^[u*P       %s=commandstring ##∏  --  coproduct (big, tall Pi) 
+^[u+Z       %s=commandstring ##∑  --  summation (big, tall Sigma) 
+^[uSb       %s=commandstring ##∙  --  bullet operator (dot product) 
+^[uRT       %s=commandstring ##√  --  (square) root 
+^[u00       %s=commandstring ##∞  --  infinity 
+--Greek Letters
+^[uG*       %s=commandstring ##Γ  --  Gamma 
+^[uD*       %s=commandstring ##Δ  --  Delta 
+^[uH*       %s=commandstring ##Θ  --  Theta 
+^[uP*       %s=commandstring ##Π  --  Pi 
+^[uS*       %s=commandstring ##Σ  --  Sigma 
+^[uF*       %s=commandstring ##Φ  --  Phi 
+^[uQ*       %s=commandstring ##Ψ  --  Psi 
+^[uW*       %s=commandstring ##Ω  --  Omega 
+^[ua*       %s=commandstring ##α  --  alpha 
+^[ub*       %s=commandstring ##β  --  beta 
+^[ug*       %s=commandstring ##γ  --  gamma 
+^[ud*       %s=commandstring ##δ  --  delta 
+^[ue*       %s=commandstring ##ε  --  epsilon 
+^[uy*       %s=commandstring ##η  --  eta 
+^[uh*       %s=commandstring ##θ  --  theta 
+^[uk*       %s=commandstring ##κ  --  kappa 
+^[ul*       %s=commandstring ##λ  --  lambda 
+^[um*       %s=commandstring ##μ  --  mu 
+^[up*       %s=commandstring ##π  --  pi 
+^[ur*       %s=commandstring ##ρ  --  rho 
+^[us*       %s=commandstring ##σ  --  sigma 
+^[u*s       %s=commandstring ##ς  --  sigma (alternative) 
+^[ut*       %s=commandstring ##τ  --  tau 
+^[uf*       %s=commandstring ##φ  --  phi* 
+^[uq*       %s=commandstring ##ψ  --  psi* 
+^[uw*       %s=commandstring ##ω  --  omega* 
+^[u/-       %s=commandstring ##†  --  dagger (sword) 
+^[u/=       %s=commandstring ##‡  --  double dagger (double sword) 
+^[u<-       %s=commandstring ##←  --  left arrow* 
+^[u-!       %s=commandstring ##↑  --  up arrow 
+^[u->       %s=commandstring ##→  --  right arrow 
+^[u-v       %s=commandstring ##↓  --  down arrow 
+--Logic
+^[uFA       %s=commandstring ##∀  --  for all (for any) 
+^[udP       %s=commandstring ##∂  --  partial differential (curled little d) 
+^[uTE       %s=commandstring ##∃  --  there exists (backwards capital E) 
+^[uAN       %s=commandstring ##∧  --  logical and 
+^[uOR       %s=commandstring ##∨  --  logical or 
+^[u.:       %s=commandstring ##∴  --  therefore (triangle of dots) 
+^[u:.       %s=commandstring ##∵  --  because (upside-down triangle of dots) 
+--Sets
+^[u/0       %s=commandstring ##∅  --  Null set, empty set, var nothing, capital O slash 
+^[uO/       %s=commandstring ##Ø  --  Null set, empty set, var nothing, capital O slash 
+^[u(-       %s=commandstring ##∈  --  element of 
+^[u-)       %s=commandstring ##∋  --  contains as member 
+^[u(U       %s=commandstring ##∩  --  set intersect 
+^[uU)       %s=commandstring ##∪  --  set union 
+^[u(C       %s=commandstring ##⊂  --  subset of (contained in) 
+^[u)C       %s=commandstring ##⊃  --  superset of (contains) 
+^[u(_       %s=commandstring ##⊆  --  subset of or equal to 
+^[u)_       %s=commandstring ##⊇  --  superset of or equal to 
+^[uOb       %s=commandstring ##∘  --  concatenation, centered dot 
+--Calculus
+^[uIn       %s=commandstring ##∫  --  integral S 
+^[uDI       %s=commandstring ##∬  --  double integral S 
+^[uIo       %s=commandstring ##∮  --  line integral S with circle 
+^[uDE       %s=commandstring ##∆  --  Delta 
+^[uNB       %s=commandstring ##∇  --  Nabla 
+--Equalities, inequalities, et al.
+^[u?1       %s=commandstring ##∼  --  tilde operator (centered tilde, proportional) 
+^[u?=       %s=commandstring ##≅  --  approximately equal to 
+^[u?2       %s=commandstring ##≈  --  almost equal to 
+^[u!=       %s=commandstring ##≠  --  not equal to 
+^[u=<       %s=commandstring ##≤  --  less than or equal to 
+^[u>=       %s=commandstring ##≥  --  greater than or equal to 
+:
+
+obz$m-0(v/--/k, (f1/  --/e0, ) m)0z^m0h$oz
+
+
+

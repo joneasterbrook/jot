@@ -1,0 +1,20 @@
+
+z.m-0i/Test 13, part 1: A {Ctrl+c} interrupt of a loop./m
+%i.=test13.txt -append;
+<<Recovery pathname: t.t to buffer . >>
+(r, m, m-0)0
+<<INT 1234>>
+i/[/ri/]/
+
+m0bi/Test13, part 2: The <<Debugger on> line is separated from the t command line by some other gumph (in this case an OP report) in the history file./
+%i.=test13.txt -append;
+<<Recovery pathname: t.t to buffer . >>
+X0102   
+X0102   
+opet
+0 0 0MOUSE
+<<Debugger on>> 2
+X0105   
+<<INT 1>>
+i/[/ri/]/
+

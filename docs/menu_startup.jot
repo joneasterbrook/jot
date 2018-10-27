@@ -1,0 +1,34 @@
+%%This jot script sets up a simple menu-driven editing environment.
+%%
+%%First Run the normal startup.
+%r=/home/jone/ed//coms/startup.jot;
+%%
+%%Buffer M will be the menu - define the colour tags.
+n.amzm %b=tagtype Button 4 7;
+%%Define button text.
+i/ /20r0b2m-0
+r5i/FindAgain/ %b=addtag Button; %b=addtag -text=M_FindAgain;
+r5i/Find/ %b=addtag Button; %b=addtag -text=M_Find;
+r5i/SubsAgain/ %b=addtag Button; %b=addtag -text=M_SubsAgain;
+r5i/Subs/ %b=addtag Button; %b=addtag -text=M_Subs;
+%%
+%%Remove all windows from the screen, add a 1-line static window on buffer M followed by a floating window.
+%q~=window; f/screenHeight = /- oidol5o-z.osok %w; %w 1 m; %w '~; %w 0; w
+%%
+%g0
+%%Mouse-event handler.
+%%
+%%Get mouse coordinates and check for tags.
+ob op ozono-om or
+( %q$=tags -here;
+  f/Type text from chr/f1/"/-
+  v/M_FindAgain/ zmm+2o#ozf'm?zmm-0 oz,
+  v/M_Find/ zmm+2 %s=prompt Find string> ; gm- o#ozf'm?zmm-0 oz,
+  v/M_SubsAgain/ zmm+3o#ozs'm?zmm-0 oz,
+  v/M_Subs/ zmm+3 %s=prompt Substitute string> ; gm- o#ozs'm?zmm-0 oz,
+  oz %x=Error: Invalid mouse click.; )
+:
+%%Attach the handler to left-button-click events (M0004 - linux, MB1c - Windows).
+obz^m-0(%q=windows; f/MB1c    /-?, f/M0004   /-)e0i/'0/ oz
+%%Enable mouse events.
+%s=mousemask 0004;

@@ -1,0 +1,118 @@
+%%Tidies output of ps2doc script.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%M=Documents
+%r=doc
+
+%g#
+%M=Remove trailing blanks. 
+m-0 (r0(v-/ /e-)0m)0
+
+%M=Split any incorrectly-merged lines
+m-0(
+  f/CODE	MERGE_STRING_COLLISION	/(v/CODE	/r5, v/MERGE_STRING_COLLISION	/r23)0
+  e-0i/CODE	/r(f1/	/s-/CODE	/br5)0
+  )0
+  
+%M=Replace special characters.
+m-0(f/\\/e)0
+m-0(f/\245/
+  %%Bullet point.
+  s-/-/(r-, i/  /)r(v/ /r, i/ /)(v/ /e)0
+  %%justify any succeeding lines. 
+  r-0n.f1/-/a$h$ (m(f1/\245/\, r-0b-\) rr-h$i/  /)0 r-0
+  )0
+m-0(f/\223/s/"/)0
+m-0(f/\224/s/"/)0
+m-0(f/\222/s/'/)0
+m-0(f/\225/s/ -/)0
+m-0(f/\322/s/"/)0
+m-0(f/\323/s/"/)0
+m-0(f/\(/e)0
+m-0(f/\)/e)0
+m-0(f/\336/s/fi/)0
+m-0(f/\324/s/`/)0
+m-0(f/\325/s/'/)0
+m-0(f/\337/s/fl/)0
+m-0(f/\321/s/--/)0
+m-0(f/\320/s/-/)0
+  
+%M=Top & tail margins
+m-0(v/TOP_MARGIN	/\ v/BOTTOM_MARGIN	/\m, k)0
+
+%M=Tidy any genuine headings that fell into the top-margin area. 
+m-0(f/TOP_MARGIN	/s/ /)0
+
+%M=Format any numbered bullet points. 
+m-0(((q/1-9/\m)0rv/.  /\m)0 mm-i/  - /(m(q/1-9/\, b-\)rr-i/    /)0 m)0
+
+%M=Headings.
+%%Fix up these - it's a bug in ps2doc:
+m-0 (v/SUBHEADING	HEADING	/s/SUBHEADING	/m,m)0
+ 
+m-0 ((v/HEADING	/\m)0 s-/ /((v/ /e)0r\m)0 r-i/0 /)0
+(m\, %x=Failed in "HEADING" processing.
+  )
+m-0 ((v/SUBHEADING	/\m)0 s-/ /(v/ /e)0rr-i/0.0.0 /, m)0
+(m\, %x=Failed in "SUBHEADING" processing.
+  )
+
+%M=Chapters take level-0 headings.
+m-0 ((v/0 /\m)0 r2v/ /m,
+  v/Chapter /
+    %%Assume synopsys-style chapters - the next heading is the chapter name.
+    m((v/ /r)0r\k)0 r-v/0 /ej-,
+  v/Appendix /m
+    %%Assume synopsys-style appendices - the next heading is the appendix name.
+    m((v/ /r)0r\k)0 r-v/0 /ej-,
+  %%Other headings set to level-2.
+  mm-ri/.0/m)0
+(m\, %x=Failed in level-0 headings/Appendix processing.
+  )
+
+%M=Code examples 
+m-0 (v/CODE	/\m, ((v/CODE	/\ v/TABLE	/\) m, f1/	/-e-0)0(v/ /r m)0 r-e-0i/     /m)0
+
+%M=Add indentation. 
+m-0((r\m)0r-v/0/m, mm-i/  /m)0
+
+%M=Trim back abnormally long runs of blank lines.
+m-0 ((v/ /r)0rm, (m(v/ /r)0r\)2 m-n.(m(v/ /r)0r\)0r-0aa+, mm-)0
+(m\, %x=Failed in long runs processing.
+  )
+  
+%M=Remove blank lines after headings.
+m-0((v/0/\m)0 m(r, k))0
+
+%m=Change the dingbats - normally bullets. 
+m-0 (f/DINGBATS	/-(v/ /r)0v/n /ei/-/f-1/	/-e-0, m)0
+  
+%m=That is almost it - just check that nothing obvious has gone wrong.
+m-0 (f/	/\m-0, %x=Failure - tab found, failed to remove all tagged lines?
+  )
+:
+'#
+%l
+ 
+%m=ps2doc_tidy completed successfully.
+

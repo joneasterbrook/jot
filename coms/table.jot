@@ -1,0 +1,48 @@
+%%Command file for the creation and maintenance of tabular data.
+%%Changed I and S conventions 2/10/92
+
+%%
+%%    Copyright (C) Jon. Easterbrook 2012-18  
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+No warrenty is given or implied for any purpose.
+%%
+%%
+%g?
+  Key 1  find  start of previous cell.
+  Key 2  find start of next cell.
+  Key 3  produce grid down one more line.
+  Key 7  erase back and replace with a blank.
+  Key 8  erase current character and replace with blank.
+  Cursor control keys allow movement by cells in x and y axis.
+  Enter key redefined to insert text centred in current cell.
+  '+' key ('-' on vt220) same but traverses down.
+:
+obz^m-0oz
+obz^i`[A      ((ocm-orq/-_/)0(q-/0-9a-zA-Z "'.,:;/l)0)`boz
+obz^i`[B      ((ocm orq/-_/)0(q-/0-9a-zA-Z "'.,:;/l)0)`boz
+obz^i`[C      (((r,m)q/0-9a-zA-Z "'.,:;/)0r)`boz
+obz^i`[D      (((l,m-r0)q-/0-9a-zA-Z "'.,:;/)0)`boz
+obz^i`OM      i-/ /e(v-/|/,f-1/|/r)n.(f1/|/)(a_i-|##|z_l0(obz_rozrv/|/\)0 l(obz_rozf1/|/i-/ /obz_rozf-1/|/-i-/ /)0 '2)`boz
+obz^i`Om      i-/ /e(v-/|/,f-1/|/r)n.(f1/|/)(a_i-|##|z_l0(obz_rozrv/|/\)0 l(obz_rozf1/|/i-/ /obz_rozf-1/|/-i-/ /)0 (ocm orq/-_/)0(q-/0-9a-zA-Z "'.,:;/l)0)`boz
+obz^i`Ow      e-i-/ /`boz
+obz^i`Ox      ei/ /`boz
+%d1=((f-1/|/2r)\m-r0f-/|/r?)0obz:m?oz
+%d2=((f1/|/2f-1/|/r)\mf/|/l?)0obz:m?oz
+%d3=(na%h%2m-(v/|/r,ei-/ /r)0l0r)
+%q=CommandMode 4
+'2
