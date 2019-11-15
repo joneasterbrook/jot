@@ -4,6 +4,7 @@ wine/
 /crap
 /ecce
 /test
+*.html
 /cad_samples/*
 /my_resources/
 /release/
