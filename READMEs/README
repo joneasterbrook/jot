@@ -1,0 +1,687 @@
+
+  To view the jot full documentation package point your browser at:
+    ${JOT_HOME}/docs/jot_ug.html
+  Alternatively, if you have a working jot installation, try this:
+$ jot -st=qr
+  This loads the documentation .txt files, resolves  and  displays  the  links
+  as green highlights, allowing you to click through links.
+
+1 Installation using the install scripts
+----------------------------------------
+  The jot  installation  process  is  pretty  simple  there  are  two  scripts
+  install.sh (linux) and install.bat (MS-windows). Each behaves in pretty much
+  the same way, by default, they copy files from the unpacked  download  files
+  into the relevant system areas and makes changes to the user environment.
+  
+  Both install.sh and install.bat take an  optional  -remove  modifier,  which
+  removes the installation and environmental setup.
+  
+  The linux installer install.sh, additionally respects the optional qualifier
+  -compile - this assumes your linux system has a C compiler (the cc  command)
+  and the requisite  libraries.  It  recompiles  jot.c  to  yield  a  stripped
+  dynamically-linked  version.  This  will  be  more  compact  and  maybe,   a
+  ninny-second or two faster firing up.
+  
+  After downloading either the jot_<version>.tz or jot_<version>.zip file (the
+  contents of both are identical), open a CLI term. In  linuxland  a  suitable
+  CLI term would be xterm, but whatever terminal  is  the  default  with  your
+  distribution will usually do. In windowsland,  you  should  open  a  windows
+  console - search for "command prompt" in the Start menu.
+  
+  Now unpack the download file in some  suitable  temporary  location  -  your
+  Downloads area is as good as anywhere:
+$ cd ~/Downloads                             (linux)
+  or
+$ cd C:\users\<yourUserName>\Downloads       (MS-windows)
+  then
+$ tar zxf jot_<version>.tz                   (compressed-tar download)
+  or
+$ unzip jot_<version>.zip                    (zip download)
+  
+  You should now have a temporary installation tree in  your  downloads  area,
+  the install script will copy bits of this tree over to the  relevant  system
+  areas. This is an artists impression of what the unpacked tree  should  look
+  like:
+  
+                   v<version>                                  
+                       |                                    
+    ----------------------------------------------------           
+   |      |      |      |                  |            |           
+  bin    coms   docs   releasenote.txt    resources    source              
+   |      |      |                         |            |
+   |     ...    ...                       ...          jot.c 
+   |                                       |
+   |                                      ...                   
+   |            
+   --------------------------------------------------- ...
+   |        |         |       |            |          
+  lin      win       armv7l  install.bat  install.sh  
+   |        |         |                           
+  jot      jot.exe   jot                                         
+            
+  The file you need  to  run  is  either  install.sh  (linux)  or  install.bat
+  (windows). If you've not changed directory since unpacking, the paths  given
+  below should be correct:
+  
+./jot/<version>/bin/install.sh               (linux)
+  This script uses sudo to
+  - Create  the  destination  directories   and   copies   jot   scripts   and
+    documentation to /usr/share/jot/<version> and jot resources files  (mainlys
+    test and training samples) to your home area ~/jot_resources, 
+  - set up the environment variables:
+    - JOT_HOME (/usr/share/jot/<version>) and
+    - JOT_RESOURCES (~/jot_resources)
+  - and copies the appropriate jot executable to /usr/bin
+  Note that different linux distros offer different versions of sudo.
+    - Some (fedora, SuSE, ...)  have  one  that  verifies  your  identity  (it
+      requests your password) and checks that you are on a sudoers list.  Once
+      given, you can do any number of sudo operations within a time limit.
+    - Others (Slackware ...) have one that wants the root  password  and  will
+      want to re-verify for each sudo operation.
+  
+./jot/<version>/bin/install.bat              (MS-windows)
+  This script will:
+  - Create  the  destination  directories   and   copies   jot   scripts   and
+    documentation  to  C:\MyPrograms\jot\<version>  and  jot  resources  files
+    (mainly   test   and    training    samples)    to    your    home    area
+    C:\users\<yourUserName>\jot_resources
+  - Copies the appropriate jot executable to /usr/bin
+  - uses the MS-DOS setx command to set  up  the  following  user  environment
+    variables:
+    - JOT_HOME (C:\MyPrograms\jot\<version>) and
+    - JOT_RESOURCES (C:\users\<yourUserName>\jot_resources)
+    - PATH - prepends C:\MyPrograms\jot\<version>\bin;
+    
+  It  uses  c:\MyPrograms  to  build  it's  installation  tree  because   it's
+  fiendishly difficult to write anything to c:\Program files, and many windows
+  installations have this anyway.
+  
+  Now sanity-check the installation - see below. Then once you  are  satisfied
+  the install script has run to completion you can delete the temporary unpack
+  tree:
+$ rm -rF jot                                 (linux)
+  or
+$ del /r jot                                 (MS-windows)
+
+2 What can possibly go wrong
+----------------------------
+  All linux distributions have their  own  little  collection  of  quirks  and
+  foibles - that's why we all love them so much -  or  maybe  it's  why  we're
+  terrified by the prospect of having to re-learn how to do even the  simplest
+  thing? Anyway, to provide a few clues I've run the install.sh  script  by  a
+  few recent linux distributions and collected some notes on the  problems  we
+  might encounter. Older distros may lack the correct versions of gnu  runtime
+  libs, for these you must recompile the jot source - see below.
+
+2.1 Problems with ${TERM}, terminfo and xterm versions
+------------------------------------------------------
+  One commonly-occurring linux problem is the assignment of the TERM  env,  in
+  many  distros  this  is  set  to  xterm-256color.  This  enables  256-colour
+  operation  for  several  applications.  Unfortunately,   this   causes   the
+  statically-linked version of jot (as included in the tarball) to fail. There
+  are two solutions:
+  
+    - The fast and dirty solution is to set you TERM env to xterm:
+$ export TERM=xterm
+  
+    - The recommended solution is to recompile jot locally, to do this  you'll
+      need to first  install  a  C  compiler  (gcc  is  recommended)  and  the
+      New-curses wide-character library - libncurses.
+$ <path>/install.sh -compile
+  
+  You might find that, with TERM  set  to  xterm,  jot  does  not  respond  as
+  advertised to certain combinations of Shift|Ctrl|Alt keys and function keys.
+  The most likely explaination to this is that, in  your  terminfo  tree,  the
+  terminfo/x/xterm provided by your linux distro does not support some of  the
+  more  exotic  key   combinations   used   by   jot.   For   example   ViewUp
+  {Ctrl+Shift+UpArrow} and ViewDown {Ctrl+Shift+DownArrow} - here's  a  simple
+  test you can try:
+$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt -in="m50wf-/prophecies/"
+  You should be  looking  at  a  few  lines  of  Richard  III  with  the  word
+  "prophecies"  underscored.  The  correct  response  to  {Ctrl+Shift+UpArrow}
+  should be to scroll the text upwards and to {Ctrl+Shift+DownArrow} to scroll
+  downwards. If, instead, it echos funny characters in the console  area,  yet
+  plain {UpArrow} and {DownArrow} work OK then you are probably equipped  with
+  a less comprehensive xterm specification in your terminfo.
+  
+  When this is a problem, it can be fixed by copying  the  xterm-jot  terminfo
+  into your personal .terminfo area (if you  do  not  already  have  one  then
+  create it thusly:
+$ mkdir -p ~/.terminfo/x/
+  Now copy the terminfo from the bin area of  the  unpacked  tarball  (or  zip
+  file) - here I've assumed that you unpacked the tarball  in  your  Downloads
+  area and that the version was v2.4.1:
+$ cp -p ~/Downloads/jot/v2.4.1/bin/xterm-jot ~/.terminfo/x/xterm
+  
+  Now repeat the test.
+  
+  This terminfo specification of an xterm should be otherwise compatible  with
+  other curses applications - it just supports the  extra  control  functions.
+  It was picked up from a recent Fedora installation.
+
+2.2 Various linux distros, Desktops and terminals
+-------------------------------------------------
+  The install scripts were developed and tested on the following platforms:
+    - Fedora 27, xterm/bash and
+    - Crouton crouton terminal/bash
+    - wine, wineconsole/cmd
+    - Windows-10, windows console/cmd
+    - Windows-7, windows console/cmd
+    
+  The linux install.sh script was subsequently verified against the  following
+  distros:
+    - Ubuntu (a live-DVD)
+    - Gentoo (a live-DVD)
+    - OpenSuSE
+    - Absolute Linux (an offshoot of Slackware)
+    - KDE/Konsole - 
+    - Gnome/
+    
+  Several  of  these  distributions  set   the   default   TERM   setting   to
+  TERM=xterm-256color.
+
+2.2.1 Debian
+------------
+  - Lacking sudo, instead, the install  script  writes  the  commands  to  the
+    terminal and suggests  the  user  acquires  administrator  privileges  and
+    finalizes the installation.
+
+2.2.2 Gentoo/KDE
+----------------
+  - xterm
+    - fails on unicode tests.
+    
+  - konsole (KDE Terminal)
+    - passes all tests
+
+2.2.3 OpenSuSE Leap-15.0 with Gnome
+-----------------------------------
+  - xterm 
+    - passes all tests
+    
+  - gnome-terminal-server
+    - TERM  env  initially  set   to   xterm-256color   -   this   exists   in
+      /usr/share/terminfo, but fails - fixed by setting to xterm:
+$ export TERM=xterm
+    - passes all tests
+
+2.2.4 Absolute Linux (Slackware)/ICEWM
+--------------------------------------
+  - xterm
+    - TERM  env  initially  set   to   xterm-256color   -   this   exists   in
+      /usr/share/terminfo, but fails - fixed by setting to xterm:
+$ export TERM=xterm
+    - passes all tests
+
+2.2.5 Konsole (KDE Terminal)
+----------------------------
+  Passes all tests.
+
+2.2.6 xfce4-terminal
+--------------------
+  Seems to work OK - passes all tests.
+
+2.3 Manual Installation
+-----------------------
+  In linux, if the install.sh script has let you down or maybe you'd prefer to
+  place the jot files other than /usr/...
+$ mkdir -p ~/jot/bin
+$ sudo cp -pR ./jot/<version>/coms ./jot/<version>/docs /usr/share/jot/<version>/
+$ sudo cp -p <unpackDir>/jot/<version>/bin/lin/jot /usr/bin/
+$ cp -pR ./jot/<version>/resources ~/jot_resources
+  
+  Now you  need  to  set  up  your  environment  variables  -  if  you  are  a
+  bourne/bash-shell user:
+$ echo "export JOT_HOME=~/jot" >> ~/.bashrc
+$ echo "export JOT_RESOURCES=~/jot" >> ~/.bashrc
+  
+  For csh/tcsh-shell users, this should work:
+$ echo "setenv JOT_HOME=~/jot" >> ~/.bashrc
+$ echo "export JOT_RESOURCES=~/jot" >> ~/.bashrc
+$ echo "export PATH=~/jot/bin:\${PATH}" >> ~/.bashrc
+  
+  In windowsland, if the install.bat script has let you down, try this  (in  an
+  MS-DOS console window):
+$ mkdir "C:\MyPrograms\jot\<version>"\coms
+$ mkdir "C:\MyPrograms\jot\<version>"\docs
+$ mkdir "C:\MyPrograms\jot\<version>"\bin
+$ xcopy /y ./jot/<version>/docs "C:/MyPrograms/jot/<version>/docs\"
+$ xcopy /y ./jot/<version>/coms "C:/MyPrograms/jot/<version>/coms\"
+$ xcopy ./jot/<version>/bin/win/jot.exe "C:/MyPrograms/jot/<version>/bin/"
+$ xcopy /y ./jot/<version>/bin/*.bat "C:/MyPrograms/jot/<version>/bin/"
+  
+  Now you need to set up the user environment, the msdos setx command is  just
+  the ticket:
+$ setx JOT_HOME "C:\MyPrograms\jot\<version>\"
+$ setx JOT_RESOURCES "%HomeDrive%\%HomePath%\jot_resources"
+$ setx PATH %PATH%;C:\MyPrograms\jot\<version>\bin
+
+2.4 Sanity test
+---------------
+  In linux, the new environment variables will not be available until you open
+  a new shell - so do that now:
+$ bash                                       (linux)
+  and it's a  similar  story  in  windows,  the  setx  command  used  to  make
+  persistent changes to your environment do not affect the environment of  the
+  console session that launched them - so fire up a new console  window  using
+  the method described earlier.
+  
+  - Now try firing up jot:
+$ jot -st=qr
+  
+  You should now be looking at the jot quick-reference guide - check that  the
+  editor is responding correctly to a few simple function keys,  commands  and
+  mouse clicks:
+> query buffer{F8}
+  (I.e. type in the words "query buffer" then hit  the  F8  function  key)  It
+  should respond by moving to a different part of the quick-reference guide. 
+> f/startup.jot{Return}
+  (I.e. type in the string "f/startup" then hit the return key) It should move
+  on to another part of the quick-reference guide.
+> Move the mouse cursor to any of the green-highlights and dab the left mouse
+  button - It should follow the link and move to a  section  with  a  detailed
+  description of whatever it was you clicked on.
+  
+  - That's it, you're ready to go ... except that you need to know how to  get
+    out of the editor without saving the file - it's  the  %a  command,  don't
+    worry, you'll get used to it:
+> %a
+  The session terminates with the message "Edit abandoned"
+
+2.5 Troubleshooting
+-------------------
+  If, when you entered the jot command, it responded with a message like this:
+bash: .../jot: Permission denied
+  all that's required is to change the permissions on the executable. Note the
+  pathname given in the message and:
+$ chmod ugo+x <path>/jot
+  
+  If you get a message similar to this:
+bash: jot: command not found
+  this means that there is not a jot  executable  in  your  search  path.
+  The two most likely explanations are:
+    - the executable could not be copied or was copied to the wrong place,
+    - your search path does not include the place where jot was copied.
+  The install.sh script uses sudo to copy the jot executable to /usr/bin, this
+  might  have  failed,  possibly,   your   linux   distro   doesn't   set   up
+  /usr/bin - check it like this:
+$ ls -l /usr/bin
+  You should see a hatfull of executables in there. Now try this:
+$ ls -l /usr/bin/jot
+  If it reports "no such file ..." then try a manual copy:
+$ sudo cp bin/lin/jot /usr/bin 
+  
+  If, when you attempt to start jot, you get a message like this:
+.../jot.exe: cannot execute binary file: Exec format error
+  this is saying that, for whatever reason, it's  copied  the  jot  executable
+  from the wrong bin area - perhaps you've got an intel-powered linux  PC  and
+  it's picked up the windows or arm executable. Check this:
+$ file `which jot`
+  it should return a similar report to
+$ file `which ls`
+  One possible solution is to manually copy the correct executable.
+  
+  If jot responds with the message "Invalid env  variable  name  ...",  that's
+  probably because the JOT_HOME env has  not  been  set  up:  Check  that  the
+  JOT_HOME env has been set up - check this analysis:
+$ echo $JOT_HOME                   (linux)
+  or
+$ echo %JOT_HOME%                  (MS-windows)
+  
+  It should reply with something like this:
+/usr/share/jot/v2.3.5              (linux)
+  or
+C:\MyProgramsjot/v2.3.5         (MS-windows)
+  
+  If jot seems to start but does not run it's startup script and does not draw
+  the screen this could be because the jot scripts were not copied or JOT_HOME
+  is pointing to the wrong place. Take a closer look at the jot-session -  you
+  should see two messages like this:
+Running command file "..."  
+  
+  If these messages do not appear, then check that the jot scripts were copied
+  to the right place and that you have read permission over them:
+$ ls -l $JOT_HOME/coms             (linux)
+  or
+$ dir %JOT_HOME%/coms              (MS-windows)
+  
+  If you did see the "Running command file" messages then maybe your  terminal
+  emulator is incompatible with jot - this is only a problem in linuxland, jot
+  uses the basic properties of the standard windows  console  so,  unless  you
+  have some special MS magic set up it should draw the screen in windowsland.
+  
+  Linux users who suspect problems with their terminal  emulator  can  do  the
+  following checks:
+    - Check that the terminal you're using matches what's set  in  your  $TERM
+      env:
+$ echo $TERM
+      it should reply with xterm, xterm1 or somesuch.
+      
+    - If jot fail with the message "Error opening terminal: <termName>" - this
+      is a message  from  curses  saying  that  it  can't  find  the  terminal
+      specified b your $TERM env.
+    
+    Check the terminfo tree, in Fedora it's located at /usr/share/terminfo/...
+    in Ubuntu at /lib/terminfo
+    
+    - Next, check that terminal  definition  exists  in  /usr/share/terminfo/,
+      this directory is usually organised as an alphabet farm, with  a  number
+      of subdirectories with single-letter alphanumeric names, this being  the
+      first letter of the term type. So to check xterm1, for example: 
+$ ls /usr/share/terminfo/x/xterm1
+   
+    - If the terminal emulator executable is  missing  or  corrupt,  you  will
+      probably know by now, but you might care to check that anyway, again for
+      xterm:
+$ which xterm
+      it should  respond  with  something  like  "/usr/bin/xterm",  feed  this
+      pathname back into the file command:
+$ file /usr/bin/xterm
+      along with lots of other information, it should inform you that this  an
+      executable for the type of processor chip in your  box.  If  you're  not
+      sure how to interpret the result, check that  it  gives  you  a  similar
+      result to some executable you know works - ls say:
+$ file `which ls`
+      
+    - If you're still stuck, then try using an xterm, some distributions don't
+      include xterm, so you may have to install one:
+$ sudo apt-get install xterm 
+      there are similar code-repository commands in other distributions.
+      
+      Now you can file up an xterm:
+$ export TERM=xterm
+$ xterm
+      Now repeat checks in the new terminal window.
+$ ls $JOT_HOME
+  It should respond with this:
+coms  docs
+$ which jot
+  It should respond with this:
+/usr/bin/jot
+  
+    - If it fails with a  message  complaining:  "GLIBC_2.16  not  found"  (or
+      similar) - This is because your OS version is different (probably older)
+      than the one use to compile the jot executable in the download pack. The
+      simplest solution is to recompile jot on your system. See  `Compilation`
+      below. An alternative solution might  involve  installing  the  relevant
+      versions of the library.
+      
+    - If it fails with a message like this:
+        "cannot execute binary file: Exec format error"
+      Either it's picked up the wrong executable image or you  have  a  32-bit
+      PC, the  solution  to  the  former  is  to  manually  copy  the  correct
+      executable to /usr/bin, the solution  to  the  latter  is  to  recompile
+      locally - see `Compilation` below.
+
+
+2.6 Windows - install.bat
+-------------------------
+  - First download the zip (  .zip  )  file  from  the  sourceforge  JoyOfText
+    project - the compressed tar file ( .tz) contains exactly the  same  files
+    but most linux users find tarballs easier, and many windows  installations
+    lack any means of dealing with tar files.
+    
+  - Open up a console window.
+    
+  - Next unpack in some temporary place - your Downloads place is as  good  as
+    any.
+$ cd ~/Downloads
+$ unzip ~/Downloads/jot_<version>.tar
+  
+  - Next run the install script - it's a bourne-shell script, it contains some
+    sudo operations - these copy files into root-owned public directories,  to
+    see exactly what's going on, you should first read the script.
+$ jot/<version>/bin/install.sh
+  
+  - The install script should complete without complaint, on completion  check
+    that all is well in a new shell:
+$ bash
+$ echo $JOT_HOME
+  It should reply with something like this:
+/usr/share/jot/v2.3.5
+$ ls $JOT_HOME
+  It should respond with this:
+coms  docs
+$ which jot
+  It should respond with this:
+/usr/bin/jot
+  
+  - Now try firing up jot:
+$ jot -st=qr
+  You should now be looking at the jot quick-reference guide - check that  the
+  editor is responding correctly to a few simple function keys,  commands  and
+  mouse clicks:
+> query buffer{F8}
+  (I.e. type in the words "query buffer" then hit  the  F8  function  key)  It
+  should respond by moving to a different part of the quick-reference guide. 
+> f/startup.jot{Return}
+  (I.e. type in the string "f/startup" then hit the return key) It should move
+  on to another part of the quick-reference guide.
+> Move the mouse cursor to any of the green-highlights and dab the left mouse button.
+  It should move to a section with a detailed describing of  whatever  it  was
+  you clicked on.
+  
+  - That's it you're ready to go ... except that you need to know how  to  get
+    out of the editor without saving the file - it's  the  %a  command,  don't
+    worry, you'll get used to it:
+> %a
+  The session terminates with the message "Edit abandoned"
+
+3 Manual Installation - general.
+--------------------------------
+  The contents of the jot_v<ver>.zip or jot_v<ver>.tz archives  is  identical,
+  these are available from the JoyOfText project at sourceforge.net
+  
+  A bare minimum installation is just the relevant executable placed somewhere
+  on your search path. This will  give  you  something  very  similar  to  the
+  original ecce editor - complete with a realistic 1960's-style  faux-teletype
+  user interface.
+  
+  To get a more modern user  interface  a  screen  view  and  function/hot-key
+  command interface it needs to know where  it  can  pick  up  an  appropriate
+  startup file. The default startup file is  ${JOT_HOME}/coms/startup.jot,  to
+  pick this up it requires an environment variable JOT_HOME pointing  to  your
+  jot installation. 
+  
+  You should set the environment  variable  JOT_HOME  to  point  to  the  vn.m
+  directory eg:
+$ export JOT_HOME=/<path>/v<version>
+$ export PATH=${JOT_HOME}/bin/<arch>/;${PATH}
+  
+  Also, some functions require data files that might  not  be  appropriate  to
+  share with the world at large, so there's  another  env  JOT_RESOURCES  that
+  points  to  a  place  where  these  can  be  picked  up.  If,  however,  the
+  JOT_RESOURCES   env   is   not   set   up   then   it   just   defaults   to
+  ${JOT_HOME}/resources which is OK for now.
+    
+    - the bin area, contains shell scripts and the jot binaries for various OS
+      and processor architectures, it is also where  scripts  expect  to  find
+      java applications.
+        - lin64 - 64-bit linux
+        - lin32 - 32-bit linux
+        - win32 - 32-bit  windows,  for  64-bit  windows  the  win32
+          version will run in compatibility mode.
+    - coms is the area where jot expects to find it's command scripts.
+    - releasenote.txt briefly describes recent changes and any known bugs.
+    - resources contains various test and example files, this area can be used
+      to park reference files for jot scripts.
+    - source - holds the jot source file.
+    
+  The recommended way of setting bits of environmental information is the setx
+  command.
+$ setx JOT_HOME=C:\<unpackPath>\v<version>\
+$ setx PATH=C:\<unpackPath>\v<version>n.m\bin\win32;%PATH%
+  
+  The  conventional  place  for  a  permanent  windowsland   installation   is
+  C:\Program files\... Since it's been made so difficult to add new entries to
+  the  "Program  files"  place,  many  users  have  created  a   C:\MyPrograms
+  area - you might chose to follow their example? Anyway  it's  your  computer
+  park it where you will.
+
+3.1 Getting Started
+-------------------
+  Fire up the editor in an xterm (or windows console) - the following  command
+  line will work in either linux or windows:
+$ jot ${JOT_RESOURCES}/t.t
+  
+  In windowsland, the ${JOT_RESOURCES} element is passed to jot unchanged, jot
+  will always resolve any pathname containing references to envs wrapped up in
+  ${ - }.
+  
+  You should see an 11-line test file in a mainly blank window.  There  should
+  be a reverse-video line near the bottom - the  delimiter  line  showing  the
+  pathname of the file you're looking at and, near the right  margin,  a  full
+  stop ( . ) - in jot all buffers are identified by  a  single  character  the
+  main buffer is always ( . ).
+  
+  Below the delimiter line is the console area - four lines containing various
+  messages and a prompt. Right now there are lines of three messages generated
+  as jot fired up - details of scripts the startup script ran and the  version
+  and build date of the jot executable you're running.
+  
+  The prompt also contains two useful bits of information the line  number  of
+  the current line ( 1 in this case) and the buffer key ( . ).
+  
+  Notice also there's two cursors:
+    - the jot cursor consists of  a  single  reverse-video  character  in  the
+      top-left corner
+    - the system cursor shows as a reverse-video blank following the prompt in
+      the bottom line.
+  Those who old enough to remember them will deduce from this that  jot  is  a
+  command-driven editor. Many thought the species extinct but no - it's  alive
+  and well.
+  
+  This is good news for anyone who likes to get their hands  dirty  and  write
+  their own little bits of code. Maybe to automate some operation or to locate
+  some highly-specific context in the text. There is no requirement to do  any
+  special wriggling - just  type  your  command  sequence  straight  into  the
+  console area, hit {return} and it gets on with it right away.
+  
+  Let's do a string search - type the string abc then hit the F8 function key:
+> abc{F8}
+  the first thing to notice is that the function key doubles up  as  a  string
+  terminator - this is good news for typists of limited  ability  as  well  as
+  those susceptible to typists cramp.
+  
+  Next notice that the cursor has moved a little to the right it's now sitting
+  over the ( a ) of the alphabet and the ( b ) and the ( c ) are underlined  -
+  this indicates that it's selected the substring (  abc  )  and  the  current
+  character is the ( a ).
+  
+  Now hit F8 again.
+> {F8}
+  there are two things to notice about this -  first  that  {F8}  without  any
+  parameter string will search for the last-searched string and that  jot,  by
+  default is case insensitive.
+  
+  Searching again results in failure:
+> {F8}
+  we see this message appear in the console area:
+{Command-sequence failed.}f` 
+  notice that the jot cursor has moved to the last line of the file,  this  is
+  blank, so the cursor shows a tilde ( ~ ) in reverse video -  this  is  jot's
+  way of saying the cursor is at the end of the line.
+  
+  The F7 function key searches back towards the start of the file image:
+> {F7}
+  the cursor is once again showing the substring ( ABC ) on the second line.
+  
+  The cursor-control keys work pretty-much as for any text editor except  that
+  the up and down arrow keys go to the  start  of  adjacent  lines  making  no
+  effort to hold  to  a  column.  For  uses  applications  this  behaviour  is
+  preferable but there are ways of holding to a column when required.
+  
+  Another important command you will now need to  know  is  how  to  exit  the
+  editor - it's %a - no need to ask why.
+> %a{return}
+  
+  For  a  more  complete  introduction  to  jot,   point   your   browser   at
+  ${JOT_HOME}/docs/jot_walkltrough.html
+
+4 Compilation
+-------------
+  The tarball/zipfile contains executables. The win32 version should work  for
+  any recent NT windows.  The  linux  versions  are  dynamically  linked  and,
+  although they'll work with pretty-much any version of ncurses different  you
+  may find that the version I happened to have compiled it  with  is  not  the
+  version supported by your distro.
+  
+  If, at image activation time, it  complains  it  can't  find  some  specific
+  version of ncurses then your best bet is to recompile the source. There  are
+  a few libraries which you may be lacking:
+  
+4.1 Compilation (Linux/Unix)
+----------------------------
+  Compilation in a gnu environment: 
+  
+  Use the install.sh script but with the -compile option. It requires cc  (the
+  c compiler, usually a gcc) and the basic C libraries and headers  that  come
+  with the compiler. It also requires the libncursesw and libtinfo  libraries.
+  All of this should be available from your  linux  distribution  using  their
+  package manager - dnf, apt-get, yast or whatever.
+  
+  Expect no warnings or errors.
+
+4.2 Compilation: MS-Windows
+----------------------------
+  The original was compiled using MSVC 2010 (the express version) under  wine,
+  using both MS and  gnu  libs.  To  compile  locally  you  will  require  the
+  following:
+    - a libgw32c-0.4 installation (from the sourceforge gnuwin32 project).
+    - the Microsoft SDKs, I used v7.1,
+    - libgcc
+  
+  The following directory structure was used to compile in windows and wine:
+  
+    ------
+   |      |  
+  source wine
+   |      |
+  jot.c    -----------------------------------        
+          |                            |      |            
+         libgw32c-0.4                 MSDKs  lib           
+          |                            |      |            
+           -----------------          Lib    libgcc.lib    
+          |                 |          |      |            
+         lib               include    ...    ...           
+          |                 |                                                 
+         libgw32c.a        glibc                                              
+                            |                                                 
+                           search.h                               
+          
+  With VC express 2010 I built with the following commands: 
+$ cd $JOT_HOME
+$ set versionString="jot <version>, built <buildDateStamp>, for WindowsNT"
+$ cl /c /DVC /D__value=_value /Zi /D_DEBUG /DVERSION_STRING="jot <version>, <hostInfo>, <dateStamp>" source/jot.c
+$ link /debug /out:jot.exe jot.obj wine/libgw32c-0.4/lib/libgw32c.a wine/MSDKs/v7.1/Lib/*.Lib wine/lib/libgcc.lib
+ 
+  ( WINEDEBUG= -all wine cl.exe ; wine cl /c ${debug} /DVC /D__value=_value /Zi /D_DEBUG /DVERSION_STRING="${versionString}" ${sourceDir}jot.c /Foed/bin/jot.obj ) 2>&1 >> ${sourceDir}jot.lis
+  echo "Windows link now..." >> ${sourceDir}jot.lis
+  wine link /debug /out:ed/bin/jot${exeSuffix}.exe ed/bin/jot.obj \
+    ed/wine/libgw32c-0.4/lib/libgw32c.a ed/wine/MSDKs/v7.1/Lib/*.Lib \
+    ed/wine/lib/libgcc.lib 2>&1 >> ${sourceDir}jot.lis
+
+5 Testing
+---------
+  Test either an xterm or a windows console.
+   
+  The testing is pretty minimal - these tests should pass  in  both  linuxland
+  and windowsland:
+    - jot -st=qr
+      - a basic sanity test.
+      - verifies that  it  will  startp  and  display  a  simple  screen  with
+        highlights and callbacks.
+      - requires jot to be on the search path
+      - requires JOT_HOME to be pointing at a sensible place.
+      - requires JOT_RESOURCES to be pointing at a sensible place.
+      
+    - jot ${JOT_RESOURCES}/t.t -st=test
+      - Comprehensive regression test of jot primitive commands.
+      - sometimes fails on unicode  tests  because  terminal  does  not  fully
+        support unicode.
+      
+    - In linux:
+      jot ${JOT_RESOURCES}/t.t -in="%r=test_visual;"
+    - in windowsland, the testing for unicode support is relaxed:
+      jot ${JOT_RESOURCES}/t.t -in="%r=test_visual -nounicode;"
+      - This is a regression test of display management.
