@@ -27,82 +27,82 @@
 %%they have helpfully offered no method of disabling their useless shortcuts.
   
 %g@
-a                            -- {Alt+a}
-A                            -- {Alt+Shift+a}
-                            -- {Alt+Ctrl+a}
-b                            -- {Alt+b}
-B                            -- {Alt+Shift+b}
-                            -- {Alt+Ctrl+b}
-c                            -- {Alt+c}
-xxxxxxxx                     -- {Alt+Shift+c}  --Ctrl+C in chrome and Fedora 24
-xxxxxxxx                     -- {Alt+Ctrl+c}   --Ctrl+C in chrome
-d                            -- {Alt+d}
-D                            -- {Alt+Shift+d}
-                            -- {Alt+Ctrl+d}
-e                            -- {Alt+e}
-E                            -- {Alt+Shift+e}
-                            -- {Alt+Ctrl+e}
-f                            -- {Alt+f}
-F                            -- {Alt+Shift+f}
-                            -- {Alt+Ctrl+f}
-g                            -- {Alt+g}
-G                            -- {Alt+Shift+g}
-                            -- {Alt+Ctrl+g}
-h                            -- {Alt+h}
-H                            -- {Alt+Shift+h}
-xxxxxxxx                     -- {Alt+Ctrl+h}   -- Dead in chrome and Fedora 24
-i                            -- {Alt+i}
-xxxxxxxx                     -- {Alt+Shift+i}  -- Hijacked in Chrome
-	                            -- {Alt+Ctrl+i}
-j                            -- {Alt+j}
-J                            -- {Alt+Shift+j}
-xxxxxxxx                     -- {Alt+Ctrl+j}   --Dead in chrome and Fedora 24
-k                            -- {Alt+k}
-K                            -- {Alt+Shift+k}
-xxxxxxxx                     -- {Alt+Ctrl+k}   -- Hijacked in Chrome, dead in Chrome 24
-l                            -- {Alt+l}
-L                            -- {Alt+Shift+l}
-xxxxxxxx                     -- {Alt+Ctrl+l}   -- Hijacked in Chrome, dead in Chrome 24
-m                            -- {Alt+m}
-xxxxxxxx                     -- {Alt+Shift+m}  -- Hijacked in Chrome
-xxxxxxxx                     -- {Alt+Ctrl+m}   -- Hijacked in chrome, dead in Chrome 24
-n                            -- {Alt+n}
-xxxxxxxx                     -- {Alt+Shift+n}  -- Hijacked in Chrome
-                            -- {Alt+Ctrl+n}
-o                            -- {Alt+o}
-xxxxxxxx                     -- {Alt+Shift+o}  -- Hijacked in Chrome and Fedora 24
-                            -- {Alt+Ctrl+o}
-p                            -- {Alt+p}
-P                            -- {Alt+Shift+p}
-                            -- {Alt+Ctrl+p}
-q                            -- {Alt+q}
-Q                            -- {Alt+Shift+q}
-                            -- {Alt+Ctrl+q}
-r                            -- {Alt+r}
-R                            -- {Alt+Shift+r}
-                            -- {Alt+Ctrl+r}
-s                            -- {Alt+s}
-S                            -- {Alt+Shift+s}
-xxxxxxxx                     -- {Alt+Ctrl+s}  -- Hijacked in Chrome
-t                            -- {Alt+t}
-T                            -- {Alt+Shift+t}
-xxxxxxxx                     -- {Alt+Ctrl+t}  -- Hijacked in chrome, dead in Fedora 24.
-u                            -- {Alt+u}
-U                            -- {Alt+Shift+u}
-                            -- {Alt+Ctrl+u}
-v                            -- {Alt+v}
-V                            -- {Alt+Shift+v}
-                            -- {Alt+Ctrl+v}
-w                            -- {Alt+w}
-W                            -- {Alt+Shift+w}
-                            -- {Alt+Ctrl+w}
-xxxxxxxx                     -- {Alt+x}       --Hijacked in Fedora  24
-X                            -- {Alt+Shift+x}
-                            -- {Alt+Ctrl+x}
-y                            -- {Alt+y}
-Y                            -- {Alt+Shift+y}
-                            -- {Alt+Ctrl+y}
-z                            -- {Alt+z}
-Z                            -- {Alt+Shift+z}
-xxxxxxxx                     -- {Alt+Ctrl+z}  -- {Ctrl+z} in Chrome and Fedora 24
+a                               {Alt+a}
+A                               {Alt+Shift+a}
+                               {Alt+Ctrl+a}
+b                               {Alt+b}
+B                               {Alt+Shift+b}
+                               {Alt+Ctrl+b}
+c                               {Alt+c}
+xxxxxxxx                        {Alt+Shift+c}    Ctrl+C in chrome and Fedora 24
+xxxxxxxx                        {Alt+Ctrl+c}     Ctrl+C in chrome
+d                               {Alt+d}
+D                               {Alt+Shift+d}
+                               {Alt+Ctrl+d}
+e                               {Alt+e}
+E                               {Alt+Shift+e}
+                               {Alt+Ctrl+e}
+f                               {Alt+f}
+F                               {Alt+Shift+f}
+                               {Alt+Ctrl+f}
+g                               {Alt+g}
+G                               {Alt+Shift+g}
+                               {Alt+Ctrl+g}
+h                               {Alt+h}
+H                               {Alt+Shift+h}
+xxxxxxxx                        {Alt+Ctrl+h}      Dead in chrome and Fedora 24
+i                               {Alt+i}
+xxxxxxxx                        {Alt+Shift+i}     Hijacked in Chrome
+	                               {Alt+Ctrl+i}
+j                               {Alt+j}
+J                               {Alt+Shift+j}
+xxxxxxxx                        {Alt+Ctrl+j}     Dead in chrome and Fedora 24
+k                               {Alt+k}
+K                               {Alt+Shift+k}
+xxxxxxxx                        {Alt+Ctrl+k}      Hijacked in Chrome, dead in Chrome 24
+l                               {Alt+l}
+L                               {Alt+Shift+l}
+xxxxxxxx                        {Alt+Ctrl+l}      Hijacked in Chrome, dead in Chrome 24
+m                               {Alt+m}
+xxxxxxxx                        {Alt+Shift+m}     Hijacked in Chrome
+xxxxxxxx                        {Alt+Ctrl+m}      Hijacked in chrome, dead in Chrome 24
+n                               {Alt+n}
+xxxxxxxx                        {Alt+Shift+n}     Hijacked in Chrome
+                               {Alt+Ctrl+n}
+o                               {Alt+o}
+xxxxxxxx                        {Alt+Shift+o}     Hijacked in Chrome and Fedora 24
+                               {Alt+Ctrl+o}
+p                               {Alt+p}
+P                               {Alt+Shift+p}
+                               {Alt+Ctrl+p}
+q                               {Alt+q}
+Q                               {Alt+Shift+q}
+                               {Alt+Ctrl+q}
+r                               {Alt+r}
+R                               {Alt+Shift+r}
+                               {Alt+Ctrl+r}
+s                               {Alt+s}
+S                               {Alt+Shift+s}
+xxxxxxxx                        {Alt+Ctrl+s}     Hijacked in Chrome
+t                               {Alt+t}
+T                               {Alt+Shift+t}
+xxxxxxxx                        {Alt+Ctrl+t}     Hijacked in chrome, dead in Fedora 24.
+u                               {Alt+u}
+U                               {Alt+Shift+u}
+                               {Alt+Ctrl+u}
+v                               {Alt+v}
+V                               {Alt+Shift+v}
+                               {Alt+Ctrl+v}
+w                               {Alt+w}
+W                               {Alt+Shift+w}
+                               {Alt+Ctrl+w}
+xxxxxxxx                        {Alt+x}         Hijacked in Fedora  24
+X                               {Alt+Shift+x}
+                               {Alt+Ctrl+x}
+y                               {Alt+y}
+Y                               {Alt+Shift+y}
+                               {Alt+Ctrl+y}
+z                               {Alt+z}
+Z                               {Alt+Shift+z}
+xxxxxxxx                        {Alt+Ctrl+z}     {Ctrl+z} in Chrome and Fedora 24
 :

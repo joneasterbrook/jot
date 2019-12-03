@@ -1,0 +1,77 @@
+%%Displays current line in hex with other options.
+%%
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g?
+  By default, displays current line annotated with character decomposition in the console area.
+    - Printable ASCII is not annotated.
+    - ASCII control characters are decomposed to the ^<chr> form.
+    - Unicode characters are decomposed to hexadecimal.
+    - If unicode support is on (see %b=unicode), then unicode characters are displayed as wide-character hexadecimal.
+    - If unicode support is off, then unicode characters are displayed as several single-byte hexadecimals.
+    
+  Options:
+    - -x     - Displays uicode and control characters in hexadecimal.
+    - -o     - Displays in octal
+    - -utf-8 - Displays unicode characters in the line as single-byte UTF-8
+    
+  Buffer usage:
+    - ( $ ) - initially holds user-specified args, then used for temporary storage.
+    - ( @ ) - used to build the display text.
+:
+
+%g#
+%%Pick up the unicode-support status of the original buffer.
+ob %q@=buffer; (f/ NoUnicode = TRUE/ol0, ol1) osoz
+%%Pick up the line and add lines containing only blanks.
+ocr-0n.r0a@&r-0or obz@r0ocol-1oso- (bo# (o~i/ /)0 ok)4 okboz
+%%Set unicode support as in the original buffer.
+obos z@ %b=unicode '~; oz
+%%Translate as requested.
+obz$m-0(v/ /r)0
+( v/-o/  %%Display in octal.
+  z@m-0 (y0 oic z$r-0e0oo/%-6o/r-0 (z$oicz@yoo/%c/)0 z@(y-)0 r)0
+, v/-x/  %%Display as hex.
+  z@m-0 (y0 oic z$r-0e0oo/%-4X/r-0 (z$oicz@yoo/%c/)0 z@(y-)0 r)0
+, v/-utf-8/  %%Display as UTF-8.
+  obz@%b=unicode 0; oz?\
+, %%Display ASCII control characters in ^<chr> form, other ASCII characters are ignored and genuine unicode is displayed in hex.
+  z@m-0 (y0 oic
+    ( ol127o> %%Wide-character unicode - display in hexadecimal.
+      z$r-0e0oo/%04X/
+    , ol31o>  %%Common-or-garden ASCII - do nothing. 
+      okz$r-0e0
+    , ol0o>  %%ASCII control characters - display in "^<chr> form"
+      ol64o+ z$r-0e0oo/^%c/
+    , %%UTF-8 byte - display in hex.
+      z$r-0e0oo/%02X/r0r-2e-0 )
+    r-0 (z$oicz@yoo/%c/)0 z@(y-)0 r)0 )
+  
+%%Now trim the result to fit left offset and display width.
+o#oz %q$=buffer; f/ LeftOffset = /-oid z@m-0ory0(e-0y)0 %q$=window; f/ screenWidth = /-oid z@m-0 (ory0 (e0y)0, ) m-0
+  
+%%Return to original position and display result.
+z@m-0p0 oz
+:
+'#
+
+  

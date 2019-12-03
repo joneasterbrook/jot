@@ -1,0 +1,69 @@
+%%Uses tika to suck text out of an MS-word document, then attempts to reformat it.
+  
+%%
+%%    Copyright (C) 2019 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text) - a text editor.
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+  Buffer usage:
+    $ - initially contains the pathname for document.
+    ! - contains a working copy of pathname.
+    # - Main macro.
+    @ - destination buffer - holds converted text.
+    
+  Args:
+    - -raw=<pathName>  -- Picks up a previously-extracted text file instead of a MS-word document file.
+    - if no args given, then the script only defines the function doc2doc_translate.
+
+:
+
+%g@
+<<doc2txt_translate>>
+%%Translates named MS-word file to plain text, the translated text is left in the ( @ ) buffer.
+%%Buffer ( $ ) is assumed to contain the pathname.
+z$m-0r0(v/ /e)0r0(v-/ /e-)0
+( r-0v/-raw=/  %% -raw <pathname> given.
+  e5 %i@='$;
+, %%No raw file given.
+  n.r0a!&z! i"%e@=java -jar ~/bin/tika-app-1.18.jar --text " '!
+  %%Set the pathname.
+  z$r0(v-/.doc/s/_doc.txt/, i/.txt/) z@%b=pathname '$; )
+
+%%Identify documents with spurious linebreaks - if the extracted text has no instances of three consecutive nonblan line then assume it's full of sprurious linebreaks.
+m-0 ( ( ( (v/ /r)0rm)3\ m)0 m
+, %%Yes this document is appears to have spurious line breaks - fix them now.
+  %%First remoe *all* blank lines.
+  m-0((v/ /r)0rm, k)0
+  %%Now attempt to identify genuine paragraph breaks - deemed to be lines ending in a fullstop.
+  m-0 (r0(v-/ /r-)0(v-/./r0b, ) m)0
+  )
+    
+%%Identify headings - any line begining with a capitalized word is treated as a heading.
+%%Line begining with only the leading letter capitalized are deemed to be paragraphs.
+m-0 (q/A-Z/r (q//r-0i/0 /r-0b(f1/:/-b(v/ /e)0i/  /, ), r-0i/  /r0b)m, m)0
+%%Now redefine headings.
+%h'=call PurgeAllHeadings;
+%%Format the paragraphs.  
+m-0 %h'=call ReformatAll;?
+
+:
+
+%h'=call AddNewFunctions;
+obz$r-0(rr-oz %h'=call doc2txt_translate '$;, oz)
+

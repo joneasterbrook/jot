@@ -1,4 +1,4 @@
-%%Lists all buffers, including sub-buffers.
+%%Lists all buffers, including sub-buffers and data objects.
 
 %%
 %%    Copyright (C) 2013-2018 Jon. Easterbrook
@@ -20,37 +20,119 @@
 %%
 %%
 %%
+
+%g?
+  Usage:
+> listbuffs[ -demo][ -status]{F2}
+    By default, reports only data objects below buffers ( A to Z ) and ( ' )
+    - -demo -- Starts by creating a demonstation tree below primary buffer.
+    - -all -- reports all hashrable types in addition to data objecs.
+    - -system -- Lists all buffers except ( $ ) and ( @ ) - these are used  by
+      the script and are, anyway, unlikely to be used  to  host  complex  data
+      structures.
+    - -changed -- Only reports buffers with  real  pathnames  that  have  been
+      changed since the last I/O operation.
+    
+  Report format:  
+    - Reports all primary buffers which have been defined.
+    - For buffers which are a valid file image it reports  the  buffer  status
+      (e.g. SameSinceIO, pathname etc.).
+    - If the primary buffer has a hashtable, it reports all data  objects.  If
+      one of those data objects is a file-image buffer,  it  reports  the  I/O
+      status of the buffer.
+      
+  Buffer usage:
+    - ( $ ) - Script args then temporary.
+    - ( @ ) - the report.
+:
+
+%g@
+%%If the -demo qualifier was given then create a demonstration tree.
+obz$m-0
+(f/-demo/
+  %%Create a fairly deep hashtable tree with various data object types, for listbufsTop to report.
+  %%
+  z.o@
+  %h=create 10 .=;                       %h=data .=a;                        %d~=Sub-buffer A; ov/.=a/
+  %h=create 10 .=a;                      %h=data .=a|b;                      %d~=Sub-buffer B; ov/.=a|b/
+  %h=create 10 .=a|b;                    %h=data .=a|b|c;                    %d~=Sub-buffer D; ov/.=a|b|c/
+  %h=create 10 .=a|b|c;                  %h=data .=a|b|c|d;                  %d~=Sub-buffer E; ov/.=a|b|c|d/
+  %h=create 10 .=a|b|c|d;                %h=data .=a|b|c|d|e;                %d~=Sub-buffer F; ov/.=a|b|c|d|e/
+  %h=create 10 .=a|b|c|d|e;              %h=data .=a|b|c|d|e|f;              %d~=Sub-buffer G; ov/.=a|b|c|d|e|f/
+  %h=create 10 .=a|b|c|d|e|f;            %h=data .=a|b|c|d|e|f|g;            %d~=Sub-buffer H; ov/.=a|b|c|d|e|f|g/
+  %h=create 10 .=a|b|c|d|e|f|g;          %h=data .=a|b|c|d|e|f|g|h;          %d~=Sub-buffer I; ov/.=a|b|c|d|e|f|g|h/
+  %h=create 10 .=a|b|c|d|e|f|g|h;        %h=data .=a|b|c|d|e|f|g|h|i;        %d~=Sub-buffer J; ov/.=a|b|c|d|e|f|g|h|i/
+  %h=create 10 .=a|b|c|d|e|f|g|h|i;      %h=data .=a|b|c|d|e|f|g|h|i|j;      %d~=Sub-buffer K; ov/.=a|b|c|d|e|f|g|h|i|j/
+  %h=create 10 .=a|b|c|d|e|f|g|h|i|j;    %h=data .=a|b|c|d|e|f|g|h|i|j|k;    %d~=Final sub-buffer L; ov/.=a|b|c|d|e|f|g|h|i|j|k/                       
+  %h=create 10 .=a|b|c|d|e|f|g|h|i|j|k;
+  %%
+  %%Now add few more data objects at various points.
+  %h=data .=a|b|New_int; ol999 ov/.=a|b|New_int/
+  %h=data .=a|b|c|d|e|f|g|test_int; ol123456789 ov/a|b|c|d|e|f|g|test_int/
+  %h=data .=a|b|c|d|e|f|g|test_float; ol123.456789 ov/a|b|c|d|e|f|g|test_float/
+  %h=data .=a|b|c|d|e|f|g|test_buf; %d~=Test_buf; ov/a|b|c|d|e|f|g|test_buf/
+  %h=data .=a|b|c|d|e|f|g|real_file; %i~=${JOT_RESOURCES}/t.t; z. ov/.=a|b|c|d|e|f|g|real_file/
+  %h=data .=a|b|c|d|e|f|g|changed_real_file; %i~=${JOT_RESOURCES}/l99.t; m+10i/zzz/z. ov/.=a|b|c|d|e|f|g|changed_real_file/
+  %h=data .=a|b|c|d|e|f|g|h|i|j|k|Another_int; ol123 ov/.=a|b|c|d|e|f|g|h|i|j|k|Another_int/
+, )
+:
+'@
+
 %g@
 <<listbufsTop>>
 %%Top-level findbuf function.
 %%
-%%Begin with a list of primary buffers.
-n.a- %q-=system; f/Buffers:/k-0
+%%Begin with a list of primary buffers - if -system qualifier is given, then list all buffers except ( $ ) and ( @ ) which are used internally.
+%q@=system; f/Buffers:/k-0 b-i/%%Args: /i'$i/ / m
+%%Check args, currently -system and -changed are recognized.
+(z@m-0f/ -system /(z@m-0(f/  buffer $:/k, ) m-0(f/  buffer @:/k, ) ), z@m-0(f/ buffer /-q/A-Z0-9.'/\k, m)0 )
 %%
-( %%Primary-buffer loop - list data objects in each primary buffer.
-  z- f/  buffer /-oic
-  %%Set up the current buffer-path stub.
-  z-r0bo#oo/%c/
-  (oz %h'=call listbufsNext;,) )0
-%%Now descend any listed buffer-type data objects.
-( z-m-0 f/, (DataObj) Buffer /ri/	/r-2n.r-0a$&oq'$z~ %h'=call listbufsNext; )0
-%%Final cleanup.
-z-m-0 (f1/, (DataObj) /k, f1/,	 (DataObj) Buffer /m, mm-k)0 m-0
-%%Add the pathnames.
-m-0(n.f1/,	/a$& oq'$z~ %q$=buffer; f/ pathName = /- (v/(null)/z-b, z-mb-i'$b) m)0
-%b=tabstops -1;
+z@m-0m( %%Primary-buffer loop.
+  z@ f/  buffer /s/Root buffer /oice0
+  %%Speculatively descend and report any sub-buffer hierarchy.
+  o#n.a$z$oo/%c=/ oz %h'=call ListChildBufs; 
+  )0
+%%
+%%Strip out all but data objects if -all not given.
+z@m-0 ( f1/ -all /, m(v/Root buffer/m, f1/(DataObj)/m, k)0 )
+%%
+%%If the -changed modifier was given then strip out everything except changed file-image buffers.
+z@m-0 (f1/ -changed / m(f1/ SameSinceIO = FALSE/m, k)0, )
+%%z@m-0 (f1/ -changed / (m(v/ /e)0)0 m-0m (n.f/ SameSinceIO = FALSE/m-a%+m2)0 a%+, )
+m-0
 
-<<listbufsNext>>
-%%Descends to next level in the buffer-tree - called by listbufsTop.
+<<ListChildBufs>>
+%%Descends to next level in the buffer-tree, on entry current buf is the one to descend.
 %%
-%%List any data objects.
-( %q~=keys; (f1/ (DataObj) /m, mm-k)0 m-m-0 %%The buffer has at least one data object.
-  %%Prepare the list of data objects and add to the final report.
-  z-r-0n.(f1/,	 (DataObj) Buffer "/, r0)a$&z$r-0(f1/=/r0i/|/, r0i/=/) z~m-0(f1/key /-(v/ /r)0 e-0i'$ m)0 z-mh~okok 
+%%N.B. This is a recursiely called procedure.
+%%
+%%If the current buffer has a valid filing-system pathname entry, then add that and the SameSinceIO status to the report.
+ob %q$=buffer; f/ pathName = /e-0 f1/ = /-(v/(null)/\v/[/\ me4je8i/,/  z@r0i'$  z$m-z@i/,/i'$, ) (ol126o=okz~, oz)
+%%
+%%Find any data objects.
+%q$=keys;
+%%If the buffer contains a hashtable with at least one DataObject, set up to descend - this can only be done with the keys report at the top of the stack.
+( f/ (DataObj) /
+  %%If it's a floating buffer this is removed now, then copy the keys report to stack.
+  m-0k f1/Keys for buffer /-e-0(v/~/okf1/ (Pathname /-e-0f1/):/e0i/|/, re0i/=/) m-0n.m0m-r0a~
+  %%Add any data objects to the report then descend any buffer objects.
+  z~
+  ( %%Data-object loop - first add the data object to the report.
+    z@b z~m-0n.r0a$& mf1/ /(v/ /r)0e-0f1/, / z@h$i'~ z~
+    %%Now descend if it's a buffer object.
+    (v/, (DataObj) Buffer / %%Yes it is a buffer object.
+      e0 z$r0(v-/=/, )i'~ z@
+      %%Descend.
+      oq'$z~ %h'=call ListChildBufs;, )
+    %%Index down to next data object.
+    z~m-0mk
+    )0
 , %%Buffer has no data objects.
-  z-ok )
+  z@ok )
 
 :
+
 %h'=call AddNewFunctions;
 
 %h'=call listbufsTop;
+

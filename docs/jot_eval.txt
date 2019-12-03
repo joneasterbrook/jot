@@ -50,7 +50,7 @@ Linux localhost.localdomain 4.13.9-300.fc27.x86_64 #1 SMP Mon Oct 23 13:41:58 UT
   cache and swap files, the computer was restarted and each editor  was  fired
   up only once. In the case of emacs, the system was restarted for each case.
   
-  Any test that dragged on for more than 30 minutes was killed.
+  Any test run that dragged on for more than 30 minutes was killed.
   
   I used GNU time 1.7 - this has the option to collect other performance  data
   - although this additional data was not as significant as  the  elapsed-time
@@ -160,7 +160,38 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
    {Ctrl+x}  - to exit.
 	0:37.28 elapsed, 36.16 user, 0.90 system, 99% CPU, 5 faults, 9880 io, 2459268 rss
 
-1.5 Text density
+1.5 Loading a different big file
+--------------------------------
+  The  file   used   here   was   downloaded   from   the   Federal   Election
+  Commission   -   ​https://www.fec.gov/files/bulk-downloads/2018/indiv18.zip)
+  It's a big (about 4.3Gb) tabular database  organized  as  about  22  million
+  lines of 20 columns separated by vertical bars ( | ).
+  
+  - jot 
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot itcont.txt -in=%a;
+  3:21.39 elapsed, 7.11 user, 9.46 system, 8% CPU, (69 major + 1484465 minor) faults, 8373136 io, 3482732 rss
+  
+  - vi
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi itcont.txt  -c:q
+  1:31.11 elapsed, 17.21 user, 7.03 system, 26% CPU, (24 major + 501048 minor) faults, 8368824 io, 2007368 rss
+    
+  - emacs (interactive)
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs itcont.txt
+  13:27.35 elapsed, 53.08 user, 28.72 system, 10% CPU, (369813 major + 6757217 minor) faults, 31983928 io, 3532996 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "itcont.txt")
+end-of-lisp
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
+  5:24.25 elapsed, 19.67 user, 17.98 system, 11% CPU, (245186 major + 3795275 minor) faults, 24057320 io, 3540768 rss  
+  
+  -nano
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano itcont.txt
+  11:37.87 elapsed, 161.20 user, 27.00 system, 26% CPU, (522701 major + 5100756 minor) faults, 41607872 io, 3535936 rss
+  
+
+1.6 Text density
 ----------------
   See `methodology` notes.
   
@@ -176,7 +207,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   
   - nano -  2459268 2.459268
 
-1.6 Loading a big file and searching forwards
+1.7 Loading a big file and searching forwards
 ---------------------------------------------
   The big_file.txt is loaded again and this time each editor is set to  search
   the entire file for a nonexistent string.
@@ -214,7 +245,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}
 	2:18.92 elapsed, 135.42 user, 0.93 system, 98% CPU, 0 faults, 159784 io, 2459172 rss
 
-1.7 Loading a big file and doing a global search and replace - 1
+1.8 Loading a big file and doing a global search and replace - 1
 ----------------------------------------------------------------
   In this case the replacement string is the same length as the  original.  My
   big_file.txt had 96860652 instances if the search string "00".
@@ -253,7 +284,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+\}00{Return}zz{Return}a{Return}
   - After about 10 minutes it crashed my linux session.
 
-1.8 Loading a big file and doing a global search and replace - 2
+1.9 Loading a big file and doing a global search and replace - 2
 ----------------------------------------------------------------
   In this case the replacement string is the longer than the original. This is
   an important difference since our editors must somehow shuffle the text  and
@@ -293,7 +324,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+\}00{Return}abcdefghi{Return}a{Return}
   - As before, after a few minutes it crashed my linux session.
 
-1.9 Loading a big file and doing a global regex-search and replace
+1.10 Loading a big file and doing a global regex-search and replace
 ------------------------------------------------------------------
   
   - jot
@@ -329,7 +360,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
 $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt  
   nano was excluded from this test.
 
-1.10 Loading a file and moving right to the end
+1.11 Loading a file and moving right to the end
 ----------------------------------------------
   The only reason for doing this is to obtain an accurate measurement  of  the
   reverse-search time.
@@ -366,7 +397,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
    {Ctrl+_}{Ctrl+v}{Ctrl+x}
 	0:33.93 elapsed, 33.05 user, 0.83 system, 99% CPU, (0 major + 563730 minor) faults, 0 io, 2261060 rss
 
-1.11 Loading a file, moving right to the end then searching back
+1.12 Loading a file, moving right to the end then searching back
 ---------------------------------------------------------------
   - jot
 $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="%s=case 1; m0 f-/zzz/? %a"
@@ -405,7 +436,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}
 	2:26.64 elapsed, 135.73 user, 0.93 system, 93% CPU, (5 major + 613280 minor) faults, 147232 io, 2459312 rss
 
-1.12 Loading, cutting and pasting and pasting all of a big file
+1.13 Loading, cutting and pasting and pasting all of a big file
 ---------------------------------------------------------------
   - jot
 $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="n.m0aaha %a;"
@@ -459,7 +490,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
    - {Ctrl+x}  - to exit.
   Crashed the linux session after about 5 minutes.
 
-1.13 Loading a file with very long lines - a fat file
+1.14 Loading a file with very long lines - a fat file
 -----------------------------------------------------
   A file of just over 100MB was created with these command:
 $ rm fat_file.txt
@@ -497,7 +528,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}  - to exit.
 	0:04.43 elapsed, 4.21 user, 0.08 system, 97% CPU, (1 major + 51042 minor) faults, 8856 io, 186912 rss
 
-1.14 Loading a fat file and searching
+1.15 Loading a fat file and searching
 ------------------------------------
   - jot
 $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot fat_file.txt -in="%s=case 1; f/zzz/? %a;"
@@ -532,7 +563,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}  - to exit.
 	0:21.73 elapsed, 16.65 user, 0.10 system, 77% CPU, (0 major + 51012 minor) faults, 0 io, 186892 rss
 
-1.15 Loading a fat file and and doing a global search and replace - 1
+1.16 Loading a fat file and and doing a global search and replace - 1
 ---------------------------------------------------------------------
   - jot
 $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot fat_file.txt -in="%s=case 1; (f/00/s/zz/)0 %a"
@@ -566,7 +597,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}
 Crashed at 7:32.92 elapsed, 403.85 user, 2.40 system, 89% CPU, (149 major + 1840211 minor) faults, 37648 io, 3579632 rss
 
-1.16 Loading a fat file and and doing a global search and replace - 2
+1.17 Loading a fat file and and doing a global search and replace - 2
 ---------------------------------------------------------------------
   This time the substitute string is a bit longer than the  original  but,  to
   make it a  bit  easier  for  our  editors,  they're  searching  for  a  less
@@ -607,7 +638,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}
 	6:56.64 elapsed, 396.59 user, 2.41 system, 95% CPU, (715 major + 1841675 minor) faults, 377632 io, 3588260 rss
 
-1.17 Loading a big fat file - big_fat_file.txt
+1.18 Loading a big fat file - big_fat_file.txt
 ----------------------------------------------
   A file of just over 1GB was created with these commands:
 $ rm big_fat_file.txt
@@ -644,7 +675,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}  - to exit.
 	0:33.70 elapsed, 32.99 user, 0.46 system, 99% CPU, (3 major + 259449 minor) faults, 10352 io, 1020272 rss
 
-1.18 Loading a big fat file and searching
+1.19 Loading a big fat file and searching
 -----------------------------------------
   - jot
 $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_fat_file.txt -in="%s=case 1; f/zzz/? %a;"
@@ -686,7 +717,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}  - to exit.
 	2:07.22 elapsed, 125.34 user, 0.48 system, 98% CPU, (0 major + 259416 minor) faults, 0 io, 1020316 rss
 
-1.19 Loading a big fat file and and doing a global search and replace - 1
+1.20 Loading a big fat file and and doing a global search and replace - 1
 -------------------------------------------------------------------------
   None of the editors performed particularly well  at  this  test  -  to  make
   things easier for them the search string was changed from "00" to  the  less
@@ -727,7 +758,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}
   This seems to have crashed at 13:43.55 elapsed, 596.73 user, 210.35 system, 98% CPU, (4 major + 194487152 minor) faults, 1966208 io, 1051672 rss
 
-1.20 Loading a big fat file and and doing a global search and replace - 2
+1.21 Loading a big fat file and and doing a global search and replace - 2
 -------------------------------------------------------------------------
   This time the substitute string is a bit longer than the original.
   
@@ -763,7 +794,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
   - {Ctrl+x}
   Crashed after 5:40.93
 
-1.21 Analysis of performance comparison.
+1.22 Analysis of performance comparison.
 ----------------------------------------
   - `Image size` No-one, well no-one that's anyone, er.  well  hardly  anyone,
     frets about the size of executables in this day and age but,  if  it  were

@@ -35,6 +35,8 @@ Buffer usage:
   1 - The '1 macro, Find previous ')', go to it's matching '(' using hash tables.
   2 - The '2 macro, Find next '(', go to it's matching ')' using hash tables.
   3 - The '3 macro, search buffer, from current chr, for command given in arg.
+    Macro 3 searches current buffer for syntax errors and matches to  a  given
+    command sequence, reports are also logged in the ( @ ) buffer.
   4 - The '4 macro - maps first occurence of specified command in a cat listing of all command scripts.
   5 - The '5 macro - reads current file to buffer !
   6 - The '6 macro - goes to line and character indicated by current entry in @ buffer.
@@ -66,8 +68,8 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
   %h=destroy;
   %%For the code-repository buffer ( ' ) restore the entry-point index.
   ( obol39o= okm-0 ((v/<</\m)0 mm-r2n.f1/>>/a$& %h=add '$; )0 , ) ok
-  %%Create a hashtable of roughly the right size.
-  ol0m-0 (f/(/o~)0 ol2o* %h=create '~ -adjust; )
+  %%Create a hashtable of roughly the right size, allow for 100 macros.
+  ol0m-0 (f/(/o~)0 ol2o*ol100o+ %h=create '~ -adjust; )
 %%
 %%
 %%Find start and end of current sequence (a macro, a procedure or just a series of commands in a file image.
@@ -77,13 +79,12 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
 ( %%Go to start of module and enter start point - this acts as an endstop and fails if routine is already indexed.
   ono-omor oconob ((v/ /r)0(v/%g/\ v/<</\) m-)0
   %%Register/check registration of this routine.
-  (on %h=new macroStart_'~; on %m=Adding macroStart_'~;p )
+  (on %h=new macroStart_'~; on %m=Adding macroStart_'~;pm )
   %%
   %%This module was previously unregistered - locate and index the block start and end points.
   %%
   %%Clear the text stack. 
-%%  n.a$& onz$boo/blockStart_%d_0/b-o#ozm
-  n.a$& z$b-o#ozm
+  n.a$& z$b-o#oz
   %%
   ( %%Main parsing loop
     %%Basic check next character.
@@ -96,11 +97,12 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
       %%Skip remainder of line for all percent commands.
       v/%/ (v/%%/r0, v/%e/r0, r2f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
       %%Simple commands (some have numeric argument).
-      q/bcegjkprtwyBCEGJKPRTWY?\/ r(q/-0-9-/r)0,
+      q/bcegjkprtwxyBCEGJKPRTWXY?\/ r(q/-0-9-/r)0,
       %% Commands with string argument.
-      q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra!&f1'!-, t m?) (q/-0-9/r)0 ),
+      q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra!&f1'!-, m?) (q/-0-9/r)0 ),
       %%Commands with a buffer-key argument.
-      q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&*/r)?, v/h/r2(q/*0-9/r)0, r2),
+      q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&/r)?, v/h/r2(q/0-9/r)0, r2),
+%%      q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&*/r)?, v/h/r2(q/*0-9/r)0, r2),
       %%Operand-stack commands.
       q/oO/r(q/lL/r(q/-0-9./r)0, q/iI/r2, q/oOvVqQ/ rn.ra!&f1'!-, r),
       %%Move command.
@@ -117,7 +119,7 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
       %%Skip any whitespace.
       v/ /(rv/ /)0, )
     %%Skip past comments and whitespace-only lines.
-    ( (v/ /r)0 ( v/%%/, (r\, r-\) ) m )0 
+    ( (v/ /r)0 ( v/%%/, (r\, r-\) ) (m, r0x3) )0 
     %%If it's a new line check for end of module.
     (r-r, (rr- v/:/\ v/<</\ (v/ /r)0v/%g/\) ) )0
    
@@ -146,16 +148,16 @@ ocon
 ( %%If we're already at a block end-point then just launch a hashtable lookup to go back to the start point.
   obocon n.a$&z$oo/blockEnd_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at an end point search back for next one.
-  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
+  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-oidoo/	%04d/f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries after current line then all those before start of current code block.
-  m0m- (f1/	/-\k-, oido<k-)0 f-/ macroStart_/k-0
+  m0m- (f1/	/-\k-, oido<k-)0 f-/ macroStart_/k-0 m0r0b-
   %%Search back for block-end point by matching line numbers and chr positions in blockStart entries.
   ( m0m-\ %%No block-end points found - exit now.
     okokoz
   , %%Find correct end point.
     ((f1/ blockStart_/\k)0(f/	/-oido<m-)0 r-4oido=os f1/	/-oido<osk-)0
     %%Refocus to block-end point.
-    okok (m?m- r-0f1/	/-oidos f1/	/-oidos ozosono-omor, oz) ) )
+    okok (r-0f1/	/-oidos f1/	/-oidos ozosono-omor, oz) ) )
 :
 
 %g2
@@ -168,9 +170,9 @@ ocon
 ( %%If we're already at a block start-point then just launch a hashtable lookup to go to the end point.
   obocon n.a$&z$oo/blockStart_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at a start point search for next one.
-  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
+  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-oidoo/	%04d/f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries before current line then all those after end of current code block.
-  m-0 m-0(f1/	/-\k, oido>k)0 (f/ macroEnd_/k0,)
+  m-0 m-0(f1/	/-\k, oido>k)0 (f/ macroEnd_/k0,) m-0(f/macroStart_/k)0 m0r0b
   %%Search for next block-start point by matching line numbers and chr positions in blockEnd entries.
   ( m-\ %%No block-start points found - exit now.
     m-0okokoz
@@ -217,12 +219,13 @@ ol0 ol0
   %%Skip to end of line or terminating semicolon for percent commands.
   v/%/ (v/%g/ on(mv/%%/\v/:/\)0(v/%%/ono-om, mok))? (v/%%/r0, v/%e/r0, r3f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
   %%Simple commands (some have numeric argument).
-  q/bcegjkprtwyBCEGJKPRTWY?\/r(q/-0-9/r)0,
+  q/bcegjkprtwxyBCEGJKPRTWXY?\/r(q/-0-9/r)0,
   %% Commands with string argument.
   q/fiqsuvFIQSUV/(r(q/-0-9/r)0 (v/'/r2, n.ra$&f1'$-, 
     ocr-0n.r0a$&obz$oso#orr-?i/[/r?i/]/osozr-0oron %m@=Unterminated string starts at line '~; obz@r0h$oz m) (q/0-9-/r)0 ),
   %%Commands with a buffer-key argument.
-  q/ahuzAHUZ/(v/a/r2(q/+-./r,)(q/&*/r,), v/h/r2(q/*+-0-9/r)0, r2),
+  q/ahuzAHUZ/(v/a/r2(q/+-./r,)(q/&/r,), v/h/r2(q/+-0-9/r)0, r2),
+%%  q/ahuzAHUZ/(v/a/r2(q/+-./r,)(q/&*/r,), v/h/r2(q/*+-0-9/r)0, r2),
   %%Operand-stack commands.
   q/oO/r(q/lL/r(q/-0-9./r)0, q/iI/r2, q/oOvVqQ/ r(v/'/r2, n.ra$&f1'$-), r),
   %%Move command.

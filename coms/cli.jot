@@ -21,27 +21,14 @@
 %%
 %%
 
-%%Make a note of current position.
-oboconobob
 %%Pick up arguments.
-%%z$m-0kv/%% /e3jj\i/ /
-z$m-0j\i/ /
-%%Return to the original buffer.
-oz
-%%Get the filespec
-%q~=buffer; f/pathName = /- n.r0a@h@ z@ok
-%%Make the command line
-n.a#z#r-0i/%e@=/h$i/ /h@
-%%Return to original position.
-ozono-omor 
-
-%m=If it goes all quiet and hangs up it may be prompting for data.
-'#
-%l
-%%Pick line count and display it with the first line of reply.
-p0one0m-0p n.a$z$
-ol1o-o#oo/%d/r-0 
-i/That generated /r0i/ line/(ol1o=,i/s/) i/, see /(ol1o=i/it/,i/them/)ok
-i/ in buffer '@./r0
-p-1 oz
-
+obz$m-0m\i/%e@=/(v/ /e)0 
+%%Add the pathname.
+o#oz %q@=buffer; f/  pathName = /-b(v/(null)/oz %x=Error: This buffer is not a file image.;, z$r0i/ /i'@ o#oz)
+%%Do it
+('$)?
+%%Display result in console.
+%m=---------------------------------------------------------------------------------
+z$r-0e4z@
+%m=Results for '$;
+m-0p0oz

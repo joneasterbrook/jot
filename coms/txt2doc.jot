@@ -1,0 +1,40 @@
+%%Copies .txt text in current buffer to .doc (MS-Word) format using libroffice.
+%%
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%N.B. this script requires a libreoffice installation. 
+
+%%If current buffer has a valid pathname then use this to name the temporary file, otherwise defaults to txt2doc.txt.
+ob %q@=buffer;  f/ pathName = /-(v/(null)/ %d$=txt2doc.txt;, r0n.(f-1"/"-, f-1/  pathName = /-)a$&) z$r0(f-/./e0, r0)i/.txt/ r-0i"/tmp/" 
+  
+%%Abstract all of the text and do basic reformatting.
+oz m-0n.m0r0a@&
+%%Remove extra blanks inserted to align paragraph right margins.
+m-0 (v/ /(v/ /r)0(f1/  /e)0m, m)0
+%%Remove all numbering from section headings, if following line has underlining then remove it.
+m-0 ( (q/0-9/\m)0 (q/0-9./e)0 (v/ /e)0 m(v/-/(v/-/r)0r\k, m) )0
+%%Write out the reformatted text.
+%o='$;
+
+%%Do it.
+ob ( %q=linux;  z$r-0i/%e=\libreoffice --headless --convert-to "doc" /r0i/;/ oz '$, z$r-0i/%e=\libreoffice --headless --convert-to "doc" /r0i/;/ oz '$ )

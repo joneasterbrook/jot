@@ -22,9 +22,11 @@
 %%
 
 %g?
-  Usage (an image of the file <anyFileName> is loaded then discarded.):
-$ jot <anyFileName> -st=qr
-$ jot <anyFileName> -st="qr -nomod"
+  Prerequsites:
+    JOT_HOME env should point to a valid jot installation.
+  Usage:
+$ jot -st=qr
+$ jot -st="qr -nomod"
   The -nomod qualifier converts the modified-key expressions to prefixed-key expressions 
   This is for the benefit of those using the nomod.jot startup script.
   

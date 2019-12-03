@@ -72,7 +72,7 @@ zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
         %%Copy current word to ( $ ) buffer and split multiple words (separated by semicolons).
         z@r-0n.r0a$&z$m-0(f1/'/e)0 m-0(f/;/eb(v/ /e)0)0m-0 o+ol0z@, )
       %%Update byte count.
-      r0oeo+o~ kmm- )0 
+      r0oxo+o~ kmm- )0 
     )0
   okok %s=verbose 3;
   %%Now write the index for next time.

@@ -1,0 +1,418 @@
+%%Defines mapping of hot-key functions onto escape sequences.
+
+%%
+%%Copyright (C) 2013 Jon. Easterbrook
+%%This programme, it's associated scripts and documentation is free software.
+%%It is distributed in case someone might find it useful,
+%%it can be modified and redistributed without restriction.
+%%No warrenty is given or implied for whatever purpose.
+%%
+%%
+
+%%Ensure that the function names start in column 8 or after:
+%%Code  <<functionName>>     -- {{Description}
+%%Code xxxxxxxx indicates that the key is pre-assigned by the system or otherwise unavailable.
+%%Code ???????? indicates that the key requiresre-mapping with xmodmap or sonething.
+%% The function <<Null>> is a placeholder.
+
+%g@
+
+--Top-row function keys.
+X0109   <<Help>>             -- {F1}
+X0115                        -- {Shift+F1}
+X0121   <<FindAllHelp>>      -- {Ctrl+F1}
+X0113                        -- {Alt+F1}
+X012D   <<RemoveHelpFold>>   -- {Ctrl+Shift+F1}
+xxxxxxxx                     -- {Ctrl+Alt+F1}
+X011F                        -- {Shift+Alt+F1}
+[1;8P                        -- {Ctrl+Shift+Alt+F1}
+ 
+X010A   <<Do>>               -- {F2}
+X0116   <<ScriptByName>>     -- {Shift+F2}
+X0122   <<ScriptByFunc>>     -- {Ctrl+F2}     
+X0114                        -- {Alt+F2}     
+X012E                        -- {Ctrl+Shift+F2}
+xxxxxxxx                     -- {Ctrl+Alt+F2}     
+X0120                        -- {Shift+Alt+F2}
+[1;8Q                        -- {Ctrl+Shift+Alt+F2}
+ 
+X010B   <<ParagraphUp>>      -- {F3}
+X0117   <<CodeSectionUp>>    -- {Shift+F3}
+X0123   <<IndentMatchUp>>    -- {Ctrl+F3}
+[25~    <<ParenMatchLeft>>   -- {Alt+F3}
+X012F   <<CurlyMatchLeft>>   -- {Ctrl+Shift+F3}
+xxxxxxxx                     -- {Ctrl+Alt+F3}
+[25;2~  <<AngleMatchLeft>>   -- {Shift+Alt+F3}
+[1;8R   <<MarkupMatchLeft>>  -- {Ctrl+Shift+Alt+F3}
+ 
+X010C   <<ParagraphDown>>    -- {F4}
+X0118   <<CodeSectionDown>>  -- {Shift+F4}
+        <<IndentMatchDown>>  -- {Ctrl+F4}
+        <<ParenMatchRight>>  -- {Alt+F4}
+X0130   <<CurlyMatchRight>>  -- {Ctrl+Shift+F4}
+xxxxxxxx                     -- {Ctrl+Alt+F4}
+[26;2~  <<AngleMatchRight>>  -- {Shift+Alt+F4}
+[1;8S   <<MarkupMatchRight>> -- {Ctrl+Shift+Alt+F4}
+ 
+X010D   <<Substitute>>       -- {F5}
+X0119   <<Remove>>           -- {Shift+F5}
+X0125   <<OverwriteBack>>    -- {Ctrl+F5}
+[28~    <<SubstituteAgain>>  -- {Alt+F5}
+X0131   <<SubstituteBack>>   -- {Ctrl+Shift+F5}
+xxxxxxxx                     -- {Ctrl+Alt+F5}
+[28;2~                       -- {Shift+Alt+F5}
+X0132                        -- {Ctrl+Shift+Alt+F5}
+ 
+X010E   <<Insert>>           -- {F6}
+X011A   <<InsertBack>>       -- {Shift+F6}
+X0126   <<Overwrite>>        -- {Ctrl+F6}
+[29~    <<InsertAgain>>      -- {Alt+F6}
+X0132   <<SubstituteInd>>    -- {Ctrl+Shift+F6}
+xxxxxxxx                     -- {Ctrl+Alt+F6}
+[29;2~                       -- {Shift+Alt+F6}
+[17;8~                       -- {Ctrl+Shift+Alt+F6}
+ 
+X010F   <<FindPrev>>         -- {F7}
+X011B   <<SubsThenFindPv>>   -- {Shift+F7}
+X0127   <<FindPrevInd>>      -- {Ctrl+F7}
+[31~    <<FindPrevAgain>>    -- {Alt+F7}
+X0133                        -- {Ctrl+Shift+F7}
+xxxxxxxx                     -- {Ctrl+Alt+F7}
+[31;2~                       -- {Shift+Alt+F7}
+[18;8~                       -- {Ctrl+Shift+Alt+F7}
+ 
+X0110   <<FindNext>>         -- {F8}
+X011C   <<SubsThenFindNx>>   -- {Shift+F8}
+X0128   <<FindNextInd>>      -- {Ctrl+F8}
+[32~    <<FindNextAgain>>    -- {Alt+F8}
+X0134                        -- {Ctrl+Shift+F8}
+xxxxxxxx                     -- {Ctrl+Alt+F8}
+[32;2~                       -- {Shift+Alt+F8}
+[19;8~                       -- {Ctrl+Shift+Alt+F8}
+ 
+X0111   <<RestoreChrLeft>>   -- {F9}
+X011D   <<RestoreWordLeft>>  -- {Shift+F9}
+X0129   <<RestoreLineLeft>>  -- {Ctrl+F9}
+[33~    <<AppendLeftPrev>>   -- {Alt+F9}
+X0135   <<JoinLeftPrev>>     -- {Ctrl+Shift+F9}
+xxxxxxxx                     -- {Ctrl+Alt+F9}
+[33;2~                       -- {Shift+Alt+F9}
+[20;8~                       -- {Ctrl+Shift+Alt+F9}
+ 
+X0112   <<RestoreChrRight>>  -- {F10}
+X011E   <<RestoreWordRight>> -- {Shift+F10}
+X012A   <<RestoreLineRight>> -- {Ctrl+F10}
+        <<AppendRightNext>>  -- {Alt+F10}
+        <<JoinRightNext>>    -- {Ctrl+Shift+F10}
+xxxxxxxx                     -- {Ctrl+Alt+F10}
+                             -- {Shift+Alt+F10}
+                             -- {Ctrl+Shift+Alt+F10}
+ 
+X0113   <<DeleteChrLeft>>    -- {F11}
+X011F   <<DeleteWordLeft>>   -- {Shift+F11}
+X012B   <<DeleteLineLeft>>   -- {Ctrl+F11}
+[42~    <<IndentFromPrev>>   -- {Alt+F11}
+X0137                        -- {Ctrl+Shift+F11}
+xxxxxxxx                     -- {Ctrl+Alt+F11}
+[42;2~                       -- {Shift+Alt+F11}
+[23;8~                       -- {Ctrl+Shift+Alt+F11}
+ 
+X0114   <<DeleteChrRight>>   -- {F12}
+X0120   <<DeleteWordRight>>  -- {Shift+F12}
+X012C   <<DeleteLineRight>>  -- {Ctrl+F12}
+[43~    <<IndentFromNext>>   -- {Alt+F12}
+X0138                        -- {Ctrl+Shift+F12}
+xxxxxxxx                     -- {Ctrl+Alt+F12}
+[43;2~                       -- {Shift+Alt+F12}
+[24;8~                       -- {Ctrl+Shift+Alt+F12}
+
+--Mid keypad.
+
+X014B   <<Paste>>            -- {Insert}
+xxxxxxxx                     -- {Shift+Insert}
+X0217                        -- {Ctrl+Insert}
+X0215   <<CmdEditInsert>>    -- {Alt+Insert}
+xxxxxxxx                     -- {Ctrl+Shift+Insert}
+X0219   <<PasteRectangle>>   -- {Ctrl+Alt+Insert}
+                             -- {Shift+Alt+Insert}
+                             -- {Ctrl+Shift+Alt+Insert}
+ 
+X0106   <<FindExactNext>>    -- {Home}
+        <<FindExactPrev>>    -- {Shift+Home}
+X0212   <<SetFindString>>    -- {Ctrl+Home}
+X0106  <<CmdEditStart>>     -- {Alt+Home}
+                             -- {Ctrl+Shift+Home}
+X0214                        -- {Ctrl+Alt+Home}
+                             -- {Shift+Alt+Home}
+                             -- {Ctrl+Shift+Alt+Home}
+ 
+X014A   <<Cut>>              -- {Delete}
+X017F   <<Copy>>             -- {Shift+Delete}
+X0202   <<CumulativeCopy>>   -- {Ctrl+Delete}
+X0200   <<CmdEditDelete>>    -- {Alt+Delete}
+X0203                        -- {Ctrl+Shift+Delete}
+xxxxxxxx<<CutRectangle>>     -- {Ctrl+Alt+Delete}
+X0201                        -- {Shift+Alt+Delete}
+[3;8~                        -- {Ctrl+Shift+Alt+Delete}
+ 
+X0168   <<Note>>             -- {End}
+                             -- {Shift+End}
+X020D                        -- {Ctrl+End}
+X020B   <<CmdEditEnd>>       -- {Alt+End}
+                             -- {Ctrl+Shift+End}
+X020F   <<Note>>             -- {Ctrl+Alt+End}
+                             -- {Shift+Alt+End}
+                             -- {Ctrl+Shift+Alt+End}
+ 
+X0153   <<PageUp>>           -- {PageUp}
+xxxxxxxx                     -- {Shift+PageUp}
+        <<Home>>             -- {Ctrl+PageUp}
+X0224   <<GotoFoldStart>>    -- {Alt+PageUp}
+xxxxxxxx                     -- {Ctrl+Shift+PageUp}
+X0228   <<ShrinkWindow>>     -- {Ctrl+Alt+PageUp}
+xxxxxxxx                     -- {Shift+Alt+PageUp}
+xxxxxxxx                     -- {Ctrl+Shift+Alt+PageUp}
+ 
+X0152   <<PageDown>>         -- {PageDown}
+xxxxxxxx                     -- {Shift+PageDown}
+        <<End>>              -- {Ctrl+PageDown}
+X021F   <<GotoFoldEnd>>      -- {Alt+PageDown}
+xxxxxxxx                     -- {Ctrl+Shift+PageDown}
+X0223   <<StretchWindow>>    -- {Ctrl+Alt+PageDown}
+xxxxxxxx                     -- {Shift+Alt+PageDown}
+xxxxxxxx                     -- {Ctrl+Shift+Alt+PageDown}
+
+-- Cursor keys.
+        <<Do>>               -- {ScrollLock}
+ 
+X0103   <<Up>>               -- {UpArrow}
+X0151   <<WordUp>>           -- {Shift+UpArrow}
+X0231                        -- {Ctrl+UpArrow}
+X0153   <<CmdEditUp>>        -- {Alt+UpArrow}
+X0232   <<ViewUp>>           -- {Ctrl+Shift+UpArrow}
+X0106   <<UpRegardless>>     -- {Ctrl+Alt+UpArrow}
+                             -- {Shift+Alt+UpArrow}
+                             -- {Ctrl+Shift+Alt+UpArrow}
+   
+X0102   <<Down>>             -- {DownArrow}
+X0150   <<WordDown>>         -- {Shift+DownArrow}
+X0208                        -- {Ctrl+DownArrow}
+X0152   <<CmdEditDown>>      -- {Alt+DownArrow}
+X0209   <<ViewDown>>         -- {Ctrl+Shift+DownArrow}
+X0168   <<DownRegardless>>   -- {Ctrl+Alt+DownArrow}
+                             -- {Shift+Alt+DownArrow}
+                             -- {Ctrl+Shift+Alt+DownArrow}
+ 
+X0104   <<Left>>             -- {LeftArrow}
+X0189   <<WordLeft>>         -- {Shift+LeftArrow}
+X021C   <<LineLeft>>         -- {Ctrl+LeftArrow}
+X021A   <<CmdEditLeft>>      -- {Alt+LeftArrow}
+X021D   <<ViewLeft>>         -- {Ctrl+Shift+LeftArrow}
+X021E   <<LeftRegardless>>   -- {Ctrl+Alt+LeftArrow}
+X021B                        -- {Shift+Alt+LeftArrow}
+[1;8D                        -- {Ctrl+Shift+Alt+LeftArrow}
+   
+X0105   <<Right>>            -- {RightArrow}
+X0192   <<WordRight>>        -- {Shift+RightArrow}
+X022B   <<LineRight>>        -- {Ctrl+RightArrow}
+X0229   <<CmdEditRight>>     -- {Alt+RightArrow}
+X022C   <<ViewRight>>        -- {Ctrl+Shift+RightArrow}
+X022D   <<RightRegardless>>  -- {Ctrl+Alt+RightArrow}
+X022A                        -- {Shift+Alt+RightArrow}
+[1;8C                        -- {Ctrl+Shift+Alt+RightArrow}
+
+--Numeric keypad.
+/                            -- {KP_Divide}
+/                            -- {Shift+KP_Divide}
+                             -- {Ctrl+KP_Divide}
+[                            -- {Alt+KP_Divide}
+                             -- {Ctrl+Shift+KP_Divide}
+xxxxxxxx                     -- {Ctrl+Alt+KP_Divide}
+K                            -- {Shift+Alt+KP_Divide}
+                            -- {Ctrl+Shift+Alt+KP_Divide}
+ 
+*                            -- {KP_Multiply}
+xxxxxxxx                     -- {Shift+KP_Multiply}
+*                            -- {Ctrl+KP_Multiply}
+[                            -- {Alt+KP_Multiply}
+                             -- {Ctrl+Shift+KP_Multiply}
+xxxxxxxx                     -- {Ctrl+Alt+KP_Multiply}
+K                            -- {Shift+Alt+KP_Multiply}
+                            -- {Ctrl+Shift+Alt+KP_Multiply}
+ 
+-                            -- {KP_Subtract}
+xxxxxxxx                     -- {Shift+KP_Subtract}
+                             -- {Ctrl+KP_Subtract}
+[                            -- {Alt+KP_Subtract}
+xxxxxxxx                     -- {Ctrl+Shift+KP_Subtract}
+xxxxxxxx                     -- {Ctrl+Alt+KP_Subtract}
+xxxxxxxx                     -- {Shift+Alt+KP_Subtract}
+xxxxxxxx                     -- {Ctrl+Shift+Alt+KP_Subtract}
+ 
+Oq      <<Macro1>>           -- {KP_1}
+O2q     <<Macro1X>>          -- {Shift+KP_1}
+O5q     <<Macro1XX>>         -- {Ctrl+KP_1}
+[                            -- {Alt+KP_1}
+                             -- {Ctrl+Shift+KP_1}
+O7q     <<LineSW>>           -- {Ctrl+Alt+KP_1}
+K                            -- {Shift+Alt+KP_1}
+                            -- {Ctrl+Shift+Alt+KP_1}
+
+Or      <<Macro2>>           -- {KP_2}
+O2r     <<Macro2X>>          -- {Shift+KP_2}
+O5r     <<Macro2XX>>         -- {Ctrl+KP_2}
+[                            -- {Alt+KP_2}
+                             -- {Ctrl+Shift+KP_2}
+O7r     <<LineS>>            -- {Ctrl+Alt+KP_2}
+K                            -- {Shift+Alt+KP_2}
+                            -- {Ctrl+Shift+Alt+KP_2}
+
+Os      <<Macro3>>           -- {KP_3}
+O2s     <<Macro3X>>          -- {Shift+KP_3}
+O5s     <<Macro3XX>>         -- {Ctrl+KP_3}
+[                            -- {Alt+KP_3}
+                             -- {Ctrl+Shift+KP_3}
+O7s     <<LineSE>>           -- {Ctrl+Alt+KP_3}
+K                            -- {Shift+Alt+KP_3}
+                            -- {Ctrl+Shift+Alt+KP_3}
+
+Ot      <<Macro4>>           -- {KP_4}
+O2t     <<Macro4X>>          -- {Shift+KP_4}
+O5t     <<Macro4XX>>         -- {Ctrl+KP_4}
+
+[                            -- {Alt+KP_4}
+                             -- {Ctrl+Shift+KP_4}
+O7t     <<LineW>>            -- {Ctrl+Alt+KP_4}
+K                            -- {Shift+Alt+KP_4}
+                            -- {Ctrl+Shift+Alt+KP_4}
+
+Ou      <<Macro5>>           -- {KP_5}
+O2u     <<Macro5X>>          -- {Shift+KP_5}
+O5u     <<Macro5XX>>         -- {Ctrl+KP_5}
+[                            -- {Alt+KP_5}
+                             -- {Ctrl+Shift+KP_5}
+                            -- {Ctrl+Alt+KP_5}
+K                            -- {Shift+Alt+KP_5}
+                            -- {Ctrl+Shift+Alt+KP_5}
+
+Ov      <<Macro6>>           -- {KP_6}      
+O2v     <<Macro6X>>          -- {Shift+KP_6}
+O5v     <<Macro6XX>>         -- {Ctrl+KP_6} 
+[                            -- {Alt+KP_6}
+                             -- {Ctrl+Shift+KP_6}
+O7v     <<LineE>>            -- {Ctrl+Alt+KP_6}
+K                            -- {Shift+Alt+KP_6}
+                            -- {Ctrl+Shift+Alt+KP_6}
+
+Ow      <<Macro7>>           -- {KP_7}
+O2w     <<Macro7X>>          -- {Shift+KP_7}
+O5w     <<Macro7XX>>         -- {Ctrl+KP_7}
+[                            -- {Alt+KP_7}
+                             -- {Ctrl+Shift+KP_7}
+O7w     <<LineNW>>           -- {Ctrl+Alt+KP_7}
+K                            -- {Shift+Alt+KP_7}
+                            -- {Ctrl+Shift+Alt+KP_7}
+
+Ox      <<Macro8>>           -- {KP_8}
+O2x     <<Macro8X>>          -- {Shift+KP_8}
+O5x     <<Macro8XX>>         -- {Ctrl+KP_8}
+[                            -- {Alt+KP_8}
+                             -- {Ctrl+Shift+KP_8}
+O7x     <<LineN>>            -- {Ctrl+Alt+KP_8}
+K                            -- {Shift+Alt+KP_8}
+                            -- {Ctrl+Shift+Alt+KP_8}
+
+Oy      <<Macro9>>           -- {KP_9}
+O2y     <<Macro9X>>          -- {Shift+KP_9}
+O5y     <<Macro9XX>>         -- {Ctrl+KP_9}
+[                            -- {Alt+KP_9}
+                             -- {Ctrl+Shift+KP_9}
+O7y     <<LineNE>>           -- {Ctrl+Alt+KP_9}
+K                            -- {Shift+Alt+KP_9}
+                            -- {Ctrl+Shift+Alt+KP_9}
+
+Op      <<Macro0>>           -- {KP_0}
+O2p     <<Macro0X>>          -- {Shift+KP_0}
+O5p     <<Macro0XX>>         -- {Ctrl+KP_0}
+[                            -- {Alt+KP_0}
+                             -- {Ctrl+Shift+KP_0}
+                            -- {Ctrl+Alt+KP_0}
+K                            -- {Shift+Alt+KP_0}
+                            -- {Ctrl+Shift+Alt+KP_0}
+
++                            -- {KP_Add}
+xxxxxxxx                     -- {Shift+KP_Add}
+                             -- {Ctrl+KP_Add}
+[                            -- {Alt+KP_Add}
+                             -- {Ctrl+Shift+KP_Add}
+                             -- {Ctrl+Alt+KP_Add}
+K                            -- {Shift+Alt+KP_Add}
+                            -- {Ctrl+Shift+Alt+KP_Add}
+  
+X0157   <<Enter>>            -- {KP_Enter}
+                             -- {Shift+KP_Enter}
+                             -- {Ctrl+KP_Enter}
+                             -- {Alt+KP_Enter}
+                             -- {Ctrl+Shift+KP_Enter}
+                             -- {Ctrl+Alt+KP_Enter}
+                             -- {Shift+Alt+KP_Enter}
+                             -- {Ctrl+Shift+Alt+KP_Enter}
+  
+On      <<Again>>            -- {KP_Decimal}
+.                            -- {Shift+KP_Decimal}
+                             -- {Ctrl+KP_Decimal}
+[                            -- {Alt+KP_Decimal}
+                             -- {Ctrl+Shift+KP_Decimal}
+                            -- {Ctrl+Alt+KP_Decimal}
+                             -- {Shift+Alt+KP_Decimal}
+                            -- {Ctrl+Shift+Alt+KP_Decimal}
+
+--Odds and sods
+[29~    <<Again>>            -- {Menu}
+                             -- {PrintScreen}
+                             -- {NumLock}
+                             -- {Pause}
+
+--These are escape sequences in the alphanumeric keyboard.
+fs      <<FindSequence>>     -- {Esc f s}
+-fs     <<FindSequencePrev>> -- {Esc - f s}
+fw      <<FindWild>>         -- {Esc f w}
+-fw     <<FindWildPrev>>     -- {Esc - f w}
+fp      <<FindInParaNext>>   -- {Esc f p}
+-fp     <<FindInParaPrev>>   -- {Esc - f p}
+
+--Most of the following are for the benefit of laptop and cygwin users - no numeric keypad.
+q       <<QuitDebugger>>     -- {Esc q}
+e       <<Enter>>            -- {Esc e}
+i       <<TempInsertMode>>   -- {Esc i}
+I       <<InsertMode>>       -- {Esc I}
+/d      <<LineSW>>           -- {Esc / d}
+/s      <<DSLineSW>>         -- {Esc / s}
+\d      <<LineSE>>           -- {Esc \ d}
+\s      <<DSLineSE>>         -- {Esc \ s}
+ls      <<LineS>>            -- {Esc l s}
+lw      <<LineW>>            -- {Esc l wl}
+\u      <<LineNW>>           -- {Esc \ u}
+\n      <<DSLineNW>>         -- {Esc \ n}
+/u      <<LineNE>>           -- {Esc / u}
+/n      <<DSLineNE>>         -- {Esc / n}
+ln      <<LineN>>            -- {Esc l n}
+le      <<LineE>>            -- {Esc l e}
+zzzbt     <<BoxText>>          -- {Esc b t}
+cr      <<CutRectangle>>     -- {Esc c r}
+pr      <<PasteRectangle>>   -- {Esc p r}
+box     <<Box>>              -- {Esc b o x}
+z1      <<Lozenge>>          -- {Esc z 1}
+z2      <<DSLozenge>>        -- {Esc z 2}
+0       <<Macro0>>           -- {Esc 0}
+1       <<Macro1>>           -- {Esc 1}
+2       <<Macro2>>           -- {Esc 2}
+3       <<Macro3>>           -- {Esc 3}
+4       <<Macro4>>           -- {Esc 4}
+5       <<Macro5>>           -- {Esc 5}
+6       <<Macro6>>           -- {Esc 6}
+7       <<Macro7>>           -- {Esc 7}
+8       <<Macro8>>           -- {Esc 8}
+9       <<Macro9>>           -- {Esc 9}
+
+:

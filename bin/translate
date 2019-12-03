@@ -1,0 +1,27 @@
+#! /bin/bash 
+#
+#Translates specified document to plain text using either tika (word, pdf, etc documents)
+#  or ssconvert (MS spreadsheets) as appropriate.
+#
+
+echo "pathname is $1"
+file=`basename "$1"`
+echo "File name is ${file}"
+path=`dirname "$1"`
+echo "Path name is ${path}"
+#  cd "${path}"
+#  echo "PWD is `pwd`"
+
+\file "$1" | grep 'Excel' > /dev/null
+if [ $? -eq 0 ]; then  #It's a Microsoft spreadsheet - extract with ssconvert.
+  echo "Applying ssconvert to original document.
+  \ssconvert --export-type=Gnumeric_html:xhtml "${path}"/"${file}" /tmp/translated_file.txt
+  \jot /tmp/translated_file.txt -tty -quiet -in="%r=get; z. %h'=call Get_xml2csv; %c;"
+  \cat /tmp/translated_file.txt
+  exit 0
+else  #It's assumed to be some sort of non-plain text document - use tika to translate.
+  echo "Applying tika to original_file"
+  \java -jar ~/bin/tika-app-1.18.jar --text "${path}/${file}"
+  exit 0
+  fi
+  

@@ -40,8 +40,8 @@ Usage:
   - The -nosplit option requests that the screen is not split into two slices.
 > comp <key>{f2}  -- Compares current buffer with the nominated buffer.
 or
-> comp{f2}  -- Compares current buffer, must be a file image with it's 
-               pathname set,  with the current version of the file.
+> comp{f2}  -- Compares current buffer  with the current version of the file, 
+               the current buffer must be a file image with it's pathname set.
 or
 > comp -backup[ date/time stamp>]{f2}  -- Compares current buffer with the 
                latest/[or specified] backup version of the file.
@@ -90,17 +90,19 @@ or
 %%Search forwards through buffers to find the next non-matching pair of lines. 
 z$(rr-
   %%command is given execute it in both buffers.
-  (z<ReferenceBuffer>'$ )? ( z<PrimaryBuffer>'$ )? 
+  (oq/'=ReferenceBuffer/oz'$ )? ( oq/'=PrimaryBuffer/oz'$ )? 
 , %%No command argument given - compare normally.
   %%
+  %%First set up the comparison macro in ( $ ).
+  z$ oq/'=ReferenceBuffer/o#oo/v'%c/ r0oo/r0v-'%c/
   %%If cursor is at the end of a line then skip to the next line in both buffers.
-  z<ReferenceBuffer>(rr-, mz<PrimaryBuffer>mz<ReferenceBuffer>)
+  oq/'=ReferenceBuffer/ozw(rr-, moq/'=PrimaryBuffer/ozmoq/'=ReferenceBuffer/oz)
   %%
   %%Test each line.
-  z<PrimaryBuffer> (v'<ReferenceBuffer>r0v-'<ReferenceBuffer>(mz<ReferenceBuffer>m, ?\) z<PrimaryBuffer>)0
+  oq/'=PrimaryBuffer/oz ('$ (moq/'=ReferenceBuffer/ozm, ?\) oq/'=PrimaryBuffer/oz)0
   %%
   %%Failure detected - highlight and print both lines.
-  z<PrimaryBuffer>r-0p z<ReferenceBuffer>r-0pr0
+  oq/'=PrimaryBuffer/ozr-0p oq/'=ReferenceBuffer/ozr-0pr0
   %%
   %%A line-match failure occured.
   %%Add primary and reference buffers to stack.
@@ -109,33 +111,30 @@ z$(rr-
     o#ozonos %q$=tags; 
     (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag colour CurrentLine;)?)0
     %%Apply new colour tag unless we're at the last line.
-    ozono-om (mm- oeou %b=addtag CurrentLine; )
+    ozono-om (mm- oxou %b=addtag CurrentLine;, )
     %%Leaving the cursor at the end of the line indicates that the next pass should start at the next line.
-    r0)2
-  %%If the new line is out of view shift view up a bit - first pick up the first linenumbers in the windows.
-  oq/'=PrimaryBuffer/ozof oq/'=ReferenceBuffer/ozof os
+    r0)2?
   %%Now refresh the display.
-  w
-  %%Now, if necessary, tweak the views to 5 lines up in the display.
-  oq/'=ReferenceBuffer/oz (ofo=ok, okwol5oww) 
-  oq/'=PrimaryBuffer/oz (ofo=ok, okwol5oww) )
+  oq/'=PrimaryBuffer/ozw )
 :
 
 %g4
 %%Search back through buffers to find the previous non-matching pair of lines.
 z$(rr-
   %%command is given execute it in both buffers.
-  (z<ReferenceBuffer>'$ )? ( z<PrimaryBuffer>'$ )? 
+  (oq/'=ReferenceBuffer/oz'$ )? ( oq/'=PrimaryBuffer/oz'$ )? 
 , %%No command argument given - compare normally.
   %%
+  %%First set up the comparison macro in ( $ ).
+  z$ oq/'=ReferenceBuffer/o#oo/v'%c/ r0oo/r0v-'%c/
   %%If cursor is at the end of a line then skip to the previous line in both buffers.
-  z<ReferenceBuffer>(rr-, m-z<PrimaryBuffer>m-z<ReferenceBuffer>)
+  oq/'=ReferenceBuffer/oz(rr-, m-oq/'=PrimaryBuffer/ozm-oq/'=ReferenceBuffer/oz)
   %%
   %%Test each line.
-  z<PrimaryBuffer> (v'<ReferenceBuffer>r0v-'<ReferenceBuffer>(m-z<ReferenceBuffer>m-, ?\) z<PrimaryBuffer>)0
+  oq/'=PrimaryBuffer/oz ('$ (m-oq/'=ReferenceBuffer/ozm-, ?\) oq/'=PrimaryBuffer/oz)0
   %%
   %%Failure detected - print both lines.
-  z<PrimaryBuffer>r-0p z<ReferenceBuffer>r-0pr0
+  oq/'=PrimaryBuffer/ozr-0p oq/'=ReferenceBuffer/ozr-0pr0
   %%
   %%A line-match failure occured.
   %%Add primary and reference buffers to stack.
@@ -143,17 +142,12 @@ z$(rr-
   ( %%Buffer loop - pass 1: ReferenceBuffer, pass 2: PrimaryBuffer - remove colour tag from any previously-highlighted lines.
     o#ozonos %q$=tags; 
     (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag colour CurrentLine;)?)0
-    %%Apply new colour tag unless we're at the last line.
-    ozono-om (mm- oeou %b=addtag CurrentLine; )
+    %%Apply new colour tag unless we're at the first line.
+    ozono-om (m-m oxou %b=addtag CurrentLine;, )
     %%Leaving the cursor at the end of the line indicates that the next pass should start at the next line.
-    r0)2
-  %%If the new line is out of view shift view up a bit - first pick up the first linenumbers in the windows.
-  oq/'=PrimaryBuffer/ozof oq/'=ReferenceBuffer/ozof os
+    r0)2?
   %%Now refresh the display.
-  w
-  %%Now, if necessary, tweak the views to 5 lines up in the display.
-  oq/'=ReferenceBuffer/oz (ofo=ok, okwol5oww) 
-  oq/'=PrimaryBuffer/oz (ofo=ok, okwol5oww) )
+  oq/'=PrimaryBuffer/ozw )
 :
 
 %g6
@@ -162,11 +156,11 @@ z$(rr-
 %%Begin with a history report.
 ob %q$=history; m0m-2 
 ( f1/'6/ %%Previous command was itself a macro-6 call - apply the original command to both buffers.
-  oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/ (oz '@? )2
+  oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/ (oz '@? )2 ok
 , %%Previous command was not a macro-6 call.
   n.r0a@& 
-  %%Apply to the other buffer.
-  oq/'=PrimaryBuffer/ (o= oq/'=ReferenceBuffer/,  oq/'=PrimaryBuffer/) oz'@? )
+  %%Apply the command sequence to the other buffer.
+  oq/'=PrimaryBuffer/ (o= oq/'=ReferenceBuffer/,  oq/'=PrimaryBuffer/) oz'@? oz)
 :
 
 %g#
@@ -211,7 +205,7 @@ ov/'=ReferenceBuffer/  ov/'=PrimaryBuffer/
   (o#oz%q@=buffer; f/TagType = Name  CurrentLine,/ok, oz %b=tagtype CurrentLine colour 4 7; )2
   %q$=window; f/ screenWidth = /-oidol3o-ol2o/ m-f1/ screenHeight = /-oidol4o-
   %%Set up left screen.
-  m-0k0 i/%w;/b oq/'=PrimaryBuffer/oo/%%w%c= /r0oo/-height=%d/r0 o#oo/ -width=%d -delim;/r0b
+  m-0k0 i/%w;/b i/%w= /r0oo/-height=%d/r0 o#oo/ -width=%d -delim;/r0b
   %%Set up right screen.
   oq/'=ReferenceBuffer/oo/%%w%c= /r0oo/-width=%d+3 -delim;/
   '$, )
@@ -219,9 +213,9 @@ ov/'=ReferenceBuffer/  ov/'=PrimaryBuffer/
 :
 '#
 
-%%Customize the comparison macros 4 and 5.
-z4m-0 oq/'=PrimaryBuffer/ (f/<PrimaryBuffer>/o#oo/%c/)0  z5m-0(f//o#oo/%c/)0 ok
-z4m-0 oq/'=ReferenceBuffer/ (f/<ReferenceBuffer>/o#oo/%c/)0  z5m-0(f//o#oo/%c/)0 ok
+%%  %%Customize the comparison macros 4 and 5.
+%%  z4m-0 oq/'=PrimaryBuffer/ (f/<PrimaryBuffer>/o#oo/%c/)0  z5m-0(f//o#oo/%c/)0 ok
+%%  z4m-0 oq/'=ReferenceBuffer/ (f/<ReferenceBuffer>/o#oo/%c/)0  z5m-0(f//o#oo/%c/)0 ok
   
 %%Clean up and go.
 oq/'=PrimaryBuffer/ozn.a$&

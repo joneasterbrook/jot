@@ -182,13 +182,13 @@ m-0(r0v-/.c/m,k)0 m-0
 ( %%File loop - read each file in the list.
   z. %ic='.; ol0 z@i'.b
   ( %%Line loop - count bytes and check for a function start.
-    zcoeo~
+    zcoxo~
     %%Is this a comment - defer adding byte count to total until we reach a non-comment line.
-    ol0os ((v/ /r)0 v"//"(v//moeo~o+)0, v"/*"(f1"*/"\moeo~o+)0, o+\)0 r-0
+    ol0os ((v/ /r)0 v"//"(v//moxo~o+)0, v"/*"(f1"*/"\moxo~o+)0, o+\)0 r-0
     %%
     %%Is this a function start - an alpha character in column 1 and an open bracket "(" somewhere and no terminating ';' is currently deemed to be the start of a function definition.
     %%First remove any confusing comments.
-    (f1"//"e0, f1"/*"n.(f1"*/"moeo~o+)0, )
+    (f1"//"e0, f1"/*"n.(f1"*/"moxo~o+)0, )
     %%
     (q/A-Za-z/f1/(/f1/;/\f-1/(/ (v-/ /r-)0n.r-f-1/ /-(v/*/r,)a$&oso#z@oo/%d	/h$bzc, )o+m )0
   %%
@@ -205,7 +205,7 @@ m-0(r0v-/.pl/m,k)0 m-0
 ( %%File loop - read each file in the list.
   z. %ic='.; ol0 z@i'.b
   ( %%Line loop - count bytes and check for a function start.
-    zcoeo~
+    zcoxo~
     %%Is this a function start - an alpha character in column 1 and an open bracket "(" somewhere and no terminating ';' is currently deemed to be the start of a function definition.
     (v/sub /r4(v/ /r)0n.(f1/{/(v-/ /r-)0, f1/ /, r0)a$&oso#z@oo/%d	/h$bzc, )o+m )0
   %%

@@ -1,0 +1,380 @@
+%%Converts an html document to plain text. The original html is converted in situ and may be just the latest of a number of htmls appended to the buffer.
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%g#
+  Options.
+    - -url=<url> - instead of processing the current buffer, pulls the specified document, appending it to current buffer, then translates that.
+    - -seturl=<URL> - Processes the current buffer text, but sets the pathname to the specified URL.
+    
+  Sets up macro ( 7 ) - follows all links in current document.
+  Sets up macro ( 6 ) - creates an index to all files at the top of the text.
+    
+  Buffer usage:
+    ( Current buffer ) - contains the html
+    ( $ ) - holds parameters, pathnames, CLI commands and temporary text.
+    ( * ) - Holds a tags report for html2txt_FollowAllLinks
+    ( @ ) - Destination buffer for curl downloads used by pdf2txt and doc2txt to pass back translated text also used as a rubbish bin by html2txt_translate.
+    
+  Data objects:
+    the html2txt script creates a hashtable in the  current  buffer,  it  uses
+    this to maintain a list of jump points (see `about hashtables`) - one  for
+    each href target in the original html:
+      - html2txt_OriginalArgs -- the argument list given to html2txt
+      - html2txt_ThisURL      -- the latest url in html2txt_FollowLink (the mouse-click callback function).
+      - html2txt_ParentURL    -- the URL of the page containing the most recently-clicked link.
+      - html2txt_OrigLink     -- the complete link i.e. <URL>#<tag>
+      - html2txt_History      -- the history trail.
+
+:
+
+%h=create 1000;
+%h=data html2txt_OriginalArgs; obz$r-0n.r0a~& osozov/html2txt_OriginalArgs/
+%h=data html2txt_ThisURL;   %d~=<No URL>; ov/html2txt_ThisURL/
+%h=data html2txt_ParentURL; %d~=<No URL>; ov/html2txt_ParentURL/
+%h=data html2txt_OrigLink;  %d~=No Query; ov/html2txt_OrigLink/
+%h=data html2txt_History;   %d~=;         ov/html2txt_History/
+
+%%
+%%The doc2txt and pdf2txt scripts are used for some documents, preserve their help entries in the ( ? ) buffer.
+%r=doc2txt; obz#m0b2i/doc2txt.jot help entry:/bh?oz
+%r=pdf2txt; obz#m0b2i/pdf2txt.jot help entry:/bh?oz
+%%Assemble the help entry in buffer ( ? ).
+obz#m-0n.m0a?oz
+%%
+%%Check for the -url=<URL> option.
+oq/html2txt_OriginalArgs/
+ob osz~m-0 (f1/-url=/-n.r0a$& z$n.r0a~&osokosozov/html2txt_ThisURL/ obz$r-0i/%e@=curl "/r0i/"/ %m?=Pulling document with '$; ('$ ozonbh@ono-om, ozok), osozok)
+%l;
+%%
+%%Check for the seturl option, if set check the current-buffer file exists and is nonblank.
+oq/html2txt_OriginalArgs/
+ob osz~(f1/-seturl=/-n.r0a$& z$okn.r0a~& osozov/html2txt_ThisURL/ m-0((v/ /r)0r\ m)0 (r-r, %m?=Error: this file is completely blank.; ), osozok) 
+%%Set up colour tags.
+%b=tagtype HTMLRef colour 0 2;
+%%
+
+%g@
+
+<<html2txt_translate>>
+%%Main html-processing function.
+%%  
+%%Add the Chapter tag with the URL.
+%%
+%%If this is the primary document, we should be at the start, otherwise we're at the top of the new page.
+mm-b2oq/html2txt_ThisURL/ b-i/URL ----------------------------------------------- /i'~
+%%Create a target tag for any references to this page and set the html2txt_ParentURL object.
+%%This next line may seem overly complicated. It's done this way to avoid using the pathname (at top of stack) in more than one OV operation - that would *not* be good.
+mon osobz$m-0k0osi'~osoz %h=add '~; oq/html2txt_ParentURL/ obosz~r-0e0i'$ osozok
+  
+%%Strip out any leading whitespace.
+o#ono-om ((q/ \t/e)0m)0
+  
+%%Strip off any carriage returns and re-join any broken lines.
+o#ono-om ( (r0v-/\r/e-, ) (v-/=/e-j, m) )0
+   
+%%If it be a multi-part .mhtml then delete all non-html parts.
+n. ( f/------MultipartBoundary--/m (f1"text/html"r-0 (v/Content-/m)0 a$? f/------MultipartBoundary--/n.m, f/------MultipartBoundary--/m )0 m0a$, )
+ 
+%%Remove html commants and style sections now. 
+o#ono-om (f/<!--/n.f/-->/-a@+)0
+o#ono-om (f/<style/n.f"</style>"-a@+)0
+  
+%%Strip out any javascript etc.
+o#ono-om (f/<script/n.f"</script>"-a@)0
+  
+%%Allow hypertext refs through as jot-style references.
+o#ono-om
+( %%hyperlink reference and destination-point loop.
+  f/<a /n.f/>/-a$& obz$m-0
+  ( f/ href=/  %%It's a hypertext reference.
+    %%Extract only the link part.
+    f/"/-e-0(m-k-0, ) f/"/e0(mk0, )
+    %%If there is no taggable text then the URL becomes the displayed text.
+    oz n.f"</a>"a@&obz@ ((v/ /r)0v/</(f1/>/-, j)0e-0)0(f/</e0, r0(v-/ /r-)0e0 ) r-0(roz, i/Click here/ozi'@r?)
+    %%Tag the reference text 
+    %%N.B. this is only the link text, colour tags must wait until all link destination points are found.
+    f-'@- 
+    ( obz$r-0 v/#/ %%It's reference to some point in the same document.
+      oz %b=addtag HTMLRef; oq/html2txt_ParentURL/ %b=addtag -text='~'$;
+    , v/http/ %%It's a reference to some documment somewhere out on the web.
+      oz %b=addtag HTMLRef; %b=addtag -text='$;
+    , %%Assumed to be some document local to the original.
+      ozoq/html2txt_ParentURL/obosz$r-0i'~(v-./.\e-)0okoz %b=addtag HTMLRef; %b=addtag -text='$;)
+  , r-0f/name=/ %%It's a link destination point.
+    %%Pick up the reference tag and current URL to make the complete hashtable key then create the index entry.
+    f/"/-n.f1/"/a@&z@ (f/|/s/_VB_/)0r-0(f/=/s/_EQ_/)0r-0 ozoq/html2txt_ParentURL/obosz@r-0i'~i/#/okoz %h=add '@;
+  , %%Something else ... ignore it.
+    oz )
+  )0
+
+%%strip out any preexisting indentation.
+o#ono-om ((v/ /e)0m)0
+ 
+%%Translate tabs to pairs of blanks.
+o#ono-om (f/\t/s/  /)0
+%%Remove any carriage-returns.
+o#ono-om (f/\r/e)0  
+%%Rejoin lines ending in '='
+o#ono-om (r0v-/=/e-j(v/ /e)0, m)0
+%%Rejoin lines ending in '=20'.
+o#ono-om (r0v-/=20/ e-3i/ /m(v/ /r)0(v/\t/e, ), m)0
+%%Translate HTML paragraph markers. 
+o#ono-om (f/<p /(v-/ /e-)0n.f1/>/-a@+ bi/<br>/bi/  /(v/ /e)0 )0 
+o#ono-om (f/<p>/e3(v-/ /e-)0 bi/<br>/bi/  /(v/ /e)0 )0 
+%%Remove line breaks
+o#ono-om ((v/ /r)0 r\j (v/ /e)0, m)0
+  
+%%Deal with whole lines of literal text - ignore mid-line snippits.
+o#ono-om 
+( f/<div class="literallayout">/ (f1/<br>/\ f1"</div>"\m)0
+  ( v/<br>/ %%The literal-text extends over more than one line - tag each line as literal.
+    f-/<div / (f1/<br>/e4(rr-b,), f1"</div>"\r-0i/	/m )0
+    )0
+  )0
+
+%%<PRE> - in the original text these were prefixed by tabs.
+o#ono-om ( f/<PRE>/b (r-0i/	/f1"</PRE>"\m)0 r6b )0
+
+%%Take out Leading whitespace on blank lines.
+o#ono-om ((v/ /r)0 (r, e-0)m)0
+  
+%%Translate quotes.
+o#ono-om (f/&quot;/s/"/)0
+  
+%%Translate amphesends.
+o#ono-om (f/&amp;/s/&/)0
+  
+%%Translate blanks.
+o#ono-om (f/&nbsp;/s/ /)0
+  
+%%Those "<HR>" things - horizontal lines?? - ignore them. 
+o#ono-om (f"<HR"n.f1">"-a@+)0
+  
+%%Bullet points
+o#ono-om oq/'=DocBulletString/ ( f/<li>/-b i/  /i'~)0 ok
+%%Still with bullet points, remove any </UL> entries at the start of a new line.
+o#ono-om (f"</UL>"-b)0
+%%( f/<li>/-bon (m-v/ /\)0(v/ /r)0oc osono-om ol-1oso-(o~i/ /)0ok i'~)0
+%%  ( %%Search each record loop.
+%%    (f1/<li>/\ f1/<li /\ (m, x3))0 (f-1"</li>"-b, )
+%%    r-0i/  - /(v/ /e)0 f1/>/-(v/ /r)0(r, j)
+%%    %%If this is a multi-line list item indent subsequent lines n.b. list item may be terminated by </li>, <ol> or <ul>.
+%%    ( (f1"</li>", (mi/    /(v/ /e)0 (f1"</li>"\ f1/<ul>/\ f1/<ol>/\))0 r5b-), )
+%%    m )0
+  
+%%Add extra indentation to block quotes.
+o#ono-om (f/<blockquote>/ r-0i/  /(f1"</blockquote>"-\ji/ /)0 b)0
+  
+%%Respect <br>
+o#ono-om (f"<br>"e4(v-/ /e-)0 (r\r-\, b(v/ /e)0) )0
+  
+%%Indent all unindented lines beginning with alpha characters.
+o#ono-om (q/a-zA-Z/i/  /m, m)0
+%%  %%Now it's safe to remove tabs inserted at the start of lines to indicate literal text.
+%%  o#ono-om (v/\t/em, m)0
+  
+%%Translate section headings.
+o#ono-om
+( %%Find the next level-numbered heading.
+  ((f"<h" n.r2q"1-9"\(r,m))0 oid(f">", )\)0 v">"ra@+ 
+  %%Tidy up the end of the heading - may be on next line.
+  (r-rb,) (f1"</h"\j(v"  "e, i" "), n.f1/>/-a@+(v-/ /e-)0(rr-b-,)\)0 (rr-b-,) m (v/  /, i/  /) m-
+  %%Add a blank section-heading number - these will be updated later.
+  ol-1oso- r-0b (o~i/1./)0 e-i/ /ok
+  %%Strip out any blank lines following headings then normalize the indentation of the first paragraph.
+  m ( ( (v/ /r)0 r\k)0 r-0 (v/  /, i/  /) r2(v/ /e)0 )
+  )0
+
+%%Remove any remaining HTML tags.
+o#ono-om (f/</n.f/>/-a@+)0
+  
+%%Translate unicode characters.
+o#ono-om (f/=E2=80=/e7oixolx2000o+oo/%lc/)0
+  
+%%Restore escaped html special characters.
+o#ono-om (f/=/-(q/0-7/e-n.r2a$obz$r-0oixosozoo/%c/, r, e-j(v/ /e)0) r)0
+o#ono-om(f/&gt;/s/>/)0
+o#ono-om(f/&lt;/s/</)0
+o#ono-om(f/&copy;/s/©/)0
+o#ono-om(f/&#/oc r2(q/0-9/oid, v/x/roix, )(v/;/rosoco-ouoo/%lc/, rokok))0
+  
+%%Remove unnecessary blank lines. 
+o#ono-om (((q/	 /r)0rm)0 e-0m((q/	 /r)0r\ k)0m)0
+  
+%%Add separating whitespace if two tags coincide
+ob %q@=tags; (f1/, active colour is HTMLRef/m, k)0 m0r0bm-0 
+%%Search for the first tagged line in the new page.
+os ((v/  At rec /\m)0 r8oid o<\ m)0 r-0os
+( %%Record loop.
+  %%First join the report lines for each line of the buffer and go to that line in the page then remove the line no. from stack.
+  f1/  At rec /-oid osozo#ono-om obos z@(mf1/  At rec /-oido=j-)0 okm-
+  ( %%Tag loop - pick up the endpoint of the current tag and the start point of the next.
+    f/ to /-oid(f1/ chr /-oid, x2) z@
+    %%Compare the end point with the next start point - if they match insert whitespace.
+    ( o=  %%Abbutting tags - Abbutting tags - insert 2 blanks then later start and end points all need shifting by 2 chrs. rightwards.
+      osozr-0 or i/  / obz@oc (f1/ to /-oidol2o+oo/%d/ f1/ chr /-oidol2o+oo/%d/)0 r-0or, ok)
+    )0 %%Tag loop ends - move to next record.
+  okm)0 
+oz
+  
+%%At present every paragraph is a single (possibly quite long) line, separate the paragraphs before splitting up the long lines.
+o#ono-om ((v/ /\m)0 m(v/ /b, ) )0
+
+%%Break over-long lines (78 chrs in this case).
+o#ono-om oq/'=DocBulletString/
+( %%Long-line search loop.
+  (v/  /\m)0 (r78\(m, x3))0 
+  %%This line is 78 characters or more, calculate the correct indentation level for line breaks.
+  r-0(v/ /r)0 (v'~rr-f1'~-, ) ocol-1oso-
+  %%Now break the line as many times as necessary.
+  (r-0r78f-1/ /-bo#(o~i/ /)0ok)0
+  mok )0
+okok
+
+<<html2txt_FollowLink>>
+%%%s=mousemask 0;   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% debugging only.
+%%On a left-button click on tagged text, Follow the relevant hyperlink or, if no hyperlink, return.
+%%If no tags on clicked area, returns to previous view.
+%%
+%%Create the entry in the history trail.
+%%
+%%Collect the view to trail.
+ob oq/html2txt_History/ ox(rr-,)ox(o=okol0,) oc on of ob z@m-0k0 
+%%Build the history entry.
+oo/html2txt history: Buffer %c, / r0oo/top line %d, / r0oo/line %d, / r0oo/chr %d, / r0oo/substring %d/ b-
+%%Add to the history trail.
+z~m0h@ osozok
+  
+( %%Go to the mouse-click position.
+  obopozono-omor
+  %%Find text tags - if one exists this is deemed to be a key for the local hashtable.
+  %q~=tags -here; f/  Type text from chr /f1/"/-b-k-0f1/"/ej r-0(f/|/s/_VB_/)0r-0(f/=/s/_EQ_/)0 r-0n.(f/#/, r0)a$& osozo#ov/html2txt_OrigLink/
+  %%Does the link destination exist in the current collection?
+  ( %h=jump '~;
+    on(rm)0wono-omr0ocr-0ou
+  , %%No - it's a reference to some new document, read and translate the document before attempting to follow the link.
+    ob z$r0(f-/#/e0, r0)
+    %%Pull the document and translate to plain.
+    ( (v-/.html/\ v-/.aspx/\)\ %%Document type is html, add new page to current document.
+      ozoq/html2txt_ThisURL/ obosz~r-0e0h$ z$okr-0i/%e@=curl / %m?=Pulling HTML with '$; 
+      ( '$ , oz %x?=Failed to pull page with '$;) oz m0onh@ono-om
+      %h'=call html2txt_translate;
+      oq/html2txt_OrigLink/ %h=jump '~;
+    , v-/.pdf/ %%Use pdf2txt, this leaves the translated text in ( @ ).
+      %m?=Following link to a PDF: '$;
+      ( z$r-0i/%e=curl /r0i" > /tmp/html2txt.pdf;" %m?=Pulling PDF document with '$;'$
+        %d$=/tmp/html2txt.pdf; %h'=call pdf2txt_translate;
+        %%Add the chapter tag and the text.
+        ozm0r0b2 onh@b2 ono-ombb-i/URL ----------------------------------------------- / oq/html2txt_OrigLink/i'~ %h=add '~; 
+      , %%Catch-all failures.
+        %m?=Error: Something went wrong while attempting to translate that pdf.; )
+    , v-/.doc/ %%Use doc2txt, this leaves the translated text in ( @ ).
+      %m?=Following link to an MS-Word document: '$;
+      ( z$r-0i/%e=curl /r0i" > /tmp/html2txt.doc;" %m?=Pulling MS-word document with '$; '$
+        %d$=/tmp/html2txt.doc; %h'=call doc2txt_translate; %l;
+        %%Add the chapter tag and the text.
+        okokozm0r0b2 onh@b2 ono-ombb-i/URL ----------------------------------------------- / oq/html2txt_OrigLink/i'~ %h=add '~; 
+      , %%Catch-all failures.
+        %m?=Error: Something went wrong while attempting to translate that MS-word doc.; )
+    , v-/.xls/ %%An XL spreadsheet - use ssconvert (part of gnumetic)
+      %%First pull the spreadsheet to /tmp.
+      ( z$r-0i"%e=curl " r0i" > /tmp/html2txt_spreadsheet.xls" '$
+        %%Now use ssconvert to extract the text.
+        %e@=java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text /tmp/html2txt_spreadsheet.xls
+        %%        %e@=ssconvert --export-type=Gnumeric_stf:stf_csv /tmp/html2txt_spreadsheet.xls fd://1
+        %%      z@m-0(f/,/s/\t/)0
+        %%Now change the commas to tabs and apply a good safe tabcells setting.
+        ozm0r0b2 oni/URL ----------------------------------------------- / oq/html2txt_OrigLink/i'~ bh@osono-om %h=add '~; %b=tabcells -1;
+      , %%Catch-all failures.
+        %m?=Error: Something went wrong while attempting to translate that spreadshet.; )
+    , z$r-0r\ %%An empty pathname - it's a reference to the somewhere in the current page.
+      %%Pick up the parent URL.
+      osozf-/URL -------------------/r6f1/ /-n.r0a$& %h=jump '$'~;
+    , %%Unsupported document type - just list the url.
+      ozm0r0b2 oni/URL ----------------------------------------------- /i'$b
+      i/Unsupported file type./b2 ) )
+  , %%Clicked to untagged text - return to previous view.
+    %%Pick up and check history-trail entry.
+    osozokob 
+    ( %%Check the history data and return to previous focus.
+      oq/html2txt_History/z~ m0m-k-v/html2txt history/ f1/, substring /-oid f-1/, chr /-oid  f-1/, line/-oid f-1/, top line /-oid  f-1/ Buffer /-oic k-?
+      %%Restore original view.
+      oz osono-om wofo-ow or ou
+      okokx3
+    , %%No valid history-trail entry.
+      osozokx3 ) )
+%%Reset line numbers
+oconm-0ono- %h=fix; omor
+w %h'=call WindowAlignTop; %l;
+
+:
+%h'=call AddNewFunctions;
+
+%g7
+%%Follows all links in current document.
+%%
+%%Initializate document counter and return buffer key then get a list of all links.
+ol0 ob %q*=tags;
+%%Extract only link pathnames.
+(f1/Type text from chr /f1/ = "/-e-0(f1/#/e0, f1/"/e)m, k)0
+m-0 
+( %%File loop
+  %%Pick up the next pathname, if this file already exists in the text then skip it.
+  n.r0a$& o#oz 
+  ( %h=testkey '$; ok, 
+    %%A new URL, set the new documents URL.
+    o#ozoq/html2txt_ThisURL/ z~r-0e0h$ 
+    %%Pull the file.
+    z$oki/%e@=curl / 
+    ( '$ 
+      %%Add new text to main buffer and translate.
+      oz m0onh@ono-om %h'=call html2txt_translate; o~, oz) )
+  obz*m)0 oz
+%m=Successfully added '~ new documents.
+:
+  
+%g6
+%%Macro adds an index to all pages (pulled URLs) in the text.
+ob %q@=tags;
+(f1/  Type target /f1/#/\m,k)0
+m-0(f1/, /-2e-0m)0
+ozm-0 f/URL -----/m-k-0 h@b2
+m-0 (n.r0a$&r-0v'$ %b=addtag HTMLRef; %b=addtag -text='$; mrr-)0
+:
+
+%g#
+ob 
+( %q=windows; %r=WindowsNT_keys;
+, %%Some sort of linux?
+  %q@=version; mf1/ chrome / %r=curses_keys_chrome;
+, %%Normal linux.
+  %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$ )
+z@m-0 (z@f/{Button1Click}/ r-0r12e0z^m-0 (f'@r12e0, m-0i'@b-) i/%h'=call html2txt_FollowLink;/)?
+ozm-0
+:
+'#
+  
+%%Finally, translate the document.
+%h'=call html2txt_translate; m-0
+  
+%s=mousemask 4;
+

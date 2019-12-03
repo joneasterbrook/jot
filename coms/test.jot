@@ -95,7 +95,7 @@ m-0f/jon/rr- f-/jon/ f-/jon/\
 %%Check the behaviour of f- when initially given a negative substring.
 m-0 f/jon/- f-/jon/\
 
-%M=Check Qualify. 
+%M=Check Qualify - Q command. 
 m-0m8r5v/c/
 %%Easy
 q/c/
@@ -105,6 +105,7 @@ q/d-z/\
 q/b-d/
 q/C/\
 q/A-Z/\
+f/-/q/-0-9/ q/0-9-/
 
 %M=Check that all various percent-command terminations and indirect references are all in full working order.
 %%Simple case
@@ -127,7 +128,7 @@ z. %da=r-0;  %db=rr-rr- \\'a rr-rr-;  zb v/rr-rr- 'a rr-rr-/ r0v-//
 %m=This should not crash it \
 z.
 
-%M=Check Break and join.
+%m=Check Break and join.;
 z.m-0 f/Jonathan/b
 v/jonathans wonderful editor./
 r-\
@@ -185,6 +186,77 @@ v/8 :asdgfghjkl;'/
 m-
 v/7 :qwertyuiop[]/
 
+%M=Check X command;
+zam-0k0b- (i/(4 / (i/(3 /  (i/(2 /  (i/(1 / x1 i/ 1-Wrong, X should skip this)/ ) i/ 2)/ ) i/ 3)/ ) i/ 4)/ ) v-/(4 (3 (2 (1  2) 3) 4)/r-0v//
+mb-       (i/(4 / (i/(3 /  (i/(2 /  (i/(1 / x2 i/ 1)/ ) i/ 2)/ ) i/ 3)/ ) i/ 4)/ ) v-/(4 (3 (2 (1  3) 4)/r-0v//
+mb-       (i/(4 / (i/(3 /  (i/(2 /  (i/(1 / x3 i/ 1)/ ) i/ 2)/ ) i/ 3)/ ) i/ 4)/ ) v-/(4 (3 (2 (1  4)/r-0v//
+ol-10mb-  (i/(4 / (i/(3 /  (i/(2 /  (i/(1 /o~ x-1 i/ 1)/, x0 ) i/ 2)/ ) i/ 3)/ ) i/ 4)/ ) 
+  v-/(4 (3 (2 (1 (1 (1 (1 (1 (1 (1 (1 (1 (1 /r-0v// ok
+ol-10mb-  (i/(4 / (i/(3 /  (i/(2 /  (i/(1 /o~ x-2 i/ 1)/, x0 ) i/ 2)/ ) i/ 3)/ ) i/ 4)/ ) 
+  v-/(4 (3 (2 (1 (2 (1 (2 (1 (2 (1 (2 (1 (2 (1 (2 (1 (2 (1 (2 (1 (2 (1 /r-0v// ok
+ol-10mb-  (i/(4 / (i/(3 /  (i/(2 /  (i/(1 /o~ x-3 i/ 1)/, x4 ) i/ 2)/ ) i/ 3)/ ) i/ 4)/ ) 
+  v-/(4 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 (3 (2 (1 /r-0v// ok
+%%Check that block count gets reset properly - in particular that X0 from the previous test.
+mb- ( i/ x / )2 v-/ x  x /r-0v//r6r\
+%%Check that it exits from one, and only one macro call.
+%d1=( i/(M1 / \\'2 i/ M1)/ );
+%d2=( i/(M2 / \\'3 i/ M2)/ );
+%d3=( i/(M3 / X1 i/ M3)/ );
+mb-'1 v-/(M1 (M2 (M3  M2) M1)/r-0v//
+%%
+%d3=( i/(M3 / X2 i/ M3)/ );
+mb-'1 v-/(M1 (M2 (M3  M1)/r-0v//
+%%
+%d3=( i/(M3 / X3 i/ M3)/ );
+mb-'1 v-/(M1 (M2 (M3 /r-0v//
+%%
+%%Check that a fail trickles through all the call returns.
+%d1=( i/( (M1 / \\'2 i/  Macro 3 incorrectly returned success/, i/  Macro 3 fail./ );
+%d3=( i/( (M3 / X2\\ i/ M3) / );
+mb-'1 v-/( (M1 (M2 ( (M3   Macro 3 fail./r-0v//
+%%
+%%Check that it exits to correct function-call frame.
+%g@
+  
+<<Fun_1>>
+( i/(F1 / %h'=call Fun_2; i/ F1)/ )
+  
+<<Fun_2>>
+( i/(F2 / %h'=call Fun_3; i/ F2)/ )
+  
+<<Fun_3>>
+( i/(F3 / X1 i/ F3)/ )
+  
+<<Fun_a>>
+(i/a1/ (i/a2/ (i/a3/ x0 i/a4/) i/a5/) i/a6/) i/a7/
+
+<<Fun_Fail>>
+%%Checks that a fail flag is correctly passed back to parent sequence.
+( r999 )
+  
+:
+%h'=call AddNewFunctions;
+zamb- %h'=call Fun_1; v-/(F1 (F2 (F3  F2) F1)/r-0v//
+( %h'=call Fun_Fail; mb-i/Fun_Fail_Success/, mb-i/Fun_Fail_Fail/ ) v-/Fun_Fail_Fail/ 
+%%
+  
+%%Check X0 exits only current macro.
+%da=(i/a1/ (i/a2/ (i/a3/ x0 i/a4/) i/a5/) i/a6/) i/a7/;
+%db=(i/b1/ (i/b2/ (i/b3/ \\'a i/b4/) i/b5/) i/b6/) i/b7/;
+z.n.aqzq 'b 
+v-/b1b2b3a1a2a3b4b5b6b7/ r\ r-0v//
+  
+%%Check x0 only exits current function.
+%db=(i/b1/ (i/b2/ (i/b3/  %h\\'=call Fun_a\; i/b4/) i/b5/) i/b6/) i/b7/;
+z.n.aqzq 'b
+v-/b1b2b3a1a2a3b4b5b6b7/ r\ r-0v//
+
+%%Check X0 exits only current script.
+%d$=(i/a1/ (i/a2/ (i/a3/ x0 i/a4/) i/a5/) i/a6/) i/a7/;  z$r0b %o=./test_x0_a.jot;
+%db=(i/b1/ (i/b2/ (i/b3/ %r=./test_x0_a.jot\; i/b4/) i/b5/) i/b6/) i/b7/;  z$r0b %o=./test_x0_b.jot;
+z.n.aqzq 'b
+v-/b1b2b3a1a2a3b4b5b6b7/ r\ r-0v//
+  
 %M=Check Zoom command.
 zc m-0
 v/qwertyuiop[]/
@@ -195,10 +267,10 @@ v/9 :/
 z.
 
 %m=A few simple regular-expression searches.
-%q~=version; f/WindowsNT/z.ok, z.okm-0%f=Test.*jon;   v/Test file for jonathans wonderful editor./v-/4 :/
-%q~=version; f/WindowsNT/z.ok, z.okm0 %f-=Test.*jon;  v/Test file for jonathans wonderful editor./v-/4 :/
-%q~=version; f/WindowsNT/z.ok, z.okm-0%fa=Test.*jon;  v/Test file for jonathans wonderful editor./v-/4 :/ zar\ mv/Test file for jon/r0v-//
-%q~=version; f/WindowsNT/z.ok, z.okm0 %f-a=Test.*jon; v/Test file for jonathans wonderful editor./v-/4 :/ zar\ mv/Test file for jon/r0v-//
+z.%q=windows;, m-0%f=Test.*jon;   v/Test file for jonathans wonderful editor./v-/4 :/
+z.%q=windows;, m0 %f-=Test.*jon;  v/Test file for jonathans wonderful editor./v-/4 :/
+z.%q=windows;, m-0%fa=Test.*jon;  v/Test file for jonathans wonderful editor./v-/4 :/ zar\ mv/Test file for jon/r0v-//
+z.%q=windows;, m0 %f-a=Test.*jon; v/Test file for jonathans wonderful editor./v-/4 :/ zar\ mv/Test file for jon/r0v-//
 
 %m=sort
 %iq=${JOT_RESOURCES}/t.t; %b=sort; r\m v/1 :/m v/10:/m v/2 :/m v/3 :/m v/4 :/m v/5 :/m v/6 :/m v/7 :/m v/8 :/m v/9 :/m\
@@ -221,7 +293,7 @@ zam-0ol1ono=ok
 z.m-0ol1ono=ok
 
 %m=Now try abstracting remainder of first line then several complete lines. 
-m-0n.m0aahazam-0f/jon/
+m-0n.m0aa hazam-0f/jon/
 z.m-0f/jon/n.m3aa.
 m-v/3 :1234567890/r0v-// 
 mv/4 :Test file for 7 :qwertyuiop[]/r0v-//
@@ -305,24 +377,26 @@ v`4 :Test file for jonathans wonderful editor.`r0v-``z.
 zam-0ol1ono=ok
 z.m-0ol1ono=ok
 
-%m=Now try replacing with blanks.
-m-0f/jon/
-n.f1/ /aa*
-v-/4 :Test file for /
-v/          wonderful editor./
-ha*
-v-/4 :Test file for /
-v/jonathans wonderful editor./
-%%Check that it does not extend the line.
-mr40ha*r-0v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaajonathansaaaaaaaaaaaaaaaaaaa/r0v-//
-s/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
-%%Check at the begining of a line.
-mha* r-0v/jonathansbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/r0v-//
-s/6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
-%%Check at the end of the line (no overhang).
-mr0r-9ha* r-0v/7 :qwejonathans/r0v-// s/7 :qwertyuiop[]/
-%%Check at the end of the line (1 chr overhang).
-mr0r-8ha* r-0v/8 :asdgjonathans/r0v-// s/8 :asdgfghjkl;'/
+%%  %m=Now try replacing with blanks.
+%%  m-0f/jon/
+%%  n.f1/ /aa*
+%%  v-/4 :Test file for /
+%%  v/          wonderful editor./
+%%  ha*
+%%  v-/4 :Test file for /
+%%  v/jonathans wonderful editor./
+%%  %%Check that H* does not extend the line.
+%%  m-0f/jon/n.f1/ /aa&
+%%  mr40ha*r-0v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaajonathansaaaaaaaaaaaaaaaaaaa/r0v-//
+%%  s/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+%%  %%Check at the begining of a line.
+%%  mha* r-0v/jonathansbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/r0v-//
+%%  s/6 :bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
+%%  %%Check at the end of the line (no overhang).
+%%  mr0r-9ha* r-0v/7 :qwejonathans/r0v-// s/7 :qwertyuiop[]/
+%%  %%Check at the end of the line (1 chr overhang).
+%%  mr0r-8ha* r-0v/8 :asdgjonathans/r0v-// s/8 :asdgfghjkl;'/
+
 %%Check the first line number.
 zam-0ol1ono=ok
 z.m-0ol1ono=ok
@@ -492,7 +566,7 @@ oq/$=a|b|c|d|e/ z.n.aa oq/$=a|b|c|d|e|f/
 %m=Check %i/%o path-name parsing and crossmatching.
 %iq=${JOT_RESOURCES}/t.t
 %q$=date;
-%%First check it can write with a follu-formed pathname.
+%%First check it can write with a fully-formed pathname.
 %b=pathname ./x.lis; %o;
 kzqh$b
 %o=t.txt;
@@ -672,14 +746,17 @@ m0k\ k- j-m-k-0m-\ v/__44:/m\
 %m=Check various flavours of %E
 %%
 %%First the single-pipe version - readback a command's output to a buffer.
-m-0k0 (%q=windows -hereEndsThePercentCommand; %eq=cat %JOT_RESOURCES%\\l99.t; -hereEndsThePercentCommand; v/__01: abc/ m+50v/__50: abc/ m0m-v/__99: abc/, )
-m-0k0 (%q=linux -hereEndsThePercentCommand; %eq=cat ${JOT_RESOURCES}/l99.t; -hereEndsThePercentCommand; v/__01: abc/ m+50v/__50: abc/ m0m-v/__99: abc/, )
+m-0k0 (%q=windows;\, %eq=REG QUERY HKCU\\Environment; r2\m v/HKEY_CURRENT_USER\Environment/ f/ JOT_HOME /)
+m-0k0 (%q=linux;\, %eq=cat ${JOT_RESOURCES}/l99.t; v/__01: abc/ m+50v/__50: abc/ m0m-v/__99: abc/, )
 %qa=buffer; f/pathname = /-v/[ from cli command/
 %%
 
 %%Now the twin-pipe version - the current buffer is piped into the command's stdin.
 ( %q=windows;,  z.%ia; %eq=|wc; v/     11      24     327/ )
 ( %q=windows;\, z.%ia; %eq=|wc; v/     10      24     316/ )
+
+%%  %m=Now use the twin-pipe to verify that jot will successfully work in stream mode.
+%%  %q$=system; f/Invocation name = /-b-k-0mk0 i"%e@=|" r0i@ -in='(i/zzz /pm)0 %a' -tty -st -quiet@ t '$
 
 %m=Various queries.
 %%Query wd
@@ -739,6 +816,8 @@ v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
 
 %m=backtrace.
 %%The backtrace query doesn't report it's own stackframes unless it's called interactively from a debugger prompt so, for now, this will have to do.
+%da=\\'a;
+zar0b %o=./call_fail.jot;
 %g@
 <<TestFunction>>
 %%A code-repository function to go on the backtrace report.
@@ -746,8 +825,10 @@ v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
 rr-rr-'crr-rr-  
 %%That's it.
 :
-z.
-z'm0bh@bf-/<<TestFunction>>/- %h=destroy; %h=create 100; %h=add TestFunction; z.
+%%If  ( ' ) has no hashtable then create it now.
+z' ( %qa=key TermResize;, %h'=create 100; )
+z'm0bh@bf-/<<TestFunction>>/- %h=add TestFunction; z.
+%%  z'm0bh@bf-/<<TestFunction>>/- %h=destroy; %h=create 100; %h=add TestFunction; z.
 %%It's using %G to define macros A and B because there's currently a bug in %D that stops us getting the right number of backslashes.
 %ga
 r-0rr-rr-rr-rr- 'brr-rr-rr-rr-rr-
@@ -756,9 +837,9 @@ r-0rr-rr-rr-rr- 'brr-rr-rr-rr-rr-
 rr-rr- %h'=call TestFunction; rr-rr-
 :
 %dc=rr- r999 rr-;
-%s=trace 2804;
-'a
-n.a@ %q@=window;
+%s=trace 808;
+%r=./call_fail.jot -asConsole;?
+%q@=window;
 f"  Line    1 of macro C: rr- r999 rr-"
 mv/Attrs: (X=28 Current_Chr) (X=32 Normal_Text)/
 mf1" of ( ' ) - function <<TestFunction>>: rr-rr-'crr-rr-"
@@ -767,15 +848,19 @@ mv"  Line    1 of macro B: rr-rr- %h'=call TestFunction; rr-rr-"
 mv/Attrs: (X=31 Current_Chr) (X=53 Normal_Text)/
 mv"  Line    1 of macro A: r-0rr-rr-rr-rr- 'brr-rr-rr-rr-rr-"
 mv/Attrs: (X=40 Current_Chr) (X=42 Normal_Text)/
-mf1" of file "f1"test.jot: 'a"
+mv"  Line    0 of file ./call_fail.jot: 'a"
+mv/Attrs: (X=37 Current_Chr) (X=39 Normal_Text)/
+mf1"test.jot: %r=./call_fail.jot "
 %%
 %g#
 %q$=system; f/Initialization commands = /-
 ( v/%r=test/ %%It was run from the -init CLI option.
-  z@ mv"  Line    1 of -init commands i: [%r=test]"m
-  v/1 :abcdefghijklmnopqrstuvwxyz/
+  z@ m2v"  Line    1 of -init commands i: %r=test"m
+  m2v/1 :abcdefghijklmnopqrstuvwxyz/
 , %%It was run from the jot console.
-  z@m(v/1 :abc/, f1/of console command c: [%r=test;]/m, ) ) m
+  z@ m2(f1"of console command c: %d$=test -hereEndsThePercentCommand; %r='$"
+  m3v/1 :abc/
+  m, ) ) m
 :
 '#
 
@@ -829,8 +914,11 @@ oc ol17 o=
 m-0f/jon/ ol10 o. m-0m+10 f1/jon/ 
 m-0ol1o.
   
-%m=Check oid 
-m2r3 oid ol1234567890 o=
+%m=Check oid, oic, ioo, oix and oif 
+m2r3 oid ol1234567890 o=ok
+m=3r2 oic ol58o=ok
+m=3r3oio ol342391o=ok
+m=3r3oix ol78187493520o=ok  m=2r3oix ol11259375o=ok  m=1r3oix ol11259375o=ok
   
 %m=Check o~ 
 ol-2 o~ o~\
@@ -849,13 +937,10 @@ ol-3omv/1 :abcdefghijklmnopqrstuvwxyz/
   
 %m=os 
 ol123 ol456 os ol123 o= 
-  
-%%%m=o^[FLZE]
-%%m-0 o^f m o^f\ 
-%%m0 o^l m- o^l\
-%%or o^e ol123 o^e\ 
-%%olz
 
+%m=OE - erase no. of characters specified by top of stack.
+%iq; m=4r17 ol-18 oe\ v-/4 :Test file for / ol-4oe v-/4 :Test file / ol28oe\ ol10oev/wonderful editor./ol18oe\
+  
 %m=Query samesinceio
 z.%iq; %q=samesinceio; i/zzz/ %q=samesinceio;\
 
@@ -983,7 +1068,7 @@ v/  Console area /m
 v/      win:0  = fixed on buffer  ( . ),  9 lines (0  to  8), 15 column slice (0  to 14), Leftmost./m
 v/      win:1  = fixed on buffer  ( A ),  9 lines (0  to  8), 20 column slice (15 to 34)./m
 v/      win:2  = fixed on buffer  ( B ),  9 lines (0  to  8), 10 column slice (35 to 44)./m
-v/      win:3  = currently buffer ( A ), 10 lines (9  to 18), Leftmost, Height includes an end delimiter./m
+v/      win:3  = currently blank       , 10 lines (9  to 18), Leftmost, Height includes an end delimiter./m
 v/  Console area /m
 %%Now remove the middle slice.
 %s=trace 400;
@@ -1053,11 +1138,11 @@ v/  Console area /
 %%Restore normal windows;
 %w=; %w= -height=15 -delim; z.
 
-%m=Check OU (set substring length) then OE - Extent of record/substring with unicode, tabstops and both.
+%m=Check OU (set substring length) then OX - Extent of record/substring with unicode, tabstops and both.
 %%First OU.
-f/jon/rf1/ /ocf-1/ /roco-ou %qa=buffer; f/CurrentChr = 17/ f/SubstringLength = 9/
-%%Test OE, first with plain old ASCII characters.
-z.r-0 f/jon/oeol3o=ok r-0f//-oeol-3o=ok rr-oeol44o=ok
+f/jon/rf1/ /ocf-1/ /roco-ou %qa=buffer; f/CurrentByte = 17/ f/SubstringLength = 9/
+%%Test OX, first with plain old ASCII characters.
+z.r-0 f/jon/oxol3o=ok r-0f//-oxol-3o=ok rr-oxol44o=ok
 
 %M=Check indirect numeric parameter passing. 
 %%A numeric value to a string command ( I ).
@@ -1081,13 +1166,13 @@ i/Xtest1/
 %b=pathname ./test_asconsole.jot;  %o
 z.m-0
 %r=./test_asconsole.jot -asConsole;
-oeol3o=ol3o=ok v-/4 :Test file for /v/jonathans wonderful editor./
+oxol3o=ol3o=ok v-/4 :Test file for /v/jonathans wonderful editor./
 
 %m=Check passing of a parameter to ## marker in hotkey sequence.
 zas/jonathanXtest2/ %o;
 z.m-0
 %r=./test_asconsole.jot -asConsole
-oeol8o=ol8o=ok v-/4 :Test file for /v/jonathans wonderful editor./
+oxol8o=ol8o=ok v-/4 :Test file for /v/jonathans wonderful editor./
 
 %m=Check operation of G and OG from -asConsole scripts.
 zae-0
@@ -1210,22 +1295,29 @@ mv/  Type target Q, Chr 17, jon/r0v-//
 %%
 %%Simple case - tag left of changed text.
 zqj- e-5  %h=jump 123;  v-/3 :/v/123454 :Test file for jonathans wonderful editor./r0v-//
+%%This time with colour tag - colour tags have an endpoint.
+m-0f/defghijk/- %b=tagtype test colour 0 2; %b=addtag test; %qz=tags;
+f/At rec   1,/-v/ chr  6 to 14, active colour is test/
+zqe3 %qz=tags;
+f/At rec   1,/-v/ chr  6 to 14, active colour is test/
+zqe-3 %qz=tags;
+f/At rec   1,/-v/ chr  6 to 11, active colour is test/
+%%Check endpoint with a +ve offset.
+zqr-0i/.../ %qz=tags; f/At rec   1,/-v/ chr  9 to 14, active colour is test/
 %%Slightly harder case - tag right of changed text.
- %h=jump jon; v-/3 :123454 :Test file for /v/jonathans wonderful editor./
+zq %h=jump jon; v-/3 :123454 :Test file for /v/jonathans wonderful editor./
 %%Target-point is inside removed text.
-r-0f/jon/r-2e7  %h=jump jon;  v-/3 :123454 :Test file foha/v/ns wonderful editor./
-%%r-0f/jon/r-2e7  %h=jump jon;  v-/3 :123454 :Test file fo/v/hans wonderful editor./
+r-0f/jon/r-2e7  %h=jump jon;  v-/3 :123454 :Test fi/v/le fohans wonderful editor./
 %qa=keys
 mv/Keys for buffer Q :/
 mv/key                  123, (JumpObj) buf Q, line no.    3, Chr no. 3, Rec:3 :123454 :Test file fohans wo/
-mv/key                  jon, (JumpObj) buf Q, line no.    4, Chr no. 25, Rec:3 :123454 :Test file fohans wo/
+mv/key                  jon, (JumpObj) buf Q, line no.    4, Chr no. 18, Rec:3 :123454 :Test file fohans wo/
 mr\
 zq%qa=tags
 mv/Reporting all tags in Buffer Q/
-mv/Rec   3: "3 :123454 :Test file fohans wonderful editor."/
+m3v/Rec   3: "3 :123454 :Test file fohans wonderful editor."/
 mv/  Type target Q, Chr  3, 123/r0v-//
-mv/  Type target Q, Chr 25, jon/r0v-//
-%%mv/  Type target Q, Chr 23, jon/r0v-//
+mv/  Type target Q, Chr 18, jon/r0v-//
 mr\
 
 %m=Verify hash-table behaviour for A command.
@@ -1234,22 +1326,23 @@ mr\
 zqj-f1/wonderful/-n.r-f-1/ /aa  %h=jump 123;  v-/2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ3 :/v/123454 :Test file fohans editor./r0 v-//
 %%
 %%Slightly harder case - tag right of abstracted text.
-r-0f1/ABCDEFG/n.r5aa %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test file foha/v/ns editor./
-%%r-0f1/ABCDEFG/n.r5aa %h=jump jon; /v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test file fo/v/hans editor./
+r-0f1/ABCDEFG/n.r5aa %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fi/v/le fohans editor./
+%%r-0f1/ABCDEFG/n.r5aa %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test file foha/v/ns editor./
 %%
 %%Target-point is inside removed text.
-r-0f/hans/r-4n.r8aam-0  %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fil edito/v/r./
-%%r-0f/hans/r-4n.r8aam-0  %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fil/v/ editor./
+r-0f/hans/r-4n.r8aam-0  %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fi/v/l editor./
+%%r-0f/hans/r-4n.r8aam-0  %h=jump jon; v-/2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fil edito/v/r./
 %qa=keys
 mv/Keys for buffer Q :/
 mv/key                  123, (JumpObj) buf Q, line no.    3, Chr no. 27, Rec:2 :FGHIJKLMNOPQRSTUVWXYZ3 :123/
-mv/key                  jon, (JumpObj) buf Q, line no.    4, Chr no. 49, Rec:2 :FGHIJKLMNOPQRSTUVWXYZ3 :123/
+mv/key                  jon, (JumpObj) buf Q, line no.    4, Chr no. 42, Rec:2 :FGHIJKLMNOPQRSTUVWXYZ3 :123/
+%%mv/key                  jon, (JumpObj) buf Q, line no.    4, Chr no. 49, Rec:2 :FGHIJKLMNOPQRSTUVWXYZ3 :123/
 mr\
 zq%qa=tags
 mv/Reporting all tags in Buffer Q/
-mv/Rec   2: "2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fil edito"/
+m3v/Rec   2: "2 :FGHIJKLMNOPQRSTUVWXYZ3 :123454 :Test fil edito"/
 mv/  Type target Q, Chr 27, 123/r0v-//
-mv/  Type target Q, Chr 49, jon/r0v-//
+mv/  Type target Q, Chr 42, jon/r0v-//
 %%mv/  Type target Q, Chr 43, jon/r0v-//
 mr\
 
@@ -1311,37 +1404,40 @@ z. %b=remove_tag text Hello world; %qa=tags -here; m+4r\
 %q=inview;\ o@r- %q=inview; ok %b=leftoffset '~; ei-/+++++/  %q=inview; r- %q=inview;\ o@
 %%
 
-%m=Check backtrace and messages in -tty mode;
-%%First get invocation string.
-%q$=system; f/ invocation name = /-b-k-0mk0
-r-0i|%eq=|r0i| ${JOT_RESOURCES}/t.t -in="%s=trace 4801\; %da=f/jon/p m-0f//-p\; 'a %a\;" -tty| '$
-zq (%q=windows; (f/\r/e)0, )
-m-0 f"4 :Test file for jonathans wonderful editor."mv"                 ^~~"r0v-""
-mr\
-mv"  Line    1 of macro A: f/jon/p [m-0]f//-p"r0v-""
-mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; ['a] %a;"r0v-""
-mr\
-mv"{New command. (line 1 of buffer A)}f/jon/p m-0f//-p"r0v-""
-mv"                                           ^~~"r0v-""
-mr\
-mv"  Line    1 of macro A: f/jon/p m-0[f//-]p"r0v-""
-mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; ['a] %a;"r0v-""
-mr\
-mv"{New command. (line 1 of buffer A)}f/jon/p m-0f//-p"r0v-""
-mv"                                              ^~~~"r0v-""
-mr\
-mv"  Line    1 of macro A: f/jon/p m-0f//-[p]"r0v-""
-mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; ['a] %a;"r0v-""
-mr\
-mv"{New command. (line 1 of buffer A)}f/jon/p m-0f//-p"r0v-""
-mv"                                                  ^"r0v-""
-mr\
-mv"4 :Test file for jonathans wonderful editor."mv"                 ~~~^"r0v-""
-mr\
-mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; 'a [%a;]"r0v-""
-mr\
-mv"{New command. (line 1 of buffer i)}%s=trace 4801; %da=f/jon/p m-0f//-p; 'a %a;"r0v-""
-mv"                                                                           ^~~"r0v-""
+%%  %m=Check backtrace and messages in -tty mode;
+%%  %%First get invocation string.
+%%  %q$=system; f/ invocation name = /-b-k-0mk0
+%%  r-0i|%eq=|r0i| ${JOT_RESOURCES}/t.t -in="%s=trace 4801\; %da=f/jon/p m-0f//-p\; 'a %a\;" -tty| '$
+%%  zq (%q=windows; (f/\r/e)0, )
+%%  m-0 f"4 :Test file for jonathans wonderful editor."mv"                 ^~~"r0v-""
+%%  mr\
+%%  mv"Backtrace:"
+%%  mv"  Line    1 of macro A: f/jon/[p ]m-0f//-p"r0v-""
+%%  %%mv"  Line    1 of macro A: f/jon/p [m-0]f//-p"r0v-""
+%%  mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; ['a] %a;"r0v-""
+%%  mr\
+%%  mv"{New command. (line 1 of buffer A)}f/jon/p m-0f//-p"r0v-""
+%%  mv"                                         ^~"r0v-""
+%%  mr\
+%%  t mv"Backtrace:"
+%%  mv"  Line    1 of macro A: f/jon/p [m-0]f//-p"r0v-""
+%%  mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; ['a] %a;"r0v-""
+%%  mr\
+%%  mv"{New command. (line 1 of buffer A)}f/jon/p m-0f//-p"r0v-""
+%%  mv"                                     ^~~"r0v-""
+%%  mr\
+%%  mv"  Line    1 of macro A: f/jon/p m-0f//-[p]"r0v-""
+%%  mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; ['a] %a;"r0v-""
+%%  mr\
+%%  mv"{New command. (line 1 of buffer A)}f/jon/p m-0f//-p"r0v-""
+%%  mv"                                                  ^"r0v-""
+%%  mr\
+%%  mv"4 :Test file for jonathans wonderful editor."mv"                 ~~~^"r0v-""
+%%  mr\
+%%  mv"  Line    1 of -init commands i: %s=trace 4801; %da=f/jon/p m-0f//-p; 'a [%a;]"r0v-""
+%%  mr\
+%%  mv"{New command. (line 1 of buffer i)}%s=trace 4801; %da=f/jon/p m-0f//-p; 'a %a;"r0v-""
+%%  mv"                                                                           ^~~"r0v-""
 
 %%Exit now if in windows.
 %%( %q=windows; %x=Exiting now since windows version can\\'t do UTF-8.;, )
@@ -1359,21 +1455,24 @@ Markus Kuhn [ˈmaʳkʊs kuːn] <http://www.cl.cam.ac.uk/~mgk25/> — 2002-07-25 
 
 :
 %%E command with unicode.
-za %b=unicode 0; ol0 (r, m)o~)0 t ol230o= ok %b=unicode 1; ol230o= ok %b=unicode 1; 
-%eb=|wc; %q$=version; m(f1/chrome/ zbv/      5      13     234/, f1/windows/zbv/      4      15     349/r0r-v-//, zbv/      5      15     234/r0v-// )
-%%  za %b=unicode 0; ol0 ((r, m)o~)0 t ol230o= ok %b=unicode 1; %eb=|wc; v/      5      15     234/ r0v-//)
+za %b=unicode 0; ol0 (r, m)o~)0 ol230o= ok %b=unicode 1; ol230o= ok %b=unicode 1; 
+%%  %eb=|wc; %q$=version; m(f1/windows/zbv/      4      15     349/r0r-v-//, zbv/      5      15     234/r0v-// )
+%eb=|wc; %q$=version; m(f1/crouton/ zbv/      5      13     234/, f1/windows/zbv/      4      15     349/r0r-v-//, zbv/      5      15     234/r0v-// )
 
 %%Tidy up.
 %%m-k3
 
-%%Check OU with a unicode character - first ensure unicode is enabled.
+%%Check OU with a unicode character.
 z.m+4
-%b=unicode 1
-r-0f1/jon/-r-r ol-94ol-124ol-30oo/%c/rr-oo/%c/rr-oo/%c/ f1/ /n.f-1//-a$&f-1'$oeol10o= ol10o=ok rr-oe ol45o=ok
-%b=unicode 0
-r-0f1'$oeol12o= rr-oe ol47o=ok
+%b=unicode 0; %%This is necessary in order to insert the correct unicode character using oo.
+r-0f1/jon/-r-r ol-94ol-124ol-30oo/%c/rr-oo/%c/rr-oo/%c/ 
+%b=unicode 1;
+(%q=windows; %b=codepage 65001;, )
+f1/ /n.f-1//-a$&f-1'$oxol10o= ol10o=ok rr-ox ol45o=ok
+%b=unicode 0;
+r-0f1'$oxol12o= rr-ox ol47o=ok
 %%Remove the unicode chr.
-%b=unicode 1
+%b=unicode 1;
 r-0f1/jon/- e
 
 %m=Check that it can display unicode correctly.
@@ -1387,7 +1486,7 @@ r-0b-i/This is a unicode character ( ™ )./wk
 %b=leftoffset 0; b- %q$=window; f/screenWidth = /-oidol0oso- za(i/./o~)0 ok
 %%%q~=version; (f/WindowsNT/ za%b=codepage 28591;, za)ok
 ( %q=windows; %b=codepage 28591;, )
-r-10eol-82ol-62(oo/%c/rr-)2 r0
+%b=unicode 0; r-10eol-82ol-62(oo/%c/rr-)2 r0 %b=unicode 1;
 %q=inview;\ o@ 
 %%Nobbled in windowsland.
 (%q=windows;, %q$=window; f/screenWidth = /-oid za %b=leftoffset '~; r0i-/+++++/  %q=inview; r- %q=inview;\ o@ )
@@ -1428,47 +1527,70 @@ na$h$2m-2
 r-0f/777/rr-(ol-94 ol-124 ol-30 oo/%c/rr-oo/%c/rr-oo/%c/f1/	/r)0
 %b=tabstops;
 %m=Now test inview at the screens right margin - first with no leftoffset.
+%b=unicode 0;
 r-0(ol-94 ol-124 ol-30 oo/%c/rr-oo/%c/rr-oo/%c/f1/	/r)0
+%b=unicode 1; 
 %q$=window; f/screenWidth = /-oidol1o-za %b=leftoffset 0; %b=tabstops 10 16 22 28 34 40 '~;
 %%Nobbled in windowsland.
-(%q=windows;,  r-0f/777/r-2 %q=inview; okokok r %q=inview;\ okokok )
+(%q=windows;,  r-0f/777/r- %q=inview; okokok r %q=inview;\ okokok )
 %m=Now test inview at the screens right margin - now with some leftoffset.
 %q$=window; f/screenWidth = /-oidol9o+za %b=leftoffset 10; %b=tabstops 10 16 22 28 34 40 '~;
 %%Nobbled in windowsland.
-(%q=windows;, r-0f/777/r-2 %q=inview; okokok r %q=inview;\ okokok )
+(%q=windows;, r-0f/777/r- %q=inview; okokok r %q=inview;\ okokok )
   
 %m=Check auto-tabstops.
 k-2 %b=tabcells -1; %qb=buffer; f/TabStops = /-v/4 8 12 16 20 24 33 44 54/
 
 %m=Now try R, L and OR  with a UTF-8 character ( £ ).
-z.m-0f/jon/naaha4m-4f1/jon/rr-(ol-93 ol-62 oo/%c/rr-oo/%c/rr-)10
+z. %b=unicode 0; m-0f/jon/naaha4m-4f1/jon/rr-(ol-93 ol-62 oo/%c/rr-oo/%c/rr-)10 %b=unicode 1;
 r-0f/jon/r-10v-/ for /r10v/jonathans/ r-10v-/ for /r10v/jonathans/ n.r-a$&r-10 (v'$r)10v/jonathans/ ol-10orv-/ for /ol10orv/jonathans/
 %%
 %m=Now try it with a UTF-8 character ( ™ ).
-mf1/jon/rr-(ol-94 ol-124 ol-30 oo/%c/rr-oo/%c/rr-oo/%c/rr-)10
+%b=unicode 0; mf1/jon/rr-(ol-94 ol-124 ol-30 oo/%c/rr-oo/%c/rr-oo/%c/rr-)10 %b=unicode 1;
 %%r-0f/jon/x-10v-/ for /x10v/jonathans/ r-30v-/ for /r30v/jonathans/ n.r-3a$&x-10(v'$x)10v/jonathans/ ol-30orv-/ for /ol30orv/jonathans/
 r-0f/jon/r-10v-/ for /r10v/jonathans/ r-10v-/ for /r10v/jonathans/ n.r-a$&r-10(v'$r)10v/jonathans/ ol-10orv-/ for /ol10orv/jonathans/
 %%
 %m=Now try it with a ISO-8859-1 character ( ® ).
 %q~=version; (f/WindowsNT/ z.%b=codepage 28591;, z.)ok
-mf1/jon/(rr-ol-82oo/%c/)10
+%b=unicode 0; mf1/jon/(rr-ol-82oo/%c/)10 %b=unicode 1;
 %%r-0f/jon/x-10v-/ for /x10v/jonathans/ r-10v-/ for /r10v/jonathans/ n.r-a$&x-10(v'$x)10v/jonathans/
 r-0f/jon/r-10v-/ for /r10v/jonathans/ r-10v-/ for /r10v/jonathans/ n.r-a$&r-10(v'$r)10v/jonathans/
-%q~=version; (f/WindowsNT/ z.%b=codepage 65001;, z.)ok
+( %q=windows; %b=codepage 65001;, )
  
-%m=Check -asConsole scripts handling of unicode characters.
+%m=Check %r=... -asConsole scripts handling of unicode characters.
 %ia=./test_asconsole.jot;
 e0i"i-/£/"b2k0 %o
 z.m-0
 %r=./test_asconsole.jot -asConsole;
-oeol1o=ok
+oxol1o=ok
 %b=unicode 0;
-oeol2o=ok
+oxol2o=ok
 %b=unicode 1;
 v/£1 :abcdefghijklmnopqrstuvwxyz/
 e
 
+%%Check Q (Qualify command) with unicode and mixed unicode/ASCII situations.
+%ia=${JOT_RESOURCES}/Sample_UTF-8.txt;
+( %q=windows; %b=codepage 65001;, )
+%%( %q=windows; %b=codepage 855;, )
+%%Pure unicode spanning the entire unicode range.
+m3r2q/А-ЯҐ/
+%%m3r2q/Ѐ-ӿ/
+%%Simple unicode match to Cyrilic Н
+q/Н/ rq-// q//\ rq-//\
+%%Now all cyrllic letters apart from Н.
+m=4r2q/Ѐ-МО-ӿ/\ rq-//\
+%%Now with a few roman letters in the match pattern.
+m=4r2q/a-zA-ZЀ-ӿ0-9/
+%%Now with a few roman letters in the text and the match pattern.
+i/abcdef/ri-//r- q/a-zA-ZЀ-ӿ0-9/ rq-//
+
+%%Check OIC with a unicode character.
+r-oicol1053 o=
+%%Now check OO with a unicode character.
+rr-oo/ %lc / r-0v/  abcdefН Н abcdefеобычная /
+
 %M=Sign off
 %s=verbose 3;
 m0b7b-7 (%q=windows;i/Successfully completed all but nobbled basic tests./bi/Screen readback report of %q=window; fails in genuine windows, OK in wine./, i-/Successfully completed all basic tests/) r-0p m6wm-6
-  
+ 

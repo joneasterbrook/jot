@@ -22,23 +22,23 @@
 %%
 %%
   
-%%%g?
-%%  c code-browser, the following functions have been assigned to
-%%  numeric-keypad buttons.
-%%
-%%  Also sets env GetDefaultPath to "/usr/include/"
-%%  
-%%  {Kp_1}, {Esc 1} - Go back to start of current block '{' using hastables. 
-%%                    If not at a start-block character '{' then advances to next one.
-%%  {Kp_2}, {Esc 2} - Go forwards end of current block '}' using hastables.
-%%                    If not at an end-block character '}' then advances to previous one.
-%%  4 - Go back to start of current block '{' by counting curly brace pairs.
-%%  5 - Go forwards end of current block '}' by counting curly brace pairs.
-%%  
-%%Valid qualifiers:
-%%  -tag[comments] - adds cyan foreground-colour tags to comments.
-%%  -all - indexes all functions at c.jot time.
-%%:
+%g?
+  c code-browser, the following functions have been assigned to
+  numeric-keypad buttons.
+
+  Also sets env GetDefaultPath to "/usr/include/"
+  
+  {Kp_1}, {Esc 1} - Go back to start of current block '{' using hastables. 
+                    If not at a start-block character '{' then advances to next one.
+  {Kp_2}, {Esc 2} - Go forwards end of current block '}' using hastables.
+                    If not at an end-block character '}' then advances to previous one.
+  4 - Go back to start of current block '{' by counting curly brace pairs.
+  5 - Go forwards end of current block '}' by counting curly brace pairs.
+  
+Valid qualifiers:
+  -tag[comments] - adds cyan foreground-colour tags to comments.
+  -all - indexes all functions at c.jot time.
+:
   
 %%This setup will quite probably require changing.
 %g#
@@ -103,7 +103,7 @@ r-0((q/A-Za-z/\m-)0 (q/A-Za-z0-9_ /r)0v/:/m-)0
   ( %%Reverse-index loop.
     %h=jump '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=new '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
   %%Check for unmatched block-starts.
-  (z;m-0rr- (f/blockStart_/s/ '{' at line no. /f/_/s/ chr no. /m)0m-0 %x=Error the listed curly braces could not be matched;, ) o#oz )
+  (z;m-0rr- (f/blockStart_/s/ '{' at line no. /f/_/s/ chr /m)0m-0 %x=Error the listed curly braces could not be matched;, ) o#oz )
   
 %%Restore original focus.
 ozono-omor
@@ -119,7 +119,8 @@ ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=add '#; oz
 ( %%If we're already at a block end-point then just launch a hashtable lookup to go back to the start point.
   obocon n.a$&z$oo/blockEnd_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at an end point search back for next one.
-  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
+  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-oidoo/	%05d/f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
+%%  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-i/	/f1/chr no./- i/	/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries after current line then all those before start of current code block.
   m0m- (f1/	/-\k-, oido<k-)0 f-/ functionStart_/k-0
   %%Search back for block-end point by matching line numbers and chr positions in blockStart entries.
@@ -141,9 +142,10 @@ ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=add '#; oz
 ( %%If we're already at a block start-point then just launch a hashtable lookup to go to the end point.
   obocon n.a$&z$oo/blockStart_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at a start point search for next one.
-  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-i/	/f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
+  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-oidoo/	%05d/ f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
+%%  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-i/	/ f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries before current line then all those after end of current code block.
-  m-0 m-0(f1/	/-\k, oido>k)0 (f/ functionEnd_/k0,)
+  m-0 m-0(f1/	/-\k, oido>k)0 (f/ functionEnd_/k0r0b,)
   %%Search for next block-start point by matching line numbers and chr positions in blockEnd entries.
   ( m-\ %%No block-start points found - exit now.
     m-0okokoz

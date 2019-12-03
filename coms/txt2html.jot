@@ -1,0 +1,308 @@
+%%Translates the current document to HTML.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%%History: 
+
+%g? 
+Options
+  -tablinks                 - Respects links in tables (by default, these are taken as code lines and ignored).
+  -style <styleSheetPath>   - includes the nominated stylesheet 
+  -noLinks                  - skips link-resolution stage only used saves time for debugging.
+  -split                    - Splits the sections into separate sections for slide shows etc, with -split the 
+                              following options are also available:
+    -head <headerImagePath> - Image to be inserted between section headings and section text.
+    -foot <footerImagePath> - Image to be inserted below each section.
+    -index                  - Adds index at start of html (or each page if -head is also set).
+   
+Buffer usage:
+  $ - format string used for writing header levels.
+  @ - Working copy of text - eventually holds the new HTML.
+  # - Command macro.
+  ! - Index list while processing headings, current paragraph in bullet processing.
+  * - List of html files in the same directory. Later, in href checks, contains a list of HREF targets.
+  & - A copy of DocBulletString
+:
+
+%g# 
+%%Save args.
+obz$m-0n.r0a;oz
+oq/'=DocBulletString/ obosz~r-0n.r0a&&osozok
+%%doc.jot only used to define bullet-point string.
+%%z&m-0(q/0-9/m q//m2 q//, %r=doc.jot;, )
+%%
+%%Pathname sanity check and get the original pathName.
+ob %q~=buffer; f/pathName = /-(r, osozok %x=doc2html failed - no valid pathname; ) r-b r0(f-1"/"-, r-0)(f1/./-e0, r0i/./)i/html/ osoz
+%%Copy the text into the @ buffer and change the file name.
+obm-0n.m0 r0a@&z@
+%%Set the pathName for the html.
+z@os %b=pathname '~; 
+m-0i/<! Made with jot using doc2html / %q~=date; mz@i'~ok i'$ h$i/  / i/>/b
+%%
+%%Restore args and set up data objects.
+%h=create 100; z$i/ /h;
+r-0(f1/ -split/ %h=data @=split; ol1ov/@=split/, )
+r-0(f1/ -head /-n.((v/ /r)0f1/ /, r0)a~& %h=data @=head; ov/@=head/, )
+r-0(f1/ -foot /-n.((v/ /r)0f1/ /, r0)a~& %h=data @=foot; ov/@=foot/, )
+r-0(f1/ -index / %h=data @=index; ol1ov/@=index/, )
+r-0(f1/ -noLinks / %h=data @=noLinks; ol1ov/@=noLinks/, )
+r-0(f1/ -tablinks / %h=data @=tablinks; ol1ov/@=tablinks/, )
+r-0(f1/ -style /-n.((v/ /r)0f1/ /, r0)a~& %h=data @=style; ov/@=style/, )
+ 
+z@
+%M=First check explicit hypertext links - must have matched backticks, a hyperlink is allowed to extend into the next line.
+m-0 ((v/	/m)0 ((f1/`/\m)0 ocon(f1/`/\mv/ /f1/`/\, okok) v/`/)0 (f1/`/m2m-))0 (mono-omor%x=Backtick mismatch.; , ) 
+
+%M=Escape any special characters.
+m-0m(f/</s/&#060;/)0 m-0m(f/>/s/&#062;/)0
+m-0(f/[/s/&#091;/)0 m-0(f/]/s/&#093;/)0
+m-0(f/{/s/&#123;/)0 m-0(f/}/s/&#125;/)0
+ 
+%%Translate headings of the form <n.m....>Name
+m-0
+(q/0-9/ ol2((q/0-9/e)0v/./eo~)0 m( (v/-/(v/-/r)0r\k-, m-) (f1/"/s/'/)0 r-0(v/ /e)0i"<H"rr-o#oo/%d/i">"r0i"</H"r0oo/%d/i">"m ), m)0 
+%%ok
+%%
+%M=Translate headings of the form <name>:  - these default to level <currentLevel>+1 headings - text may follow on the same line or may be the following paragraph(s).
+m0 (q/A-Za-z/(q/A-Za-z0-9 _-/r)0v/:/ e((v/ /e)0rr-bi/  /m-,) on(m-v/<H/\)0(v/<H/r2oid, ol1)osono-omi/<H/rr-o~o#oo/%d/i/>/r0i"</H"r0oo/%d/i/>/m-, m-)0 
+(oq/@=tablinks/ok
+  %M=Translate all lines starting with non-blanks (including tabs) as preformatted text. 
+  m-0 ((r\m, r-q/ <&|0-9-/m)0 mm-i"<PRE>"bm(rr-q/ <&|0-9-/\m)0 i"</PRE>"bm)0
+,
+  %M=Translate all lines starting with non-blanks as preformatted text. 
+  m-0 ((r\m, r-q/ <&|0-9-/m)0 mm-i"<PRE>"bm(rr-q/ <&|0-9-/\m)0 i"</PRE>"bm)0 )
+
+%M=Now, optionally, add the style sheet.
+(z@m-0oq/@=style/\, mb-i/<link rel="stylesheet" href="/h~i." type="text/css">.ok, )
+%%(z@m-0f1/ -style /\, r2f1/ /-(v/ /r)0n.(f1/ /(v/ /r)0, f1/>/)(v-/ /r-)0a!h!mb-i/<link rel="stylesheet" href="/h!i." type="text/css">., )
+   
+%M=Translate underlined text as <H1>.
+z@m-0 (((q/- /r)0 (v-/-/r\)\m)0 v-/-/r\k-r-0(v/ /e)0 i/<H1>/r0i"</H1>"m, m)0
+
+%M=Now add all headings to the index - maintaining indentation to reflect heading levels.
+%%Set up the headings.
+m-0n.a! ( ((v/<H/\m)0 r2q/1-9/\m)0 v-/<H/oidf1/>/- n.r0f-1/</a$i/<A NAME="/h$i/">/h$n.r-0f1/<H/-f1/>/-a$&z!oo/%d/i/	/h$i"</A><BR>"bz@ m)0
+  %%Now finalize the index.
+  z@m-0(f1/ -index/\, %%The -index qualifier was given.
+    %%Initialize.
+    z!m-0ol0 b-i"<P>Document structure:</P>"m
+    (f1/A NAME="/ %%Another anchor point.
+      %%Transform it to a link, adjust indent level to match relationship with previous heading, also pick up header again more for comparison with next.
+      s/A HREF="#/ r-0( oidosr-0oido-s-/ /e2
+        %%At this point the top of stack should contain the change in header levels (-ve if decending, +ve if ascending, 0 if same).
+        ol0o> %%Decreasing header levels - insert more </UL> lines.
+          ol0oso-(i"</UL>"b o~)0ok, 
+        ol0o< %%Increasing header levels - insert more <UL> lines.
+          (i"<UL>"b o~)0ok,
+        %%Header level unchanged - insert nothing. 
+          ok)
+      m)0 ol0oso- (i.</UL>.b o~)0 ok)
+   
+%%Insert index after the heading.
+z@m-0(f1/ -index/ (f/<H/r2q/0-9/\m)0mb-h! , )
+
+%M=Translate tables.
+m-0((v"|"\m)0 mm-b-i"<TABLE BORDER=3>" (mv"|"s"<TR><TD>" (f1"|"s"</TD><TD>")0 r0v-"<TD>"s"</TR>")0b-i"</TABLE>")0
+ 
+%M=Form all paragraphs into single lines, removing any empty lines.
+m-0z@ (((v/ /\m)0 (v/ /r)0r\k)0 r-(v'&rr-f1'&-,)oc i/<P>/n.(m(v/ /r)0rr-oco=v'&\)0okm-r0a! obz!m-0j0r-0 (f/  /e)0 ozh! i"</P>"bm)0
+%%This line was changed to the one below 25/10/19 - for reasons unknown (something to do with converting back to txt with html2txt?)
+%%zzzm-0z@ (((v/ /\m)0 (v/ /r)0r\k)0 r-(v'&rr-f1'&-,)oc n.(m(v/ /r)0rr-oco=v'&\)0okm-r0a! obz!m-0j0r-0 (f/  /e)0 ozh! bm)0
+
+%M=Translate all paragraphs noting the indentation and, for bullet-point lists, supplying <UL> and </UL> directives.
+%%The top of stack is the indentation levels on the way up, on the way down </UL> directives are added according to how many indent levels are exited.
+%%Set up initial indentation as two blanks.
+m-0 ol-1ol0
+z@m-0 (f"<A NAME=", m-0) ol-1ol0    %%This was causing the translation to fail for documents contained bullet or indented paragraphs before the first heading.
+( %%paragraph loop.
+  mm-
+  %%Get indent level of next paragraph, if it's got no indentation reset the indent counters, if it's a heading then unwind UL (bullet point) level.
+  (v/  /\((v/<H/ i"</UL>" okol0, )m, (ol-1 o=\i"</UL>")0 ol2m)mm-)0 mm- (v/ /r)0oc (v'&, z&r0oco-z@)
+  %%Compare to previous.
+  (o< %%Indent level is higher - add this indent level to stack and add an <UL>.
+    oci"<UL>", 
+  oco> %%Indent level is lower - pop the indent level and add </UL> until the top of stack matches the actual indent.
+    (oki-"</UL>"oco>)0 rr-(f1"</UL>"-)0,
+  %%Indent is the same - do nothing.
+    )
+  (v'&s/ /e-(v"<P>"r3,)i"<LI>"r0i"</LI>", )r-0(v/ /e)0
+  m )0
+  
+%%Remove all items from stack down to the marker (-1).
+(ol-1o=\ ok)0 ok
+  
+%M=Terminate any dangling unordered lists in each section. 
+m-0ol0(f"<A NAME="-
+  %%A new section - Initialize.
+  okol0
+  ( %%If there's a <UL> or a </UL> - count UL levels.
+    f1"<UL>"r4 ol1o-, f1"</UL>"r5 o~?, 
+    f1"<A NAME="\m)0 %%Exit on a new section.
+  %%Unwind current UL level if greater than 1. 
+  (ol0o<\, (m, b)m-(i"</UL>"o~)0) mm-)0 ok
+ 
+%m=Explicit hypertext refs in the text - If these are pointing to a file, then the file (e.g. a gif) is included, otherwise they are assumed to point at headings.
+m-0 
+( mm-
+  %%Check for tablinks.
+  (f/`/-ocon (oq/@=tablinks/\, ok\) f-/pre>/v-/</ono-omorr?)0 mm-ono-omorn.f1/`/a$e-e z$m-0r0
+  ( v-/.gif/
+    %%Explicit references to a local gif 
+    z@i/<img src="/h$i/" align="center">/
+  , r-0v"http://"  %%Explicit web reference:
+    z@i/<A HREF="/h$i/">/h$i.</A>.
+  , %%implicit reference to a locally-defined target.
+    z@i|<A HREF="#| h$i|">|h$i|</A>| )
+  %%Explicit references to a local html 
+  ( v-/.html/z@i/<A HREF="/h$i/" align="center">/, )
+  )0
+ 
+%M=Clean up all hypertext refs and anchor points - ensure case patterns and intermediate whitespace all match up.
+( oq/@=tablinks/ok  %%CLI arg -tablinks is set.
+  %%Preserve original spacing.
+  m-0(f/<A HREF="#/-(q/a-z/c, v/"/\r, f"</A>"-i/&nbsp;&nbsp;/f1/<A HREF="#/-)0 r0)0
+, %%Remove all multiple blanks
+  m-0(f/<A HREF="#/-(q/a-z/c, v/"/\r, f1/<A HREF="#/-)0 r-0(f1/  /e)0 r0)0 )
+m-0(f/<A NAME="/-(q/a-z/c, v/"/\r)0 r-0(f1/  /e)0 r0)0
+
+%%Protect any special characters - this is left to now because it changes the line length and will break the code that deals with ordinary paragraphs.
+m-0 (f/</ocr-0(v/ /orei"<CODE>&lt;</CODE>", or) r)0
+m-0 ((f/>/v-/CODE/r)0 v/ /\ocr-0(q/	</\orei"<CODE>></CODE>", or) r)0 
+%%
+%M=Remove any tabs - assumed to be directives to the document system.
+m-0 (f/	/e(r-ri/ /, ))0
+%%
+%%Write it out now - this guarantees that there's at least one .html so the ls won't fail. 
+%o
+
+%M=Resolve any links to other pages in the same directory. 
+%%Locate unresolved links - save them in the '!' buffer. 
+%%First extract all hyperlinks.
+n.a! m-0 (f/<A HREF="/-r-n.r2f1/"/-a!+& z! r-0(f1/#/er0b, e0) z@)0
+%%Remove any with local targets.
+z!m-0 (z@m-0 (f'!v-/NAME=/\m)0 (v-/NAME=/z!k, z!m) )0
+%%Purge duplicates.
+z!m-0 (n.r0a$& (f'$k)0f-'$m)0
+%%Add a blank line at the end of the list.
+(m-0mm0r0b, )
+%%Search for more htmls in the same directory - unless -nolinks was given.
+z@m-0
+( oq/@=noLinks/ok, %q*=buffer; f/pathName = /- br0(f-1./.-, r-0i"./")bm-n.mr0a$&z$m- %q*=dir '$; k (f1/.html/r-0i'$m, k)0 m0r0b
+%%( f1/ -noLinks/, %q*=buffer; f/pathName = /- br0(f-1./.-, r-0i"./")bm-n.mr0a$&z$m-ok %q*=dir '$; k (f1/.html/r-0i'$m, k)0 m0r0b
+  %%Remove current html from list.
+  z$mz*m-0(f'$k,) m-0
+  ( %%html file loop.
+    %i$='*;
+    z*r0f-1./.-e-0
+    %%Search for link target in this file.
+    z!m-0 (z$m-0 (f'! v-/NAME=/\m)0 (v-/NAME=/z!r0i/	/i'*m, z!m) mm-)0
+  z*m2m-)0
+  )
+z@
+%m=Now update any links in current html.
+z!m-0 (z!(f1/	/\m)0v/	/n.r-0a$rn.r0a*k z$r-0ri/#/z@m-0 (f'$rh*)0 )0
+
+z@m-0(oq/@=split/ ok
+%%z@m-0(f1/-split/
+  %%The -split qualifier was given - split into flips with forwards and backwards links.
+  %%This keeps the previous anchor point (<A NAME ..) in the ~ buffer
+  %m=Splitting sections and adding forwards and backwards links.
+  n.a*m-0 
+  ( %%Anchor-point (heading) loop.
+    %%In this loop buffer $ holds the next anchor point, ~ holds the current anchor point.
+    i"<P>" 
+    %%Find next anchor point.
+    n.a$ f/<A NAME/
+    %%Pick up 'Forward to' anchor point.
+    (f/<A NAME/n.rf1/</a$& f-/<A NAME/2m, )
+    %%Add 'Back to' hyperlink if there are previous sections. 
+    r-0b- (z*r-0r z@b-h*b-f-1/NAME="/s/HREF="#/f1/>/-i"<SMALL>Back to </SMALL>"r0i"</A>", z@)
+    %%Add forwards link if there is another anchor point. 
+    i/<BR>/ (z$r-0r z@h$b-f-1/NAME="/s/HREF="#/f1/>/-i"<SMALL>Forward to </SMALL>"r0i"</A>", z@) i/<BR><BR><BR>/
+    %%Set up next current anchor point in buffer '~ 
+    f-/<A NAME/n.rf1/</a*h* mf/<A NAME/ )0 
+    
+  z@m-0(oq/@=index/\, ok
+%%  z@m-0(f1/ -index/\, 
+    %M=Now move the index lines below the relevant section-header.
+    %%
+    %%Identify 2nd.-level contents by counting <UL> and </UL> marks in the contents section and move them to the actual pags.
+    %%
+    ( %%Iteration loop.
+      %%Find next <UL> then abstract to corresponding </UL> mark.
+      m-0 f/<UL>/n.r4ol-1(f/UL>/ v-"</"\(v-"<"\r2, ol1o-r2), o~r3)0ok ma* 
+      %%Pick up the destination section heading.
+      m-(f1/<A HREF="#/-n.f1/>/-a$&z$r-0i/<A NAME="/z@, mh*?\)
+      %%Find the page and insert the contents items.
+      mf'$ mi"<P>Section contents:</P>" bh*i"<BR>"b )0 )
+    
+  z@m-0(oq/@=head/\, ok
+%%  z@m-0(f1/ -head/\, 
+    %%The -head qualifier inserts the nominated gif between the section heading and the text.
+    %%Pick up the image-file path.
+    r2f1/ /-(v/ /r)0n.(f1/ /, f1/>/)a$&
+    %%Insert after headings.
+    (((f/<FONT SIZE=/-\, q/0-9/\, rv/>/\)v/>/\m)0 mb-i/<IMG SRC="/h$i/"><BR>/)0
+    m-0 (((f/<H/-\, q/0-9/\, rv/>/\)v/>/\m)0 mb-i/<IMG SRC="/h$i/"><BR>/)0 )
+   
+  z@m-0(oq/@=foot/\, ok
+%%  z@m-0(f1/ -foot/\, 
+    %%The -foot qualifier inserts the nominated gif after the section text.
+    %%Pick up the image-file path.
+    r2f1/ /-(v/ /r)0n.(f1/ /, f1/>/)a$&
+    %%Insert footer before each heading except the first.
+    (f/<H/r2q/0-9/\m)0m (((f/<H/-\, q/0-9/\, rv/>/\)v/>/\m)0 f-1/</b-i/<IMG SRC="/h$i/"><BR>/m2)0
+    %%Insert footer after last paragraph. 
+    m0m-(v/<BR><BR>/r-0b-, r0b)i/<IMG SRC="/h$i/"><BR>/ )
+   
+  %%Insert blanks before each section header except the first one.
+    z@m-0 ((f/<H/r2q/0-9/\m)0m ( (f/<H/r2q/0-9/\m)0r-0b-(i/<BR>/)100m2)0 ,)
+     
+  , ) 
+    
+%%z@n.a* %o
+z@ %o
+%%Complain about any unresolved links.
+n.a?
+z!m-0 
+( r\, 
+  %m?=These hypertext destination points could not be resolved.;
+  (%m?=  '!; m)0
+  )
+  
+%M=Check for duplicated links.
+%%First pick up and purge duplicates in the hrefs.
+z@n.a~m-0 (f/<A HREF="#/na~+&)0 z~m-0(f/<A HREF="#/s-/<A NAME="/e-0f1/"/-2e0)0 m-0(n.r0a$& m(f'$k)0f-'$m)0
+%%z@n.a~m-0 (f/<A HREF="#/na$&z~h$z@)0 z~m-0(f/<A HREF="#/s-/<A NAME="/e-0f1/"/-2e0)0 m-0(n.r0a$&m(f'$k)0f-'$m)0
+%%
+%%Now ensure that each target appears only once.
+%%z*m-0 (mm-z@m-0f'*?(f'*z! m0b-i'*,) z*m)0
+z~m-0 (mm-z@m-0f'~?(f'~z! m0b-i'~,) z~m)0
+%%
+%%Add message if there's duplicated href targets.
+z!okok
+z!m-0 (f/<A NAME="/\, %m?=The following hypertext labels were duplicated:; (f/<A NAME="/s/  "/ %m?='!; )0 )
+m-0((r, m) (f/"/e)0 m-0ok %x=There is an error in the hypertext references; , )
+:
+'#
+
+oz
+

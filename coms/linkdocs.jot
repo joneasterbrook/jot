@@ -59,7 +59,7 @@ Buffer usage:
   ! - Args (line no. 1), followed by list of buffers (line no. 2).
   # = Macros.
   @ - contains  the text buffer containing the master hashtable.
-      After indexation @ contains the history stack.
+      After indexation @ contains the history trail.
   ; - List of missing or duplicate targets
   * - Temporary.
   A-Z - First of nominated (or detected) text buffers to hold the master hash table.
@@ -68,14 +68,14 @@ Buffer usage:
   3 - Macro 3 - toggles the mousemask.
 :
 
-%%Collect arguments - if none then search buffers in range A-Z.
+%%Collect arguments - if none then search all buffers in range A-Z.
 %g#
 z$m-0n.m0r0a!z!m-0i/ /r0i/ /r-0
 ( f/ -bufs=/- %%A list of buffer keys is given then take them.
   n.(f1/ -/, r0)a$&z$m-0(f/ /e)0r-0(q/a-z/cb, rb)0
 , %%Work on a list of active buffers from %q=system
   %q$=system; f/Buffers:/k-0 (f/:/r-q/.A-Z/\k, oicoz m-0((q/0-9/\m)0mv/---/z$e0r-e-0m, z$k) )0 )
-z!(m+2, m0r0b) e0h$r-0n.ra@&
+z!(m+2, m0r0b) e0h$r-0n.r?a@&
 :
 '#
 
@@ -83,14 +83,14 @@ z!(m+2, m0r0b) e0h$r-0n.ra@&
 %g$
 
 <<linkdocs_FollowLink>>
-%%On a left-button click on tagged text, switch context to the relevant mail thread in the bookings file.
+%%On a left-button click on tagged text, Follow the relevant hyperlink or, if no hyperlink, return.
 %%If no tags on clicked area, returns to previous view.
 %%
-%%Create the entry in the history stack.
+%%Create the entry in the history trail.
 %%
-%%Collect the view to stack.
-obo# oe(rr-,)oe(o=okol0,) oc on of ob z@r-0 
-%%Check the history stack - initialize if necessary.
+%%Collect the view to trail.
+obo# ox(rr-,)ox(o=okol0,) oc on of ob z@r-0 
+%%Check the history trail - initialize if necessary.
 ( v/linkdocs history:/mk0r0b, m-0k0)
 %%write the view entry.
 oo/linkdocs history: Buffer %c, / r0oo/top line %d, / r0oo/line %d, / r0oo/chr %d, / r0oo/substring %d/ bm-oz
@@ -101,11 +101,11 @@ oo/linkdocs history: Buffer %c, / r0oo/top line %d, / r0oo/line %d, / r0oo/chr %
   %q$=tags -here; 
   f/Type text from/f1/"/-e-0f1/"/e0 %h$$=jump '$; on(rm)0wono-omr0ocr-0ou ok
 , %%Clicked to untagged text - return to previous view.
-  ( %%Check and pick up history-stack entry.
+  ( %%Check and pick up history-trail entry.
     z@k-v/linkdocs history/ok f1/, substring /-oid f-1/, chr /-oid  f-1/, line/-oid f-1/, top line /-oid  f-1/ Buffer /-oic k-?
     %%Restore original view.
     oz osono-om wofo-ow or ou
-  , %%Not a history-stack entry.
+  , %%Not a history-trail entry.
   oz )
 )
 :
@@ -159,7 +159,7 @@ z!m+2z;i/Unresolved references follow (no matching header line could be found fo
     ( %h$$=jump '$; %%This reference is OK - it exists in the master hash table.
       ozono-omorr-f-/`/(f1/`/, r0)ocf-1/`/-oco-ou %b=addtag ValidRef; %b=addtag -text='$; (f1//r-, m(v/ /r)0ocf1/`/oco-ou %b=addtag ValidRef; %b=addtag -text='$;) f//-
     , %%Bad reference - could not find it in the master hashtable.
-      z;i/  Line /r0 o#ozonz;oo/%4d/r0o#oo/, in buffer %c: "/h$i/"/b
+      z;i/  Line /r0 o#ozonz;oo/%4d/r0o#oo/, in buffer %c: "/h$i/"/ o#oz%q$=buffer; f/ pathName = /-bz;r-0i'$  r0b
       %%Add BadRef tag colour.
       ozono-omorr- f-/`/(f1//, r0)ocf-1//-oco-ou %b=addtag BadRef; f//- ) %%God/Bad reference block ends.
     )0  %%Reference loop ends.
@@ -206,7 +206,7 @@ n.a@
 %%Macro 3 toggles mousemask setting.
 ob %q~=system; f/mouse mask = /r0  (v-/   0/ %s=mousemask 4;, %s=mousemask 0; ) osozok
 :
-
+(mokob, oz)
 w
 %m
 %m=These instructions will disapear after initial keyboard or mouse activity.

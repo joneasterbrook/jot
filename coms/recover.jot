@@ -81,13 +81,15 @@ ob (zjm-0f/Guard band size /-oid f-1/Screen height /-oid f-1/<<Screen width /-oi
   os %q$=window; f/ screenHeight = /-oid (o>\, %X=Original screen height was '~ - you should adjust your xterm to that height at least.;, )
   osmf1/ screenWidth = /-oid (o>\, %X=Original screen width was '~ - you should adjust your xterm to that width at least.;, )
   %L= '~x'~;
-%%  os %q$=window; f/ screenHeight = /-oid (o=, %X=Original screen height was '~ - you should adjust your xterm to match, then try again.;, ) ok
-%%  osmf1/ screenWidth = /-oid (o=, %X=Original screen width was '~ - you should adjust your xterm to match, then try again.;, ) ok
 %%Add instruction to set the guardband.
 zoi/%s=guardband /i'~ b
 
+%%Deal with any detected invalid commands and escape sequences now.
+zjm-0 (f/<Invalid command>/ r-0i/%%  /m-i//((v//s/{Esc}/, ) f1//b, )m2)0 
+zjm-0 (f/<Invalid escape sequence>/r-0i/%%  /m(v//e2i/%%  {Esc}{Esc}/b, ))0
+
 %%Do the startup - may be a null startup.
-zj(f/<<Startup script>>/m zoi/%%Re-run the startup script from the journal area./b i/%r=startup;/b, 
+zjm-0 (f/<<Startup script>>/m zoi/%%Re-run the startup script from the journal area./b i/%r=startup;/b, 
   m-0f/<<startup Sequence ends,/r-0)
 
 ( %%Main loop - translate history into a recovery script. 
@@ -96,12 +98,9 @@ zj(f/<<Startup script>>/m zoi/%%Re-run the startup script from the journal area.
   ( %%Is this a readFile operation, a keycode or some text?
     %%Comment out failed reads.
     zcv/<<Read file failed>>/ i.//.zom-r-0i.//.m, 
-    %%Comment out invalid commands.
-    zcv/<InvalidCommand>/ i/%%/zom-k,
     %%Pass original %i and %e commands, also pass the primary file, actual pathnames will be modified with %s=recoverymode 1 set.
     zcr-0f1/<<Recovery pathname: /-e-0 (f1/ to buffer /, f1/>>/)e0 zohc b,
     %%Nobble the %s=commandstring lines, the actual string is going to appear in the next line anyway.
-    zcv/<<%s=commandstring>>/zom-i/%%/(v//s/{Esc}/,)mi/%%/hc r0b,
     %%Remove the startup-end mark and add commands to insert escape sequence for emulation of Backspace and Enter keys. 
     zcv/<<Startup Sequence ends,/
       %%Add a few recovery-specific translations to the escape-sequence-translation buffer.
@@ -139,10 +138,17 @@ zj(f/<<Startup script>>/m zoi/%%Re-run the startup script from the journal area.
     zohcb )
   )0
   
+%%Now post-hoc tweaking of the <<%s=commandstring>> lines.
+%%  If the successor line begins by setting the ( $ ) buffer: "%d$=... " then comment 
+%%  it out as it duplicates what's already in the script but if the successor line 
+%%  contains an escape sequence then let it pass through.
+%%
+zom-0 (f/<<%s=commandstring>>/i/%%/ m(f1//m, r-0i/%%/))0
+  
 :
 '#
  
-zo 
+zo (m-v/%a/r2 (v/ /, r\) r-0i/%%  /m, m)
 i/%%Re-enable file writing./b
 i/%s=recoverymode 0/b
 %b=pathname ./recover_now.jot

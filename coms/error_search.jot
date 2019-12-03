@@ -35,7 +35,7 @@
     - -winedbg - sets up to run script under winedbg
     - -wine - runs script under wineconsole but only checks the exit status - use this when the script crashes winedbg.
     - -winecrash - runs script under wineconsole but only checks the exit status - use this when the script crashes winedbg.
-    - check - only performs the pas-0 fail check then exits.
+    - -check - only performs the pass-0 fail check then exits.
     - -failif=<jotCommands> the commands used to detect an error - should fail if the script fails.
       - by default it checks the exit message "f/normal exit./\"
       - with the -valgrind modifier,defaults to "f/ ERROR SUMMARY: 0 errors from 0 contexts/\"

@@ -28,5 +28,5 @@
 %%
 ob z$ %b=unrestricted; z.n.a$& %q~=system; m-0f/  buffer $: /k m-0(f/ buffer ~: /k)0 m-0f/Buffers:/
 %%Buffer loop - reset write lock etc on all buffers.
-(z~m f1/ buffer /- q/a-z/m, oicoz %b=unrestricted;)0 osozok
+(z~m f1/ buffer /- (q/a-z/m, oicoz %b=unrestricted;) )0 osozok
  

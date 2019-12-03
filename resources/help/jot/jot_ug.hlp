@@ -10,39 +10,8 @@
 {{{ Description of the Editor
 1.1 Description of the Editor
 -----------------------------
-  - The basic language has  less  than  30  basic  commands  and  some  simple
-    structural constructs - their combined power is awesome.
-  - Absolute minimum of magic modes and similar trickery.
-  - Supports locks on buffers  e.g.  readOnly  or  writeIfChanged  -  prevents
-    normal close down until modified buffer has been written.
-  - Screen can be allocated between any number of viewing  areas  limited,  of
-    course, by the total screen size.
-  - Numerical values can be picked up,  arithmetic  operations  performed  and
-    numeric values can be written to text using C-style format statements.
-  - Has a journalling and post-crash recovery feature.
-  - Strong interaction with system environment.
-  - Customized startup - start up with any number of files ready  loaded  into
-    familiar buffers and redefinition of overload function-key assignments.
-  - Tidy handling of tabular text especially spreadsheets.
-  - Can recover an entire edit session, following a crash.
-  - Hash-table support - allows indexing and super-fast lookup.
-  - Good support for abnormally wide text.
-  - Supports UTF-8.
-  - Support for very large files.
-  - Filtering of files large files with points of interest.
-  - Easy construction of macro-commands  for  text  scanning  and  processing.
-    Language-specific script library for many programming and CAD languages.
-  - Interfaces, using external agents, for popular encoded formats, e.g.  PDF,
-    MS-word and MS-excel.
-  - A useful library of command scripts.
-  - A useful error reporting and debugging environment.
-  - Reasonably well behaved (i.e. crashes or lock-ups are rare events).
-  - Reasonably high capacity - the actual limit depends on system tuning.
-  - Has a handy document-processing facility - formats  paragraphs,  maintains
-    headings, interfaces to external spell-check agent.
-  - Can read and  send  mail,  using  external  MTA  and  MDA  processes.  Not
-    recommended as a general-purpose mailer it's handy for scanning mail text.
-  - Display can be colour tagged.
+  Jot is a command-driven text editor  with  a  modern  viewer  and  a  simple
+  concise language.
 
 }}}
 {{{ Backstory
@@ -58,24 +27,34 @@
   section for details.
 
 }}}
-{{{ What is a text editor and why do I need one?
-1.3 What is a text editor and why do I need one?
-------------------------------------------------
+{{{ What is a text editor and why should I want one?
+1.3 What is a text editor and why should I want one?
+----------------------------------------------------
   Modern computers have a filing system holding a great many  files.  Many  of
   these files are binaries - meaningful to the computer  but  incomprehensible
-  gobbledygook to you and me but many files are plain text. Plain  text  files
-  are designed to be read by us humans and, in many cases, to be  written  and
-  altered by us. Even if we  have  no  intention  of  altering  one  of  these
-  computer-generated text files we often need to  examine  them  to  find  out
-  details of how the system is set up, identify  problems  and,  occasionally,
-  change the setup.
+  gobbledygook to you and me but many files are  plain  text.  Some  of  these
+  files   are   primary   setup   files,   written   by   someone   some   are
+  computer-generated log-files and some are intermediate data files written by
+  the computer and intended to be  read  by  the  computer.  This  is  because
+  someone has decided that, although it would have been easier to  write  this
+  information in some sort of binary code, it would help if  we  humans  could
+  also read them and try to make sense of them and diagnose problems..
+  
+  Many windows users have encountered notepad - this an editor with  a  simple
+  command structure that can search for a  substring,  substitute  some  other
+  substring, to do a global search & replace and, er, that's about  it.  Often
+  we have an enormous file with thousands of simple substring matches but only
+  a minority match some wider  context  specification.  We've  either  got  to
+  manually wade through thousands of potential matches or switch to an  editor
+  with better context-matching.
   
   A text editor is an essential tool for altering (i.e. editing)  these  plain
   text files and a good one can be very  helpful  for  viewing  and  analysing
   their inner meaning. Note that the text on the screen (and  in  the  editors
   memory) is just an image of the text file. During  an  editing  session  the
   original file usually remains unchanged until you decide to save your edited
-  version.
+  version. At that point, the original file is destroyed and replaced  by  the
+  modified file.
   
   A common feature of all modern editors is that they display text in a window
   on the computer screen with a cursor showing the current  focus.  They  also
@@ -106,7 +85,7 @@
   reflects the state of internal current-record and current-character pointer.
   This is allowed to go one character position past the end of  the  line.  At
   this point there is no character to highlight. When this happens, a tilde  (
-  ~ ) is displayed at the end of lines to indicate this  situation.  
+  ~ ) is displayed at the end of lines to indicate this situation. 
   
   Some may wonder why the cursor is allowed to go past the  end  of  the  real
   text. Well fear not, it's all been thought about. By allowing the cursor  to
@@ -128,51 +107,281 @@
   the currently-selected substring.
 
 }}}
+{{{ About words, lines, phrases, sentences, paragraphs, sections and chapters
+1.5 About words, lines, phrases, sentences, paragraphs, sections and chapters
+-----------------------------------------------------------------------------
+  Most text files are structured in some way.  Many  are  written  in  natural
+  languages  structured  in  words,  lines,  phrases,  sentences,  paragraphs,
+  sections and paragraphs. Machine-readable text and machine-generated reports
+  are similarly structured but into  more  formal  units  e.g.  code-sections,
+  modules and expressions. 
+  
+  The jot startup script defines  several  functions  that  operate  on  words
+  presented in the context of phrases,  sentences,  paragraphs  and  chapters.
+  These functions can search a large document to find  instances  of  phrases,
+  sentences etc. containing a required selection of words. These functions are
+  designed  for  natural  languages  are  still  useful  in  the  context   of
+  machine-readable source files or machine-generated reports.
+  
+  Hopefully everyone understands the concept of words, phrases, sentences  etc
+  in the context of natural languages. For the benefit of the  scientific  and
+  engineering community, the definition of a  word  has  been  stretched  from
+  simple strings  of  alphabetical  characters,  meaningful  in  some  natural
+  language; to include also digits and underscore ( _ ) characters.
+  
+  A phrase is taken to be any number of words, extending over  any  number  of
+  lines bounded by either:
+    - a blank line,
+    - any ASCII punctuation character - a comma ( , ), a semicolon (  ;  ),  a
+      colon ( : ), or a full stop ( . ).
+  Note that these functions will require adaptation for languages  using  some
+  other punctuation characters in the unicode space.
+          
+  A sentence is taken to be any number of words, extending over any number  of
+  lines terminated by a full stop followed by whitespace (". "). Sentences are
+  currently defined to begin with an upper-case ASCII alpha character ( A-Z ).
+  While, strictly, a sentence may be  terminated  with  other  marks  queries,
+  plings, colons and semicolons, for most purposes the definition used here is
+  adequate.
+  
+  A paragraph is any number of words, spanning any number of lines bounded  by
+  either blank lines or a discontinuity in indentation level.
+  
+  A section may include any number of paragraphs, and is  bounded  by  section
+  headings or the ends of the text buffer. Section headings are  not  indented
+  and must have any digit in the first character position.
+  
+  A chapter may include any number of sections and paragraphs, and is  bounded
+  by a chapter headings or the ends of the text buffer. Chapter  headings  are
+  not indented and must have any alphabetical character in the first character
+  position.
+  
+  Where the function has to identify  words  from  other  characters  such  as
+  punctuation marks or operators separating identifiers in an  expression,  it
+  uses the `Q` command. for most purposes it defines a word to be a string  of
+  the following character classes separated by some other ASCII characters:
+    - any ASCII numeric character (0-to-9),
+    - any ASCII upper or lower -case alpha (A-Z and a-z),
+    - an ASCII underscore ( _ ),
+    - any unicode character in the range 0x0100 to 0X20039 - this will require
+      some refinement by those knowledgeable in  these  languages  since  that
+      range includes some  local  currency  symbols  and  special  punctuation
+      characters for languages using these alphabets.
+      
+   The following functions have been defined specifically for  handling  these
+   syntactic entities:
+    - `WordLeft`,
+    - `WordRight`,
+    - `WordUp`,
+    - `WordDown`,
+    - `DeleteWordLeft`,
+    - `RestoreWordLeft`,
+    - `DeleteWordRight`,
+    - `RestoreWordRight`,
+    - `SelectionWord`,
+    - `SpellcheckWord`,
+    - `DeleteLineLeft`,
+    - `RestoreLineLeft`,
+    - `DeleteLineRight`,
+    - `RestoreLineRight`,
+    - `LineLeft`,
+    - `LineRight`,
+    - `SelectionLine`,
+    - `ParagraphUp`,
+    - `ParagraphDown`,
+    - `ChapterUp`,
+    - `ChapterDown`,
+    - `SentenceUp`,
+    - `SentenceDown`,
+    - `FindPhraseNext`,
+    - `FindPhrasePrev`,
+    - `FindSentenceNext`,
+    - `FindSentencePrev`,
+    - `FindParaNext`,
+    - `FindParaPrev`,
+    - `FindSectionNext`, 
+    - `FindSectionPrev`,
+    - `FindChapterNext`, 
+    - `FindChapterPrev`,
+    - `FindInNLines`,
+    - `FindInNLinesPrev`
+    - `ReformatParagraph`
+    - `MakeParagraphIntoBullet`
+    - `SpellcheckParagraph`
+    
+  The  {Word|Paragraph|Chapter}{Left|Right|Up|Down}   functions   are   simple
+  navigation functions and do pretty-much what it says on the tin.
+  
+  The {Delete|Restore}Word{Left|Right} functions move  words  and  part  words
+  between the current buffer and the delete-bin buffer ( % ).
+    
+  The `ReformatParagraph`, `MakeParagraphIntoBullet` and `SpellcheckParagraph`
+  are dedicated to document preparation - see `text document preparation`.
+  
+  If  your  system  has  aspell  installed  (see  `installation`)   then   the
+  SpellcheckParagraph function will pass  a  copy  of  the  current  paragraph
+  through Aspell and will display the results..
+
+}}}
+{{{ The find functions
+1.6 The find functions
+----------------------
+  There are several options available for navigating by context:
+    - Simple find command `F` and the simple find function <<Find>>,
+    - the regular-expression find command `%F`,
+    - the  `FindSequence`  function  -  locates  a  sequence   of   substrings
+      irrespective of separating punctuation and whitespace,
+    - the `FindLineOrd` function -  finds  a  line  containing  the  specified
+      substrings in the order specified,
+    - the `FindLineUn` function  -  finds  a  line  containing  the  specified
+      substrings in any order and
+    - the  complex  find  functions  (see  below)  these  take  formal  search
+      specification and locate matching text units.
+  These functions take a search specification and, starting from  the  current
+  character position, locate the next appropriate syntactic unit matching  the
+  specification.
+  
+  A search specification consists of a series of elements:
+    - a simple string that must appear in the matching unit,
+    - an exact word that must appear in the matching unit -  i.e.  the  string
+      must be bounded by non-alpha characters,
+    - a sublist of simple strings or exact words, of which at least  one  must
+      appear in a matching unit
+    - an inversion of the normal logic so that  a  matching  unit  must  *not*
+      match to an element.
+      
+  These  functions  Find{Phrase|Sentence|Paragraph|Chapter}{Prev|Next}  search
+  through your document finding a specified selection of substrings within the
+  specified syntactic unit - either a Chapter,  a  paragraph,  a  sentence,  a
+  phrase, a sequence on n consecutive lines or a single line.  The  substrings
+  may appear in any order and can be specified to be either complete words  or
+  fragments of words as required. Where a word has  valid  alternatives  these
+  may also be specified.
+  
+  The FindInNLines and FindInNLinesPrev  functions  are  similar  except  that
+  these ignore natural-language syntactic units. Instead, for these functions,
+  all matches must be within an n-line search aperture.
+  
+  On completion, the forwards-searching functions leave the cursor at the  end
+  of the syntactic unit, the backwards-searching ones leave the cursor at  the
+  begining. This behaviour facilitates repeated searches. The  find  functions
+  mark the syntactic-unit boundaries by highlighting the nearest non-null line
+  with a red background. Inside the syntactic unit,  the  first  instances  of
+  each matching string is highlighted in green.  Note  that,  for  the  longer
+  units (e.g. chapters) the string-matching highlights may not be visible  and
+  that there may be more valid matches which have not appear in highlights.
+  
+  A valid find specification consists of a whitespace-separated  list  of  any
+  number of elements, each element can be one of:
+    - A simple string that must appear in any matching text unit,
+    - A simple string prefixed by a hashmark ( # ) - in this case  the  string
+      specifies a complete word (any string of alphanumeric characters bounded
+      by either whitespace, a non-alphanumeric character or the end of line.
+    - A series of strings separated by vertical bars ( | ) - in this case  any
+      string in the list is a valid match. Any members  of  this  sublist  may
+      also be prefixed with a hashmark to indicate an exact match to a word is
+      required. The vertical bars may be surrounded by any  number  of  blanks
+      which are ignored.
+    - An exclamation mark, ( ! ), also known as pling or bang, may  appear  at
+      the start of a search-specification element - in this case the  matching
+      text unit must *not* match the following specification.
+    - Any number of blanks are allowed to appear in the search strings  -  but
+      each must be escaped by prefixing with a backslash ( \ ).
+  
+  The find functions take a find-specification argument in  the  form  of  any
+  number of these elements in a whitespace-separated list.  This  argument  is
+  parsed to a working specification which has  one  specification  element  on
+  each line with any separating whitespace removed. Immediately after  one  of
+  these searches, the parsed specification can be found in the ( @ ) buffer, a
+  copy is also preserved in the data object "'=GeneralFindSpec".
+  
+  Once a search specification has been successfully entered for one  of  these
+  functions, it can be re-used any number of times with any of them by  giving
+  the relevant escape sequence without entering a new search specification.
+  
+  A few examples - these work on ${JOT_RESOURCES}/Richard_III_Entire_Play.txt:
+> king{Esc f p}
+  This will search forwards and will match to  any  paragraph  containing  the
+  string "king" although the matching string may be a part of  a  longer  word
+  e.g. "looking", "buckingham".
+> #king{Esc f p}
+  This will search forwards and will match to  any  paragraph  containing  the
+  word "king" - rejecting longer words containing the substring "king".
+> #king richard{Esc f p}
+  This will search forwards and will match to any  paragraph  containing  both
+  the exact word "king" and the string "richard" in any order.
+> king\ richard{Esc f p}
+  This searches forwards and will locate the first  paragraph  containing  the
+  string "king richard".
+> #king | #prince{Esc f p}
+  This will search forwards and will match to  any  paragraph  containing  the
+  strings "king" or "prince".
+> #ned | edward{Esc f p}
+  This will search forwards and will match to  any  paragraph  containing  the
+  either exact word "ned" or a simple match with "edward".
+> king richard !safe;{Esc f p}
+  This will match to the next paragraph  containing  the  strings  "king"  and
+  "richard" but pass over any that also contain the string "safe".
+
+}}}
 {{{ Command-mode vs. insert mode
-1.5 Command-mode vs. insert mode
+1.7 Command-mode vs. insert mode
 --------------------------------
-  Jot is essentially a command-driven editor. In other words, you  give  it  a
-  command and a parameter and it does something to your text. You  might,  for
-  example give it the command to  insert  text,  by  typing  something  in  or
-  pressing some  button,  and  the  parameter  would  be  the  text  you  want
-  inserting.
+  Jot is essentially a command-driven editor. In other words  it  picks  up  a
+  command and a  parameter  terminated  by  a  {Return}  (this  is  a  special
+  character that is sent when the return key is struck. The editor then  makes
+  the requested change to your text image.
+  
+  Most modern text editors and word processors operate in insert mode - typing
+  at the keyboard appears directly in the text image. 
+  
+  Thus, to enter a line of text in insert mode, we type in the text  and  then
+  hit return. To enter a line of text in command mode, we type  the  text  and
+  then hit the appropriate command key. This is because, for a  command-driven
+  system, the {Return} key is used exclusively to enter commands and, in  this
+  case, we want to enter a line of text.
+  
+  The insert-mode of operation is OK if we never need to make changes  to  our
+  text. Unfortunately, we quite often need to navigate around the text  image,
+  simple navigation can usually be performed using the cursor keys and, maybe,
+  the page-up/down keys without exiting the insert mode. But to search  for  a
+  string in the text, it is usually necessary to enter some  sort  of  command
+  mode in order to define the search string. In  practice  we  find  ourselves
+  constantly hopping in and out of insert mode in order to pass search strings
+  and replacement strings. The upshot is that we need an  extra  keystroke  to
+  terminate the parameter string.
    
-  Maybe typing-to-screen is OK for capturing a brain  dump  -  when  the  task
-  involves searching and doing several fiddly  tweaks  to  the  content  of  a
-  text-file image then you will need to exiting  and  re-entering  the  screen
-  mode to enter whatever search or command parameters are required. This is  a
-  real drag most of of the time and can  be  a  right-royal  pain  at  others.
-  Nevertheless, jot does offer a fully-functional insert-mode environment.
+  Maybe typing-to-screen is OK for capturing  the  brain  dump  of  a  skilled
+  typist who never makes mistakes and never changes his mind. For the rest  of
+  us, however, the task frequently involves searching and and  navigating  and
+  doing many fiddly tweaks to the content of a text-file image. This  kind  of
+  activity requires constantly exiting and  re-entering  the  screen  mode  to
+  enter whatever search or command parameters are required.  This  is  a  real
+  drag most of of the time and can be a right-royal pain at others.
   
   In it's command mode, all  native  jot  commands  as  well  as  jot  editing
   functions are available for use - jot functions are little bits of jot  code
   attached to function keys etc. Typically, to invoke a function:
     - First type in the parameter to the console area (if any) then
-    - hit the function hotkey.
+    - hit the function key.
   
-  Jot also has a direct insert mode which also allows jot  functions  but  not
-  native jot commands. Also arrangements or passing parameters are different -
-  see `about command parameters`. In the insert mode, any typed-in  text  goes
-  directly to the screen but to invoke editor  functions  the  process  is  as
-  follows:
+  Nevertheless, jot does, as an option, offer a  fully-functional  insert-mode
+  environment. Jot also has  a  direct  insert  mode  which  also  allows  jot
+  functions  but  not  native  jot  commands.  Also  arrangements  or  passing
+  parameters are different - see `about command  parameters`.  In  the  insert
+  mode, any typed-in text goes directly to the screen  but  to  invoke  editor
+  functions the process is as follows:
     - hit the function key,
     - type in the parameter then
     - hit return.
-  
-  This is not the way most modern editors and word-processors work.  You  will
-  probably  be  accustomed  to  always  typing  directly  to  the   text   and
-  occasionally invoking editor functions via function keys and menus below the
-  banner bar. Typically there will be a strictly-defined set of functions that
-  *only* work in command mode and another set that *only* work in screen-entry
-  mode.
 
 }}}
 {{{ About help
-1.6 About help
+1.8 About help
 --------------
   The jot help system is based on fold marks - a sequence of three open braces
-  ( { ) at the start of a line is a fold start,  a  sequence  of  three  close
-  braces ( } ) is a fold-end mark. Folds can be nested to any level.
+  ( {{{ ) at the start of a line is a fold start, a sequence  of  three  close
+  braces ( }}} ) is a fold-end mark. Folds can be nested to any level.
   
   Another type of fold mark is the file-fold mark - these take  the  following
   form:
@@ -202,7 +411,7 @@
 
 }}}
 {{{ About command editing
-1.7 About command editing
+1.9 About command editing
 -------------------------
   Jot is a command-driven text editor so, since it is probably most  used  for
   editing scripts in the  command  language  for  other  text-driven  computer
@@ -239,40 +448,37 @@
   commands. By default this holds the last 20 commands but this limit  can  be
   changed with the `-history` CLI qualifier.
   
-  Note that the command history is viewed and edited in the ( ! ) buffer.  Now
-  one other function also uses the ( ! ) buffer - <<`AddNewFunctions`>>  hence
+  Note that the command history is viewed and edited in the ( - ) buffer.  Now
+  one other function also uses the ( - ) buffer - <<`AddNewFunctions`>>  hence
   you avoid using this function  while  editing  commands.  In  practice  this
   restriction should not prove overly burdensome since that function  is  only
   used by scripts to add new functions to the code repository.
 
 }}}
 {{{ About not losing your work
-1.8 About not losing your work
+1.10 About not losing your work
 ------------------------------
   There are many and varied ways of mistakenly losing or corrupting work in an
-  editing session - jot offers a few methods of making this a bit less easy to
-  do:
+  editing session - jot offers a few methods for making this a bit less easy:
+  
     - Setting the buffer attribute writeifchanged  (see  `%b=writeifchanged`),
-      if the buffer has been changed in any way the %c and  %A  commands  will
-      fail with a message telling you which buffers require writing.  When  an
-      editing session has many active  buffers  it's  not  all  that  easy  to
-      remember which have been  updated  -  this  tells  you.  To  unset  this
-      attribute use `%b=unrestricted`.
+      if the buffer has been changed in any way the  `%C`  and  `%A`  commands
+      will fail with a message telling you which buffers require writing. When
+      an editing session has many active buffers it's not always easy to  keep
+      track of which have been updated - this requests jot to  you.  To  unset
+      this attribute use `%b=unrestricted`.
     
-    - Setting the buffer attribute readonly (see `%b=readonly`), if  the  file
-      is only to be used as a reference - any attempt to change it will fail.
-      
     - Request an optional journal file - this is part of the  journal-recovery
       system  and  is  designed  to  protect  against  power  failures,   flat
       batteries, crashes etc. (see `about journal files`)
       
   Where one of the attribute-setting approaches is relevant,  to  insure  this
-  *always* gets done, add these  commands  to  your  project-area  startup.jot
-  file - see `about project files`.
+  *always* gets done, add these commands to your project-area startup.jot file
+  - see `about project files`.
 
 }}}
 {{{ About multi-window working
-1.9 About multi-window working
+1.11 About multi-window working
 ------------------------------
   Jot allows the usable screen area to be allocated to  any  number  of  areas
   known here as windows. The screen may be split horizontally or vertically to
@@ -283,7 +489,7 @@
   of equal-sized vertical slices.
   
   The  `WindowOne`  function  gives  a  simple  single-window   display,   the
-  `WindowHorizSplit` and `WindowVertSplit` will split  the  screen.
+  `WindowHorizSplit` and `WindowVertSplit` will split the screen.
   
   Various functions operate on  specific  windows  eg:  `PageUp`,  `PageDown`,
   `WindowReassign`, `WindowStretch` and `WindowShrink` - when  there  is  more
@@ -296,7 +502,7 @@
 
 }}}
 {{{ About jot debugging
-1.10 About jot debugging
+1.12 About jot debugging
 -----------------------
   Jot supports a simple debugging environment. It is possible to  display  the
   current state of the stack, the current record and breakpoint on a number of
@@ -361,7 +567,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 
 }}}
 {{{ About block graphics
-1.11 About block graphics
+1.13 About block graphics
 ------------------------
   Jot offers some limited support for  the  creation  of  simple  line-drawing
   diagrams, flow-charts electrical schematics etc.
@@ -375,10 +581,10 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   a line then additional lines and/or whitespace is automatically added.
   
   If the diagrams are to be  part  of  a  document  to  be  processed  by  the
-  `doc.jot` family of scripts (`doc.jot`, `doc2html.jot`,  `doc2fold.jot`  and
-  `html2doc.jot`) then it is important that the first character of  each  line
-  in the graphical section begins with  any  character  other  than  an  ascii
-  space -  an ASCII VT (tab) will do.
+  document-preparation functions and scripts  (`doc2html.jot`,  `doc2fold.jot`
+  and `html2doc.jot`) (see `text document preparation`) then it  is  important
+  that the first character of each line in the graphical section  begins  with
+  any character other than an ascii space - an ASCII VT (tab) will do.
   
   It attempts to tidy corners when shifting between  horizontal  and  vertical
   lines and similarly with diagonals. Hence a series of <<LineE>> followed  by
@@ -422,10 +628,6 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   In the description of functions dealing  with  paragraphs,  a  paragraph  is
   deemed to be a block of lines bounded by completely blank  lines  -  i.e.  a
   line which does not even contain whitespace.
-  
-  In the description of functions dealing with code sections, a  code  section
-  is deemed to be a block of indented text, headed by an unindented line.  The
-  code section may contain any number of blank lines.
   
   In the description of functions dealing with words, JOT defines a word as  a
   string  containing  upper  and  lower-case  alpha  characters,  digits   and
@@ -578,7 +780,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 {{{ RestoreWordLeft
 2.2.8 RestoreWordLeft
 ---------------------
-> {Esc - r w}
+> {Esc - l w}
   
   The first word in the delete-bin buffer is moved  to  the  current-character
   position of the current buffer.
@@ -587,7 +789,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 {{{ RestoreLineLeft
 2.2.9 RestoreLineLeft
 ---------------------
-> {Esc - r l}
+> {Esc - l l}
   
   The first line in the delete-bin buffer is moved  to  the  current-character
   position of the current buffer.
@@ -719,14 +921,14 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 -------------------
 > {Alt+F7}
   
-  In insert mode, the FindPrev function will  always  prompt  for  the
-  search string. FindPrevAgain will just  apply  the  last-used  search-string
-  parameter once again.
+  In insert mode, the FindPrev function will  always  prompt  for  the  search
+  string. FindPrevAgain will just apply the last-used search-string  parameter
+  once again.
   
   This function is provided for the benefit of insert-mode users - repeats the
   most recent search without  re-prompting.  It's  entirely  useless  when  in
   command mode - these users need only dab F7 again to repeat their search.
-  
+
 }}}
 {{{ FindWild
 2.3.11 FindWild
@@ -748,44 +950,188 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
   If no argument is given then it matches to whatever happens to be in  the  @
   buffer.
-   
+
 }}}
-{{{ FindInParaNext
-2.3.13 FindInParaNext
---------------------
-> [<substring1>[ <substring2>[ <substring3>[ ...]]]{Esc f p}
+{{{ FindPhraseNext
+2.3.13 FindPhraseNext
+---------------------
+> [<substringSpecification>]{Esc f h}
   
-  Locates the next paragraph containing all of the substrings in the  argument
-  list.
+  Working forwards, this  locates  the  next  phrase  containing  all  of  the
+  substrings in the substrings list. On successful completion,  it  highlights
+  the matching substrings in your specification. If unsuccessful,  the  cursor
+  is left at the end of the file image and a message is issued.
   
-  The argument list is parsed and held in buffer @. If no  argument  is  given
-  then it matches to whatever happens to be in the @ buffer  -  hopefully  the
-  parsed argument list from the last such search.
+  A phrase is any number of words, extending over any number of lines  bounded
+  by normal punctuation marks or the  start  or  end  of  the  buffer.  Normal
+  punctuation marks are ( . , : ; ? ! ).
   
-  In this context, a paragraph is any number of lines separated by blank lines
-  or lines containing only whitespace.
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
   
 }}}
-{{{ FindInParaPrev
-2.3.14 FindInParaPrev
---------------------
-> [<substring1>[ <substring2>[ <substring3>[ ...]]]{Esc - f p}
+{{{ FindPhrasePrev
+2.3.14 FindPhrasePrev
+---------------------
+> [<substringSpecification>]{Esc - f h}
   
-  Locates the previous paragraph containing  all  of  the  substrings  in  the
-  argument list.
+  Similar to `FindPhraseNext` except that the text is searched back, from  the
+  current-character position, towards the begining of the buffer.
   
-  The argument list is parsed and held in buffer @. If no  argument  is  given
-  then it matches to whatever happens to be in the @ buffer  -  typically  the
-  parsed argument list from the last such search.
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
   
-  In this context, a paragraph is any number of lines separated by blank lines
-  or lines containing only whitespace.
+}}}
+{{{ FindSentenceNext
+2.3.15 FindSentenceNext
+-----------------------
+> [<substringSpecification>]{Esc f s}
   
+  Working forwards, this locates the  next  sentence  containing  all  of  the
+  substrings in the substrings list. On successful completion,  it  highlights
+  the matching substrings in your specification. If unsuccessful,  the  cursor
+  is left at the end of the file image and a message is issued.
+  
+  A sentence is any number of  words,  extending  over  any  number  of  lines
+  bounded by a full-stop, blank lines or the start or end of the buffer. 
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindSentencePrev
+2.3.16 FindSentencePrev
+-----------------------
+> [<substringSpecification>]{Esc - f s}
+  
+  Similar to `FindSentenceNext` except that the text is  searched  back,  from
+  the current-character position, towards the begining of the buffer.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindParaNext
+2.3.17 FindParaNext
+-------------------
+> [<substringSpecification>]{Esc f p}
+  
+  Locates  the  next  paragraph  containing  all  of  the  substrings  in  the
+  substrings list. On successful completion, it highlights the last  substring
+  in your parameter list. If unsuccessful, the cursor is left at  the  end  of
+  the file image and a message is issued.
+  
+  A paragraph is any number of  words  extending  over  any  number  of  lines
+  bounded by a blank line, a bullet  point  or  some  other  discontinuity  in
+  indent level.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindParaPrev
+2.3.18 FindParaPrev
+-------------------
+> [<substringSpecification>]{Esc - f p}
+  
+  Similar to `FindParaNext` except that the text is searched  back,  from  the
+  current-character position, towards the begining of the buffer.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindSectionNext
+2.3.19 FindSectionNext
+----------------------
+> [<substringSpecification>]{Esc f h}
+  
+  Similar to FindParaNext except that  the  allowable  range  is  an  complete
+  headed section. FindSectionNext locates the next headed  section  containing
+  all of the substrings in the substrings list. On successful  completion,  it
+  highlights the last substring in your parameter list. If  unsuccessful,  the
+  cursor is left at the end of the file image and a message is issued.
+  
+  A headed section is any number of paragraphs bounded by section  headers  or
+  the start or end of the buffer. A section header is a line  with  a  numeric
+  character (a digit) in column 0.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindSectionPrev
+2.3.19 FindSectionPrev
+----------------------
+> [<substringSpecification>]{Esc f h}
+  
+  Similar to FindParaPrev except that  the  allowable  range  is  an  complete
+  headed section. 
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindChapterNext
+2.3.19 FindChapterNext
+----------------------
+> [<substringSpecification>]{Esc f c}
+  
+  Similar to FindParaNext except that the allowable range is an entire chapter
+  or code section. FindChapterNext locates the next chapter containing all  of
+  the  substrings  in  the  substrings  list.  On  successful  completion,  it
+  highlights the last substring in your parameter list. If  unsuccessful,  the
+  cursor is left at the end of the file image and a message is issued.
+  
+  A chapter is any number of paragraphs bounded  by  chapter  headers  or  the
+  start or end of the buffer. A chapter header is a line with  n  alphabetical
+  character in column 0.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindChapterPrev
+2.3.20 FindChapterPrev
+----------------------
+> [<substringSpecification>]{Esc - f p}
+  
+  Similar to `FindChapterNext` except that the text is searched back, from the
+  current-character position, towards the begining of the buffer.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+  
+}}}
+{{{ FindInNLines
+2.3.21 FindInNLines
+-------------------
+> [<apertureSize> [<substr1>[ <substr2>[ ... ]]{Esc f n}
+  Similar to `FindLineUn` except that it allows the substrings to be scattered
+  over a specified number of lines.  The  aperture  size  (maximum  number  of
+  lines) including any blank and any other non-text lines,  this  must  be  in
+  decimal.
+  
+  E.g the following:
+> 5 wonderful super\ duper amazing{Esc f n}
+  
+  will search the document for the strings 
+    "wonderful", "super duper" and "amazing"
+  which may appear in any order and must appear in a block of 5 lines or less.
+  
+}}}
+{{{ FindInNLinesPrev
+2.3.22 FindInNLinesPrev
+-----------------------
+> [<apertureSize> [<substr1>[ <substr2>[ ... ]]{Esc - f n}
+  Similar to `FindInNLines` except that it  searches  back  from  the  current
+  cursor position, towards the start of the file image.
+
 }}}
 {{{ FindSequence
-2.3.15 FindSequence
+2.3.23 FindSequence
 ------------------
-> [<string>]{Esc f s}
+> [<string>]{Esc f q}
   The  editor  will  search  for  the   sequence   of   words   ignoring   any
   non-alphanumeric delimiters including line breaks. One or more words can  be
   represented by the wildcard character ( * ). The argument list is parsed and
@@ -800,47 +1146,59 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ FindSequencePrev
-2.3.16 FindSequencePrev
+2.3.24 FindSequencePrev
 ----------------------
-> [<string>] {Esc - f s} 
-  Similar to FindPhrase except that it searches back towards the start of  the
-  file.
+> [<string>] {Esc - f q} 
+  Similar to FindSequence except that it searches back towards  the  start  of
+  the file.
   
 }}}
-{{{ FdInLineOrd
-2.3.17 FdInLineOrd
+{{{ FindLineOrd
+2.3.25 FindLineOrd
 ------------------
 > [<substr1>[ <substr2>[ ... ]]{Esc f o}
   This finds the next  occurrence  of  a  line  containing  that  sequence  of
   substrings in the order specified.
   
+  The list of substrings is delimited by blanks,  sequences  of  two  or  more
+  blanks are treated as a single blank. If a substring contains  blanks  these
+  are escaped with a backslash character ( \ ) e.g:
+> substring1 substring2 substring\ containing\ blanks lastSubstring{Esc f p}
+  
 }}}
-{{{ FdInLineOrdPrev
-2.3.18 FdInLineOrdPrev
+{{{ FindLineOrdPrev
+2.3.26 FindLineOrdPrev
 ----------------------
 > [<substr1>[ <substr2>[ ... ]]{Esc - f o}
-  This finds the previous occurrence of a line  containing  that  sequence  of
-  substrings in the order specified.
+  This is similar to `FindLineOrd` except that it works back from the  current
+  line towards the start of the file image.
   
 }}}
-{{{ FdInLineUn
-2.3.19 FdInLineUn
+{{{ FindLineUn
+2.3.27 FindLineUn
 -----------------
 > [<substr1>[ <substr2>[ ... ]]{Esc f u}
-  Very similar to `FdInLineOrd` except that it matches to  a  line  containing
-  the substrings in any order.
+  Very similar to `FindLineOrd` except that it matches to  a  line  containing
+  the given substrings in any order. On successful completion,  it  highlights
+  the last of the given substrings. If it fails to find a  matching  line,  it
+  leaves the cursor at the end of the file image.
+  
+  The list of substrings is delimited by blanks,  sequences  of  two  or  more
+  blanks are treated as a single blank. If a substring contains  blanks  these
+  are escaped with a backslash character ( \ ) e.g:
+> substring1 substring2 substring\ containing\ blanks lastSubstring{Esc f p}
   
 }}}
-{{{ FdInLineUnPrev
-2.3.20 FdInLineUnPrev
+{{{ FindLineUnPrev
+2.3.28 FindLineUnPrev
 ---------------------
 > [<substr1>[ <substr2>[ ... ]]{Esc - f u}
-  Very  similar  to  `FdInLineOrdPrev`  except  that  it  matches  to  a  line
-  containing the substrings in any order.
+  Very similar to `FindLineUn` except that  it  searches  backwards  from  the
+  current line towards the start of the file image.
   
 }}}
 {{{ Substitute
-2.3.21 Substitute
+2.3.29 Substitute
 -----------------
 > [<string>]{F5}
   
@@ -849,7 +1207,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ Remove
-2.3.22 Remove
+2.3.30 Remove
 -------------
 > {Shift+F5}
   
@@ -858,7 +1216,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ SubstituteAgain
-2.3.23 SubstituteAgain
+2.3.31 SubstituteAgain
 ----------------------
 > {Alt+F5}
   
@@ -873,7 +1231,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ Insert
-2.3.24 Insert
+2.3.32 Insert
 -------------
 > [<string>]{F6}
   
@@ -882,7 +1240,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ Overwrite
-2.3.25 Overwrite
+2.3.33 Overwrite
 ----------------
 > [<string>]{Shift+F6}
   
@@ -894,7 +1252,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ InsertAgain
-2.3.26 InsertAgain
+2.3.34 InsertAgain
 ------------------
 > {Alt+F6}
   
@@ -908,7 +1266,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ InsertWithBackTick
-2.3.27 InsertWithBackTick
+2.3.35 InsertWithBackTick
 -------------------------
 > [<String>]{Esc ’}
   
@@ -934,11 +1292,36 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 {{{ Text Document Preparation
 2.4 Text Document Preparation
 -----------------------------
-  The `doc.jot` script offers  a  suite  of  basic  text-document  preparation
-  functions. These functions perform simple  shifting  of  text  across  lines
-  while  preserving  indentation   and   for   inheriting   indentation   from
-  neighbouring lines.
-  
+  The startup  script offers  a  suite  of  basic  text-document  preparation
+  functions.
+[<string>]{KP_Enter}       `Enter` - enters a new line of text below the cursor.
+[<string>]{Esc e}          `Enter` - as above for those without a {KP_Enter} key.
+          {Alt+F9}         `AppendLeftPrev` - Appends left-of-cursor text to previous line.
+          {Alt+F10}        `AppendRightNext` - Appends right-of-cursor text to next line.
+          {Shift+Alt+F9}   `JoinLeftPrev` - join current line with previous.
+          {Shift+Alt+F10}  `JoinRightNext` - join current line with next.
+          {Ctrl+Shift+F9}  `IndentFromPrev` - inherit previous line's indentation.
+          {Ctrl+Shift+F10} `IndentFromNext` - inherit next line's indentation.
+          {Shift+F10}      `Break` - breaks the current line at cursor.
+          {Esc p a}        `ReformatParagraph` tops, tails and reformats current PAragraph
+          {Esc P a}        `ReFormatAll` tops, tails and reformats tails All Paragraphs
+          {Esc p m}        `SetParagraphMargin` sets the left and right margins for each paragraph.
+          {Esc b u}        `MakeParagraphIntoBullet` makes current paragraph a bullet point.
+          {Esc c u}        `CentreAndUnderlineText` Centres and Underlines text on current line.
+          {Esc u l}        `UnderlineThisLine` UnderLines current line.
+          {Esc r j}        `RightJustifyLine` Right-Justifies current line.
+[proforma]{Esc h e}        `ConvertLineToHeading` Converts current line into a HEading.
+          {Esc h +}        `UpHeadingLevel` Converts current line into a heading at a next-higher heading level.
+          {Esc h -}        `DownHeadingLevel` Converts current line into a heading at a next-lower heading level.
+          {Esc h a}        `PurgeAllHeadings` All section numbers are updated, preserving heading levels.
+          {Esc s p}        `SpellcheckParagraph` Checks Spelling of current Paragraph.
+          {Esc s d}        `SpellcheckDocument` Checks Spelling of complete Document.
+     Word {Esc s w}        `SpellcheckWord` Checks Spelling of a single word offered as a parameter.
+          {Esc s i}        `NextSpellInstance` Goes to next instance of misspelled word.
+          {Esc s n}        `NextMisspelling` Goes to Next word in Spelling-errors list.
+          {Esc s f}        `FixSpelling` Fix spelling error - substitutes word with one selected from popup menu.
+   [<RE>] {Esc l x}        `GrepLexicon` grep for regular expression in Lexicon.
+
 {{{ Enter
 2.4.1 Enter
 ------------
@@ -951,8 +1334,277 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   indent level as the line above. This function only useful in command mode.
   
 }}}
+{{{ ReformatParagraph
+2.4.2 ReformatParagraph
+-----------------------
+> {Esc p a} 
+  
+  Re-formats the current paragraph, the paragraph is deemed to be the  current
+  line and all the adjacent lines with the same  indent  level.  This  adjusts
+  whitespace between words to align line endings, the line-length to  aim  for
+  is set by the `SetParagraphMargin` function.
+  
+  If the paragraph with a bullet mark (typically a dash followed by  at  least
+  one blank) then the length of the bullet mark is included in the indentation
+  calculation.
+  
+  The jot word processor takes a paragraph as any number of nonblank lines  of
+  text at the same level of indentation but note that the paragraph definition
+  used by the startup-defined functions is less strict - for these functions a
+  paragraph is any number of lines bounded by blank lines. These functions are
+  `ChapterUp`,      `ChapterDown`,       `FindParaNext`,       `FindParaPrev`,
+  `FindChapterNext` and `FindChapterPrev` - See `about words, lines,  phrases,
+  sentences, paragraphs, sections and chapters`.
+  
+  A line of text can be protected from the paragraph processor ({Esc p a}  and
+  {Esc P a}) by placing a non-blank character in column 1 - in this context  a
+  tab is taken as a non-blank character.
+  
+}}}
+{{{ ReFormatAll
+2.4.3 ReFormatAll
+-----------------
+> {Esc P a}
+  
+  Reformats all  paragraphs  (as  described  in  `ReformatParagraph`)  in  the
+  current buffer.
+
+}}}
+{{{ SetParagraphMargin
+2.4.4 SetParagraphMargin
+------------------
+> [n]{Esc p m}
+  
+  Sets the right margin to the specified column,  if  not  specified  then  it
+  defaults to two character positions less than the  current  terminal  width.
+  This is used for reformatting paragraphs - see `ReformatParagraph`.
+
+}}}
+{{{ RightJustifyLine
+2.4.4 RightJustifyLine
+----------------------
+> {Esc r j}
+   
+  Indents current line with sufficient blanks to shift the righthand extremity
+  of the current line to the right margin (defaults to 78 characters,  set  by
+  the `SetParagraphMargin` function.
+
+}}}
+{{{ MakeParagraphIntoBullet
+2.4.4 MakeParagraphIntoBullet
+-----------------------------
+> {Esc b u}
+  
+  Reformats current paragraph as a bullet-point paragraph.
+
+}}}
+{{{ CentreAndUnderlineText
+2.4.5 CentreAndUnderlineText
+----------------------------
+> {Esc c u}
+  
+  The text in the current line is indented with sufficient blanks to  position
+  it approximately in the centre of the line. The line is then underlined with
+  hyphens.
+  
+}}}
+{{{ UnderlineThisLine
+2.4.6 UnderlineThisLine
+-----------------------
+> {Esc u l}
+  
+}}}
+{{{ ConvertLineToHeading
+2.4.5 ConvertLineToHeading
+--------------------------
+> [ProformaHeadingKey]{Esc h e}
+  
+  Makes the current line into a section heading. e.g:
+> 0{Esc h e} - makes current line next top-level heading
+  In fact, the section number given here is ignored - only the header level is
+  significant, the header  index  numbers  are  inherited  from  the  previous
+  heading. So this will have exactly the same effect:
+> 999{Esc h e}
+  
+  But
+> 12.34.56.78{Esc h e}   - makes current line next level-4 heading
+  Again, the section numbers given here  are  ignored  -  so  this  will  have
+  exactly the same effect:
+> ...{Esc h e}           - makes current line level-4 heading
+       
+  Section headings are in two sections separated by whitespace. The first part
+  is a key of the form <n1>[.<n2>[.<n3>...]] e.g. 9.3.99, the second  part  is
+  any text string e.g:
+    123.456.789 An example of a section heading.
+   
+  The heading level is determined  by  the  previous  heading  but  the  final
+  counter is incremented. If the current line has any kind  of  header  level,
+  this is taken as a proforma and the new header  level  will  have  the  same
+  number of levels but will inherit the numbering from the previous heading.
+  
+  If  a  proformaHeadingKey  is  given  this  defines  the  proforma  and  any
+  preexisting heading key is ignored.
+  
+  By default, headings below level 4 (i.e. 1.2.3.4...)  are  underlined,  this
+  behaviour is controlled by the number in line 4 of the & buffer.
+       
+}}}
+{{{ UpHeadingLevel
+2.4.6 UpHeadingLevel
+--------------------
+> {Esc h +}
+  
+  Makes the current line into a section heading,  the  heading  level  is  one
+  higher than the previous heading.
+   
+}}}
+{{{ DownHeadingLevel
+2.4.7 DownHeadingLevel
+----------------------
+  
+> {Esc h -}
+  
+  Makes the current line into a section heading,  the  heading  level  is  one
+  lower than the previous heading.
+  
+}}}
+{{{ PurgeAllHeadings
+2.4.8 PurgeAllHeadings
+----------------------
+> {Esc h a}
+  
+  Resets all headings, the heading levels are unchanged,  but  out-of-sequence
+  section numbers are  redefined  -  use  this  after  inserting  or  removing
+  sections.
+
+}}}
+{{{ SpellcheckDocument
+2.4.9 SpellcheckDocument
+------------------------
+> {Esc s d}
+  
+  Checks the entire document for spelling errors using aspell (a GNU  spelling
+  checker), if the there is a spell.lis file in  the  same  directory  as  the
+  document, then this is passed to the aspell checker. The list of  misspelled
+  words is read into the @ buffer - see the `SpellcheckParagraph` , below.
+  
+  Some versions of aspell offer a selection of suggested corrections,  if  jot
+  detects these then it displays them in a popup menu -  see  `the  popup-menu
+  functions` `of mice and menus` and `about menus`.
+      
+  Linux users may find an aspell with their distribution.  There  are  several
+  similar spelling checkers but aspell can be used in  command  mode  with  an
+  error report sent to stdout. Most others insist on you using their  gui.  If
+  your  distro  does  not  have  it  or  you  are  a  windows  user  then  try
+  http://aspell.net
+  
+}}}
+{{{ SpellcheckParagraph
+2.4.10 SpellcheckParagraph
+-------------------------
+> {Esc s p} 
+  
+  Checks the only current paragraph for spelling errors but in other  respects
+  is the same as `SpellcheckParagraph`.
+  
+}}}
+{{{ SpellcheckWord
+2.4.11 SpellcheckWord
+---------------------
+[<word>]{Esc s w}
+  
+  Passes the given word through the spelling checker  the  checkers  suggested
+  corrections are displayed in the popup menu (see  `SpellcheckDocument`).  If
+  no word is given, then it takes the word under or immediately to the left of
+  the cursor.
+
+}}}
+{{{ NextMisspelling
+2.4.12 NextMisspelling
+----------------------
+> {Esc s n}
+  
+  Moves  to  the  next  misspelled  word  found  by  `SpellcheckDocument`   or
+  `SpellcheckParagraph` . If there are no more instances, then  moves  to  the
+  next word in the @ (misspelled words) buffer and finds the first instance of
+  that.
+  
+}}}
+{{{ NextSpellInstance
+2.4.13 NextSpellInstance
+------------------------
+> {Esc s i}
+  
+  Moves to  the  next  instance  of  the  current  misspelled  word  found  by
+  `SpellcheckDocument`  or  `SpellcheckParagraph`.  If  there  are   no   more
+  instances, then calls `NextMisspelling` to move to the next misspelled  word
+  in the aspell report.
+  
+}}}
+{{{ FixSpelling
+2.4.14 FixSpelling
+------------------
+> {Esc s f}
+  
+  First select a spelling correction from the popup menu then {Esc  s  f}  the
+  original word is replaced by the selected word  and  the  popup  disappears.
+  Note, FixSpelling will work even if the popup has disappeared  -  making  it
+  useful where there are several instances of the same misspelling.
+  
+  Nb: To remove the spelling-suggestions popup re-draw the  windows  with  the
+  `WindowOne` function {Esc w 1}.
+    
+}}}
+{{{ GrepLexicon
+2.4.15 GrepLexicon
+------------------
+> <RE>{Esc l x}
+  
+  The lexicon is quite small so there are plenty of  valid  words  that  don't
+  match but, on the plus side, it hardly ever matches to  archaic  or  obscure
+  words that hardly anyone knows.
+
+}}}
+{{{ Doc section and paragraph format
+2.4.16 Doc section and paragraph format
+---------------------------------------
+  Typically, most lines of of text in documents are in  paragraphs.  Paragraph
+  lines are always indented by at least one blank.  In  order  to  distinguish
+  paragraph lines from special text such as headings, tables and literal  text
+  such as code examples these must have a  non-blank  character  in  column  1
+  (tabs count as non-blanks for this purpose).
+  
+  Text documents are deemed to consist of sections, introduced  by  a  section
+  heading and containing any number of paragraphs.
+   
+  Several scripts are designed to text documents  in  document  format,  these
+  make the following assumptions about the structuring of the text - see `text
+  document preparation`.
+   
+    - Numbered sections always start in column 0, may contain  any  number  of
+      subsection numbers, each delimited by a decimal point the section number
+      is terminated by whitespace, followed by the section name e.g:
+> 12.4.9 This section is a child of section 12.4 and grandchild of section 12
+       
+    - In addition to numbered sections, a section name may start at  column  0
+      and be terminated by a colon,  which  me,  optionally,  be  followed  by
+      section text e.g:
+Fred: This is name frequently used by unimaginative technical authors.
+  
+    - Bullet points are  paragraphs  introduced  by  a  bullet  character,  by
+      default these are hyphens ( - ) the actual bullet string is  defined  in
+      line 4 of the ( & ) buffer.
+      
+    - A paragraph is a series of  lines,  all  indented  to  the  same  level,
+      delimited by either blank lines, special lines or  by  paragraphs  at  a
+      different level of indentation.
+      
+      The rightmost extent of a paragraph  defaults  to  78  characters,  this
+      width is defined in line 3 of the ( & ) buffer.
+
+}}}
 {{{ AppendLeftPrev
-2.4.2 AppendLeftPrev
+2.4.17 AppendLeftPrev
 ---------------------
 > {Alt+F9}
   
@@ -961,7 +1613,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ AppendRightNext
-2.4.3 AppendRightNext
+2.4.18 AppendRightNext
 ----------------------
 > {Alt+F10}
   
@@ -970,7 +1622,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
     
 }}}
 {{{ JoinLeftPrev
-2.4.4 JoinLeftPrev
+2.4.19 JoinLeftPrev
 ------------------
 > {Shift+Alt+F9}
   
@@ -979,7 +1631,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ JoinRightNext
-2.4.5 JoinRightNext
+2.4.20 JoinRightNext
 -------------------
 > {Shift+Alt+F10} 
   
@@ -988,7 +1640,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ IndentFromPrev
-2.4.6 IndentFromPrev
+2.4.21 IndentFromPrev
 ---------------------
 > {Ctrl+Shift+F9}
   
@@ -997,7 +1649,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
    
 }}}
 {{{ IndentFromNext
-2.4.7 IndentFromNext
+2.4.22 IndentFromNext
 ---------------------
 > {Ctrl+Shift+F10}
   
@@ -1006,7 +1658,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ Break
-2.4.8 Break
+2.4.23 Break
 -----------
 > {Shift+F10}
   
@@ -1016,7 +1668,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ Join
-2.4.9 Join
+2.4.24 Join
 ----------
 > {Ctrl+F10}
   
@@ -1049,7 +1701,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   or
 > {Esc n o}
   
-  The current character position is noted for a later cut or  copy  operation.
+  The current character position is noted for a later cut or copy operation.
   
 }}}
 {{{ Cut
@@ -1225,6 +1877,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 2.7.1 ParagraphUp
 -----------------
 > {F3}
+  
   Searches for the previous paragraph start  i.e.  a  block  of  text  with  a
   totally blank line above it - it passes by lines containing only whitespace.
     
@@ -1233,31 +1886,78 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 2.7.2 ParagraphDown
 -------------------
 > {F4}
+  
   Searches down the text for the next paragraph start - i.e. a block  of  text
   preceeded by a completely blank line - it passes by  lines  containing  only
   whitespace.
      
 }}}
-{{{ CodeSectionUp
-2.7.3 CodeSectionUp
--------------------
+{{{ ChapterUp
+2.7.3 ChapterUp
+---------------
 > {Shift+F3}
-  Searches back up the text for the start  of  the  next  code  section.  Code
-  sections begin with a non-whitespace character in column 1.
+  
+  Searches back up the text for the start of the next section. Sections  begin
+  with a line containing an alphanumeric character in column 1.
+  
+  A chapter might typically be a few indented paragraphs of  a  text  document
+  introduced by a heading, or a similarly-indented  code  module,  subroutine,
+  subcircuit  or  whatever,  introduced  by  a   declaration   containing   an
+  alpha-numeric character in column 1.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
      
 }}}
-{{{ CodeSectionDown
-2.7.4 CodeSectionDown
----------------------
+{{{ ChapterDown
+2.7.4 ChapterDown
+-----------------
 > {Shift+F4}
-  Searches down the text for the next code section - code sections begin  with
-  a non-whitespace character in column 1.
+  
+  Searches forwards in the text for the next chapter - chapters begin  with  a
+  line containing an alpha-numeric character in column 1.
+  
+  A chapter might typically be a few indented paragraphs of  a  text  document
+  introduced by a heading, or a similarly-indented  code  module,  subroutine,
+  subcircuit  or  whatever,  introduced  by  a   declaration   containing   an
+  alpha-numeric character in column 1.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+     
+}}}
+{{{ SentenceUp
+2.7.5 SentenceUp
+------------------
+> {Ctrl+F3}
+  
+  Searches backwards in the text for the start of a sentence -  sentences  are
+  deemed to begin with an upper-case alpha character which must follow  either
+  ASCII full stop ( . ) or  a  blank  line  separated  by  any  at  least  one
+  whitespace character.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
+     
+}}}
+{{{ SentenceDown
+2.7.6 SentenceDown
+------------------
+> {Ctrl+F4}
+  
+  Searches forwards in the text for the next sentence - sentences  are  deemed
+  to begin with an upper-case alpha character which must follow  either  ASCII
+  full stop ( . ) or a  blank  line  separated  by  at  least  one  whitespace
+  character.
+  
+  See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
+  chapters`.
      
 }}}
 {{{ IndentMatchUp
-2.7.5 IndentMatchUp
+2.7.7 IndentMatchUp
 -------------------
-> {Ctrl+F3}
+> {Ctrl+Shift+F7}
    
   Searches back up the text for the previous line at the same indent level  as
   the current line. Initially the cursor may  be  anywhere  in  the  line,  on
@@ -1265,24 +1965,45 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
    
 }}}
 {{{ IndentMatchDown
-2.7.6 IndentMatchDown
+2.7.8 IndentMatchDown
 ---------------------
-> {Ctrl+F4}
+> {Ctrl+Shift+F8}
    
   Searches forwards in the text for the next  line  at  the  same  indentation
   level as the current line. Initially the cursor may be anywhere in the line,
   on completion it is left on the first non-blank character of the line.
   
 }}}
+{{{ AnyMatch
+2.7.9 AnyMatch
+--------------
+> {Alt+F5}
+  
+  This function matches some form of  brace  character  with  it's  mate,  the
+  cursor must be positioned over a brace character.
+  
+  The cursor must initially be placed over one of the following characters: (,
+  {, [, <, ), }, ] or >. The AnyMatch  function  then  calls  the  appropriate
+  matching   function   (respectively   `ParenMatchLeft`,    `CurlyMatchLeft`,
+  `SquareMatchLeft`, `AngleMatchLeft`,  `ParenMatchRight`,  `CurlyMatchRight`,
+  `SquareMatchRight` or `AngleMatchRight`) to locate the matching character in
+  the text. On completion  the  cursor  is  placed  over  the  matching  brace
+  character.
+  
+}}}
 {{{ ParenMatchLeft
-2.7.7 ParenMatchLeft
+2.7.10 ParenMatchLeft
 --------------------
 > {Shift+Alt+F5}
    
   If the cursor is above a parenthesis close character ')', then the cursor is
-  moved to the corresponding parenthesis open. This  works  by  plodding  back
-  through the text, counting  open  and  close  braces  (  and  ),  until  the
-  corresponding parenthesis-open character is found.
+  moved back (leftwards and upwards) to the  corresponding  parenthesis  open.
+  This works by plodding through the text, counting open and  close  braces  (
+  and ), until the corresponding parenthesis-open character is found.
+  
+  Between the initial ')' and it's matching  '(',  parenthesis  characters  in
+  strings delimited by double quotes ( " ) are ignored as are  matching  pairs
+  of parenthesis characters which may be nested to any depth.
   
   If the cursor is not above a parenthesis-close character, then the buffer is
   searched back to find the previous parenthesis close and the cursor moved to
@@ -1290,14 +2011,18 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
 }}}
 {{{ ParenMatchRight
-2.7.8 ParenMatchRight
+2.7.11 ParenMatchRight
 ---------------------
 > {Shift+Alt+F6}
    
-  If cursor is above a parenthesis open '(' character, then cursor is moved to
-  the corresponding parenthesis close ')'. This  works  by  plodding  forwards
-  through the text, counting  open  and  close  braces  (  and  ),  until  the
-  corresponding parenthesis-close character is found.
+  If cursor is above a parenthesis open '(' character, then  cursor  is  moved
+  forwards (rightwards and downwards) to the corresponding  parenthesis  close
+  ')'. This works by plodding through the text, counting open and close braces
+  ( and ), until the corresponding parenthesis-close character is found.
+  
+  Between the initial '(' and it's matching  ')',  parenthesis  characters  in
+  strings delimited by double quotes ( " ) are ignored as are  matching  pairs
+  of parenthesis characters which may be nested to any depth.
   
   If the current character is not above a parenthesis-open character, then  it
   searches forwards for one and then finds the corresponding parenthesis close
@@ -1305,29 +2030,29 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
    
 }}}
 {{{ CurlyMatchLeft
-2.7.9 CurlyMatchLeft
+2.7.12 CurlyMatchLeft
 --------------------
 > {Ctrl+Shift+Alt+F5}
    
   Similar to <<ParenMatchLeft>>, above, except matches { and }.
   
   Note, if intending to traverse C code, `c.jot` is preferable as this  script
-  will ignore any curly brackets in comments and strings.
+  will ignore any curly brackets in C comments and strings.
    
 }}}
 {{{ CurlyMatchRight
-2.7.10 CurlyMatchRight
+2.7.13 CurlyMatchRight
 ----------------------
 > {Ctrl+Shift+Alt+F6}
    
   Similar to <<ParenMatchRight>>, above, except matches { and }.
   
   Note, if intending to traverse C code, `c.jot` is preferable as this  script
-  will ignore any curly brackets in comments and strings.
+  will ignore any curly brackets in C comments and strings.
    
 }}}
 {{{ AngleMatchLeft
-2.7.11 AngleMatchLeft
+2.7.14 AngleMatchLeft
 ---------------------
 > {Ctrl+Shift+F5}
   
@@ -1335,17 +2060,33 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
      
 }}}
 {{{ AngleMatchRight
-2.7.12 AngleMatchRight
+2.7.15 AngleMatchRight
 ----------------------
 > {Ctrl+Shift+F6}
   
   Similar to <<ParenMatchRight>>, above, except matches < and >.
    
 }}}
-{{{ MarkupMatchLeft
-2.7.13 MarkupMatchLeft
+{{{ SquareMatchLeft
+2.7.16 SquareMatchLeft
 ----------------------
-> {Alt+F5}
+> {Ctrl+Shift+Alt+F7}
+  
+  Similar to <<ParenMatchLeft>>, above, except matches [ and ].
+   
+}}}
+{{{ SquareMatchRight
+2.7.17 SquareMatchRight
+----------------------
+> {Ctrl+Shift+Alt+F8}
+  
+  Similar to <<ParenMatchRight>>, above, except matches [ and ].
+   
+}}}
+{{{ MarkupMatchLeft
+2.7.18 MarkupMatchLeft
+----------------------
+> {Shift+Alt+F7}
   
   This is for use with HTML and XML. MarkupMatchLeft, working  back  from  the
   current cursor position, first locates the previous "</" string - indicating
@@ -1354,9 +2095,9 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
    
 }}}
 {{{ MarkupMatchRight
-2.7.14 MarkupMatchRight
+2.7.19 MarkupMatchRight
 -----------------------
-> {Alt+F6}
+> {Shift+Alt+F8}
   
   This is for use with HTML and XML. MarkupMatchRight, working  forwards  from
   the current cursor position, it first  locates  the  next  "<"  character  -
@@ -1378,7 +2119,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
   Move up by n lines (defaults to 1) - the current line  becomes  the  line  n
   lines above original current  line,  the  current  character  is  the  first
-  character.
+  character of the new line.
     
 }}}
 {{{ WordUp
@@ -1386,11 +2127,17 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 ------------
 > {Shift+UpArrow}
   
-  Moves up one column, for tab-separated tabular text, this moves to the  cell
-  immediately above the currently-selected cell, for normal text it  moves  up
-  in a column - see `NewWordUp`. If that line has insufficient characters then
-  the cursor is left at the end of the line (but see `UpRegardless`).
-
+  The behaviour for tabular and  non-tabular  documents  is  different  -  see
+  `about tabular text` for details. Essentially, for non-tabular text,  WordUp
+  moves the cursor up in a column, for tabular text  WordUp  moves  p  in  the
+  current table column.
+  
+  For non-tabular text the the  column  is  defined  by  the  `NewWordUp`  and
+  `NewWordDown` functions using the Y0 flavour of the `Y` command. This  locks
+  the WordUp/Down functions into to a particular column.
+  
+  For tabular text,  WordUp/Down  ignores  the  Y-command  column  and  simply
+  navigates up or down from the current cell in the table.
    
 }}}
 {{{ NewWordUp
@@ -1435,11 +2182,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 --------------
 > {Shift+DownArrow}
   
-  Attempts to move down one column, for tab-separated tabular text, this moves
-  to the cell immediately below the currently-selected cell, for  normal  text
-  it moves down in a  column  -  see  `NewWordDown`.  If  the  next  line  has
-  insufficient characters then the cursor is left at the end of the line  (but
-  see `DownRegardless`).
+  Similar to `WordUp` except that it moves the cursor down the screen.
   
 }}}
 {{{ NewWordDown
@@ -1586,13 +2329,14 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 
 }}}
 }}}
-{{{ Macros 0-to-9
-2.9 Macros 0-to-9
+{{{ Macros 0 to 9
+2.9 Macros 0 to 9
 -----------------                    
-  For users with no numeric keypad, typically those with  small  laptops,  the
+  For users lacking a numeric keypad, typically those with small laptops,  the
   basic functions 0-9 are  obtained  using  Escape  then  a  numeric  key  the
   appropriate numeric key - e.g. for Macro 8 - hit the escape key followed  by
-  the 8 key - denoted by {Esc 8}.
+  the 8 key - denoted by {Esc 8}. Alternatively, many linux distributions seem
+  to map {Alt+F<n>} as {Esc F<n>}.
    
   In windows, each key on the numeric keypad is uniquely identifiable by  it's
   keycode. In linux/curses the keys map  to  identical  codes  to  the  normal
@@ -1930,12 +2674,16 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 }}}
 {{{ WindowOne
 2.11.10 WindowOne
-----------------
-> {Esc w 1}
+-----------------
+> [n]{Esc w 1}
   
-  Restores display to a simple window showing current buffer.
+  Restores display to a simple window showing current  buffer,  clears  colour
+  tags from current buffer and resets the left offset for the current buffer.
   
-  Window height is calculated so as to leave 4 lines for the console  display.
+  The optional numeric argument is the desired console-area size (defaults  to
+  1). The new window height is calculated so as to leave the specified  number
+  of lines for the console area.
+  
   The size of the window can be adjusted using the `WindowShrink` function, to
   increase the size of the console area  at  the  expense  of  the  window  or
   `WindowStretch` function, to increase the size of the window at the  expense
@@ -1993,28 +2741,78 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 {{{ WindowAlignTop
 2.11.13 WindowAlignTop
 ----------------------
-> {Esc w t}
+> [winNo]{Esc w t}
   
-   Adjusts view to bring the current line to the top of the viewing window.
+  Essentially, this adjusts view to bring the current line to the top  of  the
+  viewing window. If you have a guardband set (see  `%s=guardband`)  then  the
+  current line will not approach the top margin by fewer  than  the  specified
+  number of lines.
+   
+  When there is only one window then that's all there is to it. When there are
+  more windows, it's a bit more complicated.
+    - If now winNo argument is given, then it adjusts all windows so that  the
+      current line of the buffer appears at the top of the window. If, by  any
+      chance, the same buffer appears in more than one window, then all  these
+      windows will show the current line at the top of the window.
+    - If a winNo is given, then the buffer that's currently being displayed in
+      there is adjusted to align the current line of the buffer with  the  top
+      line of the window.
+      
+      The window number is that displayed in the initial  window-list  section
+      of the `query window` report. Windows are counted, from 0, from left  to
+      right and then from top to bottom.
   
 }}}
 {{{ WindowAlignCent
 2.11.14 WindowAlignCent
 -----------------------
-> {Esc w c}
+> [winNo]{Esc w c}
   
-   Adjusts view to bring the current line to the centre of the viewing window.
-   If the current character is not visible (ie. outside the window's left  and
-   right margins - see `about long lines`) then the left offset is adjusted to
-   bring the current character into view.
+  Essentially, this adjusts view to bring the current line to  the  centre  of
+  the viewing window.
+  
+  When there is only one window then that's all there is to it. When there are
+  more windows, it's a bit more complicated.
+    - If now winNo argument is given, then it adjusts all windows so that  the
+      current line of the buffer appears at the centre of the window.  If,  by
+      any chance, the same buffer appears in more than one  window,  then  the
+      first of these windows will show the current line at the centre  of  the
+      window, the view in others will depend on the relative  heights  of  the
+      windows showing that buffer.
+    - If a winNo is given, then the buffer that's currently being displayed in
+      there is adjusted to align the current  line  of  the  buffer  with  the
+      centre line of the window.
+      
+      The window number is that displayed in the initial  window-list  section
+      of the `query window` report. Windows are counted, from 0, from left  to
+      right and then from top to bottom.
   
 }}}
 {{{ WindowAlignBot
 2.11.15 WindowAlignBot
 ----------------------
-> {Esc w b}
+> [winNo]{Esc w b}
   
-   Adjusts view to bring the current line to the bottom of the viewing window.
+  Essentially, this adjusts view to bring the current line to  the  bottom  of
+  the viewing window. If you have a guardband set  (see  `%s=guardband`)  then
+  the current line will  not  approach  the  top  margin  by  fewer  than  the
+  specified number of lines.
+  
+  When there is only one window then that's all there is to it. When there are
+  more windows, it's a bit more complicated.
+    - If now winNo argument is given, then it adjusts all windows so that  the
+      current line of the buffer appears at the bottom of the window.  If,  by
+      any chance, the same buffer appears in more than one  window,  then  the
+      first of these windows will show the current line at the bottom  of  the
+      window, the view in others will depend on the relative  heights  of  the
+      windows showing that buffer.
+    - If a winNo is given, then the buffer that's currently being displayed in
+      there is adjusted to align the current  line  of  the  buffer  with  the
+      bottom line of the window.
+      
+      The window number is that displayed in the initial  window-list  section
+      of the `query window` report. Windows are counted, from 0, from left  to
+      right and then from top to bottom.
   
 }}}
 {{{ WindowShrink
@@ -2024,15 +2822,15 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   or
 > [<winno>]{Esc w -}
   
-  Reduces the height of the specified [or current] window by 1 line. If the  window  ends  up
-  with a width of 0 or less, then the window is deleted.
+  Reduces the height of the specified [or current] window by 1  line.  If  the
+  window ends up with a width of 0 or less, then the window is deleted.
    
   Normally there will be only one window, where there is more than one  window
   and no window number is specified  then  the  first  window  displaying  the
   current buffer is shrunk. Note that slices (vertically split screens) it  is
   the width of the specified slice that is adjusted.
   
-  See also `WindowStretch`.
+  See also `WindowStretch` and `WindowOne`.
    
 }}}
 {{{ WindowStretch
@@ -2049,7 +2847,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   current buffer is stretched. Note that slices (vertically split screens)  it
   is the width of the specified slice that is adjusted.
   
-  See also `WindowShrink`.
+  See also `WindowShrink` and `WindowOne`.
   
 }}}
 {{{ WindowDown
@@ -2091,7 +2889,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   hashtables`)  named  ViewJump_<viewName>  and  ViewJump_FirstLine_<viewName>
   respectively in the code repository hashtable. Where <viewName> is the given
   viewname - this name, rather imaginatively, defaults to "default". The  view
-  can be restored using the `ViewRestore` function.
+  can then be restored using the `ViewRestore` function.
   
   In the event of a non-unique viewname, the new view  replaces  the  original
   view.
@@ -2219,8 +3017,16 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   underscores.
   
 }}}
+{{{ SelectionLine
+2.13.5 SelectionLine
+--------------------
+- Not curreutly mapped to any button event.
+  
+  Similar to SelectionWord except that it selects the entire line.
+  
+}}}
 {{{ SelectionPut
-2.13.5 SelectionPut
+2.13.6 SelectionPut
 -------------------
 > {Button2Click}
   
@@ -2232,11 +3038,11 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 {{{ The popup-menu functions
 2.14 The popup-menu functions
 -----------------------------
-  The  startup  script  defines  `PopupSearch`  and`PopupIncrementalSearch`  -
+  The startup script  defines  `PopupSearch`  and  `PopupIncrementalSearch`  -
   functions that search and list matching words in the popup menu.  The  popup
-  can be driven by other scripts  (eg  `doc.jot`  -  which  uses  it  to  pass
-  spelling corrections suggested by Aspell). See also `Using the  popup  menu`
-  for a quick tutorial on the popup.
+  can be driven by other functions  and  scripts  (eg  `SpellcheckDocument`  -
+  which uses it to pass spelling corrections suggested by  Aspell).  See  also
+  `Using the popup menu` for a quick tutorial on the popup.
   
   Clicking on a  popup-menu  item  launches  "PopupMouseSelect"  -  the  popup
   callback function which pushes the selected item back into the console  area
@@ -2246,8 +3052,8 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
   The two search functions  "PopupSearch"  and  "PopupIncrementalSearch"  both
   search the current buffer in different ways and report their results in  the
-  form of a popup menu. various functions defined by the `doc.jot` script also
-  handle popup menus.
+  form of a popup menu. various functions  defined  by  the  `NextMisspelling`
+  script also handle popup menus.
     
   In the event of the popup menu being  longer  than  the  popup  window,  two
   popup-scrolling functions are provided `PopupPageUp` and `PopupPageDown`.
@@ -2268,8 +3074,9 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   If no new popup is defined ( the ( - ) buffer is empty) then  the  last-used
   menu is used, this is held in the data object "'=PopupMenu".
   
-  The PopupRestore function is called by `PopupSearch` and  by  the  `doc.jot`
-  script, which offers suggested spelling corrections via the popup menu.
+  The  PopupRestore  function  is  called  by   `PopupSearch`   and   by   the
+  `NextMisspelling` and `NextSpellInstance`, which offers  suggested  spelling
+  corrections via the popup menu.
   
 }}}
 {{{ PopupSearch
@@ -2289,7 +3096,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 > {Esc p i}
   
   This performs an incremental search -  incremental  in  the  sense  that  it
-  prompts and picks up characters one at a time  updating  the  popup  as  the
+  prompts and picks up your characters one at a time updating the popup as the
   search string grows.
   
   Each time a new character is entered it is appended to the search string and
@@ -2322,8 +3129,8 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   or
 > {Ctrl+Alt+PageUp}
   
-  Scrolls the popup window to reveal  the  page  above  the  currently-visible
-  page and reports current position.
+  Scrolls the popup window to reveal the page above the currently-visible page
+  and reports current position.
   
 }}}
 {{{ PopupPageDown
@@ -2333,8 +3140,8 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   or
 > {Ctrl+Alt+PageDown}
   
-  Scrolls the popup window to reveal  the  page  below  the  currently-visible
-  page and reports current position.
+  Scrolls the popup window to reveal the page below the currently-visible page
+  and reports current position.
 
 }}}
 }}}

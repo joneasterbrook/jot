@@ -28,12 +28,8 @@
   Buffer usage:
     - @ -  A copy of the original text, this is destructively munged into the multicolumn format.
     - $ - Temporary.
-    - 1 - Page up macro.
-    - 2 - Page down macro.
 :
 
-%%  %d1=(onm*-m-, ono-om)
-%%  %d2=(onm*m, ono-om)
 %g# 
 %%Take a copy of the buffer.
 ocon m-0n.m0a@& ono-omor z@
@@ -67,8 +63,9 @@ m-0
       r0oc(o<okoc, ) m)0
     %%Pad first line in column with whitespace.
     (m-r)0 (r-0r, m) r-0o#ol0oso- (ol0o=, ((r, i/ /)o~)0) oki/	/
-    %%If total width of all columns (including this) width exceeds screen width then start a new page.
-    o+(o> ocr-0n.(rm)0a$ (m-\h$m, (m-r)0(r-0r, m)r0oco+h$* r-0(v/ /r)0(r\km, m0\)))
+    %%If total width of all columns (including this one) exceeds screen width then start a new page.
+    o+(o> ocr-0n.(rm)0 a_obz_m-0oz (m-\h_m, (m-r)0(r-0r, m)r0oco+ ocol-1oso-(z_n.r0a$mz@h$ mo#(o~(r, i/ /))0ok)0 okz@r-0(v/ /r)0 (r\km, m0\)))
+%%    o+(o> ocr-0n.(rm)0a@ (m-\h@m, (m-r)0(r-0r, m)r0oco+h@* r-0(v/ /r)0(r\km, m0\)))
     )0 %%Next column.
   %%Add extra whitespace padding to even up columns in display.
   %%First count tabs.

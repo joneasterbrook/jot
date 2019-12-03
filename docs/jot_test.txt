@@ -150,7 +150,7 @@ $ ./test.sh
   
   Some simple tests for the linux version in simulated real-life situations.
   
-  - Test 1 - `test.jot`   
+  - Test 1 - test.jot   
   
   - Test 2 - Streaming out to stdout
   
@@ -179,27 +179,5 @@ $ ./test.sh
   - Test 10 - get.jot -  tests  the  get.jot  script  in  the  most  important
     configurations.
 
-1.7 test.bat
-------------
-  This runs tests similar to `test.sh` but in order to sidestep some  problems
-  with wine, the tests are set up and results compared by the  calling  script
-  (either `test_win.sh` or `test_win.bat`).
-  
-  Note that this script does not run directly from a wine or windows console -
-  it is called by either `test_win.bat` (wine/windows) or `test_win.sh`  (from
-  linux, using a wine console).
 
-1.8 test_win.sh
----------------
-$ test_win.sh
-  
-  This runs the windows version of the command-line test script `test.bat` but
-  from a linux command line, using a wine console.
-
-1.9 test_win.bat
-----------------
-$ test_win
-  
-  This runs the windows version of the command-line test script `test.bat` 
-  from a windows (or wine) console.
 

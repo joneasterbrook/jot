@@ -1,0 +1,208 @@
+%%Translates mif files to .doc form.
+
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%%g#
+%%Check that doc.jot has been run.
+%%( obz]m-0m\rl(q/0-9/r)0r\m\oz,
+%%  oz
+%%  %r=doc
+%%  %M Default document style assumed.
+%%  )
+%%:
+%%'#
+%r=doc.jot
+
+%g?
+Templates - optional argument defaults to plain_template:
+  
+The default template is the plain sort.
+This gives a basic page with no fancy bits.
+  ${JOT_RESOURCES}/plain_template.mif
+  
+This gives a basic page, but smaller fonts (75%), with no fancy bits.
+  ${JOT_RESOURCES}/plain_template_small.mif
+  
+This one is a good all rounder for ST documents (it has confidential 
+warnings etc).
+  ${JOT_RESOURCES}/st_template.mif 
+  
+This is the one used for the cad ref manual. 
+  ${JOT_RESOURCES}/cadman_template.mif 
+  
+The flip template was derived from the foils template.
+  ${JOT_RESOURCES}/flip_template.mif
+:
+
+%g#
+%%If an argument was given then it's the template to use.
+%%obz$m-0(f/%%/-(v/ /r)0n.(f1/ /,r0), n.)a!oz
+obz$m-0((v/ /r)0n.(f1/ /,r0), n.)a!oz
+  
+ob
+%%Make a copy into '@ buffer.
+m-0n.m0r0a@h@
+%%Locate and destroy all multiple (except for indentation) and trailing blanks. 
+z@m-0((v/ /r)0(f1/  /e)0 r0(v-/ /e-)0 m)0
+%%Set up to read in the template mif file.
+z!m-0(v/?/z?%xSelect one of these templates next time.
+      , 
+      r,
+      i"${JOT_RESOURCES}/plain_template.mif")
+%i!
+ 
+%%Change file name.
+%%m0n.r0a$ z@m0n.r0a$z!h$ (v-/.doc/s/.mif/, %X This is not a .doc file
+z@%q=buffer; f/pathName = /-n.r0a$ z$r0(v-/.doc/s/.mif/ z! %b=pathname '$, %X This is not a .doc file; )
+ 
+%%Locate the page tag of the first page.
+m-0 f/<PageNum `1'>/f/<TextRect /f/<ID /-n.(q/0-9/r)0a$h$v/>/
+%%Now go find the first page.
+m-0(f/<TextRectID /-v'$\m, f1/>/v-'$\m)0
+ 
+%%Is there a document Title - if so then translate it. 
+%%A Title must be underlined text.
+z@m-0
+((v/ /r)0r\m)0 r-oc
+( v-/ /n.m (v/ /r)0 v/--/oco=
+  k-(v/ /r)0 n.r0a$k z! f/<String `/-h$, z!)
+ok
+
+%%The text gets dumped at the end of this block - find end of block.
+f/> # end of TextFlow/z@
+:
+'#
+
+%g#
+%%Translate special characters.
+m-0(f/>/i/\/r)0
+m-0(f/'/s/\xd5 /)0
+m-0(f/ "/s/ \xd2 /)0
+%%N.B. a quote at the end of a line won't have a trailing blank.
+m-0(f/"/s/\xd3 /)0
+%%Translate Forms to page paragraphs.
+m-0(f//ebb-i"<Para <PgfTag `Page' > <ParaLine <String `'> > >")0
+%%Translate tabs - two sorts are recognized:
+%%  Right-justify - the tab immediately after the right margin,
+%%  code - it stops somewhere else.
+m-0
+( f/	/e ocz]r-0oidz@
+  (o= 
+    n.f-1/  /-b i"<Para <PgfTag `Right_justify' > <ParaLine <String `"r0i"'> > >",
+    r-0i/<Para <PgfTag `Code'> <ParaLine <String `/r0i/'> > >/) ok )0
+
+%%Translate any centred text (underlined to same indent level).
+m-0
+( v/ /(v/ /r)0q/a-zA-Z/n.r-0a$h$mv'$rr-f1'$v/--/k-f1'--$e-0
+  i/<Para <PgfTag `Centre'> <ParaLine <String `/r0i/'> > >/m,
+  m2m- )0
+
+%%Translate any numeric headings - use buffers '$ for number, '% for name.
+m-0
+( q/0-9./n.ol1((q/0-9/r)0v/./o~r)0a$(v/ /r)0 n.r0a% k(v/--/k,)
+  b-(ol1o=i/<Para <PgfTag `Head_num'> <PgfNumString `/h$i/\f1'>-/, 
+     ol2o=i/<Para <PgfTag `Headsub_num'> <PgfNumString `/h$i/\f1'>-/, 
+     ol3o=i/<Para <PgfTag `Headsub3_num'> <PgfNumString `/h$i/\f1'>-/, 
+     ol4o=i/<Para <PgfTag `Headsub4_num'> <PgfNumString `/h$i/\f1'>-/, 
+     i/<Para <PgfTag `Headsubsub'>/ z%r-0i/1./h$i/ /z@ ) ok
+  i/ <ParaLine <String `/h%i/'> > >/
+, m)0
+
+%%Translate 'Author' lines (assumes only one of these paragraphs).
+m-0 (v/Author:/\m)0 
+%%Found an Author line.
+( v//rr-f1//-b
+  %%Got one - set up paragraph type.
+  (v/ /e)0(rr-i-/  /b-,) i/<Para <PgfTag `Author'>/ 
+  %%Take remaining lines in paragraph.
+  (m(v/ /r)0rr-e-0 i/<ParaLine <String `/r0i/ '> >/)0
+  r-0b-i/> # end of Author paragraph./,)
+
+%%Translate 'Keywords' lines (assumes only one of these paragraphs).
+m-0 (v/Keywords:/\m)0 
+%%Found an Keywords line.
+( v//rr-f1//-b
+  %%Got one - set up paragraph type.
+  (v/ /e)0(rr-i-/  /b-,) i/<Para <PgfTag `KeyWords'>/ 
+  %%Take remaining lines in paragraph.
+  (m(v/ /r)0rr-e-0 i/<ParaLine <String `/r0i/ '> >/)0
+  r-0b-i/> # end of KeyWords paragraph./,)
+
+%%Translate 'Date' lines (assumes only one of these paragraphs).
+m-0 (v/Date:/\m)0 
+%%Found an Date line.
+( v//rr-f1//-b
+  %%Got one - set up paragraph type.
+  (v/ /e)0(rr-i-/  /b-,) i/<Para <PgfTag `Date'>/ 
+  %%Take remaining lines in paragraph.
+  (m(v/ /r)0rr-e-0 i/<ParaLine <String `/r0i/ '> >/)0
+  r-0b-i/> # end of Date paragraph./,)
+
+%%Translate any non-numeric headings - use buffer '% for name.
+m-0
+( q/a-zA-Z/n.r0a% k(v/--/k,)
+  b-i/<Para <PgfTag `Head'> <ParaLine <String `/h%i/'> > >/
+, m)0
+
+%%Translate bullet paragraphs.
+m-0
+( %%Bullet-paragraph loop.
+  ( (v/ /\m)0 (v/ /r)0 v'-\m)0 v'- rr-f1'--oce-0
+    %%It's a bullet paragraph.
+    bi/<Para /
+    bi/<PgfTag `Bullet'>/
+    bi/<PgfNumString `\xa5  '>/b
+    ( %%This loop for each line of bullet paragraph.
+      %%Set left margins if not on standard indent. 
+      ol2(o=, i/<Pgf <PgfFIndent / r-ro#ol3o*o#oo/%d/ i/ mm> <PgfLIndent /r-rol6o+oo/%d/i/ mm> >/b)
+      e-0i/<ParaLine <String `/r0i/ '> >/
+      %%Index to next line and check indent level.
+      mv/ / (v/ /r)0r r-v'-\ oco= e-0 )0 
+    ok r-0i/> # end of Bullet Para/b-
+  m2m-)0
+
+%%Translate 'Body' paragraphs.
+m-0
+( %%Find next paragraph.
+  ((v/ /\m)0 (v/ /r)0 r\m)0 r-v-/ / oce-0
+  %%Set paragraph indent.
+  r-0i/<Para <PgfTag `Body'>/b i/<Pgf <PgfLIndent / r-ro#ol3o*o#oo/%d/ i/ mm> <PgfFIndent /r-roo/%d/i/ mm> >/
+  ( %%FOR each line of paragraph.
+    %%Specify line text.
+    i/<ParaLine <String `/r0i/ '> >/
+    %%Check next line.
+    mv/ / (v/ /r)0rr- oce-0
+    %%If line indent is different to paragraph then set indent.
+    (oso=, i/> /bi/<Para <PgfTag `SameBody'> <Pgf <PgfLIndent / r-ro#ol3o*o#oo/%d/ i/ mm> <PgfFIndent /r-roo/%d/i/ mm> >/b)
+    )0
+  e-0i/> # end of Body Para/b
+  ok m2m-)0
+
+:
+'#
+
+%%Copy mif stuff into mif template.
+z!h@
+%o
+oz
+w
+

@@ -20,17 +20,17 @@
 %%
 %%
 %%
-%%History
 
 %g?
   Usage:
     First create an index file with grep -b
 $ grep -b <suitableGrepFilter> LargeFilePathName > LargeFilePathName_index.txt
     Now start the editor with big_file.jot
-$ jot /dev/null -in="%r=big_file -file=LargeFilePathName;"
+$ jot -in="%r=big_file -file=LargeFilePathName;"
   
   Command-line args:
     -file=<pathName> - Mandatory pathname to big file, index file must be <PathName>_index
+    -all - Reads all sections at the start of day.
     -size=<n> - Optional, defaults to 100,000 - aproximate size of hashtable
     -grep=<grepCommandString> - Optional, grep commands required to extract the index file.
         If -grep=... is specified, a new index file is created using grep.
@@ -68,10 +68,11 @@ $ jot /dev/null -in="%r=big_file -file=LargeFilePathName;"
      - pathName      - From -file= qualifier, pathname of large file.
      - index         - From -index= qualifier, pathname of index file.
      - fileSize      - Total size of original file.
-     - grep          - From -grep= qualifier, grep commands used to create the index.
+     - grep_cmds     - From -grep= qualifier, grep commands used to create the index.
      - trim          - From -trim= qualifier, jot commands used to trim the index.
      - progress      - Progress-monitor data.
      - fileDatestamp - The datestamp of the main file when the index was created (as read from the index file).
+     - all           - Boolean, TRUE when -all qualifier was given.
 :
 
 %%Define the big_file functions now.
@@ -100,27 +101,25 @@ z$r-0(v/ /e)0r0(v-/ /e-)0 z.oq/destBuf/ozm0on
 %%Macro to grep for sections containing some feature (e.g a net name). and pull all matching sections.
 %%
 %%Check the datestamp matches that preserved in the index file.
+( %h'=call big_file_verifyMainFile;, %x=Suggest you re-index the file and try again.; )
 %%
 %%Use grep to search.
 z.oq/pathName/ %m=grepping file '~ for '$;
-%%z.oq/grep/z~r-0n.r0a$& z.oq/pathName/ %m=grepping file '~ for '$;
-n.a#z#(%q=windows; i/%e@=grep -b "/, i/%e@=\grep -b "/)i'$ r0i/" / z.oq/pathName/z#i'~ok '#
+n.a#z#i/%e@=grep -b "/i'$ r0i/" '/ z.oq/pathName/z#i'~oki/'/ '#
 %m=grep complete.
 %%Merge with sections using tabsort.
 (oidoo/	%15ld/m)0 z.oq/destBuf/oz %q#=keys; k2 (f/ Seek /-oidoo/	%15ld/)0 z@h# %b=tabsort 1;
-%%%%Boil this down to a list of sections in buffer ( # )
-%%m0r0bn. (f-'$f-/ Seek 	/ma#m-n.)0 m-0a# m-0(r4(v/ /r)0e-0f1/ Seek 	/e0m)0
 %%Purge unwanted sections.
 m0r0bn. (f-'$f-/ Seek 	/ma#m-n.)0 m-0a# m-0(r4(v/ /r)0e-0f1/ Seek 	/e0m)0
+%%
 %%Now pull the sections.
-%h'=call big_file_verifyMainFile;
 %s=verbose 0;
 m-0 (pn.f1/,/a$& %h'=call big_file_simpleQuery;  z@m2m-)0
 %s=verbose 3;
+%%Report no. of sections:
 onol1o- %m=Read '~ sections.
 %%Now return to big-file buffer.
 z.oq/destBuf/oz
-    
 
 <<big_file_writeModifiedFile>>
 %%Macro 9 - write the file back to disc.
@@ -156,8 +155,7 @@ z.oq/pathName/ z*m-0
 %i+='~_orig -hold -seek=0 -bytes=0;
 %%
 %%Set up progress monitor.
-n.a"z"
-%w 2 "
+n.a"z" %w"= -popup -height=2 -width=-5;
 z.ol0ov/progress/
 %%
 %%Initialize bucket buffer.
@@ -200,7 +198,8 @@ n.a+
 %s=verbose 3;
 %%Restore windows.
 %q~=window; f/screenHeight = /- oidol4o-z.osok
-%w; %w '~; %w 0; w
+%%%w; %w '~; %w 0; w
+%h'=call WindowOne;
 %%Return to sections of file.
 oq/destBuf/oz
 
@@ -208,7 +207,7 @@ oq/destBuf/oz
 %%Initialization macro.
 %%
 %%Pick up optional -size=<noOfHashTableEntries> arg.
-obo#z$(r-0f/-size=/s/ /n.(f1/ /, r0)a~, ol100000) o#ol20o+
+obo#z$r0i/ /(r-0f/-size=/s/ /n.(f1/ /, r0)a~, ol100000) o#ol20o+
 ( %h.=create '~;, %x=Disaster: failed to create the hashtable.; ) osoz
 %%
 %%Declare various data objects:
@@ -218,32 +217,36 @@ o#ov/destBuf/
 %h.=data pathName;      %%From -file= qualifier, pathname of large file.
 %h.=data index;         %%From -index= qualifier, pathname of index file.
 %h.=data fileSize;      %%Total size of original file.
-%h.=data grep;          %%From -grep= qualifier, grep commands used to create the index.
+%h.=data grep_cmds;     %%From -grep= qualifier, grep commands used to create the index.
 %h.=data trim;          %%From -trim= qualifier, jot commands used to trim the index.
 %h.=data progress;      %%Progress-monitor data.
 %h.=data fileDatestamp; %%Datestamp of main file.
+%h.=data all;           %%If TRUE then read all sections at the outset.
 %%
 %%Pick up mandatory -file=<pathName> arg and check the file exists.
-obz$r-0i/ /r- (f/ -file=/s/ /n.(f1/ /, r0)a~ osozov/pathName/, %X=Error: No -file=<pathname> arg - cannot continue.;)
+obz$r-0i/ /r- (f/ -file=/s/ /n.((f1/ /(v/ /r)0v/-/\r)0 v/ /, v/-/(v-/ /r-)0, r0)(v-/ /r-)0 a~ osozov/pathName/, %X=Error: No -file=<pathname> arg - cannot continue.;)
 ( oq/pathName/ o# %q=file '~; ok, %m=Error: file '~ not found.; )
+%%
+%%Set all data object if -all is given.
+obz$(f/ -all /s/ /ol1, ol0) ov/.=all/ oz
 %%
 %%Pick up name of index file or default to <bigFileName>_index
 obz$r-0(f/ -index=/s/ /n.(f1/ /, r0)a~osoz ov/index/, oz)
 %%
 %%Pick up optional -grep=<grepCommandString> arg.
-obz$(r-0f/ -grep=/s/ /n.(f1/ /, r0)a~ osozov/grep/, oz)
+obz$(r-0f/ -grep=/s/ /n.(f1/ /, r0)a~ osozov/grep_cmds/, oz)
 %%
 %%Pick up optional -trim=<jotCommandString> arg.
 obz$(r-0f/ -trim=/s/ /n.(f1/ /, r0)a~ osozov/trim/, oz)
 %%
 %%Pick up the optional -cdlindex qualifier.
 obz$(r-0f/ -cdlindex/s/ / 
-  %d~="\.SUBCKT "; z.ov/grep/
-  %d~=(f/:/-n.f1/.SUBCKT /-(v/ /r)0a%(f1/ /e0,)m)0; z.ov/trim/, oz)
+  %d~="\.SUBCKT "; z.ov/grep_cmds/
+  %d~=(f/:/-2n.f1/.SUBCKT /-(v/ /r)0a%(f1/ /e0,)m)0; z.ov/trim/, oz)
 %%Pick up the optional -vlogindex qualifier.
 obz$(r-0f/ -vlogindex/s/ / 
-  %d~=" *module "; z.ov/grep/
-  %d~=; z.ov/trim/, oz)     %%No trimming required.
+  %d~="^ *module "; z.ov/grep_cmds/
+  %d~=(r-0f1/module /e7(v-/ /e-)0(v/ /e)0f1/(/e0(v-/ /e-)0m)0; z.ov/trim/, oz)     %%No trimming required.
 %%
 %%Check for unrecognized qualifier keys.
 obz$r-0(v/ /e)0(r\, oz%x=Error: Unrecognized qualifier '$; ) oz
@@ -256,35 +259,45 @@ oboq/pathName/ %q@=file '~; f/ size = /-b oidosozov/fileSize/
 %%
 %%If -grep is set then re-make the index file.
 z.
-ob( oq/grep/ %% -grep=<cmds> was given - rebuild the index now.
-  oq/index/os oq/pathName/os %d$=%e=grep -b ; z$r0i'~ok i/ /i'~ok i/ > / i'~ok i/;/ '$
+ob( oq/grep_cmds/ %% -grep=<cmds> was given - rebuild the index now.
+  oq/index/os oq/pathName/os %d$=%e=grep -bn ; z$r0i'~ok i/ '/i'~ok i/' > '/ i'~ i/';/ '$
   %%Add datestamp check.
   z.oq/index/ %i@='~; 
   z.oq/pathName/ %q$=file '~; f/ Modify time = /re-0m-k-0mk0 z@h$b
   %%If -trim was given, trim the index now.
-  ( z.oq/trim/ z@ '~ ok, ) %o
-, )oz
+  ( z.oq/trim/ z@ '~ ok, ) %o; ok
+, ) oz
 %%
 %%If the index file does not exist, exit now.
 oboq/index/ o# (%q=file '~; ok, %x=Error: Index file "'~" does not exist.;)oz
 %%
 %%Read the index file
 ob ol0 oq/index/ %i@='~;
-(v/Modify time = /n.r0a~&, %d~=Index file did not specify a datestamp.;) z.ov/fileDatestamp/
+(v/Modify time = /n.r0a~&, %d~=Index file did not specify a datestamp.;) mz.ov/fileDatestamp/ 
 %%
-%%Clear ( $ )in preparation for index-build operation.
-%d$=Initial_gumph;
-%%
-%%Build the hashtable.
-z@m-0(v/Modify time = /m,)
-(o#oidoso-  (%h.=setsect '$;, %d!=1; ( %h.=setsect '$__'!;\ z!r-0oido~oo/%d/z@ )0 ) o+ f1/:/-n.r0a$& m)0
-%%
-%%Add the last entry, this requires the total size of the file in order to calculate the section bytecount.
-z.oq/fileSize/oso- (%h.=setsect '$;, %d!=1; ( %h.=setsect '$__'!;\ z!r-0oido~oo/%d/z@ )0 ) okokok
-okokoz
-%%
-%%Check for error messages.
-m-0 (m %x=Error: there were some errors while building the hashtable from the index file;, )
+%%Read all sections if -all was given.
+oboq/.=all/ ol1
+( o=  %%Yes - read all the sections first.
+  %%Read the complete file, copy to main buffer and set the pathname.
+  okoq/pathName/ %i.='~ -append;
+  %%Section loop - add a jump obj for each index-file entry.
+  (z@oidf/:/-2n.r0a$& z.ono-om %h=add '$_InText; z@m)0 z.
+, %%No -all was not given - set up for section-by-section interactive reading.
+  %%
+  %%Clear ( $ )in preparation for index-build operation.
+  %d$=Initial_gumph;
+  %%
+  %%Build the hashtable.
+  z@m-0(v/Modify time = /m,)
+  (o#f1/:/-oidoso-  (%h.=setsect '$;, %d!=1; ( %h.=setsect '$__'!;\ z!r-0oido~oo/%d/z@ )0 ) o+ f1/:/-n.r0a$& m)0
+  %%
+  %%Add the last entry, this requires the total size of the file in order to calculate the section bytecount.
+  z.oq/fileSize/oso- (%h.=setsect '$;, %d!=1; ( %h.=setsect '$__'!;\ z!r-0oido~oo/%d/z@ )0 ) okokok
+  %%  okokoz
+  %%
+  %%Check for error messages.
+  m-0 (m %x=Error: there were some errors while building the hashtable from the index file;, )
+  )
 %%
 
 <<big_file_verifyMainFile>>
@@ -293,13 +306,15 @@ ob z.
 ( oq/fileDatestamp/z~v/Index file did not specify a datestamp./z.ok %m=Warning - this index file has no datestamp-check data.;
 , %%File-check data exists - do the check.
   z.oq/pathName/ %q#=file '~; f/ Modify time = /r
-  (v'~ok, %m=The file datestamp does not match the check-data from the index file;  n.r0a$& oz %x=  Current:'$, Original: ('~).; ) )
+  (v'~ok, os %m=The file datestamp does not match the date-check value logged in the index file:;  n.r0a$& oz %m=  Current '$; %m= Original '~; oz x3\) )
 oz
 :
+obz^m0
+i/^[bq         %d$=##" Big-file section name >  " -hereEndsThePercentCommand; %h'=call big_file_simpleQuery; %h'=call WindowAlignTop;/b
+i/^[bg         %d$=##" Big-file search string >  " -hereEndsThePercentCommand; %h'=call big_file_grepQuery; %h'=call WindowAlignTop;/b
+i/^[bw         %h'=call big_file_writeModifiedFile;/b
+oz
 %h'=call AddNewFunctions;
 
-%d7=%h\\'=call big_file_verifyMainFile\; %h\\'=call big_file_simpleQuery\;;
-%d8=%h\\'=call big_file_verifyMainFile\; %h\\'=call big_file_grepQuery\;;
-%d9=%h\\'=call big_file_verifyMainFile\; %h\\'=call big_file_writeModifiedFile\;;
-
 %h'=call big_file_init;
+  

@@ -19,7 +19,9 @@
   find, `S` - substitute, `I` - insert, `M`  -  move  (up/down),  `R`  -  move
   right. There is also an important group of  commands  to  do  with  creating
   programme structures e.g. `(` - block start, `)`  -  block  end  and  `,`  -
-  introduces a logical else clause.
+  introduces a logical else clause. Most commands set  a  success/fail  status
+  flag - a fail will result in an interruption in the programme flow within  a
+  block. 
   
   The housekeeping commands can be for probing and  setting  system  state  or
   calling system services. These are generally prefixed with a percent (  %  )
@@ -42,7 +44,7 @@
   String  parameters  may  use  any  non-alphanumeric  ASCII  character  as  a
   delimiter provided the delimiter does not occur in  the  string.  Note  that
   most (see `Q`) of these commands will accept ISO-8859-x or UTF-8  characters
-  in the parameter string but UTF-8 characters cannot be used as delimiters.
+  in the parameter string but only ASCII characters may be used as delimiters.
    
   If there is no further text on the command line then the string may be  left
   unterminated. These examples all find the next instance of the string £1234:
@@ -151,8 +153,8 @@
     - The buffers ( ^ ' : ) are defined by  the  standard  setup  script  (see
       above), changing these may cause things to not work properly.
     
-    - The ( &  )  buffer  is  dedicated  to  the  `doc.jot`  script  a  simple
-      document-processing utility.
+    - The ( & ) buffer is dedicated to the document-processing utility  -  see
+      `text document preparation`.
       
     - The ( = ) buffer is available but cannot be used as a destination buffer
       for the `%Q`,  `%F`  and,  possibly,  other  percent  commands  with  an
@@ -193,8 +195,8 @@
         - {Alt F1-12}              yields key_f49-key_f60,
         - {Shift+Alt F1-3}         yields key_f61-key_f63,
         - {UpArrow}, {DownArrow}, {LeftArrow}, {RightArrow}, {Insert}, {Home},
-          {Delete}, {End}, {PageUp} and {PageDown}
-          Keycodes for all of the above are defined in ncurses.h
+          {Delete}, {End}, {PageUp} and {PageDown} Keycodes  for  all  of  the
+          above are defined in ncurses.h
     - The following keys, however, usually generate unique key sequences  (but
       even uniqueness is not guaranteed) determined by your OS  configuration.
       Furthermore some  may  be  hardwired  as  system  shortcuts  (especially
@@ -255,9 +257,9 @@ X0119   (s/ /e-)
   The sequence of events is thus:
     - You select a substring,
     - you press {Shift+F5},
-    - the  system  detects  this  event  and  generates  a  binary  the   code
-      determined by terminfo to be 0x119,
-    - jot translates the code 0x119 to the escape sequence {Esc 0 1  1  9},
+    - the system detects this event and generates a binary the code determined
+      by terminfo to be 0x119,
+    - jot translates the code 0x119 to the escape sequence {Esc 0 1 1 9},
     - jot matches the internally-generated escape sequence and finds  the  jot
       command sequence (s/ /e-) by searching the ( ^ ) buffer,
     - jot then executes that little bit of code and, finally,
@@ -268,7 +270,7 @@ X0119   (s/ /e-)
 1.6 About startup scripts
 -------------------------
   As we hit keys, various layers of hardware and the operating system  perform
-  a translation from electrical impulses in the keyboard to keycodes  that  can
+  a translation from electrical impulses in the keyboard to keycodes that  can
   be understood by whatever software is reading them - in this case jot.
   
   For windows the situation appears to be  that  all  flavours  of  NT-windows
@@ -283,7 +285,7 @@ X0119   (s/ /e-)
   
   With termcaps/info it became possible for many users,  all  connected  to  a
   unix server using a variety of terminals and for the system  to  communicate
-  reliably with all of them. But only if  each  has  properly announced  which
+  reliably with all of them. But only if each  has  properly  announced  which
   terminal type they have by setting their $TERM env.
   
   However ... most linux installations run on PCs with only one  keyboard  and
@@ -297,7 +299,7 @@ X0119   (s/ /e-)
   different keycode-setup  scripts  according  to  your  curses  version  (see
   `WindowsNT_keys.jot` and `curses_keys_<TERM>.jot`).
   
-  The mapping of  function  key  events  to  editor  functions  is  determined
+  The mapping of function key events to  editor  functions  is  determined  in
   various layers of OS and, in particular your terminfo file and, finally,  by
   the editor startup file. See also `X-windows setup`
   
@@ -308,8 +310,8 @@ X0119   (s/ /e-)
       buffer.
     - The startup script then defines functions in the code repository  buffer
       ( ' ).
-    - The startup script then defines the mapping of functions  to  key  names
-      in buffer ( ! ).
+    - The startup script then defines the mapping of functions to key names in
+      buffer ( ! ).
     - If you have specified a function and keymap  modification  script  using
       the -keyfuncs=<pathName> qualifier then  that  script  is  run  at  this
       point.
@@ -362,7 +364,7 @@ $ jot message.log -q -tty -in="t(f/warning: unused variable/onf-/in function/n.r
 	No more bottles of beer on the wall, no more bottles of beer.
 	Go to the store and buy some more, 99 bottles of beer on the wall.
   
-  The object of the exercise is to write some code in your favourite language
+  The object of the exercise is to write some code in your favourite  language
   to generate the lyrics correctly - this is one way of doing it in jot:
   
 	cat - | jot /dev/null -tty -obey << EndOfJotCommands
@@ -402,12 +404,11 @@ EndOfJotCommands
   
   The help files can be typed in manually, but it is easy to make mistakes  in
   the fold  nesting.  It  is  recommended  that  help  files  be  prepared  as
-  plain-text documents using `doc.jot` with the section hierarchy  defined  by
-  section header levels (i.e. the section  levels  indicated  by  the  section
-  numbers).
+  plain-text documents with the section hierarchy defined  by  section  header
+  levels (i.e. the section levels indicated by  the  section  numbers)  -  see
+  `text document preparation`.
   
   There are some text-processing scripts to help with this:
-    - `doc.jot` - the main document processing script.
     - `doc2fold.jot` - Creates a help file from a text document.
     - `fold2doc.jot` - reverse of doc2fold - only use  this  when  the  source
       text is not available.
@@ -464,14 +465,18 @@ EndOfJotCommands
   The standard startup script (see `about  startup  scripts`)  will  use  your
   screen dimensions to calculate the size of a single window that will leave a
   one-line console area at the bottom of the  screen.  It  also  sets  up  the
-  screen so that various message can temporarialy  encroach  into  the  window
-  area - see the `%s=console` command. When this happens, the window  will  be
-  restored to it's full size on the next command - or by hitting {return}.
+  screen, using the `%L` command. it also uses  the  `%s=console`  command  so
+  that various message can temporarialy encroach into the  window  area.  When
+  this happens, the window will be restored to it's  full  size  on  the  next
+  command - or by hitting {return}. If the temporary  display  overwrites  the
+  current line in the display window then the current line is repeated in  the
+  console area.
   
   When the console area is set up with two or more lines, lines of text scroll
   up the console up to the bottom line of the last window. If the  console  is
-  set up with one line  but  allowing  it  to  temporarialy  encroach  on  the
-  windows, then the console will borrow lines up to the specified limit.
+  set up with one line but allowing it to temporarialy encroach  upwards  into
+  the windows area (see `%s=console`  for  details),  then  the  console  will
+  borrow lines up to the specified limit.
   
   For debugging scripts, especially when  using  `the  jot  debugger`,  it  is
   useful to set up windows for a fairly large console window. For normal usage
@@ -561,7 +566,7 @@ $ sudo dumpkeys -f | jot -in="(f/ /s/\t/(v//e)0)0m-0 %b=tabstops -1; \
     
   - It  is  usual  to  highlight  clickable  target  points  with  an   easily
     identifiable visible marker, in jot this requires  the  application  of  a
-    colour tag (see `%b=%b=addtag`). If popup menus are  being  used  this  is
+    colour tag (see `%b=addtag`). If  popup  menus  are  being  used  this  is
     essential in order to avoid confusion as the popup overwrites normal text.
   
   - Mouse-clicks trigger the delivery of an escape sequence in much  the  same
@@ -615,7 +620,7 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   This key can be associated with a launch point by adding a text tag  in  the
   launch point with the`%b=addtag` command using the -text=<string> modifier.
   
-  See also `OP`, `%s=mousemask` and `%b=addtag`
+  See also `OP`, `%s=mousemask`, `%s=setmouse` and `%b=addtag`
 
 }}}
 {{{ About Menus
@@ -637,7 +642,7 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
 }}}
 }}}
 {{{ About unicode
-1.15 About unicode
+1.13 About unicode
 ------------------
   Back in the days of teletypewriters and paper tape it was all so  easy.  The
   American Standard Code for Information Interchange (ASCII)  would  represent
@@ -708,13 +713,18 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   to write in more than one non-roman alphabet in any one document. There  are
   now various ISO-8859-x standards covering these character sets.
 
-{{{ Practicalities of unicode etc. and jot.
-1.15.1 Practicalities of unicode etc. and jot.
-----------------------------------------------
+{{{ Practicalities of unicode etc. and jot
+1.13.1 Practicalities of unicode etc. and jot
+---------------------------------------------
   The linux version of jot of jot can read  and  manipulate  files  containing
   mixed UTF-8 and ISO-8859-x character encodings.  For  correct  rendering  of
   ISO-8859-x you must have your locale set correctly - see `-locale`. Any text
-  entered will be encoded in UTF-8.
+  entered will be encoded in UTF-8. Also, some care is required in the  choice
+  of terminal - a recent version of xterm is a usually a good bet.
+  
+  With appropriate unicode support jot should, in theory, be  usable  for  any
+  left-to-right written language. Support for right-to-left languages (Hebrew,
+  Arabic etc.) may be possible later.
   
   The windows version can properly display files containing  either  UTF-8  or
   those containing ISO-8859-x - but  not  both  in  the  same  document.  This
@@ -728,6 +738,11 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   it's name suggests, uses the unix utility iconv to  transform  the  file  to
   something that can be read, it will also write the  file  in  it's  original
   format.
+  
+  In general, jot represents unicode as strings of UTF-8 bytes. The exceptions
+  to this are:
+    - the OIC flavour of the `OI` command and
+    - the `Q` command.
   
   To enter  UTF-8  characters  into  the  command  line  use  the  jot  script
   uc_basic.jot - this recognizes sequences of keystrokes and converts them  to
@@ -752,12 +767,13 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   CLI modifier.
   
   To suppress conversion of unicode, turn off unicode support for that  buffer
-  with the `%b=unicode` command. This renders each non-ASCII byte as a tilde (
-  ~ ).
+  with the `%b=unicode` [0|1] command. Turning unicode support off (%b=unicode
+  0;) displays each non-ASCII byte as a tilde ( ~ ), unicode  support  can  be
+  restored with %B=unicode 1;
 
 }}}
 {{{ Unicode - the gruesome details
-1.15.2 Unicode - the gruesome details
+1.13.2 Unicode - the gruesome details
 -------------------------------------
   Internally, jot stores characters in whatever way as they  were  transported
   and then stored in the filing system. This is  important  because  it  means
@@ -784,21 +800,21 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   behaviour is modified by the `%b=unicode` command, which can be used to turn
   off all unicode support - with unicode disabled, R, OR and E commands  count
   bytes not characters. Erasing bytes belonging to  UTF-8  characters  is  not
-  recommended - there is no guarantee that the  line  will  display  properly
-  when unicode-support is turned back on.
+  recommended - there is no guarantee that the line will display properly when
+  unicode-support is turned back on.
 
 }}}
 }}}
 {{{ About Journal Files
-1.16 About Journal Files
+1.14 About Journal Files
 ------------------------
-  Jot's journal files are designed to recreate a session  following  a  crash.
-  The journal file, along with a cache  of  files  and  queries  read  by  the
-  original session, can be used to retrace all your  activity  in  a  recovery
-  session so that you end up with an editing environment identical to that  in
-  the crashed session. In the future, journal files might  provide  the  basis
-  for some sort of undo function - although it would be rather slow by  modern
-  standards.
+  Jot's journal files are designed to recreate a session in the  event  of  an
+  abnormal exit. The journal file, along with a cache  of  files  and  queries
+  read by the original session, can be used to retrace all your activity in  a
+  recovery session so that you end up with an editing environment identical to
+  that before the abnormal exit. In the future, journal  files  might  provide
+  the basis for some sort of undo function - although it would be rather  slow
+  by modern standards.
   
   By default no journal is maintained - the editor is not particularly  crashy
   and modern computers and power grids are generally reasonably reliable.  The
@@ -807,9 +823,9 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   reclassified as infrequent events and it's pretty distressing to  see  hours
   of work wiped out like that.
   
-  With the CLI qualifier `-journal` is set, jot maintains a history  file  and
-  snapshots of all the files it reads - these files are  normally  deleted  on
-  exit from the editor.
+  When the CLI qualifier `-journal` is set, jot maintains a history  file  and
+  snapshots of all the files it reads - these files are  normally  deleted  as
+  the next session starts.
   
   In the event of a crash the journal files remain and the original session is
   re-created by reading in snapshots of the original files and re-running  the
@@ -834,7 +850,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ About Tagged Text
-1.17 About Tagged Text
+1.15 About Tagged Text
 ---------------------
   Tags are used  to  mark  sections  of  text  with  some  special  attribute.
   Typically, this will be display colour but tags are also used internally  to
@@ -888,8 +904,76 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
       end of the first tag.
 
 }}}
+{{{ About the Operand Stack
+1.16 About the Operand Stack
+----------------------------
+  The operand stack allows  simple  arithmetic  operations  and  tests  to  be
+  performed on objects (typically integer  quantities)  held  in  a  push-down
+  stack. It can also hold real numbers and temporary buffers  created  by  the
+  system query commands. The full range of operations is described  in  `Stack
+  Operations`.
+  
+  The underlying C-language type for integer values is  long  long,  for  real
+  values it's double.
+  
+  For the benefit  of  those  not  familiar  with  the  notion  of  stacks  in
+  computing. Stacks are analogous  to  those  spring-loaded  plate  stacks  so
+  beloved of institutional caterers. As clean plates are delivered, the  stack
+  gets pushed down, as plates are taken off the next one pops up.  Note  that,
+  when plates are added individually, the last one on is the first one  off  -
+  this is a key property  of  computer  stacks  -  sometimes  known  as  LIFOs
+  (Last-In First-Out).
+  
+  And so it is, with our operand stack, new values are 'pushed' onto the stack
+  and later 'popped' off for processing. Each item on the jot stack is wrapped
+  up in a little data structure called a stack frame, which play the  part  of
+  plates in the above description. Many common arithmetic  operations  require
+  two operands, for these, the top two operands are removed and the result  is
+  pushed onto the stack.
+  
+  A stack frame can be detached from the stack, assigned  a  name  and  loaded
+  into a hash table (see `about hashtables`),  from  there  it  can  later  be
+  referenced by the same name and restored to the stack.
+  
+  Essentially the stack objects can interact with the text and the system  the
+  following ways (see `Stack operations` for the full list):
+    - Integer or real numbers picked up from the text (e.g. with `oi`),
+    - Integers or real-number literals from the command line (see `OL`),
+    - Integers generated by the random-number generator (see `OA`),
+    - Integers describing the current focus  point  (i.e.  buffer  i.e.,  line
+      number `ON` and character number`OC`),
+    - Integers, Reals or Buffers held by hashtable data  objects  (see  `Using
+      hashtable data`)
+    - A temporary buffer created for as a destination buffer for  any  command
+      that directs it's output to a buffer eg: %q~=date;.
+    - Arithmetic and logical operations can be performed on  numerical  values
+      (see `O+`, for example.
+    - Values and strings can be written to the buffer text (see `OO`).
+    - Numerical values can be extracted by indirect references - eg: %w '~;  -
+      sets the window size to an integer picked up from the stack. If the  top
+      stack frame is a buffer, then the current character of that buffer  must
+      be pointing to one or more digits for conversion to  an  integer  -  see
+      also `About command parameters`.
+      
+  If performing a straightforward text abstraction  (e.g.  `A`~)  or  maybe  a
+  query to stack with %q~=... (see `%Q`), a new buffer  stack  frame  will  be
+  created at the top of the stack. If, however, you  are  doing  a  cumulative
+  abstraction (i.e. a~+,a~- or a~. - see `A`) then the item at the top of  the
+  stack must be a buffer stack frame.
+      
+  Jot supports the usual arithmetic and logical operations and can use  values
+  in the stack to control programme flow or values can be written to the text.
+  Addition, for example, pops the top two values and  pushes  their  sum  back
+  onto the stack (see `O+`).
+  
+  All arithmetic and comparison operations will  work  with  integer  or  real
+  values, for mixed operations integers are first converted to reals  and  the
+  results of such arithmetic is always real. Any attempt to perform arithmetic
+  on a buffer-type will fail.
+
+}}}
 {{{ About Hashtables
-1.18 About Hashtables
+1.17 About Hashtables
 ---------------------
   Each buffer can have an associated hashtable. Hashtables are  referenced  by
   keyword - the keyword can be any unique string and each hashtable entry  may
@@ -899,7 +983,11 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
     - a file section (a seek offset and a byte count) - a SetsectObj, 
     - a file  section  (a  pathName,  seek  offset  and  a  byte  count)  -  a
       SetfsectObj,
+    - a (stack) data object DataObj - interchangeable with the stack  and  may
+      be an integer or real value or a sub-buffer,
     - a deleted object - a ZombieObj.
+  Any number of these five types of entry may coexist in the  same  hashtable.
+  Note also, the buffer-type data entries may each support child hashtables.
   
   The FindObj is essentially an index which allows fast references to  indexed
   text. Hashtables are a useful alternative to searching with the `F`  command
@@ -907,12 +995,13 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   moderately large buffer making the searching a significant proportion  of  a
   macros execution time (see `hashtable jump`)
   
-  The DataObj is a stack-frame that has been detached  from  the  top  of  the
-  stack and can be copied back to the stack as required, this  works  for  any
-  stack-frame type - integer, float or buffer (see `hashtable data`, `OV`  and
-  `OQ` commands). Data objects can  be  swapped  between  the  stack  and  the
-  hashtables, note that the data-object  buffers  can  also  have  hashtables,
-  leading to the possibility of unlimited hierarchies of hashtables.
+  The DataObj is a stack-frame (see `about the operand stack`) that  has  been
+  detached from the top of the stack and can be copied back to  the  stack  as
+  required, this works for any stack-frame type -  integer,  float  or  buffer
+  (see `hashtable data`, `OV` and `OQ` commands). Data objects can be  swapped
+  between the stack and the hashtables, note that the data-object buffers  can
+  also have hashtables, leading to the possibility of unlimited hierarchies of
+  hashtables.
   
   For data objects assigned to one of the main buffers, the syntax  is  pretty
   simple - to extract the value of an object  named  "fred"  hanging  off  the
@@ -921,21 +1010,23 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   
   But to access an object named 'fred' hanging  off  data-object-buffer  named
   'jim', which is itself hanging off another data-object-buffer named  'brian'
-  hanging off the primary buffer ( . ) - then we might just plod  through  the
-  hierarchy:
+  hanging off the primary buffer ( . )  -  we  might  just  plod  through  the
+  hierarchy - first making the parent buffer current then  descending  to  the
+  child ... etc.:
 > z.oq/brian/z~ oq/jim/z~ oq/fred/
   
   That's pretty painful - so there is a path-specification syntax designed for
-  buffer hierarchies:
+  delving into buffer hierarchies, without having to change buffers:
     [<bufferKey>=][<PathElement1>[|<pathElement2>[| ... ]]]
-  eg:
+  This is how we might use this syntax to access  the  object  "fred"  in  the
+  hierarchy described above:
 > oq/.=brian|jim|fred/
   
   While this syntax simplifies  usage,  it  still  requires  three  relatively
   expensive hashtable operations to locate the data. Note that that,  although
   some path depth may be desirable - possibly  essential  for  some  recursive
-  functions, it can get expensive and programmers should strive too keep their
-  data structures as flat as possible.
+  functions, it can get expensive and programmers should maybe strive too keep
+  their data structures as flat as possible.
   
   The SetsectObj is intended for the handling of very large files, it  defines
   the byte-offset and  byte-count  of  sections  of  files  -  see  `hashtable
@@ -978,7 +1069,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ About project files
-1.19 About project files
+1.18 About project files
 ------------------------
   Jot can be used to maintain a  stand-alone  file  or,  for  big  complicated
   projects, a suite of files  including  source,  documentation  and  whatever
@@ -1018,7 +1109,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ About index files
-1.20 About index files
+1.19 About index files
 ----------------------
   Index files contain pointers to specific points in one or  more  text  files
   and are used to facilitate rapid and convenient context changes.
@@ -1051,7 +1142,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ About Large Files
-1.21 About Large Files
+1.20 About Large Files
 ----------------------
   A working definition of a very large file is one big enough  to  exceed  the
   capacity of a text editor as supported by our system. That definition  takes
@@ -1088,7 +1179,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ About Large Collections of Files
-1.22 About Large Collections of Files
+1.21 About Large Collections of Files
 -------------------------------------
   Many modern editors offer methods of  maintaining  source-code  trees  using
   some sort of index file. In vim and Emacs thes index files are  called  tags
@@ -1302,68 +1393,8 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   apply the `jot.jot` to the code repository.
 
 }}}
-{{{ About the Operand Stack
-2.5 About the Operand Stack
-----------------------------
-  The operand stack allows  simple  arithmetic  operations  and  tests  to  be
-  performed on objects (typically integer  quantities)  held  in  a  push-down
-  stack. It can also hold  temporary  buffers  created  by  the  system  query
-  commands. The full range of operations is described in `Stack Operations`.
-  
-  The underlying C-language type for integer values is  long  long,  for  real
-  values it's double.
-  
-  For the benefit  of  those  not  familiar  with  the  notion  of  stacks  in
-  computing. Stacks are analogous  to  those  spring-loaded  plate  stacks  so
-  beloved of institutional caterers. As clean plates are delivered, the  stack
-  gets pushed down, as plates are taken off the next one pops up.  Note  that,
-  as plates are added individually, the last one on is the  first  one  off  -
-  this is a key property of computer stacks. 
-  
-  And so it is, with our operand stack, new values are 'pushed' onto the stack
-  and later 'popped' off for processing. Each item on the jot stack is wrapped
-  up in a little data structure called a stack frame, which play the  part  of
-  plates in the above description.
-  
-  Essentially the stack can be loaded with values from (see `Stack operations`
-  for the full list):
-    - Integer or real numbers picked up from the text (e.g. with `oi`),
-    - Integers or real numbers literals from the command line (see `OL`),
-    - Integers generated by the random-number generator (see `OA`),
-    - Integers describing the current focus  point  (i.e.  buffer  i.e.,  line
-      number `ON` and character number`OC`),
-    - Integers, Reals or Buffers held by hashtable data  objects  (see  `Using
-      hashtable data`)
-    - A temporary buffer created for as a destination buffer for  any  command
-      that directs it's output  to  a  buffer  eg: %q~=date;.
-    - Arithmetic and logical operations can be performed on  numerical  values
-      (see `O+`, for example.
-    - Values and strings can be written to the buffer text (see `OO`).
-    - Numerical values can be extracted by indirect references - eg: %w '~;  -
-      sets the window size to an integer picked up from the stack. If the  top
-      stack frame is a buffer, then the current character of that buffer  must
-      be pointing to one or more digits for conversion to  an  integer  -  see
-      also `About command parameters`.
-      
-  If performing a straightforward abstraction or maybe a query to  stack  with
-  %q~=... (see `%Q`), a new buffer stack frame will be created at the  top  of
-  the stack. If, however, you are doing a cumulative abstraction (i.e. a~+,a~-
-  or a~. - see `A`) then the item at the top of the stack  must  be  a  buffer
-  stack frame.
-      
-  Jot supports the usual arithmetic and logical operations and can use  values
-  in the stack to control programme flow or values can be written to the text.
-  Addition, for example, pops the top two values and  pushes  their  sum  back
-  onto the stack (see `O+`).
-  
-  All arithmetic and comparison operations will  work  with  integer  or  real
-  values, for mixed operations integers are first converted to reals  and  the
-  results of such arithmetic is always real. Any attempt to perform arithmetic
-  on a buffer-type will fail.
-
-}}}
 {{{ About metasyntax
-2.6 About metasyntax
+2.5 About metasyntax
 ---------------------
   The following metasyntax has been used in this user guide:
     - a '$' in the first column represents a CLI prompt, the following text is
@@ -1403,7 +1434,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ Percent-command syntax
-2.7 Percent-command syntax
+2.6 Percent-command syntax
 --------------------------
   Typical syntax of a percent command (for details see `percent commands`):
 %da=f/example/;
@@ -1449,14 +1480,14 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   
   A function requiring a parameter that might include a semicolon  might  pick
   it up in buffer ( $ ) like this:
-    %d$=##" Insert string>  " -hereEndsThePercentCommand; ...
+    %d$=##" Insert string> " -hereEndsThePercentCommand; ...
     
     - A semicolon escaped by a backslash works in %E:
 > %ea=( cd JOT_RESOURCES} \; ls -l ); f/ t.t/
 
 }}}
 {{{ Using Hashtables
-2.8 Using Hashtables
+2.7 Using Hashtables
 --------------------
   Hashtables offer a good way of  rapidly  accessing  data  objects  scattered
   around in an unstructured mass. Although initially introduced to the  editor
@@ -1473,7 +1504,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   in the current buffer. 
 
 {{{ Using Hashtables to Locate Text
-2.8.1 Using Hashtables to Locate Text
+2.7.1 Using Hashtables to Locate Text
 -------------------------------------
   The `hashtable add` and  `hashtable  jump`  commands  provide  a  method  of
   indexing and rapidly returning to sections on the text image.
@@ -1487,7 +1518,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   was first created. Now future changes to the  text  may  change  the  record
   containing the target but the target  substring  must  match  the  hashtable
   entry. In this context there are two important classes of change to consider
-  - changes which only move the target to a  new  location  and  changes  that
+  - changes which only move the target to a new location and changes that
   delete the target string.
   
   The `hashtable jump` command returns to same focus point as when  the  entry
@@ -1518,7 +1549,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
   deletion - see `hashtable create`.
   
   Another option is for the hashtable target points to be adjusted to point to
-  the next available point in the text - see adjust in  `hashtable create`.
+  the next available point in the text - see adjust in `hashtable create`.
   
   Finally, the default option,  is  to  just  remove  the  hash-table  entries
   pointing to deleted targets, this is the default behaviour - see  delete  in
@@ -1528,7 +1559,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ Using Hashtable data
-2.8.2 Using Hashtable data
+2.7.2 Using Hashtable data
 --------------------------
   The primary focus for arithmetic and logical operations is  the  stack  (see
   `about the operand stack`) - values and strings can be placed on the  stack,
@@ -1552,7 +1583,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 }}}
 }}}
 {{{ The jot debugger
-2.9 The jot debugger
+2.8 The jot debugger
 --------------------
   The editor has various features designed for  the  monitoring  of  execution
   flow and the location and analysis of bugs. There  are  various  methods  of
@@ -1594,7 +1625,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
 
 }}}
 {{{ Jot for experienced ecce users
-2.10 Jot for experienced ecce users
+2.9 Jot for experienced ecce users
 -----------------------------------
   The first, most obvious difference between jot and ecce is  that  jot  is  a
   screen editor - it maintains a window as an accurate reflection of the  what
@@ -1630,7 +1661,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
     - U - abolished.
     - `V` - unchanged.
     - `W` - new command - refresh Window.
-    - X - was macro-X call, now abolished.
+    - `X` - was macro-X call, now eXits or repeats selected block.
     - `Y` - was macro Y call, now Y command (move in column).
     - `Z` - was macro Z call, now zoom (i.e. change current buffer).
     - `%A` - Now accepts exit status and exit message.
@@ -1644,7 +1675,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
       line length.
     - `%M` - Reassigned prints message to console area.
     - %N - Abolished.
-    - `%O` - Still outputs to filing system but with new options.
+    - `%O` - Still writes file image to filing system but with new options.
     - `%Q` - Reassigned - now system Query.
     - `%R` - Reassigned - now Run a command script (file).
     - `%S` - Replaced by `Z` command, %S now System interaction.
@@ -1684,6 +1715,7 @@ $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
     - `S` - Substitute current substring for given string e.g. s/fred/
     - `T` - enter (Trace) debug (single-step) mode e.g. t
     - `V` - Verify (tests immediate for match with substring) e.g. v/fred/
+    - `X` - eXit or re-iterate current (or selected parent) block.
     - `Y` - Move Cursor In Y Axis e.g. y3
     - `Z` - Zoom to Another Buffer e.g. zq
     - `(` - Block start e.g. (f/fred/s/jim/)0
@@ -1716,7 +1748,8 @@ M[[=|-]n]|[*[-]] - Move to start of specified line.
     - M* Moves forwards sufficient lines to view next page on screen.
     - M- moves back by 1 line.
     - M-<n> moves back by n lines.
-    - M*- (or M-*) Moves back sufficient lines to view previous page on screen.
+    - M*- (or M-*) Moves back  sufficient  lines  to  view  previous  page  on
+      screen.
     - M0 moves to last line of file.
     - M-0 move to first line of file.
     - M=<n> moves to absolute line no. n
@@ -1725,8 +1758,39 @@ M[[=|-]n]|[*[-]] - Move to start of specified line.
   last line or before the first line of the file.
 
 }}}
+{{{ X
+3.3 X
+-----
+X[-][n] - eXit or re-iterate current, or selected parent block.
+  
+  - X[n] exits the current (or selected outer) block.
+  - X-[n] - returns control to the  beginning  of  the  current  (or  selected
+    outer) block.
+  - X0 exits from all blocks.
+  
+  The X command with  a  +ve  argument  causes  the  selected  block  to  exit
+  immediately, with a negative argument it causes to selected block to  repeat
+  from the start.
+  
+  In  all  cases,  the  decimal  numeric  arg  <n>  specifies  the  block   to
+  exit/repeat. It defaults to 1 (the current or innermost) block, 2  specifies
+  it's parent block, a 3 the parent's parent block etc. A  zero  indicates  an
+  exit from all blocks. It's a similar scheme for X-n except that these repeat
+  the block from the start - similar to the continue statement in C  but  with
+  the significant difference that the block need not have  a  repeat  counter.
+  The X command does not affect the current value of the block-repeat counter.
+  
+  In this context a block means any code-sequence enclosed by round braces and
+  the current macro or function call. The range of the X command is limited to
+  the current macro-command or function. Other than returning a  status  value
+  the X command cannot affect blocks in the calling code sequence.
+  
+  On exit the status is always set to success,  a  backslash  (  \  )  can  be
+  appended to force the status to failure.
+
+}}}
 {{{ Y
-3.3 Y
+3.4 Y
 -----
 Y[[=|-]n]|[*[-]] - move in column (Y axis) by [n] lines.
 Y0 - Reset the column traversed by subsequent Y commands.
@@ -1745,7 +1809,7 @@ Y0 - Reset the column traversed by subsequent Y commands.
 
 }}}
 {{{ E
-3.4 E
+3.5 E
 -----
 E[-][<n>] - Erase n bytes to the right [ or left] of the cursor.
    
@@ -1760,7 +1824,7 @@ E[-][<n>] - Erase n bytes to the right [ or left] of the cursor.
 
 }}}
 {{{ P
-3.5 P
+3.6 P
 -----
 P[-][<n>] - print line(s).
    
@@ -1771,7 +1835,7 @@ P[-][<n>] - print line(s).
 
 }}}
 {{{ W
-3.6 W
+3.7 W
 -----
 W - redraw Window.
    
@@ -1782,7 +1846,7 @@ W - redraw Window.
 
 }}}
 {{{ F
-3.7 F
+3.8 F
 -----
 F[-][range][<delim><string><delim>|'<key>][-][rpts] - Find
    
@@ -1854,7 +1918,7 @@ F[-][range][<delim><string><delim>|'<key>][-][rpts] - Find
 
 }}}
 {{{ T
-3.8 T
+3.9 T
 ------
 T - Trace
   
@@ -1868,26 +1932,27 @@ T - Trace
     - it will enter an execution breakpoint at every trace point and
     - the trace point will be every command.
   
-  Alternatively, the trace vector can be set  explicitly  with  the  `%s=trace`
+  Alternatively, the trace vector can be set explicitly  with  the  `%s=trace`
   command. The default trace vector can be redefined with `%s=tracedefault`.
   
   See also `about jot debugging` and `the jot debugger`.
 
 }}}
 {{{ Q
-3.9 Q
+3.10 Q
 ------
 Q[-][<delim><string><delim>|'<key>] -  Qualify
-  Tests for existence of any  of  a  specified  set  of  ASCII  characters  in
-  substring - n.b. This does not currently work for unicode characters.
+  Tests for existence of any of a specified set of characters in substring.
   
-  The argument string can contain any ASCII characters but not unicode.
+  The argument string can contain any ASCII and unicode characters but, for  a
+  range of character codes (see below), ASCII and unicode should not be  mixed
+  in the same range.
    
-  The character at [or before] the current character position  is  matched  to
-  the character set specified by the string parameter, if one of the specified
-  set of characters matches then the command returns  successfully,  otherwise
-  if reports a failure. The Q command is invariably case sensitive and has  no
-  effect on the text file image.
+  The character at [or before] the current character position referred to here
+  as the "match character") is compared to the character set specified by  the
+  string parameter, if one of the specified set of characters matches then the
+  command returns successfully, otherwise if reports a failure. The Q  command
+  is invariably case sensitive and has no effect on the text file image.
   
   If, instead of the <delim><string><delim> syntax, the '<key> syntax is used,
   then the qualifying string is in the current line of the specified buffer.
@@ -1898,10 +1963,16 @@ Q[-][<delim><string><delim>|'<key>] -  Qualify
   example:- Q/0123456789/ Will match to any digit. Q/0-9/ Will do the same but
   saves typing. Q/0-9+-/ Will match to any digit or the '+' or '-' characters.
   Q/0-9A-Fa-f/ Will match to any Hex digit.
+  
+  If the character set includes  unicode  and  the  match  character  is  also
+  unicode, then the character and the string are both converted to native  UTF
+  and the comparison is done in UTF. This is one of the  few  instances  where
+  jot operates on full-width unicode - see `practicalities of unicode etc. and
+  jot`.
 
 }}}
 {{{ V
-3.10 V
+3.11 V
 -----
 V[-][string] - Verify string.
    
@@ -1914,7 +1985,7 @@ V[-][string] - Verify string.
 
 }}}
 {{{ C
-3.11 C
+3.12 C
 ------
 C[-][n] - Change case.
    
@@ -1925,7 +1996,7 @@ C[-][n] - Change case.
 
 }}}
 {{{ I
-3.12 I
+3.13 I
 ------
 I[-][string][n] - Insert substring
   Inserts specified substring before current character.
@@ -1936,7 +2007,7 @@ I[-][string][n] - Insert substring
 
 }}}
 {{{ S
-3.13 S
+3.14 S
 ------
 S[-][<delim><string><delim>|'<key>] - Substitute
   Replace the currently-selected string with the given string.
@@ -1955,13 +2026,13 @@ S[-][<delim><string><delim>|'<key>] - Substitute
 
 }}}
 {{{ B
-3.14 B
+3.15 B
 ------
 B[-][n] - Break line.
    
   Where n is an optional (defaults to  1)  repeat  count,  on  completion  the
   character pointer is left at the beginning of the second line (i.e. it still
-  points to the same character), except if a negative repeat count is  entered
+  points to the same character), except if a negative repeat count is entered
   - zeros are not allowed for break counts.
   
   A negative repeat count will break the line the same  number  of  times  but
@@ -1969,7 +2040,7 @@ B[-][n] - Break line.
 
 }}}
 {{{ G
-3.15 G
+3.16 G
 ------
 G[<n>] - Get 
   Read a new line(s) of text or single character from the keyboard.
@@ -1989,7 +2060,7 @@ G[<n>] - Get
 
 }}}
 {{{ J
-3.16 J
+3.17 J
 ------
 J[-][n] - Join
   Joins current line with next (or previous) line.
@@ -2004,7 +2075,7 @@ J[-][n] - Join
 
 }}}
 {{{ K
-3.17 K
+3.18 K
 ------
 K[-][n] - Kill i.e. delete line(s).
    
@@ -2025,7 +2096,7 @@ K[-][n] - Kill i.e. delete line(s).
 
 }}}
 {{{ N
-3.18 N
+3.19 N
 ------
 N[.] Note
   Note = Note line [and character] number for later abstract.
@@ -2044,7 +2115,7 @@ N[.] Note
 
 }}}
 {{{ A
-3.19 A
+3.20 A
 ------
 A<key>[+|-|.][*|&] - Abstract
   Abstracts (moves) text from note point to current character (see  `N`)  into
@@ -2076,7 +2147,7 @@ A<key>[+|-|.][*|&] - Abstract
   See also `H` and `N` commands.
 
 {{{ Abstraction options
-3.19.1 Abstraction options
+3.20.1 Abstraction options
 --------------------------
   Abstraction in jot is similar to ecce - by default, the n (note) and  the  a
   (abstract) commands abstract only complete lines.
@@ -2104,7 +2175,7 @@ A<key>[+|-|.][*|&] - Abstract
 }}}
 }}}
 {{{ H
-3.20 H
+3.21 H
 ------
 H<key>[<count>][*] - copy Here
   Contents of specified buffer (the source buffer) is copied to current buffer
@@ -2130,7 +2201,7 @@ H<key>[<count>][*] - copy Here
 
 }}}
 {{{ Z
-3.21 Z
+3.22 Z
 ------
 Z<key> - Zoom (change focus to nominated buffer)
   
@@ -2144,7 +2215,7 @@ Z<key> - Zoom (change focus to nominated buffer)
 
 }}}
 {{{ (
-3.22 (
+3.23 (
 ------
 ( - Block start
    
@@ -2154,7 +2225,7 @@ Z<key> - Zoom (change focus to nominated buffer)
 
 }}}
 {{{ )
-3.23 )
+3.24 )
 ------
 )[<n>] - Block end.
    
@@ -2168,7 +2239,7 @@ Z<key> - Zoom (change focus to nominated buffer)
 
 }}}
 {{{ ,
-3.24 ,
+3.25 ,
 ------
 (<anyNumberOfCommands>, <failureHandler>) - Failure handler.
    
@@ -2180,7 +2251,7 @@ Z<key> - Zoom (change focus to nominated buffer)
 
 }}}
 {{{ \
-3.25 \
+3.26 \
 ------
 <cmd>\ - Reverse status of command or block.
    
@@ -2201,7 +2272,7 @@ Z<key> - Zoom (change focus to nominated buffer)
 
 }}}
 {{{ ?
-3.26 ?
+3.27 ?
 ------
  <validCommand or block>? - ignore status of command or block.
    
@@ -2219,7 +2290,7 @@ Z<key> - Zoom (change focus to nominated buffer)
 
 }}}
 {{{ Stack Operations
-3.27 Stack Operations
+3.28 Stack Operations
 ---------------------
   The editor maintains an evaluation stack  used  for  numerical  and  logical
   operations.
@@ -2274,9 +2345,9 @@ Z<key> - Zoom (change focus to nominated buffer)
     - `OU` - set sUbstring length from stack.
     - `OA` - push rAndom number onto stack.
     - `O.` - set current line number to <top of stack>.
-    - `OL`<n>[.<n>] - Literal integer (optionally fp) value is pushed onto stack.
+    - `OL`<n>[.<n>] - Literal integer [real] value is pushed onto stack.
     - `OI`[C|D|O|X|F] - formatted conversion from text - result to stack.
-    - `OG` - formatted character input - prompts and reads one character to stack.
+    - `OG` - character input - prompts and reads one character from keyboard.
     - `OO` - formatted Output - pop value, using given string.
     - `OV` - Value - defines hashtable data item from stack.
     - `OQ` - Query, query a hashtable value and push value onto stack.
@@ -2292,9 +2363,12 @@ Z<key> - Zoom (change focus to nominated buffer)
     - `OW` - scrolls Window view by no. lines set in top of stack.
     
     - See also `query stack`
+    
+    - A few other %Q queries also push values onto  the  stack  -  see  `query
+      Time`, `query cputime`, `query pid` and `query inview`.
 
 {{{ OL
-3.27.1 OL
+3.28.1 OL
 ---------
 OL<intVal> - push an integer Literal onto stack.
   or
@@ -2324,7 +2398,7 @@ OL<floatingPointValue> - push a floating-point Literal onto stack.
 
 }}}
 {{{ O&
-3.27.2 O&
+3.28.2 O&
 ---------
 o& - bitwise AND
   
@@ -2333,7 +2407,7 @@ o& - bitwise AND
    
 }}}
 {{{ O|
-3.27.3 O|
+3.28.3 O|
 ---------
 o| - bitwise OR
   
@@ -2342,7 +2416,7 @@ o| - bitwise OR
    
 }}}
 {{{ O!
-3.27.4 O!
+3.28.4 O!
 ---------
 o! - bitwise NOT
   
@@ -2352,7 +2426,7 @@ o! - bitwise NOT
    
 }}}
 {{{ O?
-3.27.5 O?
+3.28.5 O?
 ---------
 O? - List contents of stack.
   
@@ -2361,7 +2435,7 @@ O? - List contents of stack.
 
 }}}
 {{{ OG
-3.27.6 OG
+3.28.6 OG
 ---------
 OG - reads one character from console and pushes character onto stack.
   
@@ -2377,11 +2451,11 @@ OG - reads one character from console and pushes character onto stack.
 
 }}}
 {{{ OO
-3.27.7 OO
+3.28.7 OO
 ---------
 OO<delim><formatString><delim> - Output using sprintf format string.
   
-  Output the value at top of stack using the format  string.  
+  Output the value at top of stack using the format string. 
   
   If the current buffer has a substring following a  command  that  defines  a
   substring (eg: F, S, I, OI or a previous OO command), then the substring  is
@@ -2393,7 +2467,7 @@ OO<delim><formatString><delim> - Output using sprintf format string.
 > ol123 ol999 oo/%d/ r-r oo/%d/
   
   When writing unicode characters, the %c format  string  *must*  have  the  l
-  (long-format) modifier to convert the wide-format  unicode eg:
+  (long-format) modifier to convert the wide-format unicode eg:
 > ol65r0boo/%c simple ASCII character/r0
 > ol163r0boo/but the unicode %lc requires the l modifier with %%c/
   Note that the `OG` command can add a unicode character too the stack.
@@ -2412,10 +2486,11 @@ OO<delim><formatString><delim> - Output using sprintf format string.
 > ol12345 oo"The number you first thought of is %-10d"
 > %q~=buffer; f/pathName = /-bza oo/The pathname is %s/ok
 > off za oo/%8f/
+> oo/%lc/ - used to print a long-format unicode character.
 
 }}}
 {{{ OQ
-3.27.8 OQ
+3.28.8 OQ
 ---------
 OQ<delim><key><delim> - Value, push value from hashtable onto stack.
   
@@ -2445,7 +2520,7 @@ OQ<delim><key><delim> - Value, push value from hashtable onto stack.
 
 }}}
 {{{ OV
-3.27.9 OV
+3.28.9 OV
 ---------
 OV<delim><key><delim> - Query - pops stack and sets value in hash-table.
   
@@ -2463,7 +2538,7 @@ OV<delim><key><delim> - Query - pops stack and sets value in hash-table.
 
 }}}
 {{{ O+
-3.27.10 O+
+3.28.10 O+
 ---------
 O+ - Add
   
@@ -2476,7 +2551,7 @@ O+ - Add
 
 }}}
 {{{ O-
-3.27.11 O-
+3.28.11 O-
 ---------
 O- - Subtract
   
@@ -2490,7 +2565,7 @@ O- - Subtract
 
 }}}
 {{{ O*
-3.27.12 O*
+3.28.12 O*
 ---------
 O* - Multiply
    
@@ -2503,7 +2578,7 @@ O* - Multiply
 
 }}}
 {{{ O/
-3.27.13 O/
+3.28.13 O/
 ---------
 O/ - Divide
   
@@ -2519,7 +2594,7 @@ O/ - Divide
 
 }}}
 {{{ O%
-3.27.14 O%
+3.28.14 O%
 ----------
 O% - remainder.
   
@@ -2535,7 +2610,7 @@ O% - remainder.
 
 }}}
 {{{ O=
-3.27.15 O=
+3.28.15 O=
 ----------
 O= Test for numerical equality
   
@@ -2549,7 +2624,7 @@ O= Test for numerical equality
 
 }}}
 {{{ O~
-3.27.16 O~
+3.28.16 O~
 ----------
 O~ Increment value in top of stack.
    
@@ -2559,7 +2634,7 @@ O~ Increment value in top of stack.
 
 }}}
 {{{ O>
-3.27.17 O>
+3.28.17 O>
 ----------
 O> - Greater than.
   
@@ -2576,7 +2651,7 @@ O> - Greater than.
 
 }}}
 {{{ O<
-3.27.18 O<
+3.28.18 O<
 ----------
 O< - Less than.
   
@@ -2592,7 +2667,7 @@ O< - Less than.
 
 }}}
 {{{ OB
-3.27.19 OB
+3.28.19 OB
 ----------
 OB - save Buffer key
   
@@ -2601,24 +2676,24 @@ OB - save Buffer key
 
 }}}
 {{{ OE
-3.27.20 OE
+3.28.20 OE
 ----------
 OE - push Extent of current substring or record.
   
   This command pushes the length, in  characters,  of  the  currently-selected
-  substring onto the stack. Jot has two forms of substring  yielding  +ve  and
-  -ve results:
+  substring onto the stack. If no substring is currently selected,  it  pushes
+  the total length of the current record onto the top of the stack. 
+  
+  The result is negative if the current-character pointer follows the selected
+  substring (as would be the case after the `S` command, for example). Jot has
+  two forms of substring yielding +ve and -ve results:
     - Positive, where the current character is  the  first  character  of  the
       substring typically the result of a `F` command.
     - Negative, where the current character is immediately after the substring
       typically the result of the `S` command.
   
   If unicode support is turned off off (see `%b=unicode`) then it  pushes  the
-  number of bytes in the currently-selected  substring.  If  no  substring  is
-  currently selected, it pushes the total length of the  current  record  onto
-  the top of the stack.  The  result  is  negative  if  the  current-character
-  pointer follows the selected substring (as would be the case after  the  `S`
-  command, for example).
+  number of bytes in the currently-selected substring. 
   
   See also `OU`, `about unicode`, `%b=tabstops`, `about tabular text`,  `query
   inview` and `uc_basic.jot`.
@@ -2629,16 +2704,16 @@ OE - push Extent of current substring or record.
 
 }}}
 {{{ OF
-3.27.21 OF
+3.28.21 OF
 ----------
 OF - push line no. of First line of current buffer in window.
   
   This command will  search  all  currently  displaying  windows,  from  first
-  (topmost) to last window (bottommost) until  it  finds  one  displaying  the
-  current buffer. It then calculates the  line  number  of  the  topmost  line
-  displayed in the window. In most cases it's much simpler than that - usually
-  there's only one window set up to display the current buffer - see `%W`  for
-  details.
+  (left/topmost)  to  last  window  (right/bottommost)  until  it  finds   one
+  displaying the current buffer. It then calculates the  line  number  of  the
+  topmost line displayed in the window. In most cases it's much  simpler  than
+  that - usually there's only one window set up to display the current  buffer
+  but see `%W` for details.
   
   This information can be used to control the view e.g.  it  can  be  used  to
   return to a previously displayed view - see also `OW`.
@@ -2649,7 +2724,7 @@ OF - push line no. of First line of current buffer in window.
 
 }}}
 {{{ OU
-3.27.22 OU
+3.28.22 OU
 ----------
 OU - set sUbstring length from stack.
   
@@ -2669,7 +2744,7 @@ OU - set sUbstring length from stack.
 
 }}}
 {{{ OZ
-3.27.23 OZ
+3.28.23 OZ
 ----------
 OZ - Zoom.
   
@@ -2682,7 +2757,7 @@ OZ - Zoom.
 
 }}}
 {{{ OP
-3.27.24 OP
+3.28.24 OP
 ----------
 OP - push mouse Position onto stack.
   
@@ -2702,7 +2777,7 @@ OP - push mouse Position onto stack.
 
 }}}
 {{{ ON
-3.27.25 ON
+3.28.25 ON
 ----------
 ON - save line Number
   
@@ -2710,7 +2785,7 @@ ON - save line Number
 
 }}}
 {{{ OM
-3.27.26 OM
+3.28.26 OM
 ----------
 OM - Move
   
@@ -2726,7 +2801,7 @@ OM - Move
 
 }}}
 {{{ OA
-3.27.27 OA
+3.28.27 OA
 ----------
 OA - rAndom
   
@@ -2737,7 +2812,7 @@ OA - rAndom
 
 }}}
 {{{ O.
-3.27.28 O.
+3.28.28 O.
 ----------
 O. - Set line number.
   
@@ -2750,7 +2825,7 @@ O. - Set line number.
 
 }}}
 {{{ OC
-3.27.29 OC
+3.28.29 OC
 ----------
 OC - save Chr no.
   
@@ -2762,7 +2837,7 @@ OC - save Chr no.
 
 }}}
 {{{ OR
-3.27.30 OR
+3.28.30 OR
 ----------
 OR - shift Right by character count (byte count if unicode support is turned 
   off - see `Unicode - the gruesome details`) shifts left for negative values.
@@ -2778,7 +2853,7 @@ OR - shift Right by character count (byte count if unicode support is turned
 
 }}}
 {{{ OI
-3.27.31 OI
+3.28.31 OI
 ----------
 OI[C|D|O|X|F] - formatted Input conversion (of string at current character).
   
@@ -2796,8 +2871,9 @@ OI[C|D|O|X|F] - formatted Input conversion (of string at current character).
   In the event of there being no valid characters  the  current  character  is
   left unchanged, nothing is added to the stack and the command fails.
     - OIC converts one character immediately  to  the  right  of  the  current
-      character to it's ASCII  code  -  this  one  does  not  skip  whitespace
-      characters.
+      character to  it's  unicode  code  (in  the  range  1-to-127  for  ASCII
+      characters and 256-to-... for unicode characters -  this  one  does  not
+      skip whitespace characters.
     - OID converts a string of numeric characters to decimal.
     - OIO converts value in an octal string and
     - OIX converts value in a hexadecimal string.
@@ -2807,7 +2883,7 @@ OI[C|D|O|X|F] - formatted Input conversion (of string at current character).
 
 }}}
 {{{ OK
-3.27.32 OK
+3.28.32 OK
 ----------
 OK - Kill top item on stack
   
@@ -2818,7 +2894,7 @@ OK - Kill top item on stack
 
 }}}
 {{{ O@
-3.27.33 O@
+3.28.33 O@
 ----------
 O@ - Reset stack
   
@@ -2833,7 +2909,7 @@ O@ - Reset stack
 
 }}}
 {{{ OS
-3.27.34 OS
+3.28.34 OS
 ----------
 OS - Swap
   
@@ -2843,7 +2919,7 @@ OS - Swap
 
 }}}
 {{{ O#
-3.27.35 O#
+3.28.35 O#
 ----------
 O# - Duplicate
   
@@ -2859,7 +2935,7 @@ O# - Duplicate
 
 }}}
 {{{ OW
-3.27.36 OW
+3.28.36 OW
 ----------
   The screen display is scrolled by the number of lines indicated by  the  top
   of stack - a positive value scrolls up the screen, negative scrolls down.
@@ -2867,7 +2943,7 @@ O# - Duplicate
 }}}
 }}}
 {{{ Percent Commands
-3.28 Percent Commands
+3.29 Percent Commands
 ---------------------
   See also `percent-command syntax`
     - `%%` - Comment line.
@@ -2892,7 +2968,7 @@ O# - Duplicate
     - `%~` - Insert or display control character.
 
 {{{ %A
-3.28.1 %A
+3.29.1 %A
 ---------
 %A[[<status>]=<message>] - Abandon = Exit without writing file.
   
@@ -2910,7 +2986,7 @@ O# - Duplicate
 
 }}}
 {{{ %C
-3.28.2 %C
+3.29.2 %C
 ---------
 %C[=<message>] - Close = Exit writing new file.
   
@@ -2931,7 +3007,7 @@ O# - Duplicate
 
 }}}
 {{{ %E
-3.28.3 %E
+3.29.3 %E
 ---------
 %E=<CliCommand>  - executes a CLI command
 %E<key>=[|]<CliCommand> - executes CLI command and catches the output.
@@ -2980,7 +3056,7 @@ O# - Duplicate
 
 }}}
 {{{ %P
-3.28.4 %P
+3.29.4 %P
 ---------
 %P[<key>]=<command>; - Pipe a command to remote session.
 %P[<key>]= -exit=<command>; - Set a termination command for a remote session.
@@ -3006,7 +3082,7 @@ O# - Duplicate
 
 }}}
 {{{ %F
-3.28.5 %F
+3.29.5 %F
 ---------
 %F[<key>]=[<REx>] - search forwards in buffer using regular expression.
 %F-[<key>]=[<REx>] - search back in buffer using regular expression.
@@ -3059,7 +3135,7 @@ O# - Duplicate
 
 }}}
 {{{ %M
-3.28.6 %M
+3.29.6 %M
 ---------
 %M[<bufferKey>]=<message> - prints Message in console area.
   
@@ -3073,7 +3149,7 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
 
 }}}
 {{{ %X
-3.28.7 %X
+3.29.7 %X
 ---------
 %X=<message> - eXit current command sequence, macro or script displaying the
   message in the console area.
@@ -3084,7 +3160,7 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
 
 }}}
 {{{ %S
-3.28.8 %S
+3.29.8 %S
 ---------
 %S=<attribute> [<value>] - set the value of a System attribute.
    
@@ -3113,7 +3189,7 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
     - `%s=on_key` - defines a command sequence to be run after every keyboard-initiated command.
 
 {{{ %S=case
-3.28.8.1 %S=case
+3.29.8.1 %S=case
 ----------------
 %S=case [0|1|+1] - set case sensitivity attribute.
    
@@ -3124,7 +3200,7 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
 
 }}}
 {{{ %S=system
-3.28.8.2 %S=system
+3.29.8.2 %S=system
 ------------------
 %s=system [0|1];
   
@@ -3135,18 +3211,18 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
 
 }}}
 {{{ %S=commandmode
-3.28.8.3 %S=commandmode
+3.29.8.3 %S=commandmode
 -----------------------
 %s=commandmode [+][<hexBitMask>] - sets command-mode attribute.
    
   Bits are assigned as follows:
-    - 01 - Temporary, Insert mode reverts to command mode when any function  or
+    - 01 - Temporary, Insert mode reverts to command mode when any function or
            cursor-control key is hit.
     - 02 - InsertMode (until next %S=commandmode or a Ctrl+C interrupt).
     - 04 - Overtype - when in insert mode overwrites preexisting text.
     - 08 - EscapeAll - all keyboard input is taken as escape strings.
-    - 10 - EscapeCtrl - any control character (ASCII characters in the range 0 to 31)
-           will be treated as initiating an escape sequence.
+    - 10 - EscapeCtrl - any control character (ASCII characters in the range 0
+      to 31) will be treated as initiating an escape sequence.
            
   Various useful combinations are available:
     - %s=commandmode 0; - the default setting, sane command mode - your typing
@@ -3167,7 +3243,7 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
 
 }}}
 {{{ %S=CommandCounter
-3.28.8.4 %S=CommandCounter
+3.29.8.4 %S=CommandCounter
 --------------------------
 %s=commandcounter 123456789; - sets the endpoint for the command counter.
   
@@ -3201,7 +3277,7 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
 
 }}}
 {{{ %S=trace
-3.28.8.5 %S=trace
+3.29.8.5 %S=trace
 -----------------
 %s=trace [+-][<XXXX>] - Trace = Set [modify] trace mode, in hexadecimal.
    
@@ -3220,10 +3296,13 @@ ob %q~=date; t2/, /b %m=This is the time '~; osozok
   together:
     - 0001 Trace_AllCommands: Each new command is triggers a trace event.
     - 0002 Trace_CommandLines: Each new command line triggers a trace event.
-    - 0004 Trace_Failures: Any failing command triggers a trace event.
-    - 0008 Trace_Interrupt: A {Ctrl+C} interrupt triggers a trace event.
-    - 0040 Trace_Recovery: Enables normal debugging in recovery mode.
-    - 0080 Trace_DumpSeq: Dumps compiled commands.
+    - 0004 Trace_AllFailures: Any failing command triggers a trace event.
+    - 0008 Trace_FailNoElse: Any failing command with no local else sequence.
+    - 0010 Trace_FailBlocks: Trace on exit from any failing block.
+    - 0020 Trace_FailMacros: Trace on exit from any failing macro.
+    - 0040 Trace_Interrupt: Trace on A {Ctrl+C} interrupt.
+    - 0080 Trace_Recovery: Enables normal debugging in recovery mode.
+    - 0400 Trace_DumpSeq: Dumps compiled commands.
     - 0800 Trace_Backtrace: Dumps a backtrace at each trace event.
     - 1000 Trace_Stack: Dumps contents of the stack at each trace event.
     - 2000 Trace_Print: Prints the current line of the current buffer.
@@ -3303,11 +3382,11 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   Another useful setting is B002 - this displays the same  at  each  stop  but
   only stops at the start of each new command line.
   
-  See also `%s=tracedefault` and  `about jot debugging`.
+  See also `%s=tracedefault` and `about jot debugging`.
 
 }}}
 {{{ %s=tracedefault
-3.28.8.6 %s=tracedefault
+3.29.8.6 %s=tracedefault
 ------------------------
 %S=tracedefault [+-][<hexValue>]
   
@@ -3323,11 +3402,11 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   (breakpoints are set by the `T`, by the `%s=commandcounter` commands and  bu
   Ctrl+C interrupts).
      
-  See also `%s=trace` and  `about jot debugging`.
+  See also `%s=trace` and `about jot debugging`.
 
 }}}
 {{{ %s=setenv
-3.28.8.7 %s=setenv
+3.29.8.7 %s=setenv
 ------------------
 %s=setenv <envName> <envValue>
    
@@ -3337,7 +3416,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=verbose
-3.28.8.8 %s=verbose
+3.29.8.8 %s=verbose
 -------------------
 %S=verbose <x> - sets the verbosity bit mask in hex.
   
@@ -3374,7 +3453,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=console
-3.28.8.9 %s=console
+3.29.8.9 %s=console
 -------------------
 %s=console <0>|<noOfLines>;
   
@@ -3396,7 +3475,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=guardband
-3.28.8.10 %s=guardband
+3.29.8.10 %s=guardband
 ----------------------
 %S=guardband[ <n>]
   Sets an n-line guardband. A band  of  n  lines  is  maintained  between  the
@@ -3411,7 +3490,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=tab
-3.28.8.11 %s=tab
+3.29.8.11 %s=tab
 ---------------
 %s=tab [<chr>]
   This defines the character to be used as a cell separator for tabular  text.
@@ -3420,7 +3499,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %S=CommandString
-3.28.8.12 %S=CommandString
+3.29.8.12 %S=CommandString
 -----------------------------
 %s=commandstring <CommandString>
   This inserts the specified command string  back  into  the  console  command
@@ -3434,7 +3513,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=MouseMask
-3.28.8.13 %s=MouseMask
+3.29.8.13 %s=MouseMask
 ----------------------
 %s=mousemask[=<HexValue>]
   
@@ -3464,7 +3543,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %S=RecoveryMode
-3.28.8.14 %S=RecoveryMode
+3.29.8.14 %S=RecoveryMode
 -------------------------
 %s=recoverymode <value>
   
@@ -3474,7 +3553,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %S=copy
-3.28.8.15 %S=copy
+3.29.8.15 %S=copy
 -----------------
 %s=copy
     
@@ -3494,7 +3573,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %S=paste
-3.28.8.16 %S=paste
+3.29.8.16 %S=paste
 ------------------
 %s=paste
   
@@ -3507,7 +3586,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=prompt
-3.28.8.17 %s=prompt
+3.29.8.17 %s=prompt
 -------------------
 %s=prompt[ <promptString>]; - set prompt string.
   
@@ -3518,7 +3597,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=on_key
-3.28.8.18 %s=on_key
+3.29.8.18 %s=on_key
 -------------------
 %s=on_key[ <JotCommandSequence>]
   
@@ -3530,7 +3609,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %s=setmouse
-3.28.8.19 %s=setmouse
+3.29.8.19 %s=setmouse
 ---------------------
 %s=setmouse
   
@@ -3538,20 +3617,22 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   buffer - see `OP`, `Query tags` and `query window`.
   
   Useful  for  emulating   mouse   clicks   for   applications   designed   as
-  mouse/touch-pad interfaces in non-mouse environments (see `qr.jot`)  and  for
+  mouse/touch-pad interfaces in non-mouse environments (see `qr.jot`) and  for
   testing scripts using the OP command for the window query.
 
 }}}
 }}}
 {{{ %B
-3.28.9 %B
+3.29.9 %B
 ---------
 %b=<attributeName>[ <value>] - set some attribute of the current buffer.
   - `%b=unrestricted` - sets the buffer write-access attribute.
   - `%b=readonly` - sets the buffer write-access attribute.
   - `%b=leftoffset` <n> - sets the buffers left-offset attribute.
-  - `%b=tabstops`[ <n1>[ <n2>[ <n3>[ ...]]]] - controls display of simple tabular text.
-  - `%b=tabcells`[ <n1>[ <n2>[ <n3>[ ...]]]] - controls display of tabular text.
+  - `%b=tabstops`[ <n1>[ <n2>[ <n3>[ ...]]]]  -  controls  display  of  simple
+    tabular text.
+  - `%b=tabcells`[ <n1>[ <n2>[ <n3>[ ...]]]] -  controls  display  of  tabular
+    text.
   - `%b=header` <headerText> - defines a static header line for display.
   - `%b=footer` <footerText> - defines text for window-separator line.
   - `%b=unicode` {0|1} - Disables|Enables unicode support in this buffer.
@@ -3565,7 +3646,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   - `%b=codepage` - Sets code page for buffer (windows only).
 
 {{{ %B=unrestricted
-3.28.9.1 %B=unrestricted
+3.29.9.1 %B=unrestricted
 ------------------------
 %b=unrestricted - sets the buffer write-access attribute.
    
@@ -3574,7 +3655,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %B=readonly
-3.28.9.2 %B=readonly
+3.29.9.2 %B=readonly
 --------------------
 %b=readonly[ 0|1] - sets the buffer write-access attribute.
   
@@ -3588,7 +3669,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=writeifchanged
-3.28.9.3 %b=writeifchanged
+3.29.9.3 %b=writeifchanged
 --------------------------
 %b=writeifchanged[ 0|1] - sets the buffer write-access attribute.
  
@@ -3613,7 +3694,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=leftoffset
-3.28.9.4 %b=leftoffset
+3.29.9.4 %b=leftoffset
 ----------------------
 %b=leftoffset <n> - sets the buffers left-offset attribute.
    
@@ -3630,7 +3711,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=tabstops
-3.28.9.5 %b=tabstops
+3.29.9.5 %b=tabstops
 --------------------
 %b=tabstops[ <n1>[ <n2>[ <n3>[ ...]]]] - controls display of simple tabular text.
    
@@ -3667,7 +3748,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=tabcells
-3.28.9.6 %b=tabcells
+3.29.9.6 %b=tabcells
 --------------------
   Each  tab-delimited  item  of  text  is  said  to  be   a   cell.   If   the
   manually-defined tabcell is insufficient to display all of a cell, then  the
@@ -3694,7 +3775,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=header
-3.28.9.7 %b=header
+3.29.9.7 %b=header
 ------------------
 %b=header[ <headerText>] - defines or removes a static header line.
   
@@ -3713,7 +3794,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=footer
-3.28.9.8 %b=footer
+3.29.9.8 %b=footer
 ------------------
 %b=footer some text;
   
@@ -3725,7 +3806,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=unicode
-3.28.9.9 %b=unicode
+3.29.9.9 %b=unicode
 -------------------
 %b=unicode {0|1}
   This controls unicode support for the current buffer.
@@ -3747,7 +3828,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=pathname
-3.28.9.10 %b=pathname
+3.29.9.10 %b=pathname
 ---------------------
 %b=pathname <pathName> - (re)defines pathname.
    
@@ -3756,7 +3837,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=sameflag1
-3.28.9.11 %b=sameflag1
+3.29.9.11 %b=sameflag1
 ---------------------
 %b=sameflag1 - sets the user change-control flag.
    
@@ -3766,7 +3847,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=tagtype
-3.28.9.12 %b=tagtype
+3.29.9.12 %b=tagtype
 --------------------
 %b=tagtype <tagName> colour <foregroundColourNo> <backgroundColourNo>
   
@@ -3811,7 +3892,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=addtag
-3.28.9.13 %b=addtag
+3.29.9.13 %b=addtag
 -------------------
 %b=addtag {<tagName>|-text=<textString>};
   
@@ -3841,7 +3922,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=remove_tag
-3.28.9.14 %b=remove_tag
+3.29.9.14 %b=remove_tag
 -----------------------
 %b=remove_tag <type> <name|key|text>
   
@@ -3851,7 +3932,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   uniquely identify one tag and then removes it from the internal record  data
   structure. In the event of there being two or more identical  tags  matching
   the description, it randomly selects one of the matching  tags  and  deletes
-  it.
+  only that one.
   
     - The tag type field must be one of colour, text or target.
     - the name field for a colour tag must match the colour-tag  name,  for  a
@@ -3861,7 +3942,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
     - the current character and substring length  select  the  start  and  end
       point of the tag.
   
-  The tags were originally created by  the  `%b=addtag`,  `hashtable  new`  and
+  The tags were originally created by the  `%b=addtag`,  `hashtable  new`  and
   `hashtable add` commands - see `about tagged text`.
   
   Where precise details of the tag is not  known,  use  the  `query  tags`  to
@@ -3872,7 +3953,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %B=sort
-3.28.9.15 %B=sort
+3.29.9.15 %B=sort
 -----------------
 %b[<destBuf>]=sort [<sliceColumn1>][ <sliceColumn2>[ <sliceColumn3> ...]]]
   Performs an alphabetical sort of all records in the buffer, by  default  the
@@ -3901,7 +3982,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %B=TabSort
-3.28.9.16 %B=TabSort
+3.29.9.16 %B=TabSort
 --------------------
 %b=tabsort <tab1>[ <tab2> [<tab3> ...]]] - sort buffer holding tabular text.
   
@@ -3917,7 +3998,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ %b=codepage
-3.28.9.17 %b=codepage
+3.29.9.17 %b=codepage
 ---------------------
 %b=codepage <codepage>
    
@@ -3925,12 +4006,12 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   the 65001 (UTF-8).
   
   This sets the codepage which is  only  relevant  to  unicode  -  see  `about
-  unicode`, `Practicalities of unicode etc. and jot.`
+  unicode`, `Practicalities of unicode etc. and jot`
 
 }}}
 }}}
 {{{ %Q
-3.28.10 %Q
+3.29.10 %Q
 ----------
 %Q[<bufferKey>]=<query>
    
@@ -3953,6 +4034,10 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
     - `query window` -  Reports  window  allocation  parameters  to  specified
       buffer.
     - `query backtrace` reports command-script calls
+    - `query time` - pushes time in seconds since start of unix epoch.
+    - `query cputime` - pushes on stack current cputime from system (n.b. this
+      is a real (floating-point) value.
+    - `query pid` - pushes on stack current process ID.
     - `query date` - Reports current data and time to specified buffer.
     - `query env`  -  Reports  value  of  specified  environment  variable  to
       specified buffer.
@@ -3987,7 +4072,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query system
-3.28.11 Query system
+3.29.11 Query system
 --------------------
 %q<key>=system
   
@@ -4014,15 +4099,16 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query linux
-3.28.12 Query linux
+3.29.12 Query linux
 -------------------
 %q=linux
   
-  Used to test the underlying OS, this one fails for anything other than linux.
+  Used to test the underlying OS, this  one  fails  for  anything  other  than
+  linux.
 
 }}}
 {{{ Query windows
-3.28.13 Query windows
+3.29.13 Query windows
 ---------------------
 %q=windows
   
@@ -4034,7 +4120,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query hashtables
-3.28.14 Query hashtables
+3.29.14 Query hashtables
 ------------------------
 %q<key>=hashtables
   
@@ -4044,14 +4130,14 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query wd
-3.28.15 Query wd
+3.29.15 Query wd
 ----------------
 %q<key>=wd
   - Returns the users current working directory.
      
 }}}
 {{{ Query window
-3.28.16 Query window
+3.29.16 Query window
 --------------------
 %q<key>=window - reports window assignments.
    
@@ -4067,7 +4153,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query Time
-3.28.17 Query Time
+3.29.17 Query Time
 ------------------
 %q=time - pushes seconds since beginning of unix epoch onto the stack.
   
@@ -4077,13 +4163,13 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query cputime
-3.28.18 Query cputime
+3.29.18 Query cputime
 ---------------------
 %q=cputime - pushes to stack, time elapsed since last query cputime.
   
   This uses the system clock to measure the time interval  between  calls.  It
   calculates gives a floating-point value calculated from the  system  seconds
-  and nanoseconds elapsed-time counters . Each time it's called  it  subtracts
+  and nanoseconds elapsed-time counters. Each time it's  called  it  subtracts
   the previous values of these counters from their current values and converts
   the difference to a floating-point number, which is pushed onto  the  stack.
   It is envisaged that this may be useful for some future profiling tool.  See
@@ -4091,7 +4177,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query date
-3.28.19 Query date
+3.29.19 Query date
 ------------------
 %q<key>=date - reports date and time.
    
@@ -4099,7 +4185,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
          
 }}}
 {{{ Query env
-3.28.20 Query env
+3.29.20 Query env
 -----------------
 %q<key>=env <name> - reports value of nominated env variable.
    
@@ -4107,7 +4193,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
       
 }}}
 {{{ Query pid
-3.28.21 Query pid
+3.29.21 Query pid
 -----------------
 %q<key>=pid - Query the ID of the ediors process.
   
@@ -4115,7 +4201,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query stack
-3.28.22 Query stack
+3.29.22 Query stack
 -------------------
 %q<key>=stack
   - reports state of stack.
@@ -4125,17 +4211,17 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
       
 }}}
 {{{ Query tabstops
-3.28.23 Query tabstops
+3.29.23 Query tabstops
 ----------------------
 %q=tabstops
   
-  This is a  quick  test  to  identify  buffers
-  which have been set up for tabular text. The command  succeeds  if  tabstops
-  are set in the current buffer, otherwise it fails.
+  This is a quick test to identify buffers which have been set up for  tabular
+  text. The command succeeds if  tabstops  are  set  in  the  current  buffer,
+  otherwise it fails.
 
 }}}
 {{{ Query backtrace
-3.28.24 Query backtrace
+3.29.24 Query backtrace
 -----------------------
 %q<key>=backtrace
   
@@ -4149,15 +4235,15 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
   
   In addition to the various scripts, macros and function calls you may notice
   a few lower-case alpha macros you don't recognize:
-    i - the initialization commands passed in via the CLI qualifier `-init`
-    c - the normal interactive command buffer.
-    d - the debuggers own command buffer,
+    - i - the initialization commands passed in via the CLI qualifier `-init`
+    - c - the normal interactive command buffer.
+    - d - the debuggers own command buffer,
   
   See also `bt.jot`
 
 }}}
 {{{ Query buffer
-3.28.25 Query buffer
+3.29.25 Query buffer
 --------------------
 %q<key>=buffer
   - reports internal state of buffer.
@@ -4197,7 +4283,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query samesinceio
-3.28.26 Query samesinceio
+3.29.26 Query samesinceio
 -------------------------
 %q=samesinceio
   - tests state of SameSinceIO flag in current buffer.
@@ -4214,7 +4300,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query samesinceindexed
-3.28.27 Query samesinceindexed
+3.29.27 Query samesinceindexed
 ------------------------------
 %q=samesinceindexed
   - tests state of buffers SameSinceIndexed flag.
@@ -4229,7 +4315,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query sameflag1
-3.28.28 Query sameflag1
+3.29.28 Query sameflag1
 -----------------------
 %q=sameflag1
   - tests state of buffers SameFlag1 flag.
@@ -4243,7 +4329,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query case
-3.28.29 Query case
+3.29.29 Query case
 ------------------
 %q=case
   -  Success if case sensitivity is on.
@@ -4252,7 +4338,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query inview
-3.28.30 Query inview
+3.29.30 Query inview
 --------------------
 %q=inview
   - Success if current character is visible on the screen, adds other  details
@@ -4284,7 +4370,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query commandmode
-3.28.31 Query commandmode
+3.29.31 Query commandmode
 -------------------------
 %q=commandmode
   - Success if editor is in command mode.
@@ -4295,7 +4381,7 @@ $ jot t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/
 
 }}}
 {{{ Query version
-3.28.32 Query version
+3.29.32 Query version
 ---------------------
 %q[<key>]=version
   - reports editor version and, where appropriate, curses version.
@@ -4316,7 +4402,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query dir
-3.28.33 Query dir
+3.29.33 Query dir
 -----------------
 %q[<key>]=dir [<fmt1> [<fmt2> [ <fmt3> ... ]]]<path>
   - reports contents of directory.
@@ -4353,7 +4439,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query file
-3.28.34 Query file
+3.29.34 Query file
 ------------------
 %q[<key>]=file [<pathName>]
   - reports on state of file.
@@ -4388,7 +4474,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query keys
-3.28.35 Query keys
+3.29.35 Query keys
 ------------------
 %q[<destinationBuffer>]=keys
   
@@ -4405,7 +4491,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query key
-3.28.36 Query key
+3.29.36 Query key
 -----------------
 %q[<destinationBuffer>]=key <hTabKey>;
   
@@ -4415,7 +4501,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query tags
-3.28.37 Query tags
+3.29.37 Query tags
 ------------------
 %q<destinationBuffer>=tags[ -here]
   
@@ -4434,7 +4520,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query heap
-3.28.38 Query heap
+3.29.38 Query heap
 ------------------
 %q=heap
   - reports heap statistics.
@@ -4443,7 +4529,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query history
-3.28.39 Query history
+3.29.39 Query history
 ---------------------
 %q<buf>=history
   - reports command history.
@@ -4458,7 +4544,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Query verify
-3.28.40 Query verify
+3.29.40 Query verify
 --------------------
 %q=verify
    - Verify integrity of current buffer's internal data structures.
@@ -4475,7 +4561,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 }}}
 }}}
 {{{ %H
-3.29 %H
+3.30 %H
 ------------
   The  %H  command  is  used  for  maintenance  of  hashtables  -  see  `about
   hashtables`
@@ -4493,10 +4579,10 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
   stack frame - see `hashtable data`.
   
 %H[<path>]=setsect <hashTableKey> - creates a hashtable object for use in a 
-  %i=<pathName> ... -section; command - see  `hashtable setsect`
+  %i=<pathName> ... -section; command - see `hashtable setsect`
   
 %H[<path>]=setfsect <hashTableKey> - creates a hashtable object for use in a 
-  %i= ... -fsection; command - see  `hashtable setfsect`
+  %i= ... -fsection; command - see `hashtable setfsect`
   
 %H[<path>]=delete <hashTableKey> - Removes specified hash-table entry.
   See `hashtable delete`
@@ -4525,9 +4611,9 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
       
 
 {{{ Hashtable create
-3.29.1.1 Hashtable create
+3.30.1.1 Hashtable create
 --------------------------
-%H[<bufferKey>]=create <size>[ <path>] [-delete|-destroy|-protect|-adjust] - Create a new hashtable.
+%H[<bufferKey>]=create <size>[ <path>] [-delete|-destroy|-protect|-adjust]; - Create a new hashtable.
    
   Create an empty hashtable in specified buffer, or  the  current  buffer,  if
   none specified. The size parameter specifies the size  of  the  table.  Take
@@ -4545,10 +4631,15 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
   is destroyed and no new  hashtable  is  created  -  the  overall  effect  is
   identical to `hashtable destroy`.
   
+  The optional path parameter  defines  the  hashtable  pathname  (see  `about
+  Hashtables`), by default, the hashtable is create  in  the  current  buffer.
+  When a valid path is set the hashtable is created in the specified buffer or
+  sub-buffer, sub-sub-buffer ... etc. to any depth.
+  
   The hashtable contains pointers to various classes  of  object  (see  `about
   hashtables`):
   
-   - 'target strings' in your text - allowing fast access to sections of text, 
+   - 'target strings' in your text - allowing fast access to sections of text,
    
    - data objects (see `hashtable data`), which can be copied to and from  the
      stack and
@@ -4576,7 +4667,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable add
-3.29.1.2 Hashtable add
+3.30.1.2 Hashtable add
 -----------------------
 %H[<bufferKey>]=add <hashtableKey> - adds a hashtable key.
    
@@ -4589,7 +4680,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable new
-3.29.1.3 Hashtable new
+3.30.1.3 Hashtable new
 -----------------------
 %h[<bufferKey>]=new <hashtableKey> - adds a new hashtable key.
    
@@ -4598,7 +4689,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable jump
-3.29.1.4 Hashtable jump
+3.30.1.4 Hashtable jump
 ------------------------
 %h[<bufferKey>]=jump <hashtableKey> - performs a hashtable lookup and jump.
    
@@ -4609,7 +4700,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable data
-3.29.1.5 Hashtable data
+3.30.1.5 Hashtable data
 ------------------------
 %h[<bufferKsy>]=data <HashtableKey; - creates a hashtable entry for storage of generic data.
   
@@ -4631,7 +4722,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable setsect
-3.29.1.6 Hashtable setsect
+3.30.1.6 Hashtable setsect
 ---------------------------
 %h[<bufferKey>]=setsect <hashtableKey>; - creates a hashtable entry for use in %i;
   
@@ -4648,7 +4739,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable setfsect
-3.29.1.7 Hashtable setfsect
+3.30.1.7 Hashtable setfsect
 ----------------------------
 %h[<bufferKey>]=setfsect <hashtableKey>; - creates a hashtable entry for use in %i;
   
@@ -4672,7 +4763,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable delete
-3.29.1.8 Hashtable delete
+3.30.1.8 Hashtable delete
 --------------------------
 %h[<bufferKey>]=delete <hashTableKey>;
   
@@ -4685,11 +4776,12 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 > %h=delete fred;
 > %h=data fred;
   
-  The zombies are removed if the hashtable is rebuilt - see `hashtable create`.
+  The zombies are removed  if  the  hashtable  is  rebuilt  -  see  `hashtable
+  create`.
 
 }}}
 {{{ Hashtable call
-3.29.1.9 Hashtable call
+3.30.1.9 Hashtable call
 ------------------------
 %h[<bufferKey>]=call <functionName>
    
@@ -4700,14 +4792,14 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
   In the event of the named subroutine is not in the  specified  buffer,  then
   the call fails silently.
   
-  Note that %h=call does not pass parameters into the routine.  The  way  this
-  is done with escape sequences is a little bit  of  code  immediately  before
-  the call that copies parameters into the ( $ ) buffer - see `translation  of
+  Note that %h=call does not pass parameters into the routine. The way this is
+  done with escape sequences is a little bit of code  immediately  before  the
+  call that copies parameters into the ( $ )  buffer  -  see  `translation  of
   keyboard events to actions`
 
 }}}
 {{{ Hashtable fix
-3.29.1.10 Hashtable fix
+3.30.1.10 Hashtable fix
 -----------------------
 %h[<bufferKey>]=fix
   This corrects the linenumbers held in  any  hashtable  it  also  resets  the
@@ -4722,7 +4814,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable destroy
-3.29.1.11 Hashtable destroy
+3.30.1.11 Hashtable destroy
 ---------------------------
 %h[<bufferKey>]=destroy[ -all]
   
@@ -4733,7 +4825,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ Hashtable testkey
-3.29.1.12 Hashtable testkey
+3.30.1.12 Hashtable testkey
 ---------------------------
 %H[<bufferKey>]=testkey [<string>]
 
@@ -4754,7 +4846,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 }}}
 }}}
 {{{ %D
-3.29.2 %D
+3.30.2 %D
 ----------
 %D<key>=<string> - Defines the specified buffer directly from the console.
   
@@ -4774,13 +4866,13 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %G
-3.29.3 %G
+3.30.3 %G
 ---------
 %G - Get = Reads in an buffer from current command stream or macro.
   
   This is similar to the `G` command, except that whereas G always takes input
-  from the console, %G will take from whatever command input currently  active
-  - typically a script. Thus %G is a handy way for scripts to define
+  from the console, %G will take from whatever command input currently active
+  - typically a script.  Thus  %G  is  a  handy  way  for  scripts  to  define
     multi-line macros.
   
   Whereas %G defines any number  of  records  `%D`  is  a  convenient  way  of
@@ -4788,7 +4880,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %I
-3.29.4 %I
+3.30.4 %I
 ----------
 %I[<bufferKey>][=<pathName>][ -seek=<ByteNo>][ -bytes|-block=<bytes>|-records=<n>]|
   [ -section|-fsection][ -insert | -append][ -hold][ -binary[=<recordSize>]]
@@ -4852,9 +4944,9 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
   sections are distributed over a large number of files.
   
   The -binary option reads the file and displays it in the form of a hex dump.
-  The optional recordSize value specifies ow many Hex pairs to place  in  each
-  line, defaults to 16 if not specified. To  view  ascii  characters  use  the
-  script `hex2ascii.jot`, this annotates each line of hex dump with the  ascii
+  The optional recordSize value specifies how many Hex pairs to place in  each
+  line,  defaults  to  16.  To  view   ascii   characters   use   the   script
+  `hex2ascii.jot`, this annotates  each  line  of  hex  dump  with  the  ascii
   translation.
   
   The -insert qualifier  causes  the  file  image  to  be  inserted  into  the
@@ -4871,7 +4963,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %L
-3.29.5 %L
+3.30.5 %L
 ----------
 %L [<width>x<height>] - Sets the terminal line length and number of lines.
   
@@ -4899,7 +4991,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %O
-3.29.6 %O
+3.30.6 %O
 ----------
 %O[<pathName>][ -append]  - Output current buffer as specified file.
   
@@ -4915,7 +5007,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %R
-3.29.7 %R
+3.30.7 %R
 ----------
 %R=[pathname][ -asConsole][ <Arg1>[ <Arg2>[ ...]]] - Run a command file.
   
@@ -4951,7 +5043,7 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %U
-3.29.8 %U
+3.30.8 %U
 ----------
 %U - Undo = Undo last substitution.
   
@@ -4966,10 +5058,10 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 }}}
 {{{ %W
-3.29.9 %W
+3.30.9 %W
 ----------
 %W[<key>]=[ -winno=<n>][ -key=<NewKey>][ -popup][ -delim]
-            [ -height=<height>][ -width=<width>[+<guard>]]]]
+            [ -height=<height>][ -width=<width>[+<guard>]]]]      
             [ -delete|-insert|-freeze=[0|1]]
 Historical syntax:
 %w <height>[ <key>];
@@ -4979,6 +5071,11 @@ Historical syntax:
   defined as a number of screen lines or may be vertical  slices  of  <height>
   lines and <width> columns. Windows may be assigned to  specific  buffers  or
   can be left unassigned - in which case they display the current buffer.
+  
+  The window command indirectly defines the height of the  console  area,  the
+  window size and the total height of all  the  windows  together  define  the
+  console area height. The console area can be set to expand upwards into  the
+  window area - see the `%s=console` command.
   
   The window configuration can be modified by specifying a  particular  window
   deleting it or specifying a  new  <width>,  <height>  or  <windowKey>  of  a
@@ -5058,7 +5155,8 @@ Historical syntax:
       - -width=<width> - to specify a new slice width,
       - -key=<NewKey> - to specify a new buffer association for the window.
       - -delete - deletes the selected window from the window list.
-      - -insert - inserts the newly-specified window above the selected window.
+      - -insert -  inserts  the  newly-specified  window  above  the  selected
+        window.
       - -freeze=[0|1] - forces the window in/out of frozen mode - see below.
       
     When it is required to change the height of an existing group  of  slices,
@@ -5112,7 +5210,7 @@ Historical syntax:
 
 }}}
 {{{ %%
-3.29.10 %%
+3.30.10 %%
 ----------
   A JOT comment.
   
@@ -5120,7 +5218,7 @@ Historical syntax:
 
 }}}
 {{{ %~
-3.29.11 %~
+3.30.11 %~
 ----------
 %~ - Insert/Evaluate Control Character
    
@@ -5297,7 +5395,7 @@ $ jot <pathName> -codepage <value> ...
   This qualifier is available only  in  the  windows  version,  in  linux  the
   -locale qualifier performs a similar function. This qualifier sets  codepage
   to specified value, by default codepage  is  set  to  65001  -  UTF8  -  see
-  `Practicalities of unicode etc. and jot.`
+  `Practicalities of unicode etc. and jot`
 
 }}}
 {{{ -Locale
@@ -5466,7 +5564,7 @@ $ jot -help
   more of the following:
   
     - Websters dictionary, useful for authors, available as a plain-text Ebook
-      from the Gutenberg project  - gutenberg.org
+      from the Gutenberg project - gutenberg.org
       
     - Roget's thesaurus, another must-have for authors, again  it's  available
       as an Ebook from Gutenberg.
@@ -5475,16 +5573,12 @@ $ jot -help
       command-driven interface, most of the others will only  work  via  their
       GUI.
       
-    - xls2csv - this can be downloaded from the sourceforge libxls project. It
-      is used  to  convert  Microsoft  XL  spreadsheets  to  plain  text.  For
-      `get.jot` xls2csv is used in preference to tika as it allows  individual
-      sheets to be selected.
+    - gnumeric - this can be downloaded from the GNU project. It  is  used  to
+      convert Microsoft XL spreadsheets to plain text, for `get.jot`
       
     - Apache Tika - this is  a  very  useful  format  conversion  utility.  In
       particular it is used by `get.jot` to convert the following  formats  to
-      plain text: MS-word, PDF and MS-XL - although xls2csv is  the  preferred
-      converter for XL as this allows sheet selection. Tika  requires  a  java
-      installation.
+      plain text: MS-word and PDF and MS-XL.
       
     - iconv - a gnu unicode converter (see the GNU libiconv project), used  by
       get.jot to convert the  various  other  unicode  formats  to  UTF-8  for
@@ -5524,7 +5618,7 @@ $ export PATH=${JOT_HOME}/bin/<arch>/;${PATH}
   libs and header files.
   
   If you have to recompile the jot executable,  these  commands  should  work,
-  there may be a few _devl and sharable libraries to be  installed:
+  there may be a few _devl and sharable libraries to be installed:
 $ versionString="jot <version>, built `\date +%d/%m/%y\ %H:%M:%S` `\uname -nspr`  "
 $ cc -D LINUX -g -Wall ${JOT_HOME}/source/jot.c -D_FILE_OFFSET_BITS=64 -D VERSION_STRING="\"${versionString}\"" \
      -lncursesw -lX11 -lXt -o ${JOT_HOME}/bin/<arch>/jot
@@ -5534,13 +5628,13 @@ $ gcc -g source/jot.c -D VERSION_STRING="${versionString}" -lncursesw -o bin/<ar
    curses library, with cut and paste disabled by  the  noX11  flag,  using  a
    command similar to this:
 $ gcc -DLINUX -DnoX11 $debug -g -Wall source/jot.c \
-     -D_FILE_OFFSET_BITS=64 -D VERSION_STRING="\"${versionString}\"" \
+     -D_FILE_OFFSET_BITS=64   -D    VERSION_STRING="\"${versionString}\""    \
      -Xlinker -dn -lncursesw -lncurses -Xlinker -dy -lgcc_s -o ed/bin/jot
   
   See also `X-windows setup`.
   
-  To use the `doc.jot` spelling check, you will need  aspell  on  your  search
-  path.
+  To use the spelling checker functions (see `text document preparation`), you
+  will need aspell on your search path.
 
 {{{ Things that might go wrong
 6.1.1 Things that might go wrong
@@ -5548,8 +5642,8 @@ $ gcc -DLINUX -DnoX11 $debug -g -Wall source/jot.c \
   - bash: jot: command not found
       Check your search path like this:
 $ echo $PATH
-      You should see the path to the bin subdir in  the  colon-separated  list
-      it returns - if not check the following:
+      You should see the path to the bin subdir in the colon-separated list it
+      returns - if not check the following:
         - did you remember to start a new bash after setting up your .bashrc?
         - is the spelling and case pattern correct.
         
@@ -5574,14 +5668,26 @@ $ echo $TERM
       then try setting it to xterm like this:
 $ export TERM=xterm
       If that works out, and you have no reason to want it  to  be  different,
-      put that export line into  ~/.bashrc  so  you  don't  have  to  keep  on
-      setting it in every new shell.
+      put that export line into ~/.bashrc so you don't have to keep on setting
+      it in every new shell.
       
-      If, however, your TERM is set to  xterm,  then  you've  got  a  problem.
-      Check your terminfos:
+      If, however, your TERM is set to xterm, then you've got a problem. Check
+      your terminfos:
 $ ls -l /usr/share/terminfo/x/xterm*
       There will probably be several flavours of xterm to chose from - pick  a
       likely looking one and export that one.
+      
+      The Ubuntu crouton system (and perhaps other Ubuntu systems  -  possibly
+      also Debian) it may be necessary to install xterm:
+$ sudo apt-get install xterm
+      and/or set your TERM env to xterm1:
+$ export TERM=xterm1
+    
+  - Failure to render unicode correctly
+    - first check your TERM setting (see above),
+    - check that you have a good xterm version installed (see above).
+    - check your locale setting - this might help:
+export XTERM_LOCALE=C.UTF-8 
 
 }}}
 {{{ X-windows setup
@@ -5646,8 +5752,7 @@ $ set PATH=C:\<unpackPath>\v<version>n.m\bin\win32;%PATH%
   libraries (try sourceforge) then something like this might work:
 $ cl /c /DVC /D__value=_value /Zi /D_DEBUG /DVERSION_STRING="jot for WindowsNT v<version>" %JOT_HOME%\jot.c /Fojot.obj
 $ link /debug /out:%JOT_HOME%/bin/jot.exe jot.obj ^
-    <MSDKsPath>\v7.1\Lib\*.Lib ^
-    <gnuLibPath>\libgw32c-0.4\lib\libgw32c.a ^
+    <MSDKsPath>\v7.1\Lib\*.Lib  ^  <gnuLibPath>\libgw32c-0.4\lib\libgw32c.a  ^
     <gnuLibPath>\libgcc\lib\libgcc.lib
 
 

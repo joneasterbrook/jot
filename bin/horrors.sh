@@ -7,6 +7,45 @@
 #useful or even meaningful. The bugs they detected have all been fixed so they're only useful for regression testing.
 #
 
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="z. %H=create 1000;   %h=new one;  n.  m0  m-0  aU  ON  %qW=tags;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -st \
+       -in="m-0 %b=tagtype allLines colour 3 5;   (r10ol10ou %b=addtag allLines; m, m)  k- %QU=env JOT_RESOURCES;  z. %H=create 1000;   e0  hU  %qV=tags; %a;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="zx m0 %~=D5; zv hX %~=BF; r q-'X? %a;" -st
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="%s=verbose 1F; zui/'u/ zy %dy='u; %a;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="%WW= -height=2 -delim; %WX= -winno=0 -height=5 -delim; %W= -height=1 -width=22; %WY= -width=20; %WY= -width=17; %W= -winno=1 -height=5 -width=10; %WW= -width=29; %QW=env JOT_RESOURCES; %a;"
+    gdb -ex="set confirm off" --args jot_dev t.t -in="%w; %w 9; %w 0; %s=trace 4001; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/b2; 'a"
+    gdb -ex="set confirm off" --args jot_dev t.t -in="%w; %w 9; %w 0; %s=trace 801; %da=zai/%ga/bi/mm-/bi/:/bi/ \\\'a/b2; 'a"
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="%r=mt2/test621064945.jot_boiled -asConsole; %a;"
+    gdb -ex="set confirm off" --args jot_dev t.t -st -in="zq %H=create 10; %H=data jkl; ol123ov/jkl/ %h=delete jkl;  %H=data jkl;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="zv %h=create 10; %d~=l99.t;ol7ol23 %H=setfsect abc; %H=delete abc; %HV=new abc; %a;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="z. %H=create 1000; oaoa %h=setsect seek_'$; %H=setsect mno; %H=delete mno; %QW=keys; %a;"
+    gdb -ex="set confirm off" --args jot_dev t.t -in="%h=create 9; r20 %h=add abc; r-0r10 %h=add def; r-5ol20ous/1234567890/ %qz=tags;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="%QX=dir .; %h=create 100; m0 n. y-32 %H=new 123; %F-=abc def ghi;? aW* %H=jump 123; %a;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -st -in="%Iy=/usr/include/stdio.h; m63 f/R/7 n. s-_1234567890_ e-0 r0 aX-&? zX s%fred% %a;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="j10r-0i.s/.naa %WY= -height=1;  %W= -height=2;  %~=26; 'az. %a"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="%s=verbose 25;%WY= -height=3 -width=18; %WY= -width=9; %QU=window; %Q=file; %a"
+    gdb -ex="set confirm off" --args \
+      jot_dev l99.t -in="ol10 %b=addtag bill;? OL94.91 OC OC OR %EX=ls -l; O* OK OO/%c/ %W= -height=2 -width=12; %WW= -width=20; %W= -height=1 -width=14; %WX= -width=6; %M='X; %a"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="%W= -winno=0 -key=Y; %QX=window; m-0 %b=tagtype allLines colour 3 5; (r10ol10ou %b=addtag allLines; m, m)0 k- %WY= -height=3;f&ZZZinvalidZZZ&? %a;"
+    gdb -ex="set confirm off" --args jot_dev t.t -st -in="%WW= -height=5 -width=8; %WU= -width=15; %WW= -width=23; %W= -winno=1 -height=2 -delim; w"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="%WY= -height=3; %s=verbose 31; j10 %m='.;"
+    gdb -ex="set confirm off" --args jot_dev l99.t -in="%W; %WX= -height=3 -width=14; %WU= -width=25; %WU= -width=9; %W= -winno=0 -height=5; %W= -winno=0 -height=2 -delim; %a;"
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="OL0 %~=AA; q'~? %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="z. %H=create 1000;   %h=new one;  n.  m0  m-0  aU  ON  %qW=tags -here; %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="m-0 %b=tagtype allLines colour 3 5;   (r10ol10ou %b=addtag allLines; m, m)  k- %QU=env JOT_RESOURCES;  z. %H=create 1000;   e0  hU  %qV=tags; %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev t.t -st -in="%H=create 1000; b- %h=new one; i-/zzz/ e b %qW=tags; %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="zx m0 %~=D5; zv hX %~=BF; r q-'X? %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev t.t -st -in="%r=x -asConsole; %a;" ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="%s=verbose 1D; %F='X;? %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st \
+      -in="%h=create 10; %h=add zzz; m %I=/usr/include/stdio.h -hold -binary=16; %QX=keys; %a;" -st ; cat valg.log ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev ${JOT_RESOURCES}/t.t -in="%h=create 10 -delete;  f/jon/ %h=add jon; k  %qa=keys; %a"  -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev t.t -st -in="%w 20; i/£/ w %qz=window; %a;" -st ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st\      -in="zv %h=create 9; i-/file/r3 %h=add abc; r-0v/file/ %HV=add stu; s/56/b- %H=destroy; %q=verify; %a;" -st ; cat valg.logk-origins=yes --log-file=valg.log jot_dev l99.t -st -in="zv %h=create 9; i-/file/r3 %h=add abc; r-0v/file/ %HV=add stu; s/56/b- %H=destroy; %q=verify; %a;" -st ; cat valg.logTags after adding stu JumpObj:Reporting all tags in Buffer VRec   1: "file"
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="%QY=file; %DY=abcdef; %h=create 1; n.r3a$& %h=add abc; m? e0 %HY=jump abc; %s=trace 2001; w %a;" ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev t.t -in="%h=create 10; f/jon/ %h=add jon; f-/123/ %h=add 123; j %a;" ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev t.t -in=" %h=create 10; f/jon/ %h=add jon; m-0 f/Test fi/b %a;" ; cat valg.log
+    valgrind --leak-check=full --track-origins=yes --log-file=valg.log jot_dev l99.t -st -in="%QX=dir .; %h=create 100; m0 n. y-32 %H=new 123; %F-=abc def ghi;? aW* %H=jump 123; %a;" -st ; cat valg.log
 
    #The followind were causing a certain amount oth threshing.
    gdb -ex="set confirm off" --args jot_dev l99.t -in="%W; %WU= -height=5 -width=8; %WW= -width=17; %WY= -width=8; %W= -winno=0 -height=3; %W= -winno=0 -height=1 -delim; %a;"

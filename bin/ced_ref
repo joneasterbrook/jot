@@ -1,0 +1,425 @@
+#! /bin/bash 
+#Compiles nominated editor module then links.
+#Use this script for debugging - it will work with gdb and use makejot to make
+#the final executable - the spro-generated version does not suffer from 
+#random crashes.
+#
+# Valid usage:
+#  ced [-backup <backupFileName>][ -newversion [<versionString>]][ -oldversion <versionString>][ -notest][ -tostick][ -fromstick][ -newstick]
+#    -backup <fileName>  - compiles specified jot.c from backup area, must be of the form jot.c_<dateStamp>
+#    -newversion [v<digits>] - Creates and populates next [or specified] version subdirectory then compiles the new release.
+#    -oldversion <version> - Compiles a version already copied to a version subtree.
+#    -nolin - skips compilation and test of linux version.
+#    -nowin - skips compilation of windows version.
+#    -noand - skips compilation of android version.
+#    -notest - skips test after compile.
+#    -tostick Archives selected files on a USB memory stick.
+#    -fromstick extracts selected files from an archive on a USB memory stick.
+#    -newstick creates the directory structure on a new memory stick.
+#
+#  Examples:
+#    ced                            - simple recompile jotfor linux and windows, executables are named jot_dev[.exe].
+#    ced -backup jot.c_130828_1805  - compiles ~/ed/source/backup/jot.c_130828_1805, execurables are named jot_<suffix>[.exe]
+#    ced -newversion                - creates the next version up from current top version, populates it and compiles the sources..
+#    ced -newversion v1.99          - creates v1.99 release subdir, populates it and compiles the sources.
+#    ced -oldversion v1.1           - makes executables from the source in v1.1
+
+cd
+debug=0
+stick=""
+sourceDir="ed/source/"
+versionDir=""
+backup="" 
+exeSuffix="_dev"
+version=""
+newVersion=""
+notest=0
+nowin=0
+noand=0
+nolin=0
+nochrome=0
+chrome=0
+if [ -n `uname -m | grep arm` ]; then
+  chrome=1
+  fi
+
+getStickPath(){
+  #Routine to identify stick and set the 'stick' variable - this may have been manually set with the -setstick <name> qualifier.
+  #
+  if [ "$stick" = "" ]; then
+    if [ -d "/media/removable" ]; then 
+      if [ `\ls /media/removable | \wc -l` = "0" ]; then
+        if [ `\ls /var/run/media/${USER}/ | \wc -l` = "0" ]; then
+          echo "No devices in /media or /var/run/media/${USER} - cannot proceed"
+          exit 1
+        else
+          stick=/var/run/media/${USER}
+          echo "stick set to $stick"
+          fi
+      else
+        stick=/media/removable
+        fi
+      if [ `ls $stick | \wc -l` -ne "1" ]; then
+        echo "more than one device in /media/removable ( \"${stick}/`ls $stick`\" ) - cannot proceed"
+        exit 1
+        fi
+    else
+      stick=/cygdrive/k
+    fi
+    stick="${stick}/`ls ${stick}`"
+  fi
+  }
+
+while test "$1" != ""; do
+  if [ $debug -ne 0 ]; then
+    echo ""
+    echo "-----------------------"
+    echo "Next arg is \"$1\""
+    echo "versionDir = \"${versionDir}\""
+    echo "backup = \"${backup}\""
+    echo "exeSuffix = \"${exeSuffix}\""
+    echo "version = \"${version}\""
+    echo "newVersion = \"${newVersion}\""
+    echo "notest = ${notest}"
+    echo "nowin = ${nowin}"
+    echo "noand = ${noand}"
+    echo "nolin = ${nolin}"
+    echo "nochrome = ${nochrome}"
+    echo "chrome = ${chrome}"
+    fi
+
+  if [ "$1" = "--help" ]; then
+    echo "ced options:"
+    echo "  -debug - for debugging the ced script"
+    echo "  -listdevs - lists storage devices plugged into usb or sd-card slot"
+    echo "  -setstick <name> - defines storage device to use (only necessary when more than one plugged in, affects later options e.g:"
+    echo "            ced setstick /media/removable/USB\ drive -tostick"
+    echo "  -backup <backupTag> - compiles a bacup source file from source/backup/jot.c_<backupTag>"
+    echo "  -notest - compiles without running tests"
+    echo "  -nowin - compiles without doing the windows version"
+    echo "  -nolin - compiles without the linux version"
+    echo "  -nochrome - compiles without the chrome version"
+    echo "  -oldversion <version> - compiles a previously released version in ed/release/<version>/..."
+    echo "  -newstick - prepares a new storage device (creates a blank directory tree"
+    echo "  -tostick - copies ed/... to stick"
+    echo "  -fromstick - copies ed/... from stick to the local filingsystem"
+    echo "  -newversion [<version>]- creates a new ed/release/<version>/... tree"
+    echo "              By default creates a new version number by incrementing the minor version number of the current highest version"
+    shift
+    exit 0
+
+  elif [ "$1" = "-debug" ]; then
+    debug=1
+    shift
+
+  elif [ $1 = "-listdevs" ]; then
+    #List all sticks.
+    shift
+    if [ -d "/media/removable" ]; then 
+      if [ `\ls /media/removable | \wc -l` = "0" ]; then
+        if [ `\ls /var/run/media/${USER}/ | \wc -l` = "0" ]; then
+          echo "No devices in /media or /var/run/media/${USER} - cannot proceed"
+          exit 1
+        else
+          dev=/var/run/media/${USER}
+          fi
+      else
+        dev=/media/removable
+        fi
+    else
+      dev=/cygdrive/k
+    fi
+    echo "The following devices are available:"
+    ls -d "${dev}/"*
+    echo ""
+    exit 0
+
+  elif [ "$1" = "-setstick" ]; then
+    #Set the stick name as specified.
+    shift
+    stick=$1
+    shift
+
+  elif [ "$1" = "-backup" ]; then
+    shift
+    backup=$1
+    exeSuffix=`echo ${backup} | sed s/jot.c_/_/`
+    echo "exeSuffix changed to ${exeSuffix}"
+    shift
+
+  elif [ "$1" = "-notest" ]; then
+    notest=1
+    shift
+   
+  elif [ "$1" = "-nowin" ]; then
+    nowin=1
+    shift
+   
+  elif [ "$1" = "-noand" ]; then
+    noand=1
+    shift
+   
+  elif [ "$1" = "-nolin" ]; then
+    nolin=1
+    shift
+   
+  elif [ "$1" = "-nochrome" ]; then
+    nochrome=1
+    shift
+   
+  elif [ "$1" = "-oldversion" ]; then
+    shift
+    version="$1"
+    shift
+    sourceDir="ed/release/$version/source/"
+    versionDir="release/$version/"
+    if [ ! -d $sourceDir]; then
+      echo "Directory $sourceDir does not exist - exiting now."
+      exit 1
+      fi
+    if [ ! -d $versionDir/coms]; then
+      echo "Directory $versionDir/coms does not exist - exiting now."
+      exit 1
+      fi
+    if [ ! -d $versionDir/docs]; then
+      echo "Directory $versionDir/docs does not exist - exiting now."
+      exit 1
+      fi
+
+  elif [ "$1" = "-newstick" ]; then
+    #Initialize a new memory stick.
+    shift
+    getStickPath
+    \chmod -R u+w "$stick"
+    mkdir "${stick}/ed"
+    mkdir "${stick}/ed/source"
+    mkdir "${stick}/ed/source/backup"
+    mkdir "${stick}/ed/docs"
+    mkdir "${stick}/ed/docs/backup"
+    mkdir "${stick}/ed/resources"
+    mkdir "${stick}/ed/backup"
+    mkdir "${stick}/ed/coms"
+    mkdir "${stick}/ed/coms/backup"
+    mkdir "${stick}/ed/bin/"
+    mkdir "${stick}/ed/bin/lin32/"
+    mkdir "${stick}/ed/bin/lin64/"
+    mkdir "${stick}/ed/bin/win32/"
+    mkdir "${stick}/ed/bin/chrome/"
+    mkdir "${stick}/work"
+    mkdir "${stick}/bin/"
+    exit 0
+
+  elif [ "$1" = "-tostick" ]; then
+    #Upload to memory stick.
+    shift
+    getStickPath
+    \chmod -R u+w "$stick"
+    files=0
+    for subPath in ed/source/* \
+                    ed/source/backup/* \
+                    ed/my_resources \
+                    ed/resources \
+                    ed/test.csh ed/test.bat ed/test_win.bat ed/test_win.csh  ed/README \
+                    ed/releasenote.txt ed/releasenote_cumulitive.txt ed/sample*.c \
+                    ed/docs/* \
+                    ed/docs/backup/* \
+                    ed/backup/* \
+                    ed/coms/* \
+                    ed/coms/backup/* \
+                    work/* \
+                    ed/bin/ced ed/bin/ced.bat ed/bin/backup/* \
+                    ed/bin/lin32/jot_dev ed/bin/lin64/jot_dev ed/bin/win32/jot_dev.exe ed/bin/chrome;
+      do
+      if [[ -f "${subPath}" && `\basename "${subPath}"` != "core" ]]; then
+        cp -pv --update "${subPath}" "${stick}/${subPath}" | tee | grep '\->'
+        if [ $? -eq 0 ]; then
+          #N.B. This is why we're not just using \cp -pR --update ...
+          #linux seems to round down the datestamp on the stick to the nearest even number of seconds.
+          #So we round down the linux datestamp of new files after copying
+          dateStamp=`\ls -l --full-time --time-style=+%Y%m%d%H%M.%S "${subPath}"  | \cut -d' ' -f6`
+          #Adding the 10# prefix to the seconds forces it to be treated as a decimal (defaults to octal).
+          secs=$((($(echo ${dateStamp} | sed 's/^.*\./10#/')/2)*2))
+          if [ $secs -lt 10 ]; then 
+            secs="0${secs}"
+            fi
+          dateNoSecs=`echo ${dateStamp} | sed 's/\...$//'`
+          \touch -m -t ${dateNoSecs}.${secs} "${subPath}" "${stick}/${subPath}"
+          files=$(($files + 1))
+          fi
+        fi
+      done
+    echo "Written ${files} file(s) to memory stick ${stick}"
+    exit 0
+
+  elif [ "$1" = "-fromstick" ]; then
+    #Download from memory stick.
+    shift
+    getStickPath
+    \cp -p  --verbose --update ${stick}/ed/source/* ./source
+    \cp -p  --verbose --update ${stick}/ed/source/backup/* ./source/backup
+    \cp -p  --verbose --update ${stick}/ed/releasenote.txt ./
+    \cp -p  --verbose --update ${stick}/ed/README ./
+    \cp -p  --verbose --update ${stick}/ed/test.csh ./
+    \cp -p  --verbose --update ${stick}/ed/test.bat ./
+    \cp -p  --verbose --update ${stick}/ed/test_win.csh ./
+    \cp -p  --verbose --update ${stick}/ed/test_win.bat ./
+    \cp -p  --verbose --update ${stick}/ed/sample*.c ./
+    \cp -p  --verbose --update ${stick}/ed/backup/* ./backup
+    \cp -p  --verbose --update ${stick}/ed/docs/* ./docs
+    \cp -p  --verbose --update ${stick}/ed/docs/backup/* ./docs/backup
+    \cp -pR --verbose --update ${stick}/ed/resources ..
+    \cp -p  --verbose --update ${stick}/ed/coms/* ./coms
+    \cp -p  --verbose --update ${stick}/ed/coms/backup/* ./coms/backup
+    \cp -p  --verbose --update ${stick}/ed/bin/lin32/jot_dev ~/ed/bin/lin32/
+    \cp -p  --verbose --update ${stick}/ed/bin/lin64/jot_dev ~/ed/bin/lin64/
+    \cp -p  --verbose --update ${stick}/ed/bin/win32/jot_dev.exe ~/ed/bin/win32/
+    \cp -p  --verbose --update ${stick}/bin/ced ~/bin/
+    \cp -p  --verbose --update ${stick}/bin/ced.bat ~/bin/
+    \chmod ugo+x ~/bin/ced ./test.csh
+    \cp -p  --verbose --update ${stick}/work/* ~/work
+    exit 0
+
+  elif [ "$1" = "-newversion" ]; then
+    shift
+    if [ "$1" -ne "" ]; then
+      echo $1 | \grep 'v[0-9]'
+      if [ $? -eq 0 ]; then
+        version=$1
+        shift
+        if [ -d "release/${version}/" ]; then
+          echo "Error: in specified version - ${version} already exists." 
+          exit 1
+          fi
+        fi
+      fi
+    if [ "${version}" = "" ]; then
+      version=`\ls release -rt v* | jot -startup -tty -quiet -init='m0(m-r0(q-/0-9/l)0v-/./\)0oido~oo/%d/p %a'`
+      fi
+    newVersion=${version}
+    versionDir="release/$version/"
+    \mkdir -p $versionDir/source $versionDir/bin  $versionDir/coms $versionDir/docs $versionDir/bin/lin32 $versionDir/bin/lin64 $versionDir/bin/win
+    \cp -p source/*.c source/*.h $versionDir/source
+    \cp test.csh test.bat README releasenote.txt $versionDir
+    \chmod ugo+x ${versionDir}/test.csh
+    \cp -pR resources $versionDir
+    \cp -p coms/*.jot $versionDir/coms
+    \cp -p docs/* $versionDir/docs
+    \cp -p bin/lin32/jot_dev  $versionDir/bin/lin32/jot
+    \cp -p bin/lin64/jot_dev  $versionDir/bin/lin64/jot
+    \cp -p bin/win32/jot_dev.exe  $versionDir/bin/win32/jot.exe
+    \echo "" >> releasenote_cumulitive.txt
+    \cat releasenote.txt >> releasenote_cumulitive.txt
+    \echo "Release version ${version} "`\date` >> releasenote_cumulitive.txt
+    sourceDir="ed/release/$version/source/"
+    #
+    \echo "Built new version in ${sourceDir}"
+
+  elif [ "$1" != "" ]; then
+    echo "Unrecognized qualifier $1"
+    exit 1
+     
+  else 
+    shift
+    fi
+  done
+
+if [ "${backup}" != "" ]; then
+  if [ -d "temp${backup}" ]; then
+      rm -rf temp${backup}
+      fi
+    mkdir temp${backup}
+  sourceDir="ed/temp${backup}/"
+  \ln -s ed/source/backup/${backup} ${sourceDir}jot.c
+  fi
+
+\rm -f ed/source/jot.lis
+\rm -f ed/bin/jot${exeSuffix}
+echo "Compiling version ${version}" > ed/source/jot.lis
+ 
+if [ $chrome -ne 0 ]; then
+  nowin=1
+  nolin=1
+  if [ $nochrome -eq 0 ] ; then
+    if [ "${backup}" != "" ]; then
+      versionString='"'"jot for chrome (from backup ${backup}) ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"'"'
+    else
+      versionString='"'"jot for chrome ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"'"'
+      fi
+    echo "Compiling ${sourceDir}jot.c (version string ${versionString} for ChromeOS"
+#    gcc -DCHROME -g ${sourceDir}/jot.c -DVERSION_STRING="${versionString}" \
+    gcc -DCHROME -g -Wall ${sourceDir}/jot.c -DVERSION_STRING="${versionString}" \
+      /home/chronos/user/toolchain/usr/lib/libncurses.so \
+      -o ed/bin/jot${exeSuffix} >> ed/source/jot.lis 2>&1 
+#The official ASCII curses
+#      /home/chronos/user/toolchain/usr/lib/libncurses.so \
+#      ed/libncursesw.so \
+    \cp ed/bin/jot${exeSuffix} ed/bin/chrome
+    if [ "$newVersion" != "" ]; then
+      \cp -p ed/bin/jot${exeSuffix} ed/$versionDir/bin/jot
+      \chmod -R ugo-w $versionDir 
+      fi 
+    fi
+
+else
+  if [ $nowin -eq 0 ]; then
+    \rm -f jot${exeSuffix}.exe jot${exeSuffix}.obj
+    echo "" >> ed/source/jot.lis
+    echo "" >> ed/source/jot.lis
+    echo "---------------------------------------------------------------------------------" >> ed/source/jot.lis
+    if [ " " -ne "${backup} " ]; then
+      versionString='"'"jot for WindowsNT (from backup ${backup}) ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"'"'
+    else
+      versionString='"'"jot for WindowsNT ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"'"'
+      fi
+    echo "Compiling ${sourceDir}jot.c (version string ${versionString} for windows" | tee >> ed/source/jot.lis
+    wine cl /DVC /Zi /D_DEBUG /DVERSION_STRING="${versionString}" ${sourceDir}jot.c /link /debug \
+      /out:jot${exeSuffix}.exe /map:jot.map >> ed/source/jot.lis 2>&1
+    wine cl /c /DVC /D__value=_value /Zi /D_DEBUG /DVERSION_STRING="${versionString}" ${sourceDir}jot.c >> ed/source/jot.lis 2>&1
+    echo "Windows link now..." | tee >> ed/source/jot.lis
+    wine link /debug /out:jot${exeSuffix}.exe jot.obj \
+      wine/libgw32c-0.4/lib/libgw32c.a wine/MSDKs/v7.1/Lib/*.Lib \
+      wine/lib/libgcc.lib >> ed/source/jot.lis 2>&2
+    \cp ed/bin/jot${exeSuffix}.exe ed/bin/win32
+    if [ "$newVersion" != "" ]; then
+      \cp -p ed/bin/jot${exeSuffix}.exe ed/$versionDir/bin/jot.exe
+      \chmod -R ugo-w $versionDir 
+      fi 
+    if [ $notest -eq 0 ]; then
+      wineconsole test jot${exeSuffix}
+      fi
+    fi
+  
+  if [ $nolin -eq 0 ]; then
+    \rm -f jot${exeSuffix} jot.o
+    versionString='"'"jot ${version}, built `\date +%d/%m/%y\ %H:%M:%S; \uname -nspr`"
+    if [ " " -ne "${backup} " ]; then
+      versionString="${versionString} - from backup source ${backup}"
+      fi
+    versionString="${versionString}"'"'
+    echo "" >> ed/source/jot.lis
+    echo "" >> ed/source/jot.lis
+    echo "---------------------------------------------------------------------------------" >> ed/source/jot.lis
+    echo "Compiling ${sourceDir}jot.c (version string ${versionString} for linux" | tee >> ed/source/jot.lis
+    cc -DLINUX -g -Wall ${sourceDir}jot.c -D VERSION_STRING="${versionString}" -lncursesw -o jot${exeSuffix} |& tee >> ed/source/jot.lis
+    if [ "`\uname -m`" = "x86_64" ]; then
+      \cp ed/bin/jot${exeSuffix} ed/bin/lin64
+    else
+      \cp ed/bin/jot${exeSuffix} bin/lin32
+      fi
+    if [ $notest -eq 0 ]; then
+      ./test.csh jot${exeSuffix}
+      fi
+    if [ "$newVersion" != "" ]; then
+      \cp -p ed/bin/jot${exeSuffix} ed/$versionDir/bin/jot
+      \chmod -R ugo-w $versionDir 
+      fi 
+    fi
+  fi
+   
+echo ""
+echo ""
+echo ""
+grep -i 'warning' ${sourceDir}jot.lis
+grep -i 'error' ${sourceDir}jot.lis
+grep -i 'undefined reference' ${sourceDir}jot.lis
+ls -lrt ${sourceDir}jot.c ed/bin/jot_*

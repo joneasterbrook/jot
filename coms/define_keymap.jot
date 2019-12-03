@@ -27,6 +27,9 @@
     -init - initialize -this resets all keycodes to ????????
       If you resume the session (i.e. without the -init arg)
       it will begin at the first keycode set to ????????
+      
+  It will recognize the following special keycodes:
+    - {Esc s k} - skip, will skip past the current key leaving it unchanged.
   
   Usage example:
     jot ${JOT_HOME}/coms/std_keys.jot -in="%w; %w 20; %w 0; %b=pathname ./new_keys.jot; %r=define_keymap"
@@ -114,12 +117,12 @@ z?wosozok
   
 %%
 %%First check that this looks like a key-map file.
-m-0(f/ -- /-(v/ /r)0v/{/, %x=ERROR: This does not look like a key map file.;)
+m-0(f/ {/r, %x=ERROR: This does not look like a key map file.;)
 ( obz$m-0f/-init/ %%Initialize keycodes - resets all keycodes to ????????
-  ozm-0((f/-- {/\m)0 r-0(v/xxxxxxxx/\ v/%%/\)\m, e12i/????????/m)0 m-0
+  ozm-0((f/{/\m)0 r-0(v/xxxxxxxx/\ v/%%/\)\m, e12i/????????/m)0 m-0
 , %%A resumption session - restart at the next unknown keycode.
 %%  oz (f1/{/bf1/}/-bozf'$r-0, ozf/????????/f-/--/r-0)
-  oz (f/????????/f1/--/\m)0 r-0
+  oz (f/????????/f1/ {/\m)0 r-0
   )
 
 %%init.
@@ -128,15 +131,17 @@ obz?w ozm-0
 
 ( %%Main loop, request a key press and notes it's code  then pushes code into the new setup file.
   %%Pick up next key name.
-  ((v/????????/\m)0 f1/ -- /- (v/ /r)0 v/{/r(v/ /r)0v/Esc/m)0 (v/ /r)0n.f1/}/(v-/ /r-)0a$&
+  ((v/????????/\m)0 f1/{/- v/Esc/m)0 (v/ /r)0n.f1/}/(v-/ /r-)0a$&
   %%Set prompt and get keycode.
   %s=prompt Hit {'$}{Return} > ; obz?woz g m- %s=prompt > ;
   %%Translate control characters.
   (oicol32o< ol64o+ oo/^%c/, okrr-, i/ /)12
-  %%Set it up in the keycodes script and remove the previous value.
-  ji/            /e12bm-r12e0j
+  %%If it matches {Esc s k} then skip to the next keycode, leaving this one unchanged.
+  ( v-/^[sk          /k %m=Skipped; , 
+    %%Set it up in the keycodes script and remove the previous value.
+    ji/            /e12bm-r12e0j p%m=; )
   %%Advance to next keycode.
-  p%m=; (m v/%%/, (v/ /r)0r\)0 r-v/:/\)0
+  (m v/%%/, (v/ /r)0r\)0 r-v/:/\)0
   
 
 %s=prompt > ;

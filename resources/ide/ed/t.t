@@ -1,4 +1,5 @@
-1 :abcdefghijklmnopqrstuvwxyz2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ
+1 :abcdefghijklmnopqrstuvwxyz
+2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ
 3 :1234567890
 4 :Test file for jonathans wonderful editor.
 5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

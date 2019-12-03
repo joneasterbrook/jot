@@ -569,7 +569,7 @@ m0 %h'=call emacs_PostMovement;
   
 <<emacs_GotoPagePrev>>
 %%  {Alt+v}		scroll to previous screen ;
-m-* %h'=call emacs_PostMovement;
+m-0 %h'=call emacs_PostMovement;
   
 <<emacs_GotoPageNext>>
 %%  {Ctrl+v}		scroll to next screen ;

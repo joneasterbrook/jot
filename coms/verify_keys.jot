@@ -24,8 +24,7 @@
 %w; %w 9; %w 0;
   
 %%Read the appropriate key map.
-( %q=windows; %r=WindowsNT_keys;, %q@=version; mf1/ chrome / %r=curses_keys_chrome;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$, %r=curses_keys_xterm;) )
-
+( %q=windows; %r=WindowsNT_keys;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$, %r=curses_keys_xterm;) )
 %%Define the commands to reflect each keystroke.
-z@m-0 (f1/-- {/r-0n.r12a$&n.f1/--/a%i/%m=/h$r-0r8(f1/;/i/\/r)0r0i/;/m, k)0
+z@m-0 (f1/{/r-0r12(v/ /e)0i/%m=/m, k)0
 m-0n.m0r0a^& z.

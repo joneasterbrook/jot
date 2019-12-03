@@ -21,36 +21,33 @@
 %%
 %%
 
-%%  ob
-%%  %%Read the appropriate key map.
-%%  ( %q=windows; %r=WindowsNT_keys;, %q@=version; mf1/ chrome / %r=curses_keys_chrome;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$ )
-%%  
-%%  %%Do annotation.
-%%  z@m-0 (z@ f/<</n.r-0a$&n.r0a!& o#ozm-0 ( (f'$r-\m)0r0i/%%/h!m)0 )0
-
 %g#
 ob
-%%Read the startup file to get the functions map - buffer ( ! )
-o#ozm-0f/startup.jot/r-0n.r0a$& %i!='$; f/%g!/k-0(v/:/\m)0k0
+%%Read the startup file to get the functions map - buffer ( ! ), if there is a local startup.jot then the one we want is the second one.
+m-0f/startup.jot/ (r-0n.r0a$& %i!='$; f/%g!/x, o#ozm f/startup.jot/)0 
+( v/%g!/
+  k-0(v/:/\m)0k0
+, 
+  %x=Error: Can't find startup file in journal directory - maybe this is not a recover_now.jot file?; )
   
 %%Read the key-codes map to buffer ( @ ).
-( %q=windows;
-  %i@=${JOT_HOME}/coms/WindowsNT_keys.jot;
-, %%Assume it's some flavour of unix then.
-  %i@=version; mf1/ chrome / %i@=${JOT_HOME}/coms/curses_keys_chrome.jot;
-, %%Not chrome
-  %q$=env TERM; k %i@=${JOT_HOME}/coms/curses_keys_'$.jot;
-  )
+o#oz mf3/_keys_/f1/.jot_/ r-0n.r0a$& %i@='$;
 f/%g@/k-0 (v/:/\m)0k0
   
-%%Transform escape-character tokens
-z@m-0 (f/^/eoicol64o-oo/%c/)0
 %%Make ( @ ) into a direct keycodes to functions map hashtable.
-z! %h=create 1000;
-z!m-0 (z!(f1/{/\k)0n.r0f-1/}/-a$f-1/>>/-e0r-0 z@m-0f'$r-0n.f1/ /a$& z! %h=add '$; m)0
+z!m-0 %h=create 1000;
+
+%%Transform escape-character tokens
+%%Add any fully-defined escape sequences now.
+z!m-0((v/^/\m)0eoicol64o-oo/%c/ r-0n.f1/ /a$ (v/ /e)0z@m-0b-i-'! %h!=add '$; z!)0
+%%Prepare function key escape sequences later later - these are indirectly-defined, using the keycodes map in ( @ ).
+z@m-0((v/^/\m)0eoicol64o-oo/%c/)0 
+%%Add function keys to the keycodes hashtable.
+z!m-0 (((v/<</f1/{/)\m)0 n.f1/}/-a$f-1/>>/- z@m-0f'$r-0n.f1/ /a$(f1/{/e-0r0i/  /, )i'! %h!=add '$; z!m)0
   
 %%We're now ready to go - annotate recovery file with functions now.
-ol27z@m-0k0oo/%c/ o#ozm-0f/<<DEL>>/m (f'@n.f1/ /a$& %h!=jump '$; o#ozr0i'! m)0
+ol27z!m-0k0oo/%c/ %% o#ozm-0f/<<DEL>>/m 
+o#oz (f'!n.f1/ /a$& %h!=jump '$; o#ozr0i'@ m, m)0
 :
 '#
 

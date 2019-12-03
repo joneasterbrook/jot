@@ -1,5 +1,4 @@
 
-
 1 JOT Walkthrough
 -----------------
   This is a simple walkthrough course for those who just  want  to  get  their
@@ -19,38 +18,40 @@
     - This is a description  of  some  text  rather  than  the  literal  text:
       <description>
     
-    - This is an instruction, to you, to type something  in  response  to  the
+    - This is an instruction for you to you, type something in response to the
       computers Command-Line  Interpreter  prompt  (CLI  -  e.g.  the  Windows
       console or unix shell):
 $ <a CLI Command>
     
-    - This is an instruction, to you, to type something  in  response  to  the
+    - This is an instruction for  you,  type  something  in  response  to  the
       editors command prompt:
 > <a jot command or key>
     
     - {Key} - This specifies a key on your keyboard.
     
-    - {Key1 Key2 ...} - This specifies a sequence keys in order (as read  from
-      left to right)
+    - {Esc key1[ Key2[ Key3]]} This specifies a sequence  keys  in  order  (as
+      read from left to right) e.g. {Esc  w  t}  means  hit  the  Escape  key,
+      followed by the ( w } key and then the ( t ) key.
       
-    - {Key1+Key2+...+FunctionKey} This means press and hold key1 with key2 etc
-      and then hit the function key. Key1,  key2,  etc  are  one  or  more  of
-      {Shift}, {Ctrl} and {Alt} keys, the function key is typically one of the
-      top-row function keys, a mid-keypad or numeric-keypad key.
+    - {[ModKey1[+{[ModKey2][+...]]]+FunctionKey} This means press and hold one
+      or more Modifier keys (Ctrl, Alt and/or Shift) and then hit the function
+      key., the function key is typically one of the top-row function keys,  a
+      mid-keypad or numeric-keypad key. E.g: {Ctrl+Alt+F3} means hold down the
+      Control and Alt keys while giving the F3 function key a dab.
     
       N.B. literal env-variable references of  the  form  ${<envVariableName>}
-      (e.g: ${JOT_HOME} should not be confused with the {<key>} metasyntax.
+      (e.g: ${JOT_HOME}) should not be confused with the {<key>} metasyntax.
       
       The name of the key given in the curly brackets is  generally  the  name
       printed on the key cap. The main exceptions are the beancounters  keypad
       where the key names  are  prefixed  KP_  and  the  cursor  control  keys
       referred to as {UpArrow}, {DownArrow}, etc..
-        
+      
     - << ... >> - is a reference to some jot function. This might be  attached
       to a hotkey e.g. <<FindNext>>  refers  to  the  jot  FindNext  function,
       normally attached to {F8}.
     
-    - [<optional>] -  some optional element of a command syntax.
+    - [<optional>] - some optional element of a command syntax.
     
     - [<option1>|<option2>|...<lastOption>]   -   a   series    of    optional
       alternatives, you may give one or more of these.
@@ -62,12 +63,14 @@ $ <a CLI Command>
 ----------
   Jot is a command-driven screen-based  editor  -  it  obeys  commands  either
   typed-in directly or picked up from function keys etc and  it  maintains  an
-  screen image of the file being edited and displays changes as they happen.
+  screen image of the text being edited and displays changes as they happen.
    
   Text is held in buffers, in the form of a complete file image or  fragments.
   Jot maintains a number of buffers. Each buffer is  identified  by  a  single
   character key, typically A to Z, 0 to 9 and the  various  punctuation  marks
-  etc.
+  etc. In addition to these buffers may be created and destroyed  in  the  jot
+  operand stack - more about that later but, for anyone wanting  to  disappear
+  down that rabbit hole right now - take a look at `about the operand stack`.
   
   Jot has a small number of primitive  commands  and  some  structure-building
   syntax elements. On  completion,  most  commands  return  a  success/failure
@@ -78,44 +81,39 @@ $ <a CLI Command>
   macros can be run  and  will  deliver  status  results  like  the  primitive
   commands.
 
-1.3 Starting jot
-----------------
+1.3 Starting jot for the first time
+-----------------------------------
   The usual way to start jot is from a command line - i.e. an xterm (linux) or
   a console (windows). It is also possible to set it up to  fire  up  from  an
   icon of your choice - but then since you can't explicitly-specify a pathname
-  you will have to hunt around in some idiotic menu to  locate  the  file  you
+  you will have to hunt around in some idiotic menu to identify the  file  you
   already knew you wanted to work on.
    
   Assuming your environment is set up correctly (see `installation`) in  linux
   you can start the editor from the command line from an xterm like this:
 $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   
-  In windows, start from a Terminal session like this:
+  In windows, start from a windows console  (or  MS-DOS  prompt  window)  with
+  exactly the same commend:
+$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
+  notice that the JOT_RESOURCES  env  is  presented  in  the  unix/linux  form
+  ${<envName>} - this form is ignored by the  MSdos  command-line  interpreter
+  which passes it through to jot. You are, however, at liberty to let the  CLI
+  do the translation thusly:
 $ jot %JOT_RESOURCES%/Richard_III_Entire_Play.txt
+  
+  You should see the text appear  in  your  terminal  window  -  as  the  name
+  suggests it's Richard III by Shakespere. This text was chosen as it's  long,
+  well known and very much out of copyright. This version was downloaded from:
+  `http://shakespeare.mit.edu/richardiii/full.html` - thanks.
          
-  At the bottom of the terminal window you should see the prompt "1 .> "
-  This is an invitation to type commands to the editor the  '1'  is  the  line
-  number, the '.' is the buffer key - see below.
-  
-  Jot has a number of CLI qualifiers (see `command-Line qualifiers`) but  here
-  we will only need to know about three of them: -journal, -init and -startup
-$ jot ... -journal
-  This causes the editor to keep a journal which can be used  to  recover  the
-  session in the event of a crash or a power failure and
-  
-$ jot ... -init="<jotCommands>"
-  After running the normal startup script,  but  before  starting  the  normal
-  interactive session, the given command sequence is executed.
-  
-$ jot ... -st=<pathName>
-  Runs the specified startup script instead of default one.
-  
-$ jot ... -st
-  Runs the editor with no startup script.
+  At the bottom of the terminal window you should see the prompt "1 .> "  This
+  is an invitation to type commands to the editor the '1' is the line  number,
+  the '.' is the buffer key - see below.
 
 1.4 Look at the jot display
 ---------------------------
-  Look again at the  Richard III session you started earlier.
+  Look again at the Richard III session you started earlier.
   
   - Notice the screen is split into two areas. At the top there's an image  of
     the file - a display window,
@@ -124,7 +122,7 @@ $ jot ... -st
     the buffer key.
     
   - Finally, at the bottom, is the console  area.  Immediately  after  startup
-    there should be three messages visible - these originate from the  various
+    there should be four messages visible - these originate from  the  various
     scripts that comprise the startup procedure. Finally,  in  the  bottommost
     line there's a command prompt "1 .>" this in invitation for you to type in
     a command. The ( 1 ) indicates that we are currently focused on line 1  of
@@ -132,21 +130,27 @@ $ jot ... -st
     that we are currently viewing the primary buffer.
     
     The startup script (more about that later) has adjusted the  size  of  the
-    main viewing area to leave you with three lines in the console area.  This
-    allows you to see any messages jot sends to the console area.
+    main viewing area to leave you with one line  in  the  console  area.  Any
+    messages sent by the editor are displayed by encroaching into the  display
+    area, they will disappear when you enter a command or  just  hit  {Return}
+    This allows you to see any messages jot sends to the console  area.  After
+    you've looked at the messages hit return to clear  them  off  the  display
+    without affecting the text in any way:
+> {Return}
     
-    Look now at the top-left corner of the window - it should be displaying  a
-    tilde ( ~ ) in reverse video. The reverse video indicates that this is the
-    current cursor position, the tilde indicates that the cursor has moved  to
-    the right of any displayable text - that's because this  file  starts  off
-    with an entirely blank line.
+    Now look now at  the  top-left  corner  of  the  window  -  it  should  be
+    displaying a tilde ( ~ ) in reverse video.  The  reverse  video  indicates
+    that this is the current cursor position, the  tilde  indicates  that  the
+    cursor has moved to the right of any displayable  text  -  that's  because
+    this file starts off with an entirely blank line.
     
   - We'll be seeing a lot of error and warning messages soon - so it's a  good
     plan to know what they look like. We're going to type in a command  that's
     guaranteed to generate a warning. Just type in the letter ( r )  and  then
-    return - r is the command to move the cursor one character rightwards, and
-    it's already at the end of a blank line):
-> r
+    return - r is the command to move the cursor one character rightwards and,
+    since it's already at the end of a line, jot  will  inform  you  that  the
+    command failed:
+> {r} {Return}
     The response should be:
 {Command-sequence failed.}r 
     The message comes wrapped up in curly braces followed by the full  command
@@ -162,20 +166,31 @@ $ jot ... -st
 1.5 Some basic commands to get started
 --------------------------------------
   These are the most basic operations for anything claiming to be some sort of
-  text editor:
-    - Help {F1} - the view changes to a list of file folds (see `about  help`)
-      select a file fold (any line begining with '[' and hit {F1}  again.  The
-      file is opened and it shows some text containing text folds  '{{{'  move
-      to one of these and hit {F1} to open. Move to any non-fold line and  hit
-      {F1} again to close the current fold.
-      
+  text editor - staying with the session you started earlier:
+  
     - Find-string next {F8} and find-string previous {F7} note that the search
       string is entered before hitting th function key. eg to  find  the  next
-      occurrence of "fred":
-> fred{F8}
-    to find the next one again:
+      occurrence of "king":
+> king{F8}
+      Look at the screen, in linux the ( k ) in kink is displayed  in  reverse
+      video, the remaining characters are underlined the k is now the  current
+      character and the substring "king" is the current substring -  we'll  be
+      looking at the significance of  that  later.  In  Windows,  the  current
+      character and current substring are displayed differently.
+      
+      To find the next instance:
 > {F8}
-      {F7} is similar except that it searches back up the text.
+> {F8}
+      the editor remembers the last-searched substring so you  don't  need  to
+      retype it. {F7} is similar except that it searches back up the text.
+> {F7}
+      it goes back up the text locating the previous instance of "king".
+      
+    - Now use the find primitive directly:
+> f/king/{Return}
+      That's all there is to command-driven working, note the absence  of  any
+      special manoeuvres to get it to  take  your  command  -  you  just  type
+      something in, hit return and your entry is taken as a command.
       
     - Substitute string {F5} substitutes the currently-selected substring with
       the given new substring. eg:
@@ -184,12 +199,25 @@ $ jot ... -st
       becomes the currently-selected string.
       
     - Insert a substring {F6} - inserts the given  substring  at  the  current
-      character  position   and    the    given    substring    becomes    the
+      character   position   and   the    given    substring    becomes    the
       currently-selected substring. eg:
 > wonderful{F6}
-   
+  
+    - We have already encountered one of jot's primitive commands -  F  (find)
+      there  are  about  20  of  these  primitive  commands  -  basic  editing
+      functions, these move the cursor, find,  substitute,  verify  assertions
+      move slabs of text between buffers etc. - the sort of thing you'd expect
+      to see in any editor.
+      
+      In addition to those text-editing primitive commands, there are a number
+      of  housekeeping  commands,  dealing  with  I/O  (input   and   output),
+      interaction with the  operating  system,  adjusting  parameters  of  the
+      display and parameters and querying system information. Lets  start  off
+      with a few essentials:
+      
     - Exit and save the primary buffer `%c` - note, this fails and refuses  to
-      exit if you are not currently editing the primary buffer.
+      exit if you do not have permission to write this  file  or  if  you  are
+      currently editing some buffer other than the primary buffer.
       
     - Exit without saving `%a` (abandon).
     
@@ -197,71 +225,98 @@ $ jot ... -st
       Pathname defaults to the one remembered from when the file was read.
       
     - Save-as - write the buffer to some specified pathname - %o=<pathname> 
+    
+    - Read specified file to a buffer - `%i`<key>[=<pathName>] -
+      - <key> is a single-character buffer identifier key,
+      - <pathName>  specifies  the  filing-system  path  file  name  add  name
+        extension, missing elements are filled in from  the  pathname  of  the
+        current buffer and, failing that, from your PWD.
+    
+    - Enter - a new line of text is inserted below the current line. The  line
+      is first typed into the console area and then the  <<`Enter`>>  function
+      is invoked. This function is attached to the {KP_Enter} key (The {Enter}
+      key on the numeric keypad - but, for those without a numeric keypad,  it
+      is also attached to the escape sequence {Esc e}
+> This is a completely new line of text I've added.{KP_Enter}
+      or
+> This is a completely new line of text I've added.{Esc e}
+      Notice that the new line inherits the indentation level of the  previous
+      line.
 
 1.6 Some Basic Function Keys
 ----------------------------
     - The up and down-arrow keys move to the begining of the previous or  next
       line respectively.
       
-    - Read specified file to a buffer - `%i`<key>[=<pathName>] -
-      - <key> is a single-character buffer identifier key,
-      - <pathName>  specifies  the  filing-system  path  file  name  add  name
-        extension, missing elements are filled in from  the  pathname  of  the
-        current buffer and, failing that, from your PWD.
-        
     - Do it again {F10} - whatever command you last did, make it happen again.
     
+    - Repeat to exhaustion {Shift+F10}, like it  says  on  the  tin,  it  will
+      repeat the command until it fails But with the added  bonus  of  telling
+      you how may times the command succeeded. This is particularly useful  if
+      you want to know how may instances of a given string exist in a  buffer.
+      Suppose we wanted to know how many instances  of  "king"  there  are  in
+      Richard III we might use the `AgainExhaustive` function: 
+> m-0
+> king{F8}
+> {Shift+F10}
+      AgainExhaustive replies with: "Completed 450 repeats of ..."  Note  that
+      the reported count does not include  the  original  command.  Note  that
+      AgainExhaustive will count successful repeats of any function or command
+      string but some functions, by their nature will *never* fail.
+    
     - Entering text. Like most other modern editors, jot has  an  insert  mode
-      but it's generally easier to stay in  command  mode  -  so  there  is  a
-      command for entering new lines of text - either {KP_Enter}  (that's  the
-      enter key on the numeric keypad) or, if you don't have a numeric keypad,
-      then {Esc e}:
+      but it's generally easier to stay in command mode. 
+      
+      To insert some new text into a preexisting line, move the cursor to  the
+      required place then use the `Insert` function.
+> <newTextString>{F6}      
+      To insert a new line of text, there is the `Enter` function for entering
+      new lines of text - either {KP_Enter}  (that's  the  enter  key  on  the
+      numeric keypad) or, if you don't have a numeric keypad, then {Esc e}:
 > <lineOfText>{KP_Enter}
       or
 > <lineOfText>{Esc e}
       
-    - Navigation through, deletion and restoration of text        
+    - Navigation through, deletion and restoration of text.
       - The left and right arrow keys move, unsurprisingly, left and right. If
         at the end of a line, the rightarrow key moves to  the  start  of  the
         next line, the  behaviour  of  the  leftarrow  key  is  similar.  When
         combined with the Alt key, these delete  the  previous/next  character
         respectively.
+        
       - With the Shift key, left/right arrow keys move to  the  start  of  the
         previous word or the end of the next word respectively. With shift and
         Alt they delete the previous or next word respectively.
+        
       - With the Ctrl key, left/right arrow keys move to the start or  end  of
         the line respectively. If already at the start/end of a line they move
         to the relevant position of the previous/next line respectively.  With
         Ctrl and Alt they delete to the start/end of the line respectively.
+        
       - {Ctrl+Shift+Alt+LeftArrow} restores one character  previously  deleted
         by {*Alt+LeftArrow}, similarly for {Ctrl+Shift+Alt+RightArrow}.
+        
+      - {Esc r l} (`RestoreLine`) will restore a complete line.
   
-  Have a play around with a text file:
+  Continue to play around with the text file:
 $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
-
-1.7 A few more function keys
-----------------------------
+  
   To see all of the available function keys and to explore their functions  in
   jot, start up a qr (quick-reference) session:
-$ jot /dev/null -st=qr
+$ jot -st=qr
   or follow this link: `jot quick reference`
 
-1.8 Do a few easy edits with function keys
+1.7 Do a few easy edits with function keys
 ------------------------------------------
-  Restart the  editor:
-$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
-  The same command also works in windowsland.
-  
-  You should see the text appear  in  your  terminal  window  -  as  the  name
-  suggests it's Richard III by Shakespere. This text was chosen as it's  long,
-  well known and very much out of copyright. This version was downloaded from:
-  `http://shakespeare.mit.edu/richardiii/full.html` - thanks.
-  
   Try out a few of the edit keys mentioned in the `Some Basic  Function  Keys`
   section. For full  details  and  all  the  other  predefined  keys  look  at
   `Keyboard  functions  defined   at   startup`.   First   try   hitting   the
   cursor-control keys a few times - one  surprise  may  be  that  the  up  and
-  down-arrow keys move to the start of the next/previous line.
+  down-arrow keys move to the start of the next/previous line. Why-so some may
+  ask - after all every decent editor aims to hold the cursor to a column? Put
+  simply, the jot behaviour is more likely  to  be  useful  and,  when  it  is
+  required to hold the cursor to a column, jot offers a more  predictable  way
+  of defining which column - see `NewWordUp` and `NewWordDown`.
   
   Now try the up/down/left/right-arrow keys while holding down the Shift key -
   this moves left or right by a full word or up and down in a column.
@@ -284,9 +339,10 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   of the original file with the %I command:
 >  %i.{Return}
   This re-reads the  original  file  into  the  buffer,  destroying  all  your
-  changes.
+  changes. If you're concerned that jot doesn't prevent you throwing away your
+  precious work, take a quick look at `about not losing your work`.
 
-1.9 A few more basic function keys
+1.8 A few more basic function keys
 ----------------------------------
   Every editor has to have some way adjusting the  view  and  of  copying  and
   moving slabs of text. 
@@ -339,26 +395,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   main buffer.
 > z.{return}
 
-1.10 Entering new text
-----------------------
-  The recommended  mode  of  operation  for  jot  is  the  command  mode  (the
-  alternative is insert mode - see `Command-mode vs. insert mode`). In  insert
-  mode everything that's typed in is interpreted as text to be  inserted  into
-  the document at the current cursor position.
-  
-  To enter a new line of text, the line is first typed into the  console  area
-  and then the <<`Enter`>>  function  is  invoked  -  either  by  hitting  the
-  {KP_Enter} button if you have a numeric keypad, or {Esc  e}  (that's  Escape
-  followed by e).
-  
-  Let's put "The end" at the end of the play. First go to the end of Richard III
-> m0m-
-  Now enter the new line.
->      The End{Esc e}
-  
-  A later section (`insert mode`) deals with entering text in insert mode.
-
-1.11 Deletion and restoration of text
+1.9 Deletion and restoration of text
 ------------------------------------
   - <<`DeleteChrRight`>> {Alt+RightArrow}  deletes  the  character  under  the
     cursor.
@@ -376,6 +413,14 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
     under the cursor.
   - <<`RestoreChrLeft`>>  {Ctrl+Shift+Alt+LeftArrow}  restores  one  character
     left of the cursor.
+  - <<`RestoreWordLeft`>> - {Esc - l w} restores one leftwards-deleted word to
+    the current character position.
+  - <<`RestoreWordRight`>> - {Esc - r w} restores one rightwards-deleted  word
+    to the current character position.
+  - <<`RestoreLineLeft`>> - {Esc - l l} restores one leftwards-deleted line to
+    the current character position.
+  - <<`RestoreLineRight`>> - {Esc - r l} restores one rightwards-deleted  line
+    to the current character position.
   
   In the context of the word-orientated functions, a word  is  any  string  of
   ascii alphanumeric characters bounded by either non-alpha characters or  the
@@ -390,7 +435,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   will restore words and characters that were not part of the original deleted
   word.
 
-1.12 Getting help
+1.10 Getting help
 ----------------
   Jot supports an online help system. The <<`Help`>> function  uses  specially
   structured files derived  from  ordinary  jot  documents  (see  `About  help
@@ -424,15 +469,15 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   guide.
   
   To descend another level down the hierarchy move the cursor to any part of a
-  line starting with a  fold  mark  and  hit  {F1},  to  return  back  up  the
-  hierarchy move the cursor to any line without a fold mark and hit {F1}.
+  line starting with a fold mark and hit {F1}, to return back up the hierarchy
+  move the cursor to any line without a fold mark and hit {F1}.
   
   At any time you can return to your original work buffer e.g:
 > z.
   and then return to the help entry you last looked at:
 > z;
 
-1.13 Line shuffling
+1.11 Line shuffling
 ------------------
   Sometimes, perhaps we're splitting a paragraph into two, all we need  to  do
   is to push some words from the end of one line and prepend them to the  next
@@ -468,26 +513,27 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
 > {DownArrow}
 > {Ctrl+Shift+F10}
 
-1.14 Using matching functions
+1.12 Using matching functions
 -----------------------------
   The startup script  defines  some  useful  parenthesis  and  other  matching
   functions:
   
   - <<`ParagraphUp`>> {F3} and <<`ParagraphDown`>>  {F4},  respectively,  find
     the start and end of the current paragraph. In this context a paragraph is
-    taken to be any number of non-blank lines of  text  bounded  by  either  a
-    blank line or either or both of the buffer's end points.
+    taken to be any number of non-blank lines of text bounded by either  blank
+    lines or the buffer's end points.
     
-  - <<`CodeSectionUp`>>  {Shift+F3}   and   <<`CodeSectionDown`>>   {Shift+F4}
-    respectively find the start of the current code section and the  start  of
-    the next code section. In jot a code section is deemed to be any number of
-    lines beginning with an alpha character in the first character of a  line.
-    Typically in computer programming language subroutines and other  sections
-    are introduced with an un-indented keyword followed by indented code.
+  - <<`ChapterUp`>> {Shift+F3} and <<`ChapterDown`>>  {Shift+F4}  respectively
+    find the start of the current chapter/code section and the  start  of  the
+    next chapter/code section. In jot a code  section  is  deemed  to  be  any
+    number of lines beginning with an alpha character in the  first  character
+    of a line. Typically in  computer  programming  language  subroutines  and
+    other sections are introduced with  an  un-indented  keyword  followed  by
+    indented code.
     
-  - <<`IndentMatchUp`>>   {Alt+F7}    and    <<`IndentMatchDown`>>    {Alt+F8}
-    respectively locate the previous and next line with the  same  indentation
-    level as the current line.
+  - <<`IndentMatchUp`>>     {Ctrl+Shift+F7}     and      <<`IndentMatchDown`>>
+    {Ctrl+Shift+F8} respectively locate the previous and next  line  with  the
+    same indentation level as the current line.
     
   - <<`ParenMatchLeft`>> {Shift+Alt+F5} first searches back through  the  text
     for the previous parenthesis-end ')' then finds it's matching  start  '('.
@@ -517,21 +563,21 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   
   Open the test_block.txt file in your resources area - this has  some  simple
   examples of nested blocks and indentation:
-> %it=test_block.txt
+> %it=test_block.txt;
   
   First do an indentation match:
 > level 3 start{F8}
-> {Alt+F8}
+> {Ctrl+Shift+F8}
   Another <<`IndentMatchDown`>> takes you into the curly brace match set.
-> {Alt+F8}
-> {Alt+F7}
+> {Ctrl+Shift+F8}
+> {Ctrl+Shift+F7}
 
-1.15 Buffers
+1.13 Buffers
 ------------
   In a modern text editor, the text you see on your screen is an image of  the
   file as it currently exists as a text buffer in the computers memory. As the
-  edit session progresses this may not match what's currently spinning  around
-  in the filing system.
+  edit session progresses this may not match what's currently spinning in  the
+  filing system.
   
   Jot  supports  a  number  of  separate  buffers   each   identified   by   a
   single-character key - the following buffers are  accessible  but  some  are
@@ -543,8 +589,8 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
       otherwise freely available for your use.
     - ~ Temporary (stack) buffer or numeric value at top of stack -  available
       for your use.
-    - _@#$ -  may be used and redefined by jot standard startup functions.
-    - !"#%&'()*+-./:;<=>?@[\]_ may  be  used  and  redefined  by  scripts.
+    - _@#$ - may be used and redefined by jot standard startup functions.
+    - !"#%&'()*+-./:;<=>?@[\]_ may be used and redefined by scripts.
     - ^ used for escape-sequence mapping - do not use or redefine.
     - : is used to hold the help repository.
     - ; is used for viewing help
@@ -553,11 +599,11 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
     - `z`<key> - zoom  (i.e.  switch  context)  to  buffer  indicated  by  the
       single-character key e.g. zq will switch context to buffer q.
       
-  You should be in buffet ( t ) at present,  let's  go  back  to  the  primary
+  You should be in buffer ( t ) at present,  let's  go  back  to  the  primary
   buffer ( . ):
 > z.{Return}
 
-1.16 Copying and Moving Text - 1
+1.14 Copying and Moving Text - 1
 -------------------------------
   No text editor is complete without some facility for  picking  up  slabs  of
   text to be moved or copied. In ecce-speak this process is abstraction.
@@ -573,18 +619,18 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   predefined hotkey copy/paste functions use the '_' buffer.
   
   The basic cut/copy and paste keys use the jot note and abstract commands:
-    - <<`Note`>> - (normally {Ctrl+Shift+F1} on the mid keypad) notes one  end
-      of the text to be moved at the current cursor position.
-    - <<`Cut`>> - (normally {Ctrl+Shift+F2} ) removes text from the note point
-      to the current cursor position.
-    - <<`Copy`>> - (normally {Ctrl+Shift+F3}) - copies  (i.e.  copies  to  the
-      paste buffer without changing the original) text from the note point  to
+    - <<`Note`>> - Ctrl+Shift+F1} notes one end of the text to be moved at the
+      current cursor position.
+    - <<`Cut`>> - {Ctrl+Shift+F2} removes text from  the  note  point  to  the
+      current cursor position.
+    - <<`Copy`>> - {Ctrl+Shift+F3} - copies (i.e. copies to the  paste  buffer
+      without changing the original) text from the note point to  the  current
+      cursor position.
+    - <<`Paste`>> {Ctrl+Shift+F4} - text in the paste buffer  is  inserted  at
       the current cursor position.
-    - <<`Paste`>> (Normally {Ctrl+Shift+F4)  -  text  in  the  paste  buffer  is
-      inserted at the current cursor position.
       
-  We're going to pick up the phrase 'glorious summer by this sun of ' from Richards
-  opening  soliloquy and reinsert them.
+  We're going to pick up the phrase 'glorious summer by this  sun  of  '  from
+  Richards opening soliloquy and reinsert them.
 > Now is{F8}
 > {Ctrl+Shift+F1}
 > York{F8}
@@ -604,14 +650,14 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   anywhere you fancy in any of the editors buffers.  You  can  also  make  the
   paste buffer ( _ ) the current buffer to check what's in there:
 > z_
-  Go back to the primary buffer ( . ):
+  Now return to the primary buffer ( . ):
 > z.
 
-1.17 Adjusting focus and view.
+1.15 Adjusting focus and view.
 ------------------------------
   Some of these operations are best done with a  file  with  very  long  lines
   (i.e. wider than your terminal) load the test_table.txt file into buffer w.
-> %iw=test_table.txt
+> %iw=test_table.txt;
   Note that you did not need to type in the pathname to read  this  file,  jot
   first tries to read the file from your PWD (present working  directory),  if
   it can't find it in there it tries prepending  the  path  from  the  current
@@ -672,12 +718,12 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
 > {Ctrl+Alt+DownArrow}
 > {Ctrl+Alt+DownArrow}
 
-1.18 Some fancy flavours of find - 1
+1.16 Some fancy flavours of find - 1
 -----------------------------------
   The standard startup script defines several more functions for finding  text
   we're going to give them an outing now.
   
-  Return to  Richard_III_Entire_Play.txt, it's in the primary buffer ( . ):
+  Return to Richard_III_Entire_Play.txt, it's in the primary buffer ( . ):
 > z.
   
   The <<`FindExactNext`>> function (normally {F9} ) will only match to a whole
@@ -694,7 +740,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   <<`FindExactPrev`>> ( {Shift+F9} ) does the same sort of thing but  searches
   backwards.
 
-1.19 Some fancy flavours of find - 2
+1.17 Some fancy flavours of find - 2
 ------------------------------------
   Now read the repetitive test file l99.t into buffer r, it's pretty dull  but
   useful for demonstrating repetitive edits. Note jot is set up to respect env
@@ -716,9 +762,118 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   you should now be at the last line of the file (line  101)  with  all  'abc'
   changed to 'Abc'
 
-1.20 Some fancy flavours of find - 3
+1.18 Some fancy flavours of find - 3
 ------------------------------------
-  The <<`FindInParaNext`>>  {Esc  f  p}  function  finds  the  next  paragraph
+  The <<`FindWild`>> function finds the next  occurrence  of  a  string  in  a
+  single line using a template containing wildcards. The '*' is the  wildcard,
+  it represents any number of characters in the search, this uses  the  Esc  f
+  sequence:
+  
+  The "A horse ... " speech is a single line so we can use <<`FindWild`>>
+> m-0
+> horse*horse{Esc f w}
+  That gets it on  the  first  attempt.  The  <<`FindWildPrev`>>  function  is
+  similar except it searches back and it's on {Esc - f w}.
+  
+  One more function, quite useful when dealing with natural-language text,  is
+  <<`FindSequence`>>  {Esc  f  q}  -  this  identifies  a  string   of   words
+  irrespective of punctuation, whitespace and line breaks.
+> m-0
+> him a horse{Esc f q}
+  it highlights the first word of  the  given  list  of  words.  The  function
+  <<`FindSequencePrev`>> ( {Esc - f q} ) is similar, except that  it  searches
+  backwards.
+
+1.19 Locating text in columns and blocks
+----------------------------------------
+  These functions are probably not of much interest - except  for  specialised
+  users dealing with text in line drawings, patterns for digital  testing  and
+  digital simulation stmulii and reports. See `The vertical-search  functions`
+  for a brief description of what these functions do.
+  
+  Full disclosure: jot has no find-vertical primitives - these  functions  are
+  built entirely using normal left-to-right primitive operations.
+  
+  First off, we need a sample of text containing meaningful text written  from
+  top-to-bottom in columns - we can  make  a  suitable  sample  from  Richards
+  opening soliloquy of Richard III:
+$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt \
+    -in="f/Now/r-0n.(rm)0aq&zq %h'=call rotateDiagonal; m-0((i/ /r)0m)0 m-0"  
+    
+  What we've just done is copy the opening paragraph to buffer Q and rotate it
+  around the leading diagonal. (see `rotateDiagonal`  for  details).  Then  to
+  make it a bit easier on the eye, blank separator columns  have  been  added.
+  The four blank lines at  the  top  correspond  to  the  indentation  of  the
+  original.
+  
+  The text contains three instances of the word "clarence" towards the end  of
+  the passage (the original text is still available in buffer (  .  )  if  you
+  want to check back), lets go and find them with the function `findVertNext`:
+> clarence{Esc f v}  
+  The search is case insensitive, by default, notice that the vertical  string
+  is highlighted as black text against a yellow background. Now find the  next
+  instance of "clarence":
+> {F10}
+  and the final instance:
+> {F10}
+  finally, this fails:
+> {F10}
+  Notice that the current character is placed just to the right of  the  first
+  character  of  the  matching  column.  This  behaviour  simplifies  repeated
+  searches in the same direction.
+  
+  There's also a backwards-searching version `findVertPrev`:
+> {Esc - f v}
+  
+  These functions can also be used to  search  for  incomplete  specifications
+  using simple wildcards, similar to the filing-system filename globbing.
+    - a ( . ) will match to any single character,
+    - a ( * ) will match  to  any  number  of  characters  if  the  characters
+      following this wildcard match,
+    - blanks (  ) are ignored,
+    - any of these special characters may be escaped with a backslash ( \ ).
+  
+  For example if we want to locate the line about Clarence being mew'd up:
+> m-0
+> Clarence\ *mew{Esc f v}
+  
+  The functions `findColNext` and `findColPrev` are similar except  that  they
+  only operate in the current column.
+> m-0r
+> discontent{Esc f l}
+  As you can see, findColNext leaves the cursor immediately  below  the  first
+  matching character as does findColPrev:
+> y20
+> {Esc - f l}
+  
+  Now this is a pretty contrived example to demonstrate searching for a  block
+  of text ... but here goes. The words "clouds", "bosom", "brows"  and  "arms"
+  all happen to align nicely in the scrambled text  so  we're  going  to  find
+  them. First we have to construct a  2-dimensional  search  specification  in
+  buffer ( Z ):
+  
+> %gz
+clouds
+
+bosom
+
+brows
+
+arms
+:
+  
+  Now run the search:
+> m-0
+> z{Esc f e} 
+  
+  Note that this search specification is not rectangular, three of the  search
+  words are longer than the first word. the yellow rectangle  it  places  over
+  the matching text is in fact the closest-fitting rectangle and the height is
+  determined by the longest matching string.
+
+1.20 Using the Context-Proximity functions
+------------------------------------------
+  The  <<`FindParaNext`>>  {Esc  f  p}  function  finds  the  next   paragraph
   containing all of the substrings in the blank-separated list argument. We're
   going to find the famous "A Horse, a horse my kingdom ... " speech:
 z.
@@ -732,28 +887,16 @@ z.
   Note that adding a second "horse" to the word list or changing the order  of
   the list makes no difference.
   
-  The <<`FindInParaPrev`>> function ( {Esc - f p} ) is similar except that  it
-  searches backwards up the buffer.
+  The <<`FindParaPrev`>> function ( {Esc - f p} ) is similar  except  that  it
+  searches back towards the start of the buffer.
   
-  The <<`FindWild`>> function finds the next  occurrence  of  a  string  in  a
-  single line using a template containing wildcards. The '*' is the  wildcard,
-  it represents any number of characters in the search, this uses  the  Esc  f
-  sequence:
-  
-  The "A horse ... " speech is a single line so we can use <<`FindWild`>>
-> m-0
-> horse*horse{Esc f w}
-  That gets it on  the  first  attempt.  The  <<`FindWildPrev`>>  function  is
-  similar except it searches back and it's on {Esc - f w}.
-  
-  One more function, quite useful when dealing with natural-language text,  is
-  <<`FindSequence`>>  {Esc  f  s}  -  this  identifies  a  string   of   words
-  irrespective of punctuation, whitespace and line breaks.
-> m-0
-> him a horse{Esc f s}
-  it highlights the first word of  the  given  list  of  words.  The  function
-  <<`FindSequencePrev`>> ( {Esc - f s} ) is similar, except that  it  searches
-  backwards.
+  This sample document is not structured into chapters  recognisable  to  jot,
+  the following manoeuvre reformats the scene-numbering lines. Note that jot's
+  working definition of a chapter is any number of lines of text,  bounded  by
+  the buffer limits or by lines containing an alphanumeric character in column
+  0. All this does  is  to  identify  these  lines  then  remove  the  leading
+  whitespace:
+> m-0((v/ /r)0v/scene /e-0m, m)0
 
 1.21 Regular expressions
 ------------------------
@@ -785,7 +928,7 @@ z.
 
 1.23 A detailed look at a tab-separated table
 ---------------------------------------------
-  Return to  the  test_table.txt  file,
+  Return to the test_table.txt file,
 > zw
   as we've already discovered, this contains table entries  (cells)  separated
   by tab characters - a special  control  character  that  emulates  a  manual
@@ -795,8 +938,8 @@ z.
   know exactly what tabstops are - little metal pegs  that  select  where  the
   carriage ends up after the tab key is pressed. This ensures that  addresses,
   headings and tabular entries all appear in the right position on the  paper.
-  In computers and  text  editors  a  similar  behaviour  is  mechanized  with
-  logical and arithmetic operations based on the tab character.
+  In computers and text editors a similar behaviour is mechanized with logical
+  and arithmetic operations based on the tab character.
   
   In jot tabstops work in much  the  same  was  as  in  manual  typewriters  -
   tabstops are a list of positions where the next column in the  table  is  to
@@ -875,7 +1018,7 @@ z.
  
   We could ask the window manager to assign tabcells automatically, like this:
 > %b=tabcells -1
-  but some of the cells are very wide and tend to mess  up  our  display.
+  but some of the cells are very wide and tend to mess up the display.
   
   Hit {Shift+DownArrow} and {Shift+UpArrow} a few more  times,  sufficient  to
   scroll the screen - taking note of the way the column widths change. This is
@@ -977,33 +1120,110 @@ ol0
   corner of the screen because there is no text to navigate.
    
   In    the    empty    buffer,    you    can    navigate     around     using
-  {Ctrl+[KP_4|KP_6|KP_8|KP_2]} () -  these  are  attached  to  the   <<`Left`>>,
-  <<`RightRegardless`>>, <<`UpRegardless`>> and <<`DownRegardless`>> functions
-  the latter three insert blank  lines  and  whitespace  into  the  buffer  as
-  necessary.
+> {Ctrl+KP_4}
+> {Ctrl+KP_2}
+> {Ctrl+KP_6}
+> {Ctrl+KP_4}
+  These are attached, respectively, to the <<`Left`>>,  <<`RightRegardless`>>,
+  <<`UpRegardless`>>  and  <<`DownRegardless`>>  functions  the  latter  three
+  insert blank lines and whitespace into the buffer as necessary.
   
-  So first have a little play with the {Ctrl+[KP_4|KP_6|KP_8|KP_2]} keys ({Esc
-  m e}, {Esc m w}, {Esc m n} and {Esc m s} respectively if you  don't  have  a
-  numeric keypad) and move the cursor to somewhere near  the  centre  of  your
-  screen.  
+  So first have a little play with these keys. Move the  cursor  to  somewhere
+  near the centre of your screen. 
   
-  Now draw the first hyphen of an easterly line by  hitting  {Ctrl+Shift+KP_6}
-  (the <<`LineE`>> function - users with no numeric keypad should  do  {Esc  l
-  e}. Now hit the repeat key {F10} five times - you should  see  a  horizontal
-  line of six hyphens with the cursor one place  to  the  right  of  the  last
-  hyphen.
+  Now draw the first hyphen of an easterly line by  hitting  
+> {Ctrl+Shift+KP_6}
+  - users with no numeric keypad should  do  
+> {Esc l e}
+  These call the <<`LineE`>> function. Now hit the repeat key {F10} five times
+  you should see a horizontal line of six hyphens with the cursor one place to
+  the right of the last hyphen.
   
   Now draw a vertical line down using the <<`LineS`>>  function,  this  is  on
-  {Ctrl+KP_2} ({Esc l s}) and repeat this five times by hitting {F10} 5 times.
-  Notice the corner - <<`LineS`>> detects the change in direction and  left  a
-  blank at the corner to avoid any untidyness.
+> {Ctrl+KP_2} 
+  or
+> {Esc l s}
+  and  repeat  this  five  times  by  hitting  {F10}  5  times.   Notice   the
+  corner - <<`LineS`>> detects the change in direction and left a blank at the
+  corner to avoid any untidyness.
   
-  {Ctrl+KP_4} ({Esc l w}) will draw a horizontal line  using  the  <<`LineW`>>
-  function - again it detects the change in direction and puts a blank at  the
-  corner. Finally {Ctrl+KP_8} or {Esc l n} will draw a line  going  up,  using
-  the <<`LineN`>> function.
+> {Ctrl+KP_4}  or {Esc l w}
+  will draw a horizontal line  using  the  <<`LineW`>>  function  -  again  it
+  detects the change in direction and puts a  blank  at  the  corner.  Finally
+> {Ctrl+KP_8} or {Esc l n}
+  will draw a line going up, using the <<`LineN`>> function.
 
 1.28 Graphical text - 2
+-----------------------
+  In the previous section we looked at drawing  wit  simple  ASCII  characters
+  namely Hyphen ( - ), vertical Bar ( | ) and blanks ( ) the latter,  although
+  not explicitly mentioned, are used to form corners and intersections.
+  
+  In  this  section  we'll  look  at  how  to  use  the  unicode  line-drawing
+  characters. It turns out there are quite a  lot  of  them.  In  addition  to
+  horizontals  and  verticals  there  are  various  corners  and  intersection
+  characters - and three line-drawing font-styles - light lines,  heavy  lines
+  and double lines.
+  
+  As we've already seen, jot's line drawing defaults to simple  ASCII  hyphens
+  and vertical bars, the first thing to do is to select  one  of  the  unicode
+  line-drawing fonts. In the following we'll select light lines.
+> l{Esc l d}
+  Now  move  the  cursor  to  a  suitably-empty  part  of  the  screen  (using
+  {Ctrl+KP_8}, {Ctrl+KP_2}, ... And start drawing:
+> {Ctrl+Alt+KP_6}
+> 5
+> {Ctrl+Alt+KP_2}
+> 10
+> {Ctrl+Alt+KP_4}
+> 5
+> {Ctrl+Alt+KP_8}
+> 10
+> {Ctrl+Alt+KP_6}
+  
+  Now move upwards and rightwards a couple of times:
+> {Ctrl+KP_6}
+> {F10}
+> {Ctrl+KP_8}
+> {F10}
+  Now draw a line down into the box
+> {Ctrl+Alt+KP_2}
+> {F10}
+  Notice that it  has  replaced  the  simple  horizontal  with  an  inverted-T
+  intersection character. Now draw the line one step further  down,  into  the
+  box.
+> {Ctrl+Alt+KP_2}
+  Notice that the inverted-T has been replaced by a crossover character and it
+  has drawn another vertical-line character.
+  
+  Now let's change font to double lines.
+> d{Esc l d}
+  and start drawing towards the left side of the box.
+> {Ctrl+Alt+KP_4}
+> 6
+  It has inserted the correct crossover character.
+  
+  Now for the bad news:
+    - There are some  font-changing  tees  and  crossovers  missing  from  the
+      character set - e.g: there is an asymetric tee ( ┭ ) linking  the  light
+      and heavr fonts but no similar tee for light and double fonts.
+      
+    - The character-selection method does  not  always  insert  tees  when  it
+      should - consider this example:
+|      
+|         C     D                                        
+| A ╶─────┬─────┼───────── B
+|         │     │                                      
+|         v     ^  
+|                  
+  The line A to B was drawn initially, the line down from C  was  successfully
+  added by starting at C and drawing down. The similar line was drawn  upwards
+  towards point D, instead of inserting a tee when it joined the vertical,  it
+  was  necessary  to  draw  past  the  horizontal  and  so  ended  up  with  a
+  cross.
+
+
+1.29 Graphical text - 3
 ----------------------
   The <<`LineNE`>>, <<`LineNW`>>, <<`LineSE`>> and <<`LineSW`>> functions draw
   diagonal lines with Slash and Backslash ( /  and  \  )  characters.  On  the
@@ -1044,7 +1264,7 @@ ol0
   doubled:
 > 6{Esc z 2}
 
-1.29 Graphical text - 3
+1.30 Graphical text - 4
 ----------------------
   Each of the line-drawing functions take an optional text-string  argument  -
   this allows you to draw using text strings when required. For the  functions
@@ -1056,7 +1276,7 @@ ol0
   
   Now create a small box of 7 characters wide by about 5 lines.  Now  navigate
   to anywhere in the box and insert text using the  <<`BoxText`>>  function  -
-  either {Ctrl+Alt+KP_5} or {Esc b t}
+  {Esc b t}
 > 7 4{Esc b x}
 >  Text in the box{Esc bt}   
   
@@ -1089,8 +1309,8 @@ ol0
 > zz
 > {Ctrl+Shift+Alt+F4}
 
-1.30 Insert mode
-------------------------
+1.31 Insert mode
+----------------
   Up to now, everything has been types into the console area at the bottom  of
   the screen. With,  many  modern  editors  the  stuff  you  type  in  appears
   WYSIWYG-style (What You See Is What You Get) directly in the the text  image
@@ -1121,7 +1341,8 @@ ol0
   e.g:
 > {F7}
 Find string> tom{Return}
-  now try {F7} again and hit {Return} in response to the "Find string>" prompt.
+  now try {F7} again and hit  {Return}  in  response  to  the  "Find  string>"
+  prompt.
 > {F7}
 Find string> {Return}
   it  finds  the  previous  occurrence  of  Tom  ok,  but  better   yet,   use
@@ -1141,21 +1362,31 @@ Find string> {Return}
   You are now back in command-driven mode alternatively,  {Ctrl+c}  will  also
   get you back to command mode.
 
-1.31 Command-editing
+1.32 Command-editing
 --------------------
-  There is a simple command-edit/repeat facility  -  it  works  my  getting  a
-  buffer containing command-history and editing the desired command string  in
-  that buffer. By default, the command-history depth is just 20 lines, if  you
-  feel that is not enough, you can increase the size  of  the  history  buffer
-  with the `-history` CLI qualifier.
+  There  is  a  simple  command-edit/repeat  facility  (see   `about   command
+  editing`). It works my  getting  a  buffer  containing  command-history  and
+  editing  the  desired  command  string  in  that  buffer.  By  default,  the
+  command-history depth is just 20 lines, if you feel that is not enough,  you
+  can increase the  size  of  the  history  buffer  with  the  `-history`  CLI
+  qualifier. When you're happy with  your  command  line  you  exit  and  your
+  command line appears in the console area.
   
-    - <<`CmdEditStart`>> {Esc c e} - Acquires command history to show the last
-      few commands and whatever command string you were  typing  at  the  time
-      that CmdEditStart was invoked.
-      
-    - <<`CmdEditGo`>> {Esc c g} - pushes command  from  history  into  console
-      command buffer. You can then hit return launch it as a  command  or  any
-      function key that uses an argument.
+  Typically command-editing offer a very restricted range of editing finctions
+  but are entered by simply pressing the relevent cursor  keys.  In  contrast,
+  jot's command editing facility requires one escape  sequence  to  enter  and
+  exit it also switches focus to a different buffer, but,  once  you're  there
+  the full range of editor functions are available.  It's  also  worth  noting
+  that the jot command editor allows you to  operate  over  several  lines  of
+  history. On exit you are returned to your original focus point.
+  
+    - <<`CmdEditStart`>> {Esc c e}  -  Switches  focus  to  a  buffer  showing
+      whatever you might have been typing and the last few  lines  of  command
+      history.
+    
+    - <<`CmdEditGo`>> {Esc c g} - pushes the  current  line  of  history  into
+      console command buffer. You can then hit return launch it as  a  command
+      or any function key that uses an argument.
   
   Return to the Richard III text in the primary buffer and go to the start:
 > z.
@@ -1190,15 +1421,16 @@ Find string> {Return}
   command:
 > z1
 
-1.32 Using the popup menu
+1.33 Using the popup menu
 -------------------------
   Jot has a simple, yet, very useful popup menu. It can, for example, be  used
   to reproduce hard-to-spell, hard-to-remember  or  tedious-to-type  words  in
   documents or object names in computer coding languages. The  popup  menu  is
-  also used to offer spelling corrections suggested by Aspell in `doc.jot`
+  also used to offer spelling corrections suggested  by  Aspell  -  see  `text
+  document preparation`.
   
-  For   details   see   `PopupSearch`,   `PopupMouseSelect`,   `PopupRestore`,
-  `PopupPageUp` and `PopupPageDown`.
+  For details see `PopupSearch`, `PopupIncrementalSearch`, `PopupMouseSelect`,
+  `PopupRestore`, `PopupPageUp` and `PopupPageDown`.
   
   Fire up a session on RichardIII:
 $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
@@ -1225,8 +1457,58 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
 > {Esc p d}
   and 
 > {Esc p u}
+  
+  The function `PopupIncrementalSearch` is similar except that it searches the
+  document as you type in the search string. This  allows  the  search  to  be
+  refined interactively. Note that the popup-menu clicks  are  disabled  until
+  the search exits by hitting {Return}.
+  
+  We're going to go fishing for the word marquess, as this is a  good  example
+  and appears in two different spellings. Again, with Richard  III,  start  an
+  interactive popup find:
+> {Esc p i}
+  Notice the prompt string,  it's  telling  you  that  the  search  string  is
+  currently empty and that there are 0 matching words. Now type in  the  first
+  character of our search string - I suggest ( q ) we shall see why later.
+Currently 0 matching words> q
+  the popup appears with a list of words from the text each contains ( q ). Now
+  type in the next letter - this has to be ( u ).
+Currently 39 matching words> qu
+  Now try entering a ( e ):
+Currently 39 matching words> que
+  Now add a ( s ) to the search string:
+Currently 15 matching words> ques
+  Now remove the last letter with the {Backspace} key:
+Currently 5 matching words> ques{Backspace}
+  We should be back to 15 matching words again. Now exit the search by hitting
+  {Return}:
+Currently 15 matching words> ques{Return}
+  
+  Now, why did I suggest starting with the letter ( q )? This is  not  a  very
+  commonly used letter in english, if I were to have chosen a letter like (  a
+  ), ( t ) or ( s) any of these would have matched to thousands  of  words  in
+  this text. Each match must be  processed  and  this  processing  would  have
+  introduced a significant delay - try it:
+> {Esc p i}
+Currently 0 matching words> s
+  After a noticeable delay it is ready to receive the next character  -  let's
+  try ( t ):
+Currently 1679 matching words> st
+  The delay is now much shorter because there are far fewer matches  and  much
+  less processing. This could be a problem for big documents, the solution  is
+  to start PopupIncrementalSearch further  down  the  search  -  it  takes  an
+  optional parameter which is the initial search string.
+  
+  First exit that search buy entering {Return}, then start the search  with  a
+  short initial-search string:
+Currently 309 matching words> st{Return}
+  
+> str{Esc p i}
+Currently 41 matching words> str
+  The searching and processing delay was hardly  noticeable  and  we  can  now
+  continue interactively.
 
-1.33 Percent commands - 1
+1.34 Percent commands - 1
 -------------------------
   These are mainly to do with housekeeping operations and  system  interfaces.
   `%q` (system Query) is  an  important  one,  it  supports  several  queries.
@@ -1248,7 +1530,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   currently running:
 > %x=Abrupt exit.; %m=You should not see this message.
 
-1.34 The %Q group of commands - 1
+1.35 The %Q group of commands - 1
 ---------------------------------
   First, let's look at the words on system queries - `%Q`, these report system
   and internal editor state. For most  of  these  the  destination  buffer  is
@@ -1277,7 +1559,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   front of you is, possibly, different to  the  version  held  by  the  filing
   system.
 
-1.35 The %Q group of commands - 2
+1.36 The %Q group of commands - 2
 ---------------------------------
 > %qz=dir ${JOT_RESOURCES}
   This extracts a directory listing for your  JOT_RESOURCES  area.  There  are
@@ -1289,7 +1571,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   If, by chance, you want the report ordered by  file  size,  there  are  some
   options on the sort function that can help (see `%b=tabsort`):
 
-1.36 Percent commands, %B and %E
+1.37 Percent commands, %B and %E
 --------------------------------
   The %B commands set some of the buffer attributes reported by the %qz=buffer
   query above. You've already encountered two of these in  the  section  about
@@ -1311,7 +1593,82 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   only be terminated by a break in the command line or the special  terminator
   string ' -hereEndsThePercentCommand;'.
 
-1.37 Redefining function and hot-key mappings.
+1.38 Comparing buffers with comp.jot
+------------------------------------
+  To detect differences between a pair of buffers use the  `comp.jot`  script.
+  In it's simplest form, this compares the  current  buffer  with  some  other
+  nominated buffer - typically these might be a new and an old version of some
+  text.
+  
+  Fire up a jot session on an example file  and  place  a  slightly  different
+  version in some other buffer. Since the comp.jot script splits  the  screen,
+  you might chose to increase the width of your  terminal  window  before  you
+  start.
+$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt \
+    -in="%iq; (f/thy/s/your/)0m-0f/horse/naaha3m-0 z."
+  The -initialization commands read in another copy of the  sample  text  into
+  buffer ( Q ) and changed every instance of "thy"  to  "your",  it  has  also
+  inserted two extra copies of the first line containing the string "horse"  -
+  let's now go and spot the differences.
+> comp q{F2}
+  
+  The comp script has redefined  the  window  configuration,  we  now  have  a
+  vertical split with the left side showing the original text  and  the  right
+  side showing the modified text.
+  
+  Looking down the display we see, sure enough, two similar lines  highlighted
+  with can forground and a white background, the same two lines  are  repeated
+  in the console area where we see the expected difference.
+  
+  We can search forwards for the next mismatching line, using macro 5:
+> {Esc 5}
+  Is is usual when searching forwards in jot, the mismatched lines  are  right
+  at the bottom of the display. To see the mismatched lines in context,  shift
+  the current lines of all in-view buffers to the centre of  their  respective
+  windows use  the  `WindowAlignCent`  function  to  improve  the  view.  (the
+  `WindowAlignTop` {Esc w t} or the  `ViewUp`  {Ctrl+Shift+UpArrow}  functions
+  might be useful, according to taste).
+> {Esc w c}
+  
+  An  alternative  approach  would  be  to  set  a   window   guardband   (see
+  `%s=guardband`) this prevents the current character approaching the  top  or
+  bottom margins of the window by less than a specified number of lines  -  it
+  defaults to 0 lines. Here we're setting it to 5 lines  -  it  will  make  no
+  difference now since you've already cantered the display but  you  will  see
+  the difference after the next operation.
+> %s=guardband 5;
+  
+  Now find the next mismatching pair of lines:
+> {Esc 5}
+  This time, something different has happened - we can see that the two  lines
+  are completely different. This is because our initialization  commands  have
+  inserted two extra copies of lines containing the string "horse".  So  again
+  view it in context:
+> {Esc w c}
+  As a result of the duplicated lines, the two buffers are out  of  alignment.
+  Repeated macro-5 calls will not realign the buffers  -  this  requires  some
+  human intervention. One way would be to go into the modified buffer and move
+  it's current line down by enough lines to make the next macro-5  call  work.
+  In the more usual case a section of text has been re-written and we need  to
+  re-align to some point soon after the texts reconverge. We would usually  do
+  something like this: z.f/With lies  well/  zqf//  But  that's  a  bit  of  a
+  performance so we could use another feature of macro-5. If  it  is  given  a
+  parameter, then macro-5 assumes that this is a jot command  sequence  to  be
+  applied to both the buffers.
+> f/With lies well/{Esc 5}
+  
+  In addition to macro-5 comp.jot also defines macro-4 -  almost  exactly  the
+  same except that it searches back towards the start of the buffer.
+  
+  It also defined macro-6 this repeats  a  command  string  in  the  reference
+  buffer. If you have performed some operation in the primary  buffer  (that's
+  the one in the left window) then macro-6 will repeat that  command  sequence
+  in the reference buffer (that's the one showing in the right window). To see
+  macro-6 in action we first go looking for the well-known "a horse, a  horse"
+  passage using `FindParaNext` and `using the context-proximity functions`:
+> horse kingdom{Esc f p}
+
+1.39 Redefining function and hot-key mappings.
 ----------------------------------------------
   The mapping of functions to keystrokes is performed by the standard  startup
   script (see `about startup scripts`). Take a quick look at this  file  -  in
@@ -1319,8 +1676,8 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
 > %iz=${JOT_HOME}/coms/startup.jot
   This only defines the  functions.  The  startup  script  calls  a  secondary
   startup script to curses_keys_<TERM>.jot to  define  the  keycodes  used  to
-  recognize keystrokes. In windowsland it's WindowsNT_keys.jot,  take  a  look
-  at one of the relevant files:
+  recognize keystrokes. In windowsland it's WindowsNT_keys.jot, take a look at
+  one of the relevant files:
 > %ix=${JOT_HOME}/coms/curses_keys_xterm.jot
   or
 > %ix=${JOT_HOME}/coms/WindowsNT_keys.jot
@@ -1342,6 +1699,42 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
   startup.jot which defines any new  functions  and  a  new  key-map  file  to
   replace unix_keys/WindowsNT_keys.jot with a customized key-map.
 
+1.40 Command-line options
+-------------------------
+  When we fire up a jot session we can simply type:
+$ jot <pathName>
+  - where pathName is the full path and name specification of a file  we  want
+    to  edit.  The  full  list  of  command-line  options  is  presented  here
+    `command-Line qualifiers` here are three  that  earn  a  mention  in  this
+    walkthrough.
+
+  Jot has a number of CLI qualifiers (see `command-Line qualifiers`) but  here
+  we will only need to know about three of them: -journal, -init and -startup
+$ jot ... -journal
+  may be abbreviated to
+$ jot ... -j
+  This causes the editor to keep a journal which can be used  to  recover  the
+  session in the event of a crash or a power failure and
+  
+$ jot ... -init="<jotCommands>"
+  may be abbreviated to
+$ jot ... -i="<jotCommands>"
+  After running the normal startup script,  but  before  starting  the  normal
+  interactive session, the given command sequence is executed.
+  
+$ jot ... -startup=<pathName>
+  may be abbreviated to
+$ jot ... -st=<pathName>
+  Runs the specified startup script instead of default one.
+  
+  By default, jot picks up the file ${JOT_HOME}/coms/startup.jot, this defines
+  functions and key mappings described  here  and  in  the  rest  of  the  jot
+  documentation.
+  
+$ jot ... -st
+  Runs the editor  with  no  startup  script.  There  will  be  no  predefined
+  functions and no predefined hot-key mapping.
+
 2 Command Files
 ---------------
   
@@ -1352,7 +1745,6 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
   OK because it's easy enough to  adapt  them.  here's  a  list  of  the  most
   important ones:
     - `get.jot` - directory browser and file loader.
-    - `doc.jot` - document preparation toolbox.
     - `dic.jot` - word lookup based on websters online dictionary.
     - `thes.jot` (thesaurus) - cross-match words in the online Roget's
     - `c.jot` - c-code browser
@@ -1432,7 +1824,7 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
   
   Note  that  the  buffer  has  not  been  given  a  proper  pathname   -   in
   window-terminator line it just says something like 
-"[ From CLI command xls2csv ...
+"[ From CLI command ...
   this is because the archive may contain absolute pathname, as this one does,
   and if it came from a different filing system you will not be able to  write
   the buffer to this path. As it is, in all cases you must  set  the  pathname
@@ -1467,22 +1859,21 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
 > get ${JOT_RESOURCES}{F2}
 > t.pdf{F8}
 > {Esc 0}
-  In response to the 'Buffer key?' prompt, tell it to park the text in buffer x:
+  In response to the 'Buffer key?' prompt, tell it to read it into buffer x:
 > x{Return}
 
 2.5 doc - document preparation toolbox - 1
 ------------------------------------------
   The doc script is a useful toolbox of basic  functions  for  writers.  We're
-  going to try some out on some text written using  doc.jot.  First  read  the
-  plaintext jot user guide:
+  going to try some out on some text written using  the  document  preparation
+  functions - see `text document preparation`. First read  the  plaintext  jot
+  user guide:
 > z.
 > %iy=jot_ug.txt
-  this is another copy of the jot user guide, which was written using doc.jot.
+  this is another copy of the jot user guide,  which  was  written  using  the
+  document preparation functions.
   
-  Load the doc.jot macros and hotkeys:
-> doc{F2}
- 
-  One of the most important hotkeys defined by doc.jot is  probably  {Esc  p a},
+  One of the most important document-processing hotkeys is probably {Esc p a},
   this re-formats the current paragraph. Let's add some text and then use this
   to reformat a paragraph:
 > m+54f/-{Return}
@@ -1507,8 +1898,8 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
 > {Ctrl+RightArrow}
 > {Alt+F9}
   This time merge  the  lines  by  erasing  the  line  break  -  the  function
-  <<`DeleteChrLeft`>> {Alt+LeftArrow} deletes the line break when  at  the  start  of  a
-  line, as it is now:
+  <<`DeleteChrLeft`>> {Alt+LeftArrow} deletes the line break when at the start
+  of a line, as it is now:
 > {Alt+LeftArrow}
 > {Esc p a}
 
@@ -1521,8 +1912,8 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
   
   Go to any line of text and enter a new line:
 > This a new heading.{Esc h e}
-  Notice that the new heading has the correct header numbers relative to the
-  previous heading - but the next heading is now wrong. This will  be  fixed
+  Notice that the new heading has the correct header numbers relative  to  the
+  previous heading - but the next heading is now wrong.  This  will  be  fixed
   later.
     
   Add three more headings at various header levels:
@@ -1667,18 +2058,14 @@ obz@m-0 (f1/<</\k, n.f1/>>/-a$&z:m-0f'$-n.r0a$&z@l0r8e0h$m, z@m)0 z^m-0h@ oz
 $ cp ${JOT_RESOURCES}/Richard_III_Entire_Play.txt .
 $ jot Richard_III_Entire_Play.txt -jou
   
-  Now open another CLI-window (another xterm or windows console). Hopefully it
-  will also have the jot environment set up. Note: the height and width of the
-  new screen must be at least that of the original screen.
-  
-  Now, back in your jot session, just play around using the keys and  commands
-  you've looked at in previous sections - move around in the text,  inserting,
+  Just play around using the keys and commands you've looked  at  in  previous
+  sections  of  this  walkthrough  -  move  around  in  the  text,  inserting,
   searching, substituting, copying and pasting. Also read in some other  files
   and cut and paste from those into the primary text.
   
   While you're doing all this, your activity is being recorded in a particular
-  journal file - history.txt. In the other window, take a look at what's  gone
-  in there:
+  journal file - history.txt. Now close the session with `%A` and take a  look
+  at what's gone into the history.txt file:
 $ jot Richard_III_Entire_Play.txt.jnl/history.txt
   It begins by noting a few details of your session and files read the startup
   script. Then , a few lines down, there is a line like this:
@@ -1698,20 +2085,20 @@ $ jot Richard_III_Entire_Play.txt.jnl/history.txt
     - copies of responses to `%E` commands are held as unique files,
     - results system queries are held as entries in the history.txt file.
   
-  In the new screen restart the editor but with the recovery  script  as  it's
-  startup:
+  Now restart the editor but with the recovery script as it's startup:
 $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt -st=recover
   you may recognize some of the activity flashing past on the screen.
   
-  What's happening is that the `recover.jot` script has read the raw record of
-  your original activity from the history.txt  file  and  has  creates  a  new
+  What's happening is that the `recover.jot` script has read the  raw  records
+  of your original activity from the history.txt file and has  created  a  new
   script ( ./recover_now.jot, in your PWD), it's now following  your  original
-  activity. Whenever it needs to read  a  file,  it  reads  the  archived
-  version from the journal - see also `about journal files`.
+  activity. Whenever it needs to read a file, it reads  the  archived  version
+  from the journal - see also `about journal files`.
   
-  While in recovery mode, jot %i and %e reads are intercepted and  take  files
-  held in the journal  directory.  Also  jot  writes  are  disabled  to  avoid
-  corrupting anything.
+  While in recovery mode, jot %i, %e reads and some %Q queries are intercepted
+  and return the same results as they did  in  the  original  session.  Theses
+  results are from files held in the journal directory. Also  jot  writes  are
+  disabled to avoid corrupting anything.
   
   When it's finished, all buffers in the recovered session should  be  exactly
   the same as in your original session and reading and  writing  are  back  to
@@ -1726,13 +2113,15 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt -st=recover
   
   The comparison script splits the screen to display  both  versions  side  by
   side. On completion both windows should be displaying an identical  view  of
-  the end of the file.
+  of the file image.
   
-  Note that, in a genuine recovery situation, the original session is dead and
-  will never return. In our demonstration example the original session is very
-  much alive and has no way of detecting the recovery session so there may  be
-  two entirely divergent sessions appending to  the  history.txt,  this  would
-  make for a very confusing history file.
+  As the original session fires up, it creates a new journal directory. A LOCK
+  file is added to the journal directory, the LOCK is deleted when the session
+  exits normally. In the event of an abnormal exit, the LOCK file  remains  in
+  the journal. If a new jot ... -journal session is started, it  first  checks
+  the old journal for a LOCK -  if  it  exists  then  the  session  terminates
+  abruptly without changing  any  files.  The  LOCK,  or  the  entire  journal
+  directory can be deleted manually if desired.
 
 3 Some more advanced topics.
 ----------------------------
@@ -1753,19 +2142,19 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt -st=recover
 > m-0n.m0r0a@&z@ m-0(q/A-Z/c, r, m)0 
   
   Place each word on a separate line then sort them alphabetically.
-> m-0(q/a-z/(q//r)0b, rl(q/a-z/\e)0, j)0     
+> m-0(q/a-z/(q//r)0b, rr-(q/a-z/\e)0, j)0     
 > %b=sort
   
   Finalize the report by counting instances of each word
->  m-0 (r\j)0 l0 (n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
+>  m-0 (r\j)0 r-0 (n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
 
 3.1.1 How does this work - 2
 ----------------------------
   There were four lines of code involved:
 m-0n.m0r0a@&z@ m-0(q/A-Z/c, r, m)0 
-m-0(q/a-z/(q//r)0b, rl(q/a-z/\e)0, j)0     
+m-0(q/a-z/(q//r)0b, rr-(q/a-z/\e)0, j)0     
 %b=sort
-m-0 (r\j)0 l0 (n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
+m-0 (r\j)0 r-0 (n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
   
   In the first line:
     - m-0 - this sends the cursor to the beginning of line 1.
@@ -1933,61 +2322,96 @@ m-0 (r\j)0 l0(n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m)0
 
 3.7 Working with large files
 ----------------------------
-  Jot has limited support for very large files - a  very  large  file  is  one
-  that's too big to load in a normal editor session - see `About large files`.
-  The approach adopted assumes that most of the  time  we  are  only  browsing
-  these files in search of an answer to questions such  as  "why  this  timing
-  violation" or "why that error".
+  Jot has useful support for large and very large files  -  see  `About  large
+  files`. we might chose to use the following definitions:
+    - a large file is one so big that editor becomes inconveniently slow.
+    - a very large file is too massive to load in a normal editor session.
+    
+  The approach adopted for large files involves the use  of  hash  tables  for
+  fast navigation around the file, minimizing reliance on global searches. The
+  approach for very large files assumes that most of  the  time  we  are  only
+  browsing these files in search of an answer to questions such as  "why  this
+  timing violation" or "why that error".
   
   Here you will generate a sample  large  file  of  fairly  simple  structure,
-  perform a few operations on it and write it back to the filing system.
+  perform a few operations on it and write it back to the filing  system.  The
+  remainder of this section is  about  creating  and  working  with  a  simple
+  big-file generated by concatenating lots of hexadecimal file dumps.  But  if
+  you happen to have a suitable CDL or physical verilog, you might  prefer  to
+  skip this section and, instead, look at `working with large netlists`.
   
-  First make a sample file, not too large one or two Gb is OK - you will later
-  use diff to check a modified version of the file. The following command will
-  generate hex dumps linux binaries in /usr, the command can  be  adapted  for
-  windows systems. In the jot -init command string, the initial "ol1000000000"
-  sets the requested upper limit on the destination file size.
+  First make a sample file, not too large, one or two Gb is good  -  you  will
+  later use diff to check a  modified  version  of  the  file.  The  following
+  command will generate hex dumps linux binaries in /usr, the command  can  be
+  adapted for windows systems. In the jot -init command  string,  the  initial
+  "ol1000000000" sets the requested upper limit on the destination file size.
   
 $ rm big_file.txt
-$ jot /dev/null -in="%eq=ls -RF /usr/lib64; %r=ls2list; \
-  ol1000000000 m-0((%i.='q -binary 64; i'qbr0b %o=big_file.txt -append;, ) %q$=file big_file.txt; f/ size = /-oid o> zqm)0"
+  The following jot session will exit at when the big_file.txt  gets  to  more
+  than 1Gb.
+$ jot -in="%eq=ls -RF /usr/bin/ /usr/lib /usr/lib64;? %r=ls2list; \
+    ol1000000000 m-0((%i.='q -binary 64; b2i'qb %o=big_file.txt -append;, ) \
+    %q$=file big_file.txt; f/ size = /-oid o> zqm)0 %a"
+    
+  You  can  adjust  the  file-size  limit  by   adjusting   the   ol1000000000
+  command - you may also need to add a few more binary trees to the  "/usr/bin
+  /usr/lib /usr/lib64" list to get a more realistically big file.
+  
+  The index file is built by giving big_file.jot a -grep and a -trim strings:
+$ jot -in="%r=big_file -file=big_file.txt -grep=/usr -trim=(f1/:/-2n.r0f-./.-a$m,m)0; %qz=keys;"
+    - the -grep string matches to the name line of the original binary file, 
+    - the -trim string tells jot to remove the path element of the name.
+  The big_file script takes you definition of the -grep string as a signal  to
+  create the index using grep. After that, it takes the optional -trim  string
+  to be jot commands which will do any post processing work required  to  tidy
+  up the index entries.
+  
+  Windows users can probably do something similar (assuming ls and grep on the
+  windows search path):
+$ rm big_file.txt
+$ grep -b "c:" big_file.txt | jot -quiet -in="(f1/:/-n.r0f-1./.-aam)0 %o=big_file.txt_index; %a;"
+$ jot -in="%eq=ls -RF C:\wbin C:\Windows C:\win; %r=ls2list; \
+    ol1000000000 m-0((%i.='q -binary 64; i'qbr0b %o=big_file.txt -append;, ) \
+    %q$=file big_file.txt; f/ size = /-oid o> zqm)0 %a"
+$ jot -in="%r=big_file -file=big_file.txt -grep=/usr -trim=(f1/:/-2n.r0f-.\\.-a$m,m)0; %qz=keys;"
    
-  The index can be built with these two shell commands:
-$ grep -b "/usr" big_file.txt > big_file.txt_index
-$ jot big_file.txt_index -quiet -in="(f1/:/-n.r0f-1./.-aam)0 %c"
+  After it's been generated the index remains valid until  the  main  file  is
+  rebuilt or modified. 
   
-  After it's been generated the index remains good  until  the  main  file  is
-  rebuilt or modified. Subsequent sessions can be started like this:
-$ jot /dev/null -in="%r=big_file -file=big_file.txt; %qz=keys;"
+  We  launch  the   editor   specifying   the   big_file.jot   script   in   a
+  big_file.jot-calling  initialization  sequence  but  no  initial  file.  The
+  initial and subsequent sessions can be started like this:
+$ jot -in="%r=big_file -file=big_file.txt; %qz=keys;"
   
-  The file it's actually reading is the index file we've just created, it uses
-  this to populate a hash table with entries for each named section in the big
-  file. If you want a different name for the index file you could say this:
-$ jot /dev/null -in="%r=big_file -file=big_file.txt -index=<myPathName>;"
+  The file it  reads  is  the  index  file  we've  just  created,  instead  of
+  displaying the index file, it is used to populate a hash table with  entries
+  for each named section in the big file. If you want a different name for the
+  index file you could say this:
+$ jot -in="%r=big_file -file=big_file.txt -index=<myPathName>;"
   
   Before we read any of the real file let's check to see what's  in  the  hash
   table, the command-line suggested above lists all keys in the ( z )  buffer.
-  Alternatively do this:
+  To do this interactively:
 > z. %qz=keys;
   Notice each entry has a key, a seek offset and a bytecount, at  the  end  of
   this report you will notice a few  data  objects  defined  by  the  big_file
   script, "pathName", for example is the main-file pathname.
   
-  Now pick up any name you fancy from the list of keys in buffer  Z  and  pull
-  in it's hex dump - I'm picking "grep" for no particular reason:
+  Now pick up any name you fancy from the list of keys in buffer Z and pull in
+  it's hex dump - I'm picking "grep" for no particular reason:
 > grep{Esc 7}
   
-  The screen should now be filled with a hex dump of the grep-command binary.
+  The screen should now be filled with a hex dump of the grep-command  binary.
   Note that big_file.jot has added a separator line of the form:
 ------------------------------------------ <keyString>
   These are important because they are target points  for  hash-table  entries
   that find sections later - if, at some  later  point,  query  "grep"  again,
   instead of re-reading the dump for grep it will direct you to  this  section
-  again. These target points are also  used  if  ever  you  want  to  write  a
+  once more. These target points are also used if ever you  want  to  write  a
   modified file back to the filing system.
   
-  Now, if this were a useful big  file,  such  as  a  CDL  netlist  some  EDIF
-  parasitic file, we might be  more  interested  in  referencing  sections  by
+  Now, if this were a useful big file, such as a CDL netlist or,  maybe,  some
+  EDIF parasitic file, we might be more interested in referencing sections  by
   features inside the sections like net names, model names  ...  whatever.  In
   our case we look for features in the binary dumps - like this:
 > E8 AE{Esc 8}
@@ -2002,10 +2426,10 @@ $ jot /dev/null -in="%r=big_file -file=big_file.txt -index=<myPathName>;"
   
   Now write the file, note that original order in which you read the  sections
   is unimportant and that all sections in memory will be written  irrespective
-  of whether you've actually changed them. Macro 9 will copy sections from the
+  of whether you've actually changed them. The function big_file_writeModifiedFile will copy sections from the
   original file to the new file replacing any that have  been  read  with  the
   relevant section from memory.
-> {Esc 9}
+> {Esc b w}
   
   The file is copied to a new version of big_file.txt, the original  is  still
   available for comparison - it's been renamed to big_file.txt_orig. Now close
@@ -2016,6 +2440,88 @@ $ diff big_file.txt big_file.txt_orig
   Note: In general, once you have written a new version of the file you should
   re-index the file because the edits may have  altered  the  length  of  your
   modified sections and hence will change the seek offsets for later sections.
+
+3.7.1 Working with large netlists
+---------------------------------
+  The big_file.jot script has predefined the  grep  and  trim  procedures  for
+  indexing the subcircuits in either CDL or verilog netlists - note  that  the
+  scripts can not do anything useful with behavioural verilog.
+  
+  The following command lines show how we might fire up a session, creating  a
+  new index file, for both CDL and verilog:
+> jot -in="%r=big_file -file=<CDLpathName> -cdlindex;"
+  or
+> jot -in="%r=big_file -file=<verilogPathName> -vlogindex;"   
+  If your netlist is very large,  you  might  want  to  create  the  index  in
+  batch - this is a suitable line to go into a batch file:
+> jot -in="%r=big_file -file=<CDLpathName> -cdlindex; %a;"
+  This line does the same thing but exits when the index has been created.
+  
+  The  editor  will  start  with  a  blank  screen,  subcircuits   are   added
+  individually, on request using macro-7 e.g:
+> <subcircuitName>{Esc 7}
+  The subcircuit is appended to the primary buffer and a JumpObj  (see  `about
+  hashtables`) is added to facilitate speedy navigation.  Subsequent  requests
+  for this subcircuit will not re-read it but just focus to the same text.
+  
+  Alternatively, one might request all subcircuits, whose definitions  include
+  a specific substring (the substring might  be  a  net  or  model  name,  for
+  example) - this one  pulls  all  subcircuits  connected  to  a  supply  line
+  "vdd_2v5"
+> vdd_2v5{Esc 8}
+  
+  If the index file already exists, then the -cdlindex or -vlogindex should be
+  omitted. To generate the index as part of a batch script, add  a  similar
+  line but including the command to exit the editor on completion:
+jot -in="%r=big_file -file=<CDLpathName> -cdlindex; %a;"   
+  
+  At the start of every operation, the big_file.jot functions will check  that
+  the index file is up to date by comparing the big-file's datestamp  to  that
+  recorded at the time when the index was built. If is finds a discrepancy  it
+  will refuse to cooperate.
+  
+  When the big_file does not exceed the editors capacity yet is  large  enough
+  to navigation by normal searches tedious, one might chose to  read  all  the
+  subcircuits at the start of the session by including the "  -all"  qualifier
+  on the command line. In this case the index file is read and  JumpObjs  (see
+  `about hashtables`) are added to facilitate speedy navigation. 
+> jot -in="%r=big_file -file=<CDLpathName> -all;"
+  
+  It is assumed that any file big enough to require the big_file treatment  is
+  not a primary source file but  some  intermediate  generated  by  a  CAD  or
+  similar system. Even so, there will always be a requirement to  modify  even
+  these files and big_file.jot provides  macro-9  for  this  purpose.  Macro-9
+  operates in this way:
+    - Macro-9 identifies the order in which the subcircuits in  memory  appear
+      in the original netlist (Note - in the jot session they are in  whatever
+      order you queried them),
+    - It copies the original file <pathName> to <pathName>_orig
+    - It begins by copying text from the original file  to  the  new  version,
+      until it reaches the first in-memory subcircuit.
+    - The first in-memory subcircuit is appended to the  new  version  of  the
+      file. 
+    - More of the original file is copied, followed by the next subcircuit.
+    - The text following the last in-memory subcircuit is copied  to  the  new
+      file.
+    - While all this is happening, It displays a little progress-monitor popup
+      in the top-right corner of the screen.
+      
+  Begin by reading a few subcircuits into the editor:
+> <anySubcircuit>{Esc 7}
+> <anotherSubcircuit>{Esc 7}
+  ...
+  
+  Now pick any of the subcircuits and make some  change  -  a  change  to  the
+  .SUBCKT line is easiest to check later. Now write the  modified  version  of
+  the big file:
+> {Esc 9}
+  If your netlist is big enough, you will notice a little  progress  indicator
+  popup near the top-right corner of the display, when you  are  dealing  with
+  seriously large files goes from 0% to 100% quite slowly.
+  
+  Before it started writing your file,  it  moved  the  original  bug_file  to
+  <pathName>_orig, when it's finished writing diff should  detect  the  change
+  you have made.
 
 3.8 Working with collections of source files
 --------------------------------------------
@@ -2035,10 +2541,10 @@ $ diff big_file.txt big_file.txt_orig
   different hashtable object that also holds the file pathname. These  objects
   are set up using the `hashtable setfsect` command.
 
-3.8.1 First with jot index files
---------------------------------
-  The following should work for any GNU  download  -  in  this  case  I  chose
-  an ncurses 4.2 download:
+3.8.1 First with multi_file.jot index files
+-------------------------------------------
+  The following should work for any GNU download - in this  case  I  chose  an
+  ncurses 4.2 download:
 $ ls -laRF .../ncurses-4.2 | jot -in="%r=multi_file -indextype=c;"
 > z@
   You should now be looking at an image  of  the  file  ./multi_file_index  in
@@ -2046,7 +2552,7 @@ $ ls -laRF .../ncurses-4.2 | jot -in="%r=multi_file -indextype=c;"
   
   The index file has been written to your PWD, to re-use the same index  file,
   exit and restart thusly:
-$ jot /dev/null -in="%r=multi_file"
+$ jot -in="%r=multi_file"
   
   Now take a look at the file-sections (C-functions) it  has  defined  in  the
   index:
@@ -2082,12 +2588,15 @@ $ jot /dev/null -in="%r=multi_file"
   unique names for them:
 $ ls -aRF | jot -in="%r=multi_file -indextype=c -index=my_index;"
   and restart with:
-$ jot /dev/null -in="%r=multi_file -index=my_index;"
+$ jot -in="%r=multi_file -index=my_index;"
 
 3.8.2 Now a Ctags-generated index
 ---------------------------------
-  The process with Ctags is very similar, after you have downloaded  a  curses
-  tree:
+  The process with Ctags is very similar to that described before (`first with
+  multi_file.jot index files`), as with jot index files, the actual files  are
+  held in a floating buffer and can only be accessed  using  the  ctags  query
+  macro ( 7 ). We will use `listbufs.jot` to list them. Point the  `ctags.jot`
+  script at an unpacked ncurses tree:
 $ ctags -R <absolutePathToNcursesRoot>/*
   
   You should now be the proud owner of a ctags file in your PWD  -  read  this
@@ -2107,34 +2616,59 @@ $ jot tags -in=%r=ctags
 > MyMenu{Esc 7}
   
   Pick a few more functions and constants - you can return to the keys  report
-  with this command
+  with this command - you previously left a `query keys` report in ( z ).
+> zz
+  
+ You can go back to the ctags-generated index with this command: 
 > z.
   
-  You can return to your last-viewed function with this command:
+  You can return to the last-viewed source code with this command:
 > z~
+  Note that the functions `ViewSave` and  `ViewRestore`  will  not  work  with
+  floating buffers.
   
-  Unfortunately ctags.jot, by default, loads into  an  internal  datastructure
-  that does not permit the use of  the  `Z`  command  for  navigation  between
-  source files - each one is placed at the top of the stack by macro ( 7 ).
+  Unfortunately  ctags.jot,  by  default,  reads  files   into   an   internal
+  datastructure which, in the general case, does not permit the use of the `Z`
+  command for navigation between source files - each one is placed at the  top
+  of the stack by macro ( 7 ). The ctags  script  maintains  the  stack  in  a
+  reasonably tidy state by removing  the  previous  buffer  object.  But  just
+  because it's no longer on the stack it's still in memory,  and  any  changes
+  you might have made, but have not saved to the  filing  system,  have  *not*
+  been lost.
+  
+  You can list the files and their internal pathnames using the `listbufs.jot`
+  script.
   
   Running ctags.jot with the -AtoZ qualifier  fixes  this  but  it  imposes  a
   session-maximum limit of 26 files active  being  viewed.  This  is  not  too
   restrictive when, even though a source library contains hundreds  of  files,
-  you only want to view a few of them.
+  you will probably only want to view a few of them.
   
-$ jot tags -in=%r=ctags -AtoZ;
+$ jot tags -in="%r=ctags -AtoZ;"
+  In this session, everything is as before, except that, instead  of  creating
+  buffers on the stack, it assigns each new file to one of the buffers ( A  to
+  Z ). Files are allocated to buffers in turn, assigning the first to buffer (
+  A ), the second to buffer ( B ) ... etc.
+  
+  While this scheme has the clear advantage that all files are held in  simple
+  primary buffers which can be accessed via the `Z` command. The advantage  of
+  the default scheme is that it can  hold  and  access  any  number  of  files
+  whereas, the -AtoZ scheme can only hold and access 26.
   
   Now when you launch queries, every time it needs to read a new file,  it  is
   assigned a new buffer so you can quickly return  to  views  of  other  files
-  using the Z command.
+  using the Z command. Remember, the buffer-key character is displayed at  the
+  end of the reverse-video separator line between the viewing window  and  the
+  console area of the screen, it's also the last character of the  jot  prompt
+  before the greater-than ( > ).
 
 3.9 The startup script
 ----------------------
   The assignment of editing functions to  keys  is  easily  changed  to  match
   whatever editor you happen  to  be  accustomed  to  -  see  `translation  of
   keyboard events to actions` and `about startup  scripts`.  Also,  it's  easy
-  enough to roll your own editor functions and attach then  to  keys  in  your
-  own personalized startup script.
+  enough to roll your own editor functions and attach then to keys in your own
+  personalized startup script.
 
 3.10 Metadata
 ------------
@@ -2192,7 +2726,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
   record structure. They can be used for any purpose but they are most  useful
   when used with hash tables to hide keys behind the text.
   
-  Here we're going to hide the short string "This is a short string"  behind
+  Here we're going to hide the short string "This is a  short  string"  behind
   the first line of the play.
   
   Read Richard III into a new session:
@@ -2212,7 +2746,7 @@ $ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
 tags -here
 Reporting tags at Line no. 15 Character no. 4, Buffer .
 Rec  15: "    Now is the winter of our discontent"
-  Type text from chr   4 to  39 = "This is a short string"
+  Type text from chr 4 to 39 = "This is a short string"
 
 3.10.3 Mouse Events - 1
 -----------------------
@@ -2497,7 +3031,8 @@ $ cd ide/tree
 $ ctags -R *
 $ cd ../projects
 $ jot ide_tree
-  The startup script in buffer ( F ) contains pathnames which may need adjustment.
+  The startup script in buffer  (  F  )  contains  pathnames  which  may  need
+  adjustment.
 
 3.13.4 The ncurses project
 --------------------------
@@ -2543,7 +3078,6 @@ $ jot ide_curses
     - e - %{JOT_HOME}/coms/test.jot                - The basic test script.                                                    
     - z - %{JOT_HOME}/coms/startup.jot             - The standard startup script.                                                       
     - x - %{JOT_HOME}/coms/<arch>_keys.jot         - The key-map file for your host.                                                           
-
 
 4 The debugger
 --------------
@@ -2618,7 +3152,54 @@ Debug Command> {Esc q}
   area - you will see it plodding through the commands of the  <<`WordRight`>>
   function and displaying the stack and the current line at each step.
 
-4.2 Setting the command counter
+4.2 Skipping past a block or call
+---------------------------------
+  Often it would be useful to step over a  complicated  function  or  maybe  a
+  script or a block. The jot debugger implements this using the `%s=traceskip`
+  command.
+  
+  As execution of any block,  macro,  function  or  script  begins  a  special
+  run-level counter is incremented. When the structure exits, the  counter  is
+  decremented. 
+  
+  The traceskip command takes an optional parameter, this is the run-level  at
+  which it is required for tracing to resume. This is a simple  numeric  value
+  indicating the desired resumption run level  relative  to  the  current  run
+  level.
+  
+  Let's try this out:
+$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt -in="%w; %w 9; %w 0; ( t ( (rr-, m) rr- ( %r=age; ( r )0 ) m )0 m-0)"
+  
+  The -init command string includes a script call embedded in  a  few  blocks.
+  The t command initiates  single-stepping  and,  because  age.jot  is  fairly
+  long-winded and is assumed to be working, we might like to  skip  past  this
+  script. To clarify the display, the window size has been  reduced  giving  a
+  much bigger console area.
+  
+  As we might expect, execution has halted at the open-brace following  the  t
+  command.
+  
+  Dabbing the {Return} key steps  us  on  to  the  start  of  the  next  block
+  containing the sequence "rr-, m" 
+> {Return}
+  
+  Keep on dabbing {Return} until  the  debugger  cursor  has  reached  the  %r
+  command. At this point, the debugger will go chasing down the age.jot rabbit
+  hole and, in the fullness of time,  we  might  step  our  way  through  this
+  script.
+  
+  To suspend tracing (and that includes breakpoints) for the duration of  this
+  script we might type in the full command %s=traceskip 0; but,  to  save  you
+  all that typing, this will suffice:
+> 0{Esc q}
+  The parameter (0 in this case) is passed on to the %s=traceskip command.  It
+  says you want to suspend tracing until run level gets back to  it's  current
+  level.
+  
+  If we had wanted to suspend tracing until some outer block had  finished  we
+  could have given it a value of 1 or 2 - depending on which block.
+
+4.3 Setting the command counter
 -------------------------------
   Now, when debugging a long complicated macro  or  script,  it  may  be  more
   useful delay the trigger until we're getting close to  the  point  where  it
@@ -2636,25 +3217,30 @@ m-0 (r\j)0 l0(t n.r0a$&ol1m(v'$r0v-'$o~k)0 m-oo/%5d - /m, m-0)0
   After hitting {Return} a few (hundred) times we we don't seem to be  getting
   very far. So let's try delaying the explicit debug call by a few zillion and
   restart it. But first we've got to get out of this {Ctrl+c} will do that:
-> %s=tracecounter 1000000
+> %s=commandcounter 1000000
 > o@ z. '3
   
   It crashed again but we can now find out how many times it went past  the  t
-  command by looking at the current value in the trace counter:
+  command by looking at the current value in the command counter:
 > %qa=system
-  Will tell us where the trace counter got to -  946974  in  this  case.  Some
-  arithmetic will extract the number  we  want  in  the  trace  counter.  This
+  Will tell us where the command counter got to - 946974 in  this  case.  Some
+  arithmetic will extract the number we want  in  the  command  counter.  This
   sequence will work it out for us - note the new value (53026) we  will  need
   this if ever we re-run the debugger with this setup:
-> o@ %qa=system; f/Trace counter = /-oid ol1000000 o- ol0 os o- %s=tracecounter '~
-Trace counter was 946974, now set to 53026
+> o@ %qa=system; f/Command counter = /-oid ol1000000 o- ol0 os o- %s=commandcounter '~
+Command counter was 946974, now set to 53026
   Re-spin it and it reaches a breakpoint at the start of the fatal iteration.
 > o@ z. '3
 
-4.3 Backtracing
+4.4 Backtracing
 ---------------
   Backtrace reports can be useful when diagnosing problems and can be used  to
-  show the call stack when debugging a script or macro command.
+  show the call stack when debugging a script or macro command.  Jot  gives  a
+  few diagnostic clues as  to  where  a  failure  occurred, unfortunately,  an
+  explicit message pointing to the last command is not one of  them.  This  is
+  because jot has no way  of  identifying  unhandled  failures  until  it  has
+  already unwound the call stack - and by then all diagnostic  information  is
+  destroyed. One useful clue it does give  is a command counter.
   
   The problem with backtracing is that failures occur hundreds of times in the
   operation of a normal jot macro command, the interesting one is the one that
@@ -2677,9 +3263,9 @@ $ jot ${JOT_RESOURCES}/l99.t -in="%w; %w 15; %w 0;"
     
   Now set up a few simple macros - notice macro c is pretty-much guaranteed to
   result in a failure:
-> %da=r-0rr-rr-rr-rr-'brr-rr-rr-rr-rr-;
-> %db=rr-rr-'crr-rr-
-> %dc=rr- p r999rr-
+> %da=r-0rr-rr-rr-rr-\\'brr-rr-rr-rr-rr-;
+> %db=rr-rr-\\'crr-rr-;
+> %dc=rr- p r999rr-;
 > 'a  
   
   In the console area, along with  lots  of  other  chatter,  you  should  see
@@ -2701,4 +3287,110 @@ Line   21 of console c: ['a]
   buffer ( B ).
   
   ...
+
+4.5 Setting command-counter breakpoints
+---------------------------------------
+  Every time a interactive command is issued, a command counter is reset, this
+  counter then is incremented as each primitive command is processed. When  an
+  unexpected failure causes an early exit from a function, this counter can be
+  retrieved and can be used to re-run the  function  so  as  to  stop  at  the
+  previously-failing primitive.
   
+  Unfortunately, a simplistic approach to reading this counter will  not  work
+  because the simplistic approach will  require  a  new  command  line  to  be
+  entered destroying the clue. There are  two  ways  of  finding  the  command
+  counter value:
+    - set the Verbose_ReportCommandCount bit  in  the  verbose  vector  -  see
+      `%s=verbose` - this includes the value of the command  counter  in  most
+      system messages, or
+    - by wrapping up the failure sequence in a macro  which  can  extract  the
+      count after the failure. It appears in the `query system` report.
+      
+  As  outlined  in  `%s=commandcounter`,  we  can  trap  execution   at   some
+  predetermined point in the overall flow, specified by of  a  command  count.
+  The number of commands to allow is normally derived from the  state  of  the
+  command counter at the point of failure in some previous run. Note, however,
+  that  some  functions  require  initialization  and  that  some  complicated
+  initialization commands involve conditional statements. Thus the final state
+  of the counter can change.
+  
+  The `trap_failure.jot` script will take care of the command counter but it's
+  left to you to ensure that initial conditions are  the  same  for  both  the
+  failed run and the trapped run. It has an optional -init sequence  which  is
+  run before initializing the counter.
+  
+  First we'll run through a trivial example - a command sequence that attempts
+  to send the cursor past the end of a line. The Richard III text contains  no
+  line longer than 80 characters.
+$ jot ${JOT_RESOURCES}/Richard_III_Entire_Play.txt
+> %s=verbose 13;
+  With this set, each failure message also includes the command count e.g. the
+  sequence:
+> m=2(rr-)1000(r)999(rr-)1000
+  will result in this report:
+{Command-sequence failed. (3120)}m=2(rr-)1000(r)999(rr-)1000
+  the sequence failed at command no. 3120, if we want  to  trap  this  command
+  we'd use this sequence of jot commands:
+> %s=commandcounter 3120; m=2(rr-)1000(r)999(rr-)1000
+  This re-launches the command sequence but after 3120  steps  it  triggers  a
+  trace action  (see  `%s=tracedefault`),  the  default  action  is  to  break
+  execution at every primitive, backtrace and report the state of the  current
+  buffer.
+  
+  As we might have expected, the cursor is at the very end of the line and the
+  next R command is guaranteed to fail. In real-life examples, the outcome  is
+  not always as easy to predict.
+
+4.5.1 The trap_failure.jot script
+---------------------------------
+  The trap_failure.jot script is designed to automate  the  process,  it  also
+  allows a separate initialization sequence. We will use it now for our simple
+  example.
+> trap_failure (rr-)1000(r)999(rr-)1000 -init=m=2{F2}
+  The command sequence "m=2 %s=commandcounter 3119;  (rr-)1000(r)999(rr-)1000"
+  appears in the console area - hitting return will launch it.
+  
+  Since, in real-world debugging,  the  code  generally  goes  wrong  sometime
+  before the final catastrophic failure, we might set the trap a  bit  earlier
+  than 3120, this can be done by editing the command string generated  by  the
+  trap_failure script. Once again launch trap_failure:
+> trap_failure (rr-)1000(r)999(rr-)1000 -init=m=2{F2}
+  now edit the  command  string  -  see  `about  command  editing`,  with  the
+  trap_failure-generated command line in the console area.
+> {Esc c e}
+  You're now in a command-history report, now change the 3120 to  something  a
+  bit smaller - maybe 3100, then finalize the command-editing session with:
+> {Esc c g}
+  You're back to Richard III and the modified command string  will  appear  in
+  the console area.
+  
+  The `trap_failure.jot` script does all this  by  running  the  function  and
+  handling the final error - the handler picks up the  state  of  the  command
+  counter from a `query system` report and pushes the command string into  the
+  console area. This gives you you an opportunity to adjust the count. You can
+  adjust the counter setting using `CmdEditStart` and `CmdEditGo`.
+
+4.5.2 Debugging -init sequences
+-------------------------------
+  Frequently, the most convenient way of debugging complicated scripts  is  to
+  launch them from the -init sequence. We can still use  the  command  counter
+  but the process is slightly different.
+  
+  This is an example of a failing script. It's the main jot  regression  test,
+  and we're going to make it fail by nobbling the test file it uses.
+$ jot ${JOT_RESOURCES}/t.t -in="m9em-0 %r=test"
+  Exit the session with %a, it fails because the test file  was  nobbled  with
+  the m9e commands. Now to  get  the  test  counter,  add  the  else  sequence
+  "%s=verbose 13; %a;"
+$ jot ${JOT_RESOURCES}/t.t -in="m9em-0 %r=test;, %s=verbose 13; %a;"
+  With this modified -init sequence, the failure of the  test.jot  script  was
+  handled by setting the verbose vector and abandoning the session.
+  
+  On exit it should, instead of issuing the message "Edit abandoned" we should
+  see "(2423)Edit abandoned". This tells us the command counter  was  2423  at
+  the point of failure. Note that the %r=test  command  *must*  be  terminated
+  with a semicolon now that more commands follow.
+  
+  Exit this session and relaunch thusly:
+$ jot ${JOT_RESOURCES}/t.t -in="%s=commandcounter 2415; m9em-0 %r=test"
+  This stops it just a few steps before it fails.

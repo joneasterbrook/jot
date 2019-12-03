@@ -1,0 +1,45 @@
+%%Translates plain-text files in .doc form to frame (using doc2mif).
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%r=doc2mif
+obz!m0
+%g$
+#!/bin/csh -f
+eval `addtool frame current`
+fmbatch <<end_of_frame_commands
+  Open $1
+  SaveAs d $1 $1
+  Quit
+end_of_frame_commands
+/tmp/doc2frame
+:
+z$m-0(f/$1/s'!)3 v-/.mif/s/.fm/
+%o
+%e=chmod u+x /tmp/doc2frame
+%e=/tmp/doc2frame
+%d$=%e=rm -rf /tmp/doc2frame 
+z$r0i-'!
+'$
+oz
+w
+

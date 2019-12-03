@@ -1,4 +1,4 @@
-%%Command file to multicolumn a document to 6 columns for 132 by 64-line forms.
+%%Command file to multicolumn a document to 5 columns for 132 by 64-line forms.
 %%Changed I and S conventions 2/10/92
 
 %%
@@ -33,10 +33,18 @@ m-0(n.mf62//-ob (a2z2m0f-//eb66m-0m63k0ozh2), m)0
 n.a1n.a2n.a3n.a4n.a5
 m-0(mm-m63?mm-n.m63?a2+mm-n.m63?a3+mm-n.m63?a4+mm-n.m63?a5+)0
 m-0r0i-/ /132n.r0a%(r0h%m)0
-m-0r26h2*
-m-0r52h3*
-m-0r78h4*
-m-0r104h5*
+%%  m-0r26h2*
+%%Insert column 2.
+m-0 obz2m-0oz (obz2n.r0a$(m, oz\) oz(r, i/ /)26 h$m)0
+%%  m-0r52h3*
+%%Insert column 3.
+m-0 obz3m-0oz (obz3n.r0a$(m, oz\) oz(r, i/ /)52 h$m)0
+%%  m-0r78h4*
+%%Insert column 4.
+m-0 obz4m-0oz (obz4n.r0a$(m, oz\) oz(r, i/ /)78 h$m)0
+%%  m-0r104h5*
+%%Insert column 5.
+m-0 obz5m-0oz (obz5n.r0a$(m, oz\) oz(r, i/ /)104 h$m)0
 
 %%Trim off any trailing spaces (and other characters too!).
 m-0(r132?e0m)0

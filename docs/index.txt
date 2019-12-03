@@ -1,14 +1,12 @@
   
-  
                          Joy Of Text (jot) home page.
                          ----------------------------
-  
   
 1 jot (Joy Of Text) - a text editor
 -----------------------------------
   Jot is a collection of a few basic text editing functions wrapped  up  in  a
   terse programming language with a customizable  user  interface  and  highly
-  capable viewer. The default startup script sets up  a  useful  selection  of
+  adaptable viewer. The default startup script sets up a useful  selection  of
   functions and reasonably-sane function-key environment.
   
   Anyway, you might well ask, why should we be needing yet another text editor
@@ -17,21 +15,27 @@
   powerful, more flexible, less crashey and much more fun than  many  of  it's
   main rivals.
   
+  Fun! ... since when have text editors had to be fun? Well, most of  us  text
+  editor users don't mind putting together a few lines of code  and,  perhaps,
+  find it quite satisfying when a bit of automation saves us some effort.  Now
+  many text editors have some sort of scripting language. Of these, jot raises
+  the lowest energy barrier. The jot scripting language  is  succinct  to  the
+  point of terse and all you need do is type in your code and hit return -  no
+  special mode switching required.
+  
   In comparison to the three main open-source rivals: emacs, vim and nano. Not
   only does jot match the power, sophistication and elegance of emacs  without
-  requiring postgraduate degrees in pure and applied emacs but it also matches
-  the simplicity and can-do usefulness of vim without the usual RSI risks. But
-  what, I hear someone ask, about nano? Well, if anyone's still bothered about
-  the sizes of  executable  in  this  day  and  age,  the  jot  executable  is
-  significantly smaller than nano's. More importantly, jot is nothing like  as
-  crashy as nano.
+  requiring the 10-year apprenticeship but it also matches the simplicity  and
+  can-do usefulness of vim without the well documented RSI risks. But what,  I
+  hear someone ask, about nano? Well, if anyone's  still  bothered  about  the
+  sizes of executable in this day and age,  jot's  is  actually  smaller  than
+  nano's. More importantly though, jot is less crashy than nano.
   
-  The default startup script defines a powerful  although  generalist  set  of
-  functions. When it is necessary to go off  piste,  command  strings  can  be
-  typed in without entering any special mode. The  jot  language  consists  of
-  about 40 terse commands and a similar number of more  specialised  ones  for
-  housekeeping  operations.  Then  it's  just  programming  -  a  skill   many
-  text-editor users claim to possess anyway.
+  The default startup script defines a useful set of  functions.  When  it  is
+  necessary to go off piste, command strings can be typed in without  entering
+  any special mode. The jot language consists of about 40 terse commands and a
+  similar number of more specialised ones for  housekeeping  operations.  Then
+  it's just programming - a skill many text-editor users possess anyway.
   
   Jot came about in response to a requirement to  analyze  large  intermediate
   CAD files, reports and source files. For these it's frequently necessary  to
@@ -40,49 +44,45 @@
   identify elements mentioned in some report. That kind of activity demands  a
   programming interface and very speedy, reliable text processing.
   
-  Although it's natural environment is chewing  it's  way  through  large  CAD
-  files, that power, speed and adaptability make it extremely useful for  many
-  other  text-based  applications.  It's  quite   useful   for   documentation
-  maintenance, it can generate simple htmls  can  interface  with  a  spelling
-  checker to generate reasonably tidy plaintext documents. It interfaces  well
-  with  virtually  any  kind  of  command-driven  agents   -   document-format
-  converters, spelling checkers, compilers, debuggers, CAD systems ...
+  Although jot's natural environment is chewing it's  way  through  large  CAD
+  files, all that power, speed and adaptability make it extremely  useful  for
+  many other text-based applications.  It's  quite  useful  for  documentation
+  maintenance  and,  for  situations  where  slick  DTP-style  documents   are
+  required, there are postprocessors are available so we don't have to put  up
+  with the dismal word/framemaker UI. 
+  
+  Another thing jot's quite good  at  is  searching  for  sections  containing
+  specified combinations of words or substrings  -  this  is  for  useful  for
+  sniffing out interesting bits of large documents. 
 
   Main features:
     - A function-key and command driven text  editor  with  a  terse  powerful
       command language - see `jot programming`.
-    - Good support for tabular  text  especially  spreadsheets  -  see  `about
-      tabular text`.
+    - Good support for tabular text/spreadsheets - see `about tabular text`.
     - Good support for unicode - see `about unicode`.
     - Good support for large files - see `about Large Files`.
-    - Good support for files with abnormally long  lines  -  see  `about  long
-      lines`.
+    - Good support for files with long lines - see `about long lines`.
+    - Recovery of a session following a power failure or system  crash  -  see
+      `about journal files`.
     - Supports  Exuberant-CTags-generated  index  files  -  see  `about  large
       collections of files`.
-    - Strong  interaction  with  system  environment  -  can  interface   with
-      virtually any command-driven agent.
+    - Strong interaction with system environment - it's set  up  to  interface
+      with virtually any command-driven agent.
     - A useful library of command scripts.
     - Easy construction of macro-commands and function-key mapping.
     - Minimal use of magic modes and similar trickery.
-    - Hash-table support - allows indexing and speedy lookup in large files  -
-      see `about hashtables`.
-    - Can perform operations on values picked up from  text  and  push  values
-      back to text using C printf formatting.
-    - Recovery of a session following a power failure or crash  -  see  `about
-      journal files`.
-    - Has  a  useful  document-processing  facility  -   formats   paragraphs,
-      maintains headings, interfaces to an external spell-check  agent,  where
-      spelling corrections are offered, these are displayed in menu form - see
-      `doc.jot`.
+    - Powerful search functions swiftly and easily locate sections of interest
+      in large or aggregated documents - see `the context-proximity functions` 
+    - An incremental search function `PopupIncrementalSearch` - this updates a
+      popup menu as characters are typed in.
+    - Hash-table support - see `about hashtables`.
+    - Has a useful document-processing facility.
+    - Support for line-drawing - you can spice up your words with a few simple
+      drawings.
     - Useful code-debugging features - see `the jot debugger`.
-    - Supports various optional buffer locks - see `about not losing your work`
-    - Screen can be allocated between any number of  viewing  areas  -  `about
-      multi-window working`
-    - Customized startup - start-up with any number of files  pre-loaded  into
-      predetermined buffers and redefinition of function-key assignments - see
-      `about project files`.
-    - Supports metadata tagging - selected text can be highlighted  in  colour
-      or can carry invisible packets of data - see `about tagged text`.
+    - Various optional buffer locks - see `about not losing your work`
+    - Flexible allocation of viewing area - `about multi-window working`
+    - Customized, project-orientated startup - see `about project files`.
 
 2 Further reading
 -----------------
@@ -91,7 +91,7 @@
     
   - `JOT user guide`
   
-  - `JOT Technical Guide`  -  a  more  technical  guide   for   programmers,
+  - `JOT  Technical  Guide`  -  a  more  technical  guide   for   programmers,
     administrators and anyone who's interested in that kind of stuff.
     
   - `JOT Walkthrough` - a walkthrough training course - no thought required  -
@@ -105,4 +105,4 @@
 3 Wonderful ... but where's the *Download* button?
 --------------------------------------------------
   You can download from sourceforge - the JoyOfText project
-    `https://sourceforge.net/projects/joyoftext/?source=directory`
+    https://sourceforge.net/projects/joyoftext/?source=directory

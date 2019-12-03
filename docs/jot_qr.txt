@@ -7,12 +7,12 @@
 |-----------------|------------------|------------------|------------------|------------------|
 |                 |{F1}              |{F2}              |{F3}              |{F4}              |
 |                 |                  |                  |                  |                  |
-|                 | `Help`           | `Do`             | `ParagraphUp`    | `ParagraphDown`  |
-|{Shift+          | `FindAllHelp`    | `ScriptByName`   | `CodeSectionUp`  | `CodeSectionDown`|
-|{Ctrl+           | `RemoveHelpFold` | `ScriptByFunc`   | `IndentMatchUp`  | `IndentMatchDown`|
+|                 | `Help`           | `Do`             | `BlockUp`        | `BlockDown`      |
+|{Shift+          | `FindAllHelp`    | `ScriptByName`   | `SectionUp`      | `SectionDown`    |
+|{Ctrl+           | `RemoveHelpFold` | `ScriptByFunc`   | `SentenceUp`     | `SentenceDown`   |
 |{Alt+            |                  |                  |                  |                  |
 |{Ctrl+Shift+     | `Note`           | `Cut`            | `Copy`           | `Paste`          |
-|{Shift+Alt+      |                  | `CumulativeCut`  | `CumulativeCopy` | `PasteOver`      |
+|{Shift+Alt+      |                  | `CumulativeCut`  | `CumulativeCopy` |                  |
 |{Ctrl+Shift+Alt+ |                  | `CutTabular`     | `CutRectangle`   | `PasteRectangle` |
 |                  
 |                  
@@ -22,8 +22,8 @@
 |                 | `Substitute`     | `Insert`         | `FindPrev`       | `FindNext`       |
 |{Shift+          | `Remove`         | `Overwrite`      | `SubsThenFindPv` | `SubsThenFindNx` |
 |{Ctrl+           | `SubstituteAgain`| `InsertAgain`    | `FindPrevAgain`  | `FindNextAgain`  |
-|{Alt+            | `AnyMatch`       |                  |                  |                  |
-|{Ctrl+Shift+     | `AngleMatchLeft` | `AngleMatchRight`|                  |                  |
+|{Alt+            |                  |                  |                  |                  |
+|{Ctrl+Shift+     | `AngleMatchLeft` | `AngleMatchRight`| `IndentMatchUp`  | `IndentMatchDown`|
 |{Shift+Alt+      | `ParenMatchLeft` | `ParenMatchRight`| `MarkupMatchLeft`|`MarkupMatchRight`|
 |{Ctrl+Shift+Alt+ | `CurlyMatchLeft` | `CurlyMatchRight`| `SquareMatchLeft`|`SquareMatchRight`|
 |                  
@@ -32,8 +32,8 @@
 |                 |{F9}              |{F10}             |{F11}             |{F12}             |
 |                 |                  |                  |                  |                  |
 |                 | `FindExactNext`  | `Again`          |                  |                  |
-|{Shift+          | `FindExactPrev`  | `Break`          |                  |                  |
-|{Ctrl+           | `SetFindString`  | `Join`           |                  |                  |
+|{Shift+          | `FindExactPrev`  | `AgainExhaustive`|                  |                  |
+|{Ctrl+           | `SetFindString`  |                  |                  |                  |
 |{Alt+            | `AppendLeftPrev` | `AppendRightNext`|                  |                  |
 |{Ctrl+Shift+     | `IndentFromPrev` | `IndentFromNext` |                  |                  |
 |{Shift+Alt+      | `JoinLeftPrev`   | `JoinRightNext`  |                  |                  |
@@ -48,7 +48,7 @@
 |                |                  |                  |                  |
 |                | `Paste`          | `Note`           | `PageUp`         |
 |{Shift+         |                  |                  |                  |
-|{Ctrl+          | `PasteOver`      |                  |                  |
+|{Ctrl+          |                  |                  |                  |
 |{Alt+           | `PasteRectangle` |                  |                  |
 |{Ctrl+Shift+    |                  |                  |                  |
 |{Ctrl+Alt+      |                  |                  | `PopupPageUp`    |
@@ -143,49 +143,77 @@
 2.1 Primary Escape sequences
 ----------------------------
   The following functions are not bound to any function keys
-  
   -       {Esc v s}   `ViewSave`
   -       {Esc v r}   `ViewRestore`
+  -       {Esc w 1}   `WindowOne`
   -       {Esc w d}   `WindowDown`
   -       {Esc w u}   `WindowUp`
-  -       {Esc w 1}   `WindowOne`
-  -       {Esc w r}   `WindowReassign`
+  -       {Esc w +}   `WindowStretch`
+  -       {Esc w -}   `WindowShrink`
+  -       {Esc w a}   `WindowReassign`
   -       {Esc w h}   `WindowHorizSplit`
   -       {Esc w v}   `WindowVertSplit`
   -       {Esc w t}   `WindowAlignTop`
   -       {Esc w c}   `WindowAlignCent`
   -       {Esc w b}   `WindowAlignBot`
-  -       {Esc w +}   `WindowStretch`
-  -       {Esc w -}   `WindowShrink`
-  -       {Esc q}     `QuitDebugger`
-  -       {Esc e}     `Enter`
-  -       {Esc i}     `TempInsertMode`
-  -       {Esc I}     `InsertMode`
+  -       {Esc w s}   `WindowSave`
+  -       {Esc w r}   `WindowRestore`
+  -       {Esc q}     `DebuggerQuit`
+  -       {Esc b r}   `Break`
   -       {Esc c e}   `CmdEditStart`
   -       {Esc c g}   `CmdEditGo`
   -       (Esc I n}   `InsertMode`
   -       {Esc i n}   `TempInsertMode`
-  -       {Esc q}     `QuitDebugger`
+  -       {Esc - m h} `HeadedSectionUp`
+  -       {Esc m h}   `HeadedSectionDown`
+  -       {Esc - m c} `ChapterUp`
+  -       {Esc m c}   `ChapterDown`
+  -       {Esc - m p} `ParagraphUp`
+  -       {Esc m p}   `ParagraphDown`
+  -       {Esc - m s} `SentenceUp`
+  -       {Esc m s}   `SentenceDown`
+  -       {Esc - m b} `BlockUp`
+  -       {Esc m b}   `BlockDown`
+  - [<wd>]{Esc s w}   `SpellcheckWord`
+  -       {Esc s p}   `SpellcheckParagraph`
+  -       {Esc s c}   `SpellcheckChapter`
+  -       {Esc s d}   `SpellcheckDocument`
+  -       {Esc s n}   `NextMisspelling`
+  -       {Esc s i}   `NextSpellInstance`
+  - <word>{Esc s i}   `FixSpelling`
   - <args>{Esc f w}   `FindWild`
   - <args>{Esc - f w} `FindWildPrev`
-  - <args>{Esc f p}   `FindInParaNext`
-  - <args>{Esc - f p} `FindInParaPrev`
-  - <args>{Esc f s}   `FindSequence`
-  - <args>{Esc - f s} `FindSequencePrev`
-  - <args>{Esc f o}   `FdInLineOrd`
-  - <args>{Esc - f o} `FdInLineOrdPrev`
-  - <args>{Esc f u}   `FdInLineUn`
-  - <args>{Esc - f u} `FdInLineUnPrev`
-  - <args>{Esc f n}   `FdInNLinesUn`
-  - <args>{Esc - f n} `FdInNLinesUnPrev`
-  
-  Line-drawing functions:
-  - {Esc b x}   `Box`
-  - {Esc z 1}   `Lozenge`
-  - {Esc z 2}   `DSLozenge`
-  - {Esc b t}   `BoxText`
-  - {Esc c e}   `CmdEditStart`
-  - {Esc c g}   `CmdEditGo`
+  - <args>{Esc f r}   `FindPhraseNext`
+  - <args>{Esc - f r} `FindPhrasePrev`
+  - <args>{Esc f s}   `FindSentenceNext`
+  - <args>{Esc - f s} `FindSentencePrev`
+  - <args>{Esc f p}   `FindParaNext`
+  - <args>{Esc - f p} `FindParaPrev`
+  - <args>{Esc f b}   `FindBlockNext`
+  - <args>{Esc - f b} `FindBlockPrev`
+  - <args>{Esc f h}   `FindHeadedSectionNext`
+  - <args>{Esc - f h} `FindHeadedSectionPrev`
+  - <args>{Esc f c}   `FindChapterNext`
+  - <args>{Esc - f c} `FindChapterPrev`
+  - <args>{Esc f q}   `FindSequence`
+  - <args>{Esc - f q} `FindSequencePrev`
+  - <args>{Esc f o}   `FindLineOrd`
+  - <args>{Esc - f o} `FindLineOrdPrev`
+  - <args>{Esc f u}   `FindLineUn`
+  - <args>{Esc - f u} `FindLineUnPrev`
+  - <args>{Esc f n}   `FindInNLines`
+  - <args>{Esc - f n} `FindInNLinesPrev`
+  - [<str>]{Esc f l}  `findColNext`
+  - [<str>]{Esc - f l}`findColPrev`
+  - [<str>]{Esc f v}  `findVertNext`
+  - [<str>]{Esc - f v}`findVertPrev`
+  - [<str>]{Esc f e}  `findRectNext`
+  - [<str>]{Esc - f e}`findRectPrev`
+  - <args>{Esc b x}   `Box`
+  - <args>{Esc z 1}   `Lozenge`
+  - <args>{Esc z 2}   `DSLozenge`
+  - <args>{Esc b t}   `BoxText`
+  - <arg>{Esc l d}    `LineDefaultChrs`
 
 2.2 Secondary Escape Sequences
 ------------------------------
@@ -193,10 +221,6 @@
   keypad or for  cases  where  the  normal  function-key  combination  is  not
   available.
   
-  - {Esc v s} `ViewSave`
-  - {Esc v r} `ViewRestore`
-  - {Esc w +} `WindowStretch`
-  - {Esc w -} `WindowShrink`
   - {Esc e}   `Enter`
   - {Esc / d} `LineSW`
   - {Esc / s} `DSLineSW`
@@ -235,7 +259,7 @@
 	  `N`        `OA`           `%S=tab`                  `Query samesinceindexed`                                    
 	  `P`        `OB`           `%S=commandstring`        `Query sameflag1`                                           
 	  `Q`        `OC`           `%s=mousemask`            `Query case`                                                
-	  `R`        `OE`           `%S=recoverymode`         `Query inview`                       
+	  `R`        `OX`           `%S=recoverymode`         `Query inview`                       
 	  `S`        `OF`           `%S=copy`                 `Query commandmode`                  
 	  `T`        `OG`           `%S=paste`                `Query version`                      
 	  `V`        `OI`           `%s=setmouse`             `Query dir`                          
@@ -275,15 +299,22 @@
   - do arithmetic or logical processing - see `Stack operations`
     - Arithmetic - see `O+`, `O-`, `O~`, `O*`, `O/`, `O%`, `O=`, `O<`, `O>`, `OL`
     - bitwise logical - see `O|`, `O&`, `O!`
-    - housekeeping - see `O#`, `OK`, `O@`, `OS`, `o?`, `query windows`, `query linux`, `query window` and `query stack`
-    - Read/set buffer state - see `OB`, `OE`, `OF`, `OC`, `ON`, `OP`, `OU`, `OA`, `O.`
+    - housekeeping - see `O#`, `OK`, `O@`, `OS`, `o?`, `query windows`, `query
+      linux`, `query window` and `query stack`
+    - Read/set buffer state - see `OB`, `OX`, `OF`, `OC`, `ON`, `OP`, `OU`, `OA`, `O.`
     - Read/set values in the text - see `OI`, `OG`, `OO`, `OV`, `OQ`
     - Do controlled movement in the text - see `OZ`, `OM` and or
     
   - force the editor to display a line in the console area - see `P`
   - check the text at the current-character position - see `V` and `Q`
   - force the window to be redrawn - see `W` and `%L`
+  - prevent me accidentally losing my work - see `%b=writeifchanged`
+  - prevent me accidentally corrupting a reference buffer `%b=readonly`
+  - clear all restrictions from a buffer - see `%b=unrestricted`
   - move to a different buffer - see `Z` and `OZ`
+  - create line drawings, block diagrams etc - see `About block graphics`
+  - display a file containing tabular text - see `%s=tab`,  `%b=tabstops`  and
+    `%b=tabcells`
   
   - view internal state - see `%Q`
     a few of the most useful %Q queries follow:
@@ -298,8 +329,8 @@
     - report contents of stack - see `O?` and `Query stack`
     - report current configuration of tabstops in this buffer - see `Query tabstops`
     - report most other internal state of the current buffer - see `Query buffer`
-    - find  out  if  the  buffer  has  been  changed  recently  -  see  `Query
-      samesinceio`, `Query samesinceindexed`, `Query sameflag1`
+    - find  out  if  the  buffer  has  been  changed  recently  -  see  `Query samesinceio`, 
+      `Query samesinceindexed`, `Query sameflag1`
     - find out if case sensitivity is currently on - see `query case`
     - find out if the current character is currently in the viewable area of a
       window - see `query inview`
@@ -311,6 +342,7 @@
     - report heap stats - see `query heap`
     - show recent command history - see `query history`
     - sanity check this buffers internal data structure - see `query verify`
+    - locate internal data structures - see `listbufs.jot`
     
   - set internal state - see `%S`
     - case sensitivity - see `%s=case`
@@ -348,6 +380,16 @@
     - insert or display a control character - see `%~`
     - add a comment to my script or macro - see `%%`
     - set up hashtables - see `%H`
+    
+  - functions defined by startup.jot:
+    - search for relevant sections in natural-language documents - see `navigation by context`
+    - not lose my work when my computers battery gives up  - see `about not losing your work`
+    - review, modify and/or repeat recent commands - see `about command editing`
+    - debug my scripts `about jot debugging`
+    - do line drawings mixed with text - see `about block graphics`
+    - prepare a reasonably-tidy looking report - see `text document preparation`
+    - count how may times a command will succeed (e.g. count  instances  of  a
+      string) - see `AgainExhaustive`
 
 4 Important Scripts
 -------------------
@@ -372,10 +414,9 @@
   - `define_keymap.jot`  Defines keymap for any keyboard - requires the user to press buttons.
   - `dic.jot`            Looks up words in websters dictionary.
   - `do.jot`             Performs a cli command and places result into '@' buffer.
-  - `doc.jot`            Document-processing functions.
   - `doc2fold.jot`       Transforms a doc-format document into a folded-help file 
   - `doc2mif.jot`        Transforms a doc-style text document to framemaker mif format.
-  - `doc2help.jot`       Transforms a doc-format document into a folded-help file 
+  - `txt2help.jot`       Transforms a doc-format document into a folded-help file 
   - `doc2html.jot`       Translates the current document to HTML.
   - `duplicates.jot`     Starting at current position in buffer, searching for duplicated lines.
   - `edif.jot`           Sets up buttons specific to editing EDIF files.
@@ -385,7 +426,7 @@
   - `fold2doc.jot`       Transforms a folded document to the .doc format.
   - `freeall.jot`        Frees (i.e. destroys) all buffers.
   - `get.jot`            Picks up a file relative to current file.
-  - `html2doc.jot`       Translates HTML to a .DOC-format file.
+  - `html2txt.jot`       Translates HTML to a .DOC-format file.
   - `ide.jot`            A simple IDE for C-code development with gdb, wine and winedbg.
   - `big_file.jot`       Support for handling big files indexed with grep.
   - `multi_file.jot`     Support for source-file trees indexed with grep.
@@ -413,7 +454,6 @@
   - `renumber.jot`       Resets line number to count from 1.
   - `retab.jot`          Command file to reset tabs at a given key string and optional window size.
   - `retabhere.jot`      Command file to resolve spaces in current column as tabs.
-  - `sccs.jot`           Applies sccs command (given as argument).
   - `searchbuffers.jot`  Searches all valid buffers for the key string in the argument.
   - `sh.jot`             Sets up buttons specific to editing C-shell command files.
   - `skill.jot`          Sets up buttons specific to editing skill files.
@@ -421,8 +461,6 @@
   - `tab.jot`            Command file to resolve tabs at 8-character intervals.
   - `tcl.jot`            Sets up buttons specific to editing TCL scripts.
   - `thes.jot`           Looks up words in Roget's thesaurus.
-  - `timex.jot`          Utility package for dealing with timex files.
-  - `trace.jot`          Does symbolic-level assignments to %t trace vector.
   - `uc_basic.jot`       Provides basic unicode translations for European alphabets.
   - `unlockall.jot`      Destroys hashtables and removes write lock from all buffers.
   - `verify_keys.jot`    Tests the keycode mapping file by displaying each keystroke in the console area.
@@ -430,6 +468,7 @@
   - `wideprint.jot`      Outputs to /tmp/print and performs unix lp on buffer.
   - `WindowsNT_keys.jot` Maps the hot-key functions onto escape sequences.
   - `xword.jot`          A simple utility to help with crossword puzzles.
+  - `listbufs.jot`       Generates a simple report listing Pathname, I/O status, sub-buffers and their data objects.
 
 5 Jot Documentation
 -------------------
@@ -441,7 +480,7 @@
     - `jot Technical guide` - detailed descriptions of behaviour,  techniques,
       syntax, options and commands.
       
-    - `Running the scripts` - details of the jot scripts.
+    - `The scripts` - details of the jot scripts.
     
     - `jot (Joy Of Text) - a text editor` - The JoyOfText.org home page.
     

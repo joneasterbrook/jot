@@ -69,6 +69,32 @@ Behaviour
 :
 
 %g@
+<<Get_xml2csv>>
+%%After extracting spreadsheet as xml, this rebuilds the tables.
+%%
+%%Get the first sheet name and throw away all preeceding text.
+( f"<table "b-k-0n.
+  ( %%xml-token loop.
+    ( f"<"
+      v"<table " f"<caption>"-a$b2i/Sheet: /f1"</caption>"n.,
+      v"<tr>" r4a$bn.,
+      v"<td "f"</td>"f-">"-a$f"</td>"i/	/n.,
+      f">"- ) )0
+  m0a$b )
+%%Now deal with any special characters.
+m-0 
+( (f"&"v-/\/r)0 %%Special-character loop - .
+  v"&quot;" s/"/,
+  v"&#34;" s/"/,
+  v"&apos;" s/'/,
+  v"&#39;" s/'/,
+  v"&lt;" s/</,
+  v"&#60;" s/</,
+  v"&gt;" s/>/,
+  v"&#62;" s/>/,
+  v"&amp;" s/&/,
+  v"&#38;" s/&/, r)0
+
 <<GetDescendSelection>>
 %%User has selected next level - load or list contents of this object.
 %%
@@ -134,7 +160,7 @@ onr0r-0n.r0a$& (m-r)0m z$i'+i/	/
             %x=Error: something went wrong reading file "'$" - assumed to be plain text; )
           %m=Read your file - assumed to be plaintext; )
           
-      , %%In linuxland use file to identify file types, this loop deals with symbolic links.
+    , %%In linuxland use file to identify file types, this loop deals with symbolic links.
       z$m-0i/%e~=\file -z / r(f1/ /i/\\/r)0'$ z$f1/-z /-e-0 (f1/\/e)0 z~
       %%If it's a MS document but creating application is unspecified fudge round that now.
       (f1/ Composite Document File/ r-0((f1/ Microsoft Excel/\ f1/ Microsoft Word/\)
@@ -146,15 +172,11 @@ onr0r-0n.r0a$& (m-r)0m z$i'+i/	/
         , (f1/zip archive data/) %%It's a zip archive.
           ( z!okm+3 z$i/%e$=unzip -l / z+m0r0b2h$b '$ z+h$w(m-r)0m ok,
             %x=Error: something went wrong unzipping the file; )
-        , f1/Excel/ %%It's an spreadsheet - use xls2csv or, failing that, tika.
-          ( %e=which xls2csv;  %%xls2csv is on the search path - use it.
-            ( z$oki/%e$=xls2csv /r0i/ -l/ z+m0r0b2h$b '$ z+h$w(m-r)0m ok,
-              %x=Error: something went wrong extracting the sheet using xls2csv; )
-            %l; %m=select a sheet.;
-          , %%No xls2csv - use tika then.
-            ( z!okm+3 z$r-0i/%e/i'!i/=/z!r-0e0r0z$i"\java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text " z+ono-om '$,
-              %x=Error: something went wrong extracting text from "'$" with tika; )
-            %m=Extracted all xls sheets using tika.; )
+        , f1/Excel/ %%It's a spreadsheet - use ssconvert (part of gnumeric).
+          ( z$oki"%e"z!m+3z$i'!i"=ssconvert --export-type=Gnumeric_html:xhtml "r0i" fd://1" z+m0r0b2h$b '$ obz+h$w(m-r)0m ozok
+          %h'=call Get_xml2csv; ,
+            %x=Error: something went wrong extracting text from "'$" with ssconvert; )
+          %m=Extracted all xls sheets using ssconvert.;
         , f1/ pdf Document/ %%It's a PDF document - use tika
           ( z!okm+3 z$r-0i/%e/i'!i/=/z!r-0e0r0z$i"\java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text " z+ono-om '$,
             %x=Error: something went wrong extracting text from "'$" with tika; )
@@ -192,7 +214,7 @@ onr0r-0n.r0a$& (m-r)0m z$i'+i/	/
             %x=Error: something went wrong opening tarball "'$"; )
           %m=select a member of the archive.;
         , f1/tar archive/ %%It's a, possibly compressed, tar archive.
-          ( z$oki/%e$=tar -tvf / z+m0r0b2h$b '$ z+h$w(m-r)0m ok,
+          ( z$okr-0(f1/ /i/\\/r)0 r-0i/%e$=tar -tvf / z+m0r0b2h$b '$ z+h$w(m-r)0m ok,
             %x=Error: something went wrong opening tarball "'$"; )
           %m=select a member of the archive.;
         , f1/PE32 executable/ %%Maybe a cabenet?
@@ -216,10 +238,10 @@ onr0r-0n.r0a$& (m-r)0m z$i'+i/	/
     , f1/tar -ztvf /- %%File is in a compressed tar archive.
       ( e-0 f1/	/ebr0f-1/ /e-0j-r-0 z!m+3 z$i/%e/i'!i/=tar -zOxf / z!r-0e0z+ono-om '$,
         %x=Error: something went wrong decompressing file "'$"; )
-    , f1/xls2csv /- %%File is a spreadsheet.
-      ( (v/ /r)0f1/-l/(v/	/\e)0e i/ -f "	" -t / z!m+3 z$r-0e3i/%e/i'! z!r-0e0z+ono-om '$,
-        %x=Error: something went wrong extracting sheet "'$"; )
-      %b=tabcells -1
+%%    , f1/xls2csv /- %%File is a spreadsheet.
+%%      ( (v/ /r)0f1/-l/(v/	/\e)0e i/ -f "	" -t / z!m+3 z$r-0e3i/%e/i'! z!r-0e0z+ono-om '$,
+%%        %x=Error: something went wrong extracting sheet "'$"; )
+%%      %b=tabcells -1
     , f1/unzip -l/- %%File is a zip archive.
       ( e-0r0(v-/.doc/, v-/.docx/) %%It's deemed to be in ms-office document format.
         ( r-0(v/ /r)0f1/	/eb ((v/ /r)0(q/-:0-9/r)0)3(v/ /r)0 e-0j-i/ "/r0i/"/r-0 z!m+3 z$i/%e/i'!i"=unzip -pq "r0i"| \java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text -" z!r-0e0z+ono-om '$,

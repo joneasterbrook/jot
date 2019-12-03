@@ -27,13 +27,14 @@ m0n.r0a@
 
 %%Substitute formfeeds with correct number of blank lines.
 m-0(n.mf62//-ob (a2z2m0f-//eb66m-0m63k0ozh2), m)0
-%%m-0(n.mt62//(a2z2m0f-//eb66m-0m63k0z~h2),z~m)0
 
 %%Initialize then load column buffer 2.
 n.a2
 m-0(mm-m63?mm-n.m63?a2+)0
 m-0r0i-/ /132n.r0a%(r0h%m)0
-m-0r66h2*
+%%  m-0r66h2
+%%Insert column 2.
+m-0 obz2m-0oz (obz2n.r0a$(m, oz\) oz(r, i/ /)66 h$m)0
 
 %%Trim off any trailing spaces (and other characters too!).
 m-0(r132?e0m)0

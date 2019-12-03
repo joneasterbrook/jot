@@ -179,12 +179,12 @@ jot test9.jot -tty -st -in="m0i@%%qa=pid; ki.%%e=kill .r0i.;. 'a@b %%c;"
 @echo -asConsole scripts test.
 @REM Set up the command script.
 jot test10.jot -new -tty -st -in="i@%%%%Test 10 command script.@b %%c"
-jot test10.jot -tty -st -in="m0i@%%d^=Xd0     m-0f/jon/i/##/@b %%c;"
+jot test10.jot -tty -st -in="m0i@%%d^=^[Xd0       m-0f/jon/i/##/@b %%c;"
 jot test10.jot -tty -st -in="m0i@ @b %%c;"
 jot test10.jot -tty -st -in="m0i@%%m=******************************************** Test10;@b %%c;"
 jot test10.jot -tty -st -in="m0i@%%m=Test -asConsole is working correctly@b %%c;"
 jot test10.jot -tty -st -in="m0i@z.@b %%c;"
-jot test10.jot -tty -st -in="m0ol27oo@Congratulations %%cXd0     @b %%c;"
+jot test10.jot -tty -st -in="m0ol27oo@Congratulations %%cXd0@b %%c;"
 jot test10.jot -tty -st -in="m0i@%%c;@b2  %%c;"
 %jotExe% t.t -to=test10.txt -st -init="%%w 15; %%w 0; %%r=./test10.jot -asConsole;"
 @head -4 test10.txt | tail -1 | grep "4 :Test file for Congratulations jonathans wonderful editor." > NULL
@@ -211,14 +211,14 @@ echo "Test 12 type-to-screen mode tests."
 jot test12.jot -new -tty -in="m0i@f/jon/@b %%c;"
 @REM Set up ^ key-translation buffer.
 jot test12.jot -tty -st -in="m0i/%%g^/b %%c;"
-jot test12.jot -tty -st -in="m0i/X0      %%s=commandmode +2/b %%c;"
-jot test12.jot -tty -st -in="m0i@ins     i/##/@b %%c;"
+jot test12.jot -tty -st -in="m0i/^[X0        %%s=commandmode +2/b %%c;"
+jot test12.jot -tty -st -in="m0i@^[ins       i/##/@b %%c;"
 jot test12.jot -tty -st -in="m0i@:@b %%c;"
 @REM Enter type-into-screen mode and insert "zzz".
-jot test12.jot -tty -st -in="m0i@X0      .xyz@b %%c;"
+jot test12.jot -tty -st -in="m0i@X0xyz@b %%c;"
 jot test12.jot -tty -st -in="m0i@123999@(r0%%~=08;)4b %%c;"
 @REM Return to command mode.
-jot test12.jot -tty -st -in="m0i@abcdefghiX0       @b %%c;"
+jot test12.jot -tty -st -in="m0i@abcdefghiX0           @b %%c;"
   
 @REM Verify.
 jot test12.jot -tty -st -in="m0i@%%g#@b %%c;"

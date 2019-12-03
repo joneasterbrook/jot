@@ -2,55 +2,48 @@
   The contents of the default resources area. Most are  intended  for  testing
   and demonstrations these can be deleted at any time.
 
-  - Sample_UTF-16LE.txt  - An example of UTF-16, downloaded from http://www.humancomp.org/unichtm/unichtm.htm
-  
-  - Sample_UTF-8.txt  - a UTF-8 from the sam site
-  
-  - Sample_UTF-16BE.txt  - Made with these commands (doesn't work in c-shell):
-$  echo -ne "\0376\0377\000\052" > Sample_UTF-16BE.txt
-$  iconv Sample_UTF-8.txt -f=UTF8 -t=UTF-16BE >> Sample_UTF-16BE.txt
-
-  - Sample_UTF-32LE.txt
-$ echo -ne "\0377\0376\000\000" > Sample_UTF-32LE.txt
-$ iconv Sample_UTF-8.txt -f=UTF8 -t=UTF-32LE  >> Sample_UTF-32LE.txt
-
-  - Sample_UTF-32BE.txt
-$ echo -ne "\000\000\0376\0377" > Sample_UTF-32BE.txt
-$ iconv Sample_UTF-8.txt -f=UTF8 -t=UTF-32BE  >> Sample_UTF-32BE.txt
-
-  - consumertrends2012q3cvmnsa_tcm77-292466.tsv - this is a plain-text version
-    of an XLS spreadsheet. The original was downloaded from:
-  http://www.ons.gov.uk/ons/publications/re-reference-tables.html?edition=tcm%3A77-46187
-  
-  - help - a dummy help tree containing only entries for jot and demonstration
-    samples.
-    
-  - jot_intro.txt - the introductory text for sourcefoorge.
-  
-  - l99.t - a little test file used for testing and demonstration.
-  
-  - lexicon.lis - a simple lexicon used by doc.jot to look up spellings.
-  
-  - my_xmodmap - an xmodmap file to redefine the  numeric  keypad  and  a  few
-    other keys.
-  
-  - Richard\ III:\ Entire\ Play.txt - downloaded with thanks: 
-      http://shakespeare.mit.edu/richardiii/full.html
-      
-  - t.t - a short test file used for testing and demonstration.
-  
-  - t.doc - t.t in MS-word form.
-  
-  - test_doc.t - a file used for testing.
-  
-  - test_get - a small directory tree used for testing the get.jot script.
-  
-  - test_table.txt - a simple table used for testing and demos.
-  
-  - xword_db.txt - a database file used for xword.jot
-  
-
-
-
-
-
+  - Richard_III_Entire_Play.txt      -      downloaded      with       thanks:
+    http://shakespeare.mit.edu/richardiii/full.html
+  - Sample_UTF-16BE.txt - As it's name suggests, a sample of UTF-16 big-endian
+    text I downloaded from somewhere.
+  - Sample_UTF-16LE.txt  -  As  it's  name  suggests,  a  sample   of   UTF-16
+    little-endian text I downloaded from somewhere.
+  - Sample_UTF-32BE.txt - As it's name suggests, a sample of UTF-32 big-endian
+    text I downloaded from somewhere.
+  - Sample_UTF-32LE.txt  -  As  it's  name  suggests,  a  sample   of   UTF-32
+    little-endian text I downloaded from somewhere.
+  - Sample_UTF-8.txt - A few lines of modern Russian.
+  - UTF-8-demo.txt - Markus Kuhn's demo, containing many examples of UTF-8.
+  - consumertrends2012q3cvmnsa_tcm77-292466.tsv - the tab-separated  version
+    of consumertrends2012q3cvmnsa_tcm77-292466.xls (below)
+  - consumertrends2012q3cvmnsa_tcm77-292466.xls - a sample spreadsheet  from
+    the ONS (UK government statistics office)
+  - dir with whitespace in name - an example of a  directory  tree  with  file
+    names containing whitespace.
+  - help - The help tree, see Help functions.
+  - ide - A small directory tree containing a simple IDE project,  see  about
+    project files, working with ide.jot
+  - l99.t - a small test file containing repetitive pattern of lines.
+  - lexicon.lis - a small lexicon of about 10K words.
+  - mail - a made-up POP-format mail archive, set up  as  a  demonstrator  for
+    mail.jot and bookings.jot
+  - my_xmodmap - an xmodmap file that redefines the numeric=keypad keys.
+  - owners_direct.txt - a sample bookings file - see bookings.jot
+  - resources.txt - see bookings.jot 
+  - spell.dic - a sample spelling dictionary for aspell
+  - t.doc - t.t (see below) as an MS document.
+  - t.docx - t.t (see below) as a word document. 
+  - t.pdf - t.t (see below) as a PDF. 
+  - t.t - A small sample file used for testing.
+  - tabs.t - a small sample used for testing %b=tabstops  and  %b=tabcells
+    behaviour.
+  - test_block.txt - samples for Using matching functionsand fancy flavours
+    of substitution and insertion - 1
+  - test_doc.t - A few examples of various paragraph  boundaries  for  testing
+    paragraph-handling functions.
+  - test_get - A  small  directory  tree  for  testing  and  demonstration  of
+    get.jot
+  - test_table.txt - a tab-separated version  of  test_table.xls  (below)  for
+    testing and demonstration of %b=tabcells.
+  - test_table.xls - A simple repetitive test file testing and demonstration
+    of `get.jot` and `%b=tabcells`

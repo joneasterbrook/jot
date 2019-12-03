@@ -799,11 +799,11 @@ o#ozoq/.=VisTopChr/oq/.=VisTopLine/ono-omor
 oq/.=Regs|YankReg/ z$m-0k0oo".=Regs|%c" z"m-0n.m0r0a~& ov'$
 %%Tag the first line of the buffer with the visual-mode tag.
 oq/.=YankMode/
-( ol1o= m-0oeou %b=addtag -text=Visual full-line mode;
-, ol2o= m-0oeou %b=addtag -text=Visual character mode;
-, ol3o= m-0oeou %b=addtag -text=Visual block mode;
-, ol4o= m-0oeou %b=addtag -text=Line mode;
-, ol5o= m-0oeou %b=addtag -text=Character mode;
+( ol1o= m-0oxou %b=addtag -text=Visual full-line mode;
+, ol2o= m-0oxou %b=addtag -text=Visual character mode;
+, ol3o= m-0oxou %b=addtag -text=Visual block mode;
+, ol4o= m-0oxou %b=addtag -text=Line mode;
+, ol5o= m-0oxou %b=addtag -text=Character mode;
 , ) ok
 oz %l;
 %%Reset yank mode and restore yank register to 0.
@@ -1670,7 +1670,7 @@ oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (o~c)0
 <<VimPageUp>>
 %%  {Ctrl+B} --  back (up) one screen
 %%The control character in the Q command is {Tab}
-oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (m-* o~)0 (q/ 	/r)0 %h'=call VimDeferredAction;
+oq/.=Digits/ol-1ov/.=Digits/ (ol1o<okol1, ) ol0oso- (m-0 o~)0 (q/ 	/r)0 %h'=call VimDeferredAction;
   
 <<VimPageDown>>
 %%  {Ctrl+F} --  foreward (down) one screen
@@ -1880,7 +1880,7 @@ oq/.=YankMode/
     %%If we're in VisualMode 3 set up the current chr to left-top chr no, for other visual modes set it to 0.
     oq/.=YankMode/ol3 (o=okokoq/.=VisTopChr/, ok)
     %%If we're at the last line, or in visual-mode 3 ( {Ctrl+v} ) set the end chr to VisualBotChr, otherwise line length.
-    osol-1 (((o=\os, os\) (oq/.=YankMode/ol3o=\ok, ok\))\ oq/.=VisBotChr/, oe)
+    osol-1 (((o=\os, os\) (oq/.=YankMode/ol3o=\ok, ok\))\ oq/.=VisBotChr/, ox)
     %%Set up substring and add tag ... then set up the current chr for the next line.
     osoroco-ou %b=addtag VisualSel; mo~ ol0)0 ok
   %%Finally, return cursor to correct end point.

@@ -1,0 +1,55 @@
+%%Runs the specified command until it fails, extracts the commandcounter and then relaunches the command with a trap set at the failing command.
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+
+%%Usage:
+%%  > trap_failure <commands>[ -init=<InitCommands>]{F2}
+%%      This form explicitly defines the failing command sequence and the optional initialization sequence.
+%%
+%%  > trap_failure[ -init=<InitCommands>]{F2}
+%%      This form picks up the failing command sequence from history and explicitly defines the optional initialization sequence.
+%%
+  
+%%If a command was given, escape any backtick ( ' ) characters if none given, pick up previous command from history.
+obz$r-0(v/ /r)0 (v/-init=/r-\i-/ /, )e-0 r-0(f/ -init=/, r0)(r-r-0 (f/'/(v-/\/, i/\/)r)0, %q@=history; m0k-2m-k-0z$r-0i'@) oz
+%%
+%%Save the buffer key.
+ob (oq/'=trap_failure_buffer_key/ok, %h'=data trap_failure_buffer_key; ) o#ov/'=trap_failure_buffer_key/
+%%
+%%Save the initialization commands, if given.
+(oq/'=trap_failure_init/ok, z' %h'=data trap_failure_init; ) z$r-0(f/ -init=/-, r0)n.r0a~& ov/'=trap_failure_init/
+%%
+%%Save the command.
+(oq/'=trap_failure_command/ok, z' %h'=data trap_failure_command; ) z$r-0n.(f/ -init=/, r0)a~& ov/'=trap_failure_command/
+%%
+%%Reset the command counter, pick up the command, return to the buffer and run the command.
+m-0k0 oq/'=trap_failure_init/i'~ok i/%s=commandcounter 0; / oq/'=trap_failure_command/i'~ok r-0(f/ -hereEndsThePercentCommand/s/ /e-)0 
+oz ( '$ %x=Error: The command did not fail.;, )
+%%
+%%Pick up the command count at the point of failure.
+%q$=system; f/ Command counter = /-oid ol4o-
+%% %q$=system; f/ Command counter = /-oid p ol115o-
+%%
+%%Set the command counter, pick up the command, return to the buffer and run the command.
+m-0k0 i/%s=commandstring / oq/'=trap_failure_init/i'~ok r0oo/ %%s=commandcounter %d; / oq/'=trap_failure_command/ i'~ r-0(f/ -hereEndsThePercentCommand/s/ /e-)0i/ -hereEndsThePercentCommand;/ 
+oq/'=trap_failure_buffer_key/ oz '$ 
+
+
