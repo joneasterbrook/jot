@@ -30,7 +30,7 @@
 
 %%Set up window.
 ob %w; %q$=window; f/screenHeight = /- oid ol1o- %w; %w= -height='~ -delim; (%q=windows; , %s=mousemask 0;)
-%s=console 10;
+%s=console 20;
   
 %%Preserve the original args for later use.
 z$m-0n.m0r0a~
@@ -39,12 +39,9 @@ z$m-0n.m0r0a~
 z^m-0
 ( %q=windows;
   %r=WindowsNT_keys;
-, %%unix then.
-  %%If chrome then use the chrome keys.
-  %q@=version; mf1/ chrome / %r=curses_keys_chrome;
-, %%Not chrome use term.
+, %%Not windows, use term defined by the TERM env.
   %q@=env TERM; m %r=curses_keys_'@;
-, %m=Error: No keys for TERM '@, using xterm instead.;
+, %m=Error: No jot key-mapping file for TERM '@, using xterm instead.;
   %r=curses_keys_xterm; )
 :
 '#
@@ -98,7 +95,7 @@ i//
   
 <<InsertWithBackTick>>
 %%Prompt string: Insert string> 
-obz$ %s=system 1; i/i`/r0i/ / ozi-/`/ %s=system 0; '$oee-rou
+obz$ %s=system 1; i/i`/r0i/ / ozi-/`/ %s=system 0; '$oxe-rou
 
 <<Overwrite>>
 %%Prompt string: Overwrite string> 
@@ -130,9 +127,6 @@ f//
 <<SubsThenFindNx>>
 s//f//
   
-<<FindNextInd>>
-f'_
-  
 <<FindNextAgain>>
 (f//, %x=Find-again failed;)
   
@@ -144,16 +138,16 @@ f'_
 obz%m-0n.(rr0,m,)a$ozh$
   
 <<DeleteWordLeft>>
-(n.(r-r, m-r0)(q-/a-zA-Z0-9/\r-)0 (q-/a-zA-Z0-9/r-)0 a%-)
+(n.(r-r, m-r0)(q-/a-zA-Z0-9Ā-𠀹/\r-)0 (q-/a-zA-Z0-9Ā-𠀹/r-)0 a%-)
   
 <<RestoreWordLeft>>
-obz%m-0n.(r(q/a-zA-Z0-9._/\r)0(q//r)0,m,)a$ozh$
+obz%m-0n.(r(q/a-zA-Z0-9._Ā-𠀹/\r)0(q//r)0,m,)a$ozh$
   
 <<DeleteWordRight>>
-(n.(rr-,m)(q/a-zA-Z0-9/\r)0(q/a-zA-Z0-9/r)0a%+)
+(n.(rr-,m)(q/a-zA-Z0-9Ā-𠀹/\r)0(q/a-zA-Z0-9Ā-𠀹/r)0a%+)
   
 <<RestoreWordRight>>
-obz%m0r0n.(r-(q-/a-zA-Z0-9._/\r-)0(q//r-)0,m-r0,)a$  o#ozh$(z$r o#ozr-,m o#ozm-r0)0 oz
+obz%m0r0n.(r-(q-/a-zA-Z0-9._Ā-𠀹/\r-)0(q//r-)0,m-r0,)a$  o#ozh$(z$r o#ozr-,m o#ozm-r0)0 oz
   
 <<DeleteLineRight>>
 (n.(rr-(r-r0,m),m)a%+)
@@ -163,22 +157,19 @@ obz%m0r0n.(r-r-0, m-,) a$o#ozh$z$m0r0 (z$r-o#ozr-,m-r0o#ozm-r0)0oz
   
 <<FindExactNext>>
 %%Prompt string: Find-exact string> 
-obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz (f//(q-/_A-Za-z0-9/r?,rr-f1//-q/_A-Za-z0-9/))0
-(f-1//, %X=Find-exact failed;)
+obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz (v//r, ) ( (f//- q/_A-Za-z0-9Ā-𠀹/f-//)0 f-1// q-//r)0
+(v//, %m=Find-exact failed; x\)
   
 <<FindExactPrev>>
 %%Prompt string: Find-exact string> 
-obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz ((f-//q-/_A-Za-z0-9/ (r-, m-r0))0 v//rr-f1//-q/_A-Za-z0-9/ (v-//, m-r0) f-//rr-)0 
-(v-//, %X=Find-exact failed;)
+obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz (v//(r-, m-r0), )( (f-//- q/_A-Za-z0-9Ā-𠀹/r-f-//)0 f-1// q-//r-)0 
+(v//, %X=Find-exact failed;)
   
 <<SetFindString>>
-(a$&, (obol36o= %x=Can not call <<SetFindString>> from the ( $ ) buffer.;, )r-r(q-/_a-zA-Z0-9/r-)0n.(q//r)0a$&, n.r0a$&)obz$r-0 %s=system 1; i-/f-1`/oz %s=system 0; '$
+(a$&, (obol36o= %x=Can not call <<SetFindString>> from the ( $ ) buffer.;, )r-r(q-/_a-zA-Z0-9Ā-𠀹/r-)0n.(q//r)0a$&, n.r0a$&)obz$r-0 %s=system 1; i-/f-1`/oz %s=system 0; '$
   
 <<Paste>>
 (h_)
-  
-<<PasteOver>>
-(h_*)
   
 <<Cut>>
 a_
@@ -187,7 +178,7 @@ a_
 (a_+, r-0n.ma_+&)
   
 <<CutTabular>>
-a_*
+a_ obz_r0ocosoz ol-1oso-o# (o~i/ /)0ok o~or?
   
 <<CumulativeCopy>>
 (a_+&, r-0n.ma_+&)
@@ -205,20 +196,38 @@ n.
 m-0
   
 <<GotoFoldStart>>
-ol0r-0(f1/}}}/\m-)0r-0 (f1/}}}/ol1o-m-,f1/{{{/\m-,o~m-)0 ok
+%s=system 1; ol0r-0(f1/}}}/\m-)0r-0 (f1/}}}/ol1o-m-,f1/{{{/\m-,o~m-)0 ok %s=system 0;
   
 <<PageDown>>
 (m*w)?
   
 <<WindowOne>>
+%%Prompt string: Console size > 
 %%Set window size to be 1 less than screen height.
-ob %q$=window; f/screenHeight = /- oid ol1o- %w; %w= -height='~ -delim; (%q=windows; , %s=mousemask 0;) oz
+%%Pick up optional arg (console-area size - defaults to 1).
+obz$m-0(v/ /r)0 (q/0-9/oid, ol1) osoz
+%%Set the window size.
+obos %s=system 1; %q$=window; f/screenHeight = /- oid oso- %w; %w= -height='~ -delim; (%q=windows; , %s=mousemask 0;)
+%%Clear any colour tags.
+o#oz %q$=tags;
+( %%Colour-tag removal loop.
+  f/active colour is /-b- 
+  %%First calculate the substring length.
+  o#f-1/ to /-oidf-1/, chr /-oido-os
+  %%Now get the substring start point.
+  f-1/, chr /-oidos
+  %%Finally, the line no.
+  f-1/At rec /-oidos
+  %%Now remove the tag.
+  m oz ono-om or o~ou %b=remove_tag colour '$; z$m)0
+%s=system 0; oz
+%b=leftoffset 0;
 
 <<WindowHorizSplit>>
 %%Adds a new window below size-adjusted existing windows.
 %%
 %%First calculate the size of each new window.
-ob %q@=window; %s=system 1; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenHeight = /-oidol1o- oso/
+%s=system 1; wob %q@=window; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenHeight = /-oidol1o- oso/
 %%Create each shrunk version of original windows.
 m-0f/  win:/m- %w; (z@mf1/  win:/f1/ ( /-oicz$m-0k0 oo/%%W%c=/r0 o#oo/ -height=%d -delim;/ '$ z@)0
 %%Create a new floating window.
@@ -228,39 +237,73 @@ m-0f/  win:/m- %w; (z@mf1/  win:/f1/ ( /-oicz$m-0k0 oo/%%W%c=/r0 o#oo/ -height=%
 %%Adds a new slice to the right of size-adjusted existing windows.
 %%
 %%First calculate the size of each new slice.
-ob %q@=window; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenWidth = /-oid oso/ m-f1/ screenHeight = /-oidol1o-
+%s=system 1; wob %q@=window; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenWidth = /-oid oso/ m-f1/ screenHeight = /-oidol1o-
 %%Create proforma command.
 z$m-0k0 oo/= -height=%d/r0ol1o-oo/ -width=%d+1 -delim;/
 %%Initialize.
 z@m-0f/  win:/m- %w; 
 %%Create each shrunk version of original windows.
-(z@mf1/  win:/(f1/ fixed on buffer  ( /-oicz$r-0oo/%%W%c/, z$r-0i/%W/) '$ (f1/= /e-0 f1/-height=/s/ /, ) )0
+(z@mf1/  win:/(f1/ ( /-oicz$r-0oo/%%W%c/, z$r-0i/%W/) '$ (f1/= /e-0 f1/-height=/s/ /, ) )0
+%%(z@mf1/  win:/(f1/ fixed on buffer  ( /-oicz$r-0oo/%%W%c/, z$r-0i/%W/) '$ (f1/= /e-0 f1/-height=/s/ /, ) )0
 %%Create a new floating window.
-z$r-0i/%W/ '$ oz
+z$r-0i/%W/ '$ oz %s=system 0;
+
+<<WindowSave>>
+%%Prompt string: Optionally specify a window-configuration name> 
+%%Saves window configuration and temporarially returns to a simple single windo configuration.
+%%Original configuration is saved in the /'=WindowConfig/ data object.
+%%Default config name is "default".
+%s=system 1; 
+obz$(rr-i/WindowConfig_/, i/WindowConfig_default/) oz %s=system 0;
+ob %q~=window; (z' oq'$ok, %h'=data '$; ) ov'$ oz %h'=call WindowOne;
+%s=system 0;
+
+<<WindowRestore>>
+%%Prompt string: Optionally specify a window-configuration name> 
+%%Restores the window configuration previously saved by the WindowSave function.
+%s=system 1;
+obz$(rr-i/WindowConfig_/, i/WindowConfig_default/)
+(z' oq'$, %x=Error: no previously-saved window configuration '$.; )
+z$m-0k0e0i/%w=;/b z~m3
+( %%Window loop.
+  f1/ win:/-
+    ( f1/ fixed on buffer  ( /- oicz$oo/%%w%C=/, f1/ currently buffer ( /-oic z$oo/(z%c, z.) w %w=/) z~ 
+    %%Only include height if it's a non-sliced or the first slice.
+    ( (f1/ column slice / f1/ Leftmost/\)\ r-0f1/ lines /(q-/0-9/r-)0oid z$r0oo/ -height=%d/, ) z~
+    %%Add slice width.
+    ( f1/ column slice / (q-/0-9/r-)0oid z$r0oo/ -width=%d/, ) z~
+    %%Add Delimiter line.
+    r-0 (f1/ Height includes an end delimiter/ z$r0i/ -delim/, ) z~
+    %%Set popup details.
+    ( f1/ column popup /(q-/0-9/r-)0oid f1/(/-(v/0 /, ol0oso-) z$r0oo/ -width=%d -popup/, ) z~
+    %%Add terminating semicolon.
+    z$r0i/;/b z~m
+  )0
+osozok '$ %s=system 0;
 
 <<WindowDown>>
 %%Changes focus to next window or slice.
 %%
 %%First find the current window.
-ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
+%s=system 1; ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
 %%Now move to the next window, or top window if already at last window and pick up the key.
 m (f1/ ( /, f-/  screenWidth = /m) r-0f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oico#
 %%If there are earlier windows showing that buffer then make sure they're frozen.
 (z@m- (f1'$\, r-0f1/ win:/-oid %w= -winno='~ -freeze=1;) )0
 %%Now switch to new buffer.
-oz
+%s=system 0; oz
 
 <<WindowUp>>
 %%Changes focus to previous window or slice.
 %%
 %%First find the current window.
-ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
+%s=system 1; ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
 %%Now move to the previous, or bottom window if already at first window and pick up the key.
 m- (f1/ ( /r-0, f/  Console area /m-) f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oic m-
 %%Freeze any earlier windows matching this buffer.
 (f1'$r-0f1/ win:/-oid %w= -winno='~ -freeze=1; m-, m-)0
 %%Now switch to new buffer.
-oz
+%s=system 0; oz
 
 <<WindowReassign>>
 %%Prompt string: Window no.(optional) and buffer > 
@@ -271,85 +314,114 @@ ob z$(v/ /e)0(q/0-9/(q//r)0r-0oid(v/ /r)0, %x=Error: You must specify a window n
 z$e-0oo/%%w= -winno=%d -key=/(v/ /e)0r0i/;/ '$ oz
 
 <<WindowAlignTop>>
-%%Aligns current line with top of window.
-onofo-owr-0 
+%%Prompt string: Window no.> 
+%%Aligns current line with top of window in selected [or all] windows.
+%s=system 1; 
+ob %q@=window; z$r-0 (v/ /r)0 
+(r  %%A window number was specified - adjust only that one.
+  r-e-0i/win:/r0i/ /
+  %%Get the buffer key for whatever is being displayed by that window.
+  %q@=window; f'$f1/ ( /-oicoz onofo-ow %%oz
+, %%No window number was specified - adjust all windows. 
+  z@m-0m2 (mf1/win:/-f1/ ( /-oicoz wonofo-ow z@)0 ) ozw
+%s=system 0;
 
 <<WindowAlignCent>>
-%%Aligns current line with centre of window, checks that current character is in view, if not then applies an apprpriate left-offset setting..
-ob %q$=window; (f/currently buffer ( /-, m-0f/fixed on buffer  ( /- (oico=\mf1//-)0) f1/),/- oid osoz ol2o/ofo+onoso- ow
-%%If not in view then adjust left offset.
-(%q=inview;, obocz$m-0f/ screenWidth = /-oidol2o/o-osoz %b=leftoffset '~;) (ok)3w
+%%Prompt string: Window no.> 
+%%Aligns current line with center of window in selected [or all] windows.
+%%By default applies to the current-buffers window the optional arg specifies which window to scroll.
+%s=system 1;
+ob %q@=window; z$r-0 (v/ /r)0 
+(r  %%A window number was specified - adjust only that one.
+  r-e-0i/win:/r0i/ /
+  %%Get the buffer key for whatever is being displayed by that window.
+  z@f'$f1/ ( /-oicf1/), /-oidol2o/ osoz onoso-ofo-ow %% oz
+, %%No window number was specified - adjust all windows. 
+  z@m-0m2 (mf1/win:/-f1/ ( /- oicf1/), /-oidol2o/ osoz onoso-ofo-ow z@)0 ) ozw
+%s=system 0;
 
 <<WindowAlignBot>>
-%%Aligns current line with bottom of window.
-ob %q$=window; (f/currently buffer ( /-, m-0f/fixed on buffer  ( /- (oico=\mf1//-)0) f1/),/- oid osoz ofo+onoso- ow r-0
+%%Prompt string: Window no.> 
+%%Aligns current line with bottom of window in selected [or all] windows.
+%%By default applies to all visible windows the optional arg specifies which window to scroll.
+%s=system 1; 
+ob %q@=window; z$r-0(v/ /r)0 
+( r %%A window number was specified - adjust only that one.
+  r-e-0i/win:/r0i/ /
+  %%Get the buffer key for whatever is being displayed by that window.
+  %q@=window; f'$f1/ ( /-oicf1/), /-oidosoz onoso-ofo-ow %%oz
+, %%No window number was specified - adjust all windows. 
+  z@m-0m2(mf1/win:/-f1/ ( /- oicf1/), /-oidosoz onoso-ofo-ow z@)0 ) ozw
+%s=system 0;
 
 <<WindowStretch>>
 %%Prompt string: [Window no.]> 
 %%First pick up the given window number or find the window number of the current buffer.
-ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
+%s=system 1; ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
 %%Now set up the window-identification part of the window-change command.
 z$k?oo/%%w= -winno=%d/r0 
 %%ob %q@=window; z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oidz$k?oo/%%w= -winno=%d/r0 
 %%If it's a full-width window tweak the height, if a slice, tweak the width. 
 ( z@f1/Slice/\  %%It's a full-width window - get the original height and set the new height.
-  (f1/ ), /-oidol1o+z$oo/ -height=%d;/ '$ )
+  (f1/ ), /-oidol1o+z$oo/ -height=%d;/ '$? )
 , %%It's a slice - get original width and tweak the width.
-  (z@f-1/ ), /-rf1/), /-oidol1o+z$oo/ -width=%d;/ '$ ) )
-oz
+  (z@f-1/ ), /-rf1/), /-oidol1o+z$oo/ -width=%d;/ '$? ) )
+%s=system 0; oz
   
 <<WindowShrink>>
 %%Prompt string: [Window no.]> 
 %%First pick up the given window number or find the window number of the current buffer.
-ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
+%s=system 1; ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
 %%Now set up the window-identification part of the window-change command.
 z$k?oo/%%w= -winno=%d/r0 
 %%ob %q@=window; z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oidz$k?oo/%%w= -winno=%d/r0 
 %%If it's a full-width window tweak the height, if a slice, tweak the width. 
 ( z@f1/Slice/\  %%It's a full-width window - get the original height and set the new height.
-  (f1/ ), /-oidol1o-z$oo/ -height=%d;/ '$ )
+  (f1/ ), /-oidol1o-z$oo/ -height=%d;/ '$? )
 , %%It's a slice - get original width and tweak the width.
-  (z@f-1/ ), /-rf1/), /-oidol1o-z$oo/ -width=%d;/ '$ ) )
-oz
-  
+  (z@f-1/ ), /-rf1/), /-oidol1o-z$oo/ -width=%d;/ '$? ) )
+oz %s=system 0;
+
 <<ViewSave>>
 %%Prompt string: Optionally specify a view name> 
 %%Default view name is "default".
-obz$(rr-, %s=system 1; i/default/ %s=system 0;) oz
+%s=system 1; obz$(rr-, i/default/ ) oz
 %%Save view.
 %h'=add ViewJump_'$; obofz' z$r-0i/View_FirstLine_/ z'(oq'$ok, %h'=data '$;) ov'$ oz
-%%oe(rr-,)oe(o=okol0, o#ou) oc wof on ob
+%s=system 0;
   
 <<ViewRestore>>
 %%Prompt string: Optionally specify a view name> 
 %%Default view name is "default".
-obz$(rr-, %s=system 1; i/default/ %s=system 0;) oz
-%%Restore view.
-(%h'=jump ViewJump_'$; obz$r-0i/View_FirstLine_/z' oq'$osoz, oz %x=Could not find a saved view for '$;)
+%s=system 1; obz$(rr-, i/default/) oz
+%%Restore view - if the original buffer was ( ~ ).then use z~ instead of oz and hope the correct floating buffer is at the top of the stack.
+(%h'=jump ViewJump_'$; obz$r-0i/View_FirstLine_/z' oq'$os(ol126o=okosz~os, oz), oz %x=Could not find a saved view for '$;)
 %%Now adjust the view.
 wofo-ow
-%%An unfortunate consequence of using hashtabes is that the line numbers can go wrong - this fixes it.
-onm-0onol1o. o-om
+%%An unfortunate consequence of using hashtables is that the line numbers can go wrong - this fixes it.
+oconm-0onol1o. o-om or %s=system 0;
 
 <<PopupSearch>>
 %%Prompt string: Popup search string> 
 %%Search up and down looking for likely matches to the given word.
 %%
+%%First check the arg - exit now if not given.
+obz$m-0(roz, oz%X=Error: no search string given for PopupSearch function.;)
 %%Initialization - clear the ( - ) buffer.
-ob z.n.a- oz
+%s=system 1; ob z.n.a- oz
 %%The original start point.
 ofocon
 %%
 %%Find all nearest words (before or after current point) matching the given string.
 %%Collect matching words in popup-buffer ( - ).
 %%Search backwards for previous word match.
-o#ono-omoso#oros ((f-'$(q-/A-Za-z0-9_/r-)0n.(q//r)0a@&f-'$ obz@r-0i/ /r0i// z-m-0(f'@oz, m-0h@boz\) )0 m-m)0
+o#ono-omoso#oros ((f-'$(q-/A-Za-z0-9_Ā-𠀹/r-)0n.(q//r)0a@&f-'$ obz@r-0i/ /r0i// z-m-0(f'@oz, m-0h@boz\) )0 m-m)0
 %%Search forwards for next word match.
 o#ono-omoso#oros 
 %%Note current-point in word list.
 obz-m0onosoz 
 %%Now do the forwards-looking search.
-((f'$(q-/A-Za-z0-9_/r-)0n.(q//r)0a@& obz@r-0i/ /r0i// z-m-0(f'@oz, h@boz\) )0 mm-)0
+((f'$(q-/A-Za-z0-9_Ā-𠀹/r-)0n.(q//r)0a@& obz@r-0i/ /r0i// z-m-0(f'@oz, h@boz\) )0 mm-)0
 obz-m0onm-0osozol1o- 
 ( ol0o=ok %m=Found no matching words.;
 , %m=Found '~ matching words.;
@@ -358,43 +430,49 @@ obz-m0onm-0osozol1o-
   %%Return to corresponding point in words list.
   obosz-m-0omoz )
 %%Return to original current-character point on main text.
-osono-omosor
+ono-omor
 %%Restore view.
-ofo-ow
+w ofo-ow %s=system 0;
 
 <<PopupIncrementalSearch>>
+%%Prompt string: Popup search string> 
 %%Search up and down looking for likely matches to the given word, updating popup as characters are typed in.
 %%
 %%Initialization, clear the ( $ ) buffer -  used to hold search string.
-ofob z.n.a-n.a$ oz
+%s=system 1; obz$n.a-oz
+%%Set prompt.
+%s=prompt Incremental search> '$;
 %%
   
 ( %%Search-character loop.
-  %%The start point.
-  ocon
-  %%Set prompt, add an endstop marker to the stack and pick up next character.
-  %s=prompt Incremental search> '$; obol0w og z$r0
+  %%Loop init - collect focus-point details, clear results buffer and prepare search string.
+  oconob z-m-0k0w z$m-0
+  %%If we have a non-empty search string, collect matching words and search back from current chr.
+  ( r %%A non-empty search string - collect matching words.
+    oz((f-'$(q/A-Za-z0-9_Ā-𠀹/r)0n.(q-/A-Za-z0-9_Ā-𠀹/r-)0a@& (q-/A-Za-z0-9_Ā-𠀹/r-)0(r-, m-r0) obz@r-0i/ /r0i/ / z-m-0(f'@oz, m-0h@boz\) )0 oc(m-mor, ok\) )0
+    %%Search forwards for next word match - first return to original point.
+    ono-omor ocon
+    %%Now do the forwards-looking search.
+    ((f'$(q-/A-Za-z0-9_Ā-𠀹/r-)0n.(q/A-Za-z0-9_Ā-𠀹/r)0a@& obz@r-0i/ /r0i/ / z-m-0(f'@oz, r0h@boz\) )0 oc(mm-or, ok\) )0
+  , %%The search string was empty.
+    oz )
+  %%Set prompt, report match count, return to original point and display the popup, also disable mouse events until exit.
+  obz-m0 (m-onm-0, i/  /ol0) %s=prompt Currently '~ matching words> '$; %h'=call PopupRestore; %s=mousemask 0; z-m-0 ozono-omor w
+  %%
+  %%Prompt and pick up next character.
+  obw og z$r0
   ( ol127 o= %%It's a rubout - remove last character from search string.
-    okokm-0r0e-?
-  , ol10 o= %%It's a {Return} - exit now.
-    okokozokok ofo-ow %X=done.;
-  , %%Any other character gets added it to the search string.
-    (ol0o=\ oo/%lc/)0 ok )
-    
-  %%Clear the ( - ) buffer now.
-  z-m-0k0w
-  %%Collect matching words and search back from current chr.
-  oz((f-'$(q/A-Za-z0-9_/r)0n.(q-//r-)0a@& (q-//r-)0r- obz@r-0i/ /r0i// z-m-0(f'@oz, m-0h@boz\) )0 ocm-mor )0 ok
-  %%Search forwards for next word match - first return to original point.
-  ono-omorocon
-  %%Now do the forwards-looking search.
-  ((f'$(q-/A-Za-z0-9_/r-)0n.(q//r)0a@& obz@r-0i/ /r0i// z-m-0(f'@oz, r0h@boz\) )0 ocmm-or )0 ok
-  %%Add match count and display the popup, return to original point and display popup.
-  obz-m0m-onm-0oo/ Found %d /b %h'=call PopupRestore; z-m-0ozono-omor )0
+    okm-0r0 e-?
+  , ol10 o= %%It's a {Return} - refocus, re-enable mouse events and exit.
+    okoz %s=mousemask 0004; x2
+  , %%Any other character gets added to the search string.
+    oo/%lc/ ) oz )0 
+%s=system 0;
+%s=prompt > ;
 
 <<PopupRestore>>
 %%Prepares the the popup window for display.
-obz-m-0
+%s=system 1; obz-m-0
 ( r  %%A new popup - top and tail all entries.
   m-0((v/ /e)0r0(v-/ /e-)0m)0 
   %%Set up data object - create it if necessary.
@@ -402,28 +480,28 @@ obz-m-0
 , %%Restore last-used popup.
   oq/'=PopupMenu/z~m-0n.m0r0a-z-ok )
 %%Add colour tag to each item - define the colour tag-type if necessary.
-m-0(oeou (%b=addtag SelectWord;, %b=tagtype SelectWord colour 7 4; %b=addtag SelectWord;) m)0
+m-0(oxou (%b=addtag SelectWord;, %b=tagtype SelectWord colour 7 4; %b=addtag SelectWord;) m)0
 %%If the popup window is not yet defined, do that here.
 %q~=window; ( f/ column popup (/, %w-= -height=20 -width=-20 -popup; ) z-ok
-%%Report popup size - N.B. this line assumes a popup size of 20 lines, this must match the popup size above.
-ol20on(o>ok %m=Displaying all of popup menu.;, onos %m=Displaying '~ lines of '~ in popup menu.;)
+%%  %%Report popup size - N.B. this line assumes a popup size of 20 lines, this must match the popup size above.
+%%  ol20on(o>ok %m=Displaying all of popup menu.;, onos %m=Displaying '~ lines of '~ in popup menu.;)
 %%Enable mouse events (Button-1 click) and set up callback.
 %s=mousemask 0004;
-z^m-0(f/%h'=call FocusToMouse;/s/%h'=call PopupMouseSelect;/, )
+z^m-0(f/%h'=call FocusToMouse;/s/%h'=call PopupMouseSelect;/)0
 %%Return to original position.
-oz
+%s=system 0; oz
 
 <<PopupMouseSelect>>
-%%The mouse-event callback - coordinates identify the required spelling (45 is ASCII code for ( - ) btw).
+%%The mouse-event callback - coordinates identify the required spelling (45 is ASCII code for ( - ) BTW).
 %%Identify the popup word.
-ob opol45o=okz-ono-omok n.r0a$ m-0k0
+%s=system 1; ob opol45o=okz-ono-omok n.r0a$ m-0k0
 %%Tidy up - disable mouse-clicks and destroy popup menu.
 %s=mousemask 0; w
 %%Restore original mouseclick handler.
-z^m-0(f/%h'=call PopupMouseSelect;/s/%h'=call FocusToMouse;/, )
+z^m-0(f/%h'=call PopupMouseSelect;/s/%h'=call FocusToMouse;/)0
 %%Push selected word into command stream.
-z$i/%s=commandstring /r0i/;/ oz '$
-  
+z$i/%s=commandstring /r0i/;/ oz '$ %s=system 0; 
+
 <<PopupReset>>
 %%Clears the popup buffer and resets mousemask.
 obz-m-0k0oz %s=mousemask 0; %l;
@@ -431,17 +509,17 @@ obz-m-0k0oz %s=mousemask 0; %l;
 <<PopupPageUp>>
 %%Scrolls the popup window up to previous page.
 %%Unfortunately, the usual M* command won't work for popups because it takes the height of the current window, not of the popup.
-obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol1o- z-o-ono-om?
+%s=system 1; obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol1o- z-o-ono-om?
   %%Report current position in popup.
   onm0m-onosono-omof %m=Displaying popup from line no. '~ ('~ lines in total).;, ok)
-oz
+%s=system 0; oz
 
 <<PopupPageDown>>
 %%Unfortunately, the usual M* command won't work for popups because it takes the height of the current window, not of the popup.
-obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol2o*ol1o- z-o+ono-om?w
+%s=system 1; obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol2o*ol1o- z-o+ono-om?w
   %%Report current position in popup.
   onm0m-onosono-omof %m=Displaying popup from line no. '~ ('~ lines in total).;, ok)
-oz
+%s=system 0; oz
 
 <<End>>
 m0m-
@@ -458,7 +536,16 @@ ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
 <<ViewUp>>
 %%Prompt string: Window no.> 
 %%By default applies to the current-buffers window the optional arg specifies which window to scroll.
-%s=system 1; obz$r-0(v/ /r)0(rr-e-0i/win:/r0i/ / %q@=window; f'$f1/ ( /-oicoz(ol1ow)oz, oz(ol1ow) ) %s=system 0;
+%s=system 1; obz$r-0(v/ /r)0 (r  %%A window number was specified - adjust only that one.
+  %q@=window;
+  r-e-0i/win:/r0i/ /
+  %%Get the buffer key for whatever is being displayed by that window.
+  z@m-0 f'$f1/ ( /-oicoz(ol1ow) oz
+, %%No window number was specified - adjust all windows. 
+  %q$=window;
+  z$m=3
+  (mf1/win:/-f1/ ( /-oic (f1/ popup /oz, ozol1ow) z$)0 ) ozw
+%s=system 0;
   
 <<Down>>
 (m)
@@ -469,16 +556,22 @@ ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
 <<ViewDown>>
 %%Prompt string: Window no.> 
 %%By default applies to the current-buffers window the optional arg specifies which window to scroll.
-%s=system 1; obz$r-0(v/ /r)0(rr-e-0i/win:/r0i/ / %q@=window; f'$f1/ ( /-oicoz(ol-1ow)oz, oz(ol-1ow) ) %s=system 0;
+%s=system 1; obz$r-0(v/ /r)0 (r  %%A window number was specified - adjust only that one.
+  %q@=window;
+  r-e-0i/win:/r0i/ /
+  %%Get the buffer key for whatever is being displayed by that window.
+  z@m-0 f'$f1/ ( /-oicoz(ol-1ow) oz
+, %%No window number was specified - adjust all windows. 
+  %q$=window;
+  z$m=3
+  (mf1/win:/-f1/ ( /-oic (f1/ popup /oz, ozol-1ow) z$)0 ) ozw
+%s=system 0;
   
 <<Right>>
-(r\m,r-r)
+(r, m)
   
 <<Left>>
-(r-\m-r0,rr-)
-  
-<<LineRightUp>>
-(rr0,m-r0)
+(r-, m-r0)
   
 <<LineLeft>>
 (r-r-0, m-)
@@ -506,9 +599,6 @@ v/</(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/
 <<SquareMatchLeft>>
 v/[/(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/(r-, m-r0),q/]/ol1o-(r-, r-r0),q/[/\(r-, m-r0),o~(r-, m-r0))0ok
   
-<<MarkupMatchLeft>>
-v/</\f-/</, (v"</", f-"</")r2n.f1/>/a$& (f-/</-2(v/ /r)0(v'$\, (q/ >/\r)0v-'$\))0 f-/</
-  
 <<LineRight>>
 ((r, m)r0)
   
@@ -519,10 +609,22 @@ v/</\f-/</, (v"</", f-"</")r2n.f1/>/a$& (f-/</-2(v/ /r)0(v'$\, (q/ >/\r)0v-'$\))
 %q=inview;? okokol0(o>\okol0, ol-1o+) %b=leftoffset '~;
   
 <<WordLeft>>
-(%q=tabstops; ((v-/	/, f1//-, r0)oc (f-1//r, r-0)oc o~o-ou)?, (r-, m-r0)(q-/a-zA-Z0-9/(q//r)0, (q-//\r-)0) oc (q-//r-)0 oc o-ou) (%q=inview; okokok, osokosokol1o- %b=leftoffset '~;)
+( %q=tabstops; 
+  %%Tabstops have been set - find next table cell, first identify the table-separator character.
+  %s=system 1; ob %q$=system; f/Table-entry separator = '0x/-oixm-0b-oo/%c/ oz %s=system 0;
+  ((v-'$, f1'$-, r0)oc (f-1'$r, r-0)oc o~o-ou)?
+, %%No tabstops - just take standard definition of a word.
+  (q-/a-zA-Z0-9Ā-𠀹/(q//r)0, (q-//\r-)0)(r-r, m-r0) oc (q-//r-)0 oc o-ou) 
+(%q=inview; okokok, osokosokol1o- %b=leftoffset '~;)
   
 <<WordRight>>
-(%q=tabstops; (r?r-(f-1/	/-, r-0)oc (f1//, r0)oc o-ou)?, (r, m)(q/a-zA-Z0-9/(q-//r-)0, (q//\r)0) oc (q//r)0 oco-ou) (%q=inview; okokok, oso-osok %b=leftoffset '~;)
+( %q=tabstops; 
+  %%Tabstops have been set - find next table cell, first identify the table-separator character.
+  %s=system 1; ob %q$=system; f/Table-entry separator = '0x/-oixm-0b-oo/%c/ oz %s=system 0;
+  (r?r-(f-1'$-, r-0)oc (f1'$, r0)oc o-ou)?
+, %%No tabstops - just take standard definition of a word.
+  (r, m)(q/a-zA-Z0-9Ā-𠀹/(q-//r-)0, (q//\r)0) oc (q//r)0 oco-ou) 
+( %q=inview; okokok, oso-osok %b=leftoffset '~;)
   
 <<WordDown>>
 (%q=tabstops; yocr(f1/	/, r0)oco-o#orol0oso-ou, y) (%q=inview; okokok, osokosokol1o- %b=leftoffset '~;)
@@ -541,9 +643,9 @@ y0 (%q=tabstops; y-ocr(f1/	/, r0)oco-o#orol0oso-ou, y-) (%q=inview; okokok, osok
 ob%q-=history; m0m-kb-i'$b m-0mb-oo/In buffer %c/m0m-2
   
 <<CmdEditGo>>
-( obol45o=okmk0m+2f1/In buffer /-oicm0m-k-0
+( %s=system 1; obol45o=okmk0m+2f1/In buffer /-oicm0m-k-0
   %%Apply the modified command.
-  i/%s=commandstring / (f1/\/i/\/r)0 r-0(f1/;/i/\/r)0
+  i/%s=commandstring / (f1/\/i/\/r)0 r-0(f1/;/i/\/r)0 %s=system 0; 
   %%Return to original buffer and apply.
   oz '-
 , %%Something failed - most probably the checks to ensure we're looking at a valid command-history report.
@@ -555,19 +657,48 @@ ob%q-=history; m0m-kb-i'$b m-0mb-oo/In buffer %c/m0m-2
 '$
 
 <<ParenMatchRight>>
-v/)/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/(/ol1o-(r, m),q/)/\(r,m,okol-1?\),o~(r, m))0ok
+%s=system 1; v/)/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/(/ol1o-(r, m),q/)/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0; 
   
 <<CurlyMatchRight>>
-v/}/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/{/ol1o-(r, m),q/}/\(r,m,okol-1?\),o~(r, m))0ok
+%s=system 1; v/}/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/{/ol1o-(r, m),q/}/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0; 
   
 <<AngleMatchRight>>
-v/>/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/</ol1o-(r, m),q/>/\(r,m,okol-1?\),o~(r, m))0ok
+%s=system 1; v/>/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/</ol1o-(r, m),q/>/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0;
   
 <<SquareMatchRight>>
-v/]/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/[/ol1o-(r, m),q/]/\(r,m,okol-1?\),o~(r, m))0ok
+%s=system 1; v/]/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/[/ol1o-(r, m),q/]/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0;
   
 <<MarkupMatchRight>>
-(v"<"v"</"\)\(f"<"v"</"r)0, rn.(q/ >/\r)0a$& f/>/(v-/ /r-)0v-"/"f/</, (f/</-(v/ /r)0(v"/"\, r(v/ /r)0(v'$\, f1/>/v-'$\)))0 f/</(v"</"(r-f-/</, m-r0), )
+%%The cursor must be initially positioned over the '<' of a markup block start and finds the corresponding block end.
+%%e.g. "<span", in this case it locates the matching "</span" tag.
+%%
+%s=system 1; 
+%%First pick up the block tagName id.
+((v/</, f/</)v"</"r)0 rn.(q/ >/\r)0a$&f-1/</
+%%Now search for possible block-end tag - updating the depth-search counters as appropriate.
+ol-1 
+( %%Block-start/end loop.
+  %%Search forwards looking for the next block-start/end with this tagName.
+  (( f/</ r(v"/"r, )v'$\)0 r-f1'$-q/A-Za-z0-9_/ r)0
+  %%This is either a matching <tagName or a </tagName block delimiter, decrement the counter for another <tagName ... , incriment for </tagName ... 
+  f-1/</v"</"\ ol1o-(r, m), o~ r)0ok
+%s=system 0;
+  
+<<MarkupMatchLeft>>
+%%The cursor must be initially positioned over the '<' of a markup block end and finds the corresponding block start.
+%%e.g. "</span", in this case it locates the matching "<span" tag.
+%%
+%s=system 1; 
+%%First pick up the block tagName id.
+((v/</, f-/</)v"</"\(r-2, m-r0))0 r2n.(q/ >/\r)0a$&f-1/</
+%%Now search for possible block-end tag - updating the depth-search counters as appropriate.
+ol-1 
+( %%Block-start/end loop.
+  %%Search backwards looking for the previous block-start/end with this tagName.
+  (( f-/</ r(v"/"r, )v'$\f-/</)0 r-f1'$-q/A-Za-z0-9_/ f-/</)0
+  %%This is either a matching <tagName or a </tagName block delimiter, decrement the counter for another </tagName ... , incriment for <tagName ... 
+  f-1/</v"</" ol1o-((r-, m-r0), m-), o~ (r-, m-r0))0ok
+%s=system 0;
   
 <<DeleteChrLeft>>
 (n.(r-,m-r0)?a%-)
@@ -594,34 +725,86 @@ r-0(q-/ /r-)0(q/ /e)0n.r-0(q/ /r)0a$r-0h$b-j-(q-/ /r-)0(q/ /e)0i-/ /j
 r-0(q-/ /r-)0(q/ /e)0n.r0a$m(q/ /r)0h$(q-/ /r-)0(q/ /e)0i-/ /j-
   
 <<Break>>
-b(v/ /e)0m-n.(v/ /r)0a$&mh$ (%q=inview; okokok, osokosokol1o- %b=leftoffset '~;)
+%%Breaks line at current-character position and indents to match original, respecting bullet strings.
+%s=system 1; 
+%%Count blanks.
+b(v/ /e)0m-(v/ /r)0 
+%%Is this a bullet line.
+oq/'=DocBulletString/ (v'~rr-f1'~-, ) 
+%%Indent the 2nd. half line.
+ocmol-1oso- (o~i/ /)0 
+%%Adjust view if necessary.
+(%q=inview; okokok, osokosokol1o- %b=leftoffset '~;) 
+%s=system 0; ok
   
 <<Join>>
-j-(v-/ /e-)0(v/ /e)0i/ / (%q=inview; okokok, osokosokol1o- %b=leftoffset '~;)
+%s=system 1; j-(v-/ /e-)0(v/ /e)0i/ / (%q=inview; okokok, osokosokol1o- %b=leftoffset '~;) %s=system 0;
   
 <<IndentFromPrev>>
-r-0(v/ /e)0m-n.(v/ /r)0a$&mh$
+%s=system 1; r-0(v/ /e)0m-n.(v/ /r)0a$&mh$ %s=system 0;
   
 <<IndentFromNext>>
-r-0(v/ /e)0mn.(v/ /r)0a$&m-h$
+%s=system 1; r-0(v/ /e)0mn.(v/ /r)0a$&m-h$ %s=system 0;
   
-<<ParagraphUp>>
+<<BlockUp>>
 m-(r\m-)0r-(rm-)0m
   
-<<CodeSectionUp>>
-(m-(q/A-Za-z/\,r\))0r- (m-(q/ /r)0q/0-9A-Za-z/)0m
-  
-<<IndentMatchUp>>
-r-0q/ /\(m-(q. /$.,r\))0r-,(v/ /r)0oc(m-(v/ /r)0oco=\)0ok
-  
-<<ParagraphDown>>
+<<BlockDown>>
 m(r\m)0r-(rm)0(r\m)0r-
   
-<<CodeSectionDown>>
-(mq/A-Za-z/\,r\mm-)0 r-0
+<<ChapterUp>>
+(m-(q/A-Za-zĀ-𠀹/\,r\))0r- (m-(q/ /r)0q/A-Za-zĀ-𠀹/)0m
+  
+<<ChapterDown>>
+(mq/A-Za-zĀ-𠀹/\,r\mm-)0 mm-
+
+<<HeadedSectionUp>>
+(m-(q/0-9/\,r\))0r- (m-(q/ /r)0q/0-9/)0m
+  
+<<HeadedSectionDown>>
+(mq/0-9/\,r\mm-)0 mm-
+
+<<ParagraphUp>>
+%%Pick up bullet string.
+on oq/'=DocBulletString/ 
+( %%Main loop - only repeats if original start line was a one-line paragraph.
+  %%If on an unindented, blank or bullet-point line, search back for previous indented line and push initial indent to stack.
+  r-0 ( (v/ /\(m-, x2))0 (v/ /r)0 (v'~r-f1'~-x2, ) (r\(m-, x3), ) r-\)0 oc r-0
+  ( %%Record loop - exit if the line is blank or if it's a bullet or if indent doesn't match.
+    (v/ /r)0 (rr-, m\) os(v'~\os, r-f1'~-osoc (o=x3, mx3)) oc (o=, m\)
+    %%Index to next line.
+    (m-2m, okx3) )0 ok
+  %%If we're still at the original start line, then move up one line and repeat
+  osono=osm- )0 okok
+m-m
+%%r-0
+
+<<ParagraphDown>>
+%%Pick up bullet string.
+on oq/'=DocBulletString/ 
+( %%Main loop - only repeats if original start line was a one-line paragraph.
+  %%Search for next indented line and push initial indent to stack.
+  ( (v/ /\(m, x2))0 (v/ /r)0 (v'~r-f1'~-x2, ) (r\(m, x3), ) r-\)0
+  %%If we're still at the original start line, exit now.
+  osono=os oc
+  ( (m, x3) %%Record loop - index to next line.
+    %%Exit if the line is blank or if it's a bullet or if it's indent doesn't match.
+    (v/ /r)0 (rr-, m\) os(v'~\os, x3) oc o=)0 okr-0
+  )0 okok 
+mm-
+%%r-0
+
+<<SentenceUp>>
+(q-/. /r-)0r-?( (f-1/./\m-(v/ /r)0rr0)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./ )0 oc(m-mor, okx\)
+  
+<<SentenceDown>>
+(v/./, )( (f1/./\m(v/ /r)0rr-)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./ )0 oc(mm-or, okx\)
+  
+<<IndentMatchUp>>
+%s=system 1; r-0q/ /\(m-(q. /$.,r\))0r-,(v/ /r)0oc(m-(v/ /r)0oco=\)0ok %s=system 0;
   
 <<IndentMatchDown>>
-r-0q/ /\(m(q. /$.,r\))0r-,(v/ /r)0oc(m(v/ /r)0oco=\)0ok
+%s=system 1; r-0q/ /\(m(q. /$.,r\))0r-,(v/ /r)0oc(m(v/ /r)0oco=\)0ok %s=system 0;
   
 <<Macro0>>
 %%Prompt string: Macro-0 parameters> 
@@ -664,17 +847,17 @@ r-0q/ /\(m(q. /$.,r\))0r-,(v/ /r)0oc(m(v/ /r)0oco=\)0ok
 '9
   
 <<UpRegardless>>
-ocol-1oso- (m-, b-)(o~ (r, i/ /))0 ok
+%s=system 1; ocol-1oso- (m-, b-)(o~ (r, i/ /))0 ok %s=system 0;
   
 <<DownRegardless>>
-ocol-1oso- (m, r0b)(o~ (r, i/ /))0 ok
+%s=system 1; ocol-1oso- (m, r0b)(o~ (r, i/ /))0 ok %s=system 0;
   
 <<RightRegardless>>
 (r, i/ /)
   
 <<Enter>>
 %%Prompt string: Enter string> 
-obz$i/i`/r0i/ /'$ oz r-0(q/ /r)0(r,m-n.(v/ /r)0(rr-)?a$h$me0h$,)r0bm-n.(q/ /r)0a$h$mh$i//e-
+%s=system 1; r-0ol0(ol1o-v/ /r)0 r0b (o~i/ /)0 ok i'$ %s=system 0;
   
 <<InsertMode>>
 %s=commandmode +2
@@ -685,14 +868,23 @@ obz$i/i`/r0i/ /'$ oz r-0(q/ /r)0(r,m-n.(v/ /r)0(rr-)?a$h$me0h$,)r0bm-n.(q/ /r)0a
 <<Again>>
 1
   
-<<QuitDebugger>>
-ob %q~=system; f/Default trace vector = /-oixol32o& (ol0o=, okol20) %s=trace '~; osozok
+<<AgainExhaustive>>
+%%Repeats the last command until it fails, report in total iterations.
+%%First pick up last command - to buffer ( * ).
+ob %q*=history; m0m-k0m-k-0oz 
+%%Set up counter, do repeats and report.
+ol0 ('*o~)0 %m=Completed '~ repeats of '*
+
+<<DebuggerQuit>>
+%%This one is tricky, we can't use ( $ ) to carry the parameter since this might be in use by the debugged code, so we'll have to knife and fork it.
+%%This is tough luck for any users wanting to escape the debugger in screen-edit mode.
+%s=system 1; ob %d~=##; z~ (oid osz$okosozol1o+ %s=traceskip '~;, z$ok(ol126 o=okz~, oz) %s=trace 0; ) %s=system 0;
   
 <<FocusToMouse>>
 %%This needs to be at least two lines long, then it gets entered as a function call which can be redefined
 %%by functions needing to redefine mouse-event behaviour.
 opozono-omor 
-(q/0-9a-zA-Z_/r)0oc(q-//r-)0oco-ou
+(q/0-9a-zA-Z_Ā-𠀹/r)0oc(q-//r-)0oco-ou
   
 <<NoteFromMouse>>
 opozono-omor p n.
@@ -710,7 +902,7 @@ oconobop
 ozono-omorn. opozono-omor a$& ozono-omor
   
 <<SelectionWord>>
-oconobopozono-omor (q-/A-Za-z0-9_/r-)0n.(q//r)0 a$& ozono-omor
+oconobopozono-omor (q-/A-Za-z0-9_Ā-𠀹/r-)0n.(q//r)0 a$& ozono-omor
   
 <<SelectionLine>>
 oconobopozono-omor r-0n.r0 a$& ozono-omor
@@ -724,7 +916,7 @@ n.a$&
 <<ScriptByName>>
 %%Prompt string: Script subname> 
 %%Searches scripts in PWD and ${JOT_HOME}/coms for scripts matching a a specified name.
-ob
+%s=system 1; ob
 %%Define buffer 0.
 n.a0&z0 oo/z%c/ i/%s=commandstring %r='+/
 %%Acquire search string.
@@ -739,12 +931,12 @@ m-0m (v/dir /m, r0v-/.jot/m, k)0 m-0m z$r-0(r z+(v/dir /m, f1'$m, k)0, z+)
 %%Construct the pathnames.
 m-0m (v/dir /r4n.r0a$k, rr-h$m)0
 %%Rewind and finish.
-z+m-0m
+z+m-0m %s=system 0;
 
 <<ScriptByFunc>>
 %%Prompt string: Script function string> 
 %%Searches scripts in PWD and ${JOT_HOME}/coms for scripts matching a a specified name.
-ob
+%s=system 1; ob
 %%Define buffer 0.
 n.a0&z0 z0i"z+l0n.f1/ /a$&"r0 oo/z%c/ i"%s=commandstring %r='$"
 %%Acquire search string.
@@ -762,231 +954,770 @@ ol0m-0m(f/	/roc (o<okoc,) m)0
 %%Resolve the first tabs.
 m-0(f/	/ei/ /o#oc (o> ocoso- (i/ /o~)0, ) ok m)0 ok
 %%Rewind and finish.
-z+m-0m %l;
+z+m-0m %l; %s=system 0;
 
 <<FindWild>>
 %%Prompt string: Find-wild string> 
 %%finds next line containing substrings in correct order.
 %%Set up argument list if given - use last entry if it's null.
-obz$ (rr- (f1/*/eb)0 m-0n.m0r0a@, ) z@m-0oz
+%s=system 1; obz$ (rr- (f1/*/eb)0 m-0n.m0r0a@, ) z@m-0oz
 %%reset search list and advance current character if already at an initial match point
 obz@m-0oz (v'@r,)
 %%Main search loop.
 f'@rr-oc (f1'@-\ mobz@m-0ozf'@rr-okoc, obz@(moz, oz\))0
 %%If successfully completed search select complete string.
-(v-'@ n.oco-ora$h$f-1'$, )
+(v-'@ n.oco-ora$h$f-1'$, ) %s=system 0;
 
 <<FindWildPrev>>
 %%Prompt string: Find-wild string> 
 %%finds previous line containing substrings in correct order.
 %%Set up argument list if given - use last entry if it's null.
-obz$ (rr- (f1/*/eb)0 m-0n.m0r0a@, ) z@m0oz
+%s=system 1; obz$ (rr- (f1/*/eb)0 m-0n.m0r0a@, ) z@m0oz
 %%reset search list and advance current character if already at an initial match point
 obz@m0oz (v'@(r-, m-r0),)
 %%Main search loop.
 f-'@-r-roc (f-1'@\ m-r0obz@m0ozf-'@-r-rokoc, obz@(m-oz, oz\))0
 %%If successfully completed search select complete string.
-(v'@ n.oco-ora$h$f-1'$, )
+(v'@ n.oco-ora$h$f-1'$, ) %s=system 0;
 
-<<FdInLineUn>>
+<<FindLineUn>>
 %%Prompt string: Find-in same line string> 
 %%Function finds next line matching a set of substrings in the any order.
 %%
 %%Prepare args in @ buffer.
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
+%s=system 1; obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
 %%Go
 (f'@ (obz@(m2m-oz, oz\)r-0 f1'@-)0 obz@(mm-0oz, oz\)m)0 
 %%If the previous loop completed at the end of the list of substrings then a match was found.
-obz@(m\oz, oz %x=Failed to find a line containing the specified set of substrings.; )
+obz@(m\oz, oz %x=Failed to find a line containing the specified set of substrings.; ) %s=system 0;
 
-<<FdInLineUnPrev>>
+<<FindLineUnPrev>>
 %%Prompt string: Find-in same line string> 
 %%Function finds previous line matching a set of substrings in the any order.
 %%
 %%Prepare args in @ buffer.
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0moz
+%s=system 1; obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0moz
 %%Go
 (f-'@ (obz@(m2m-oz, oz\)r-0 f1'@-)0 obz@(mm-0oz, oz\)m-)0 
 %%If the previous loop completed at the end of the list of substrings then a match was found.
-obz@(m\oz, oz %x=Failed to find a line containing the specified set of substrings.; )
+obz@(m\oz, oz %x=Failed to find a line containing the specified set of substrings.; ) %s=system 0;
 
-<<FdInNLinesUn>>
-%%Prompt string: Find-in same line string> 
-%%Function finds next sequence of no more than N lines containing a set of substrings in the any order.
-%%
-%%Prepare args in @ buffer, first arg is aperture (allowable no. of lines).
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
-%%Go
-( %%Search loop - find the next line that contains any of the required substrings.
-  %%Reset substrings list.
-  obz@m-0moz 
-  ( f1'@\obz@(m2m-oz, m-0mozm) )0 obz@ob(o=\oz, okoz %x=Initail search failed.;)
-  %%Abstract the aperture.
-  obz@m-0oidmosozr-0n.oma$&
-  %%Check the abstract for each required substring.
-  ob( z$m-0f'@ z@(m2m-, m))0 z@moz )0 obz@ob(o=okoz, oz)
-%%If the main loop completed on the last required substring rhen we've found a matching set of lines.
-obz@(m\oz, oz %x=Failed to find a block of lines containing the specified set of substrings.; )
-%%Now return to the first required substring.
-wobz@m-0oidmosoz ol-1o*omf'@
-
-<<FdInNLinesUnPrev>>
-%%Prompt string: Find-in same line string> 
-%%Function finds next sequence of no more than N lines containing a set of substrings in the any order.
-%%
-%%Prepare args in @ buffer, first arg is aperture (allowable no. of lines).
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
-%%Go
-( %%Search loop - find the next line that contains any of the required substrings.
-  %%Reset substrings list.
-  obz@m-0moz 
-  ( f1'@\obz@(m2m-oz, m-0mozm-) )0 obz@ob(o=\oz, okoz %x=Initail search failed.;)
-  %%Abstract the aperture.
-  obz@m-0oidmosozmn. ol-1o*oma$&
-  %%Check the abstract for each required substring.
-  ob( z$m-0f'@ z@(m2m-, m))0 z@mozm-2 )0 obz@ob(o=okoz, oz)
-%%If the main loop completed on the last required substring rhen we've found a matching set of lines.
-obz@(m\oz, oz %x=Failed to find a block of lines containing the specified set of substrings.; )
-%%Now return to the first required substring.
-wobz@m-0oidmosoz ol-1o*omf'@
-
-<<FdInLineOrd>>
+<<FindLineOrd>>
 %%Prompt string: Find-in same line string> 
 %%Function finds next line matching a sequence of substrings in the same order as given.
 %%
 %%Prepare args in @ buffer.
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
+%s=system 1; obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
 %%  obz$ (r\z@, r-n.r0a@&z@  ((v/ /e)0f1/ /b(v/ /e)0)0 r0b) m-0oz
 %%Go
 (f'@oc (obz@m2m-oz f1'@-)0 obz@mm-0ozokr)0 okoz
 %%If the previous loop completed at the end of the list of substrings, a match was found - let's see.
-(obz@m\ ozoc o-ou, ozok) 
+(obz@m\ ozoc o-ou, ozok) %s=system 0;
 
-<<FdInLineOrdPrev>>
+<<FindLineOrdPrev>>
 %%Prompt string: Find-in same line string> 
 %%Function finds previous line matching a sequence of substrings any order.
 %%
 %%Prepare args in @ buffer.
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
+%s=system 1; obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
 %%  obz$ (r\z@, r-n.r0a@&z@  ((v/ /e)0f1/ /b(v/ /e)0)0 r0b) m-0oz
 %%Go
 (f-'@oc (obz@m2m-ozr-0 f1'@-)0 obz@mm-0ozokr-)0 okoz
 %%If the previous loop completed at the end of the list of substrings, a match was found - let's see.
-(obz@m\ ozoc o-ou, ozok) 
+(obz@m\ ozoc o-ou, ozok) %s=system 0;
 
 <<FindSequence>>
 %%Prompt string: Find-sequence string> 
 %%function finds the sequence of words in arg - ignoring of whitespace & breaks.
 %%Set up argument list if given - use last entry if it's null.
-obz$ (rr- (r(v-/*/q/_A-Za-z0-9/b, r-) (q/_A-Za-z0-9/\e)0 q//(q//r)0 brr-)0 r-0(r, j-) z@m-0k0e0h$,) z@m-0o#oz
+%s=system 1; obz$ (rr- (r(v-/*/q/_A-Za-z0-9Ā-𠀹/b, r-) (q/_A-Za-z0-9Ā-𠀹/\e)0 q//(q//r)0 brr-)0 r-0(r, j-) z@m-0k0e0h$,) z@m-0o#oz
 %%If already matched to first item - find next.
 (v'@r,)
 ( %%Main loop - first find the next occurence of the first item.
   %%Initial search for first item. 
-  (f'@(q-/_A-Za-z0-9/r?, rr-f1'@-q/_A-Za-z0-9/))0 v-'@
+  (f'@(q-/_A-Za-z0-9Ā-𠀹/r?, rr-f1'@-q/_A-Za-z0-9Ā-𠀹/))0 v-'@
   %%Match all remaining items.
   ( %%Index to next item - exit on last item.
     z@mo#oz
     %%Find next word.
-    ((q/_A-Za-z0-9/\r)0r\m)0 r-
-    (v'@(q-/_A-Za-z0-9/r?, rr-f1'@-q/_A-Za-z0-9/))0 (v-'@, obz@(v/*/oz(q/_A-Za-z0-9/r)0, oz\))
+    ((q/_A-Za-z0-9Ā-𠀹/\r)0r\m)0 r-
+    (v'@(q-/_A-Za-z0-9Ā-𠀹/r?, rr-f1'@-q/_A-Za-z0-9Ā-𠀹/))0 (v-'@, obz@(v/*/oz(q/_A-Za-z0-9Ā-𠀹/r)0, oz\))
     )0
   o#ozv-'@\ z@m-0o#oz
   )0
 %%Completed search - reset search list and go back to the first item.
-v-'@r-rz@m-0o#oz (f-'@(q-/_A-Za-z0-9/r-?,rr-f1'@-q/_A-Za-z0-9/f-'@))0f-1'@ ok, ok
+v-'@r-rz@m-0o#oz (f-'@(q-/_A-Za-z0-9Ā-𠀹/r-?,rr-f1'@-q/_A-Za-z0-9Ā-𠀹/f-'@))0f-1'@ ok %s=system 0;
+
+<<findVertInit>>
+%%Initialization procedure for all vertical-find functions.
+%%If find-column string not set up then do it now.
+( oq/'=findVerticalSpecification/ok, %h'=data findVerticalSpecification; ) 
+%%Save/retrieve findVerticalSpecification.
+(obz$r-0r %d~='$; ov/'=findVerticalSpecification/, ) oz
+%%Setup colour tags - if not already done for this buffer.
+ob %q$=buffer; (f/TagType = Name     Vertical,/oz, oz %b=tagtype Vertical colour 0 3;)
+%%Clear any old tags.
+oconob %q$=tags;
+( %%Colour-tag removal loop.
+  f/active colour is Vertical/
+  %%Pick up substring length, start point and line no.
+  o#f-1/ to /-oidf-1/, chr /-oido-os f-1/, chr /-oidos f-1/At rec /-oidos
+  %%Now remove the tag.
+  moz ono-om or o~ou %b=remove_tag colour Vertical; wz$m)0
+%%Return cursor to original position.
+ozono-omor
+
+<<findVertVerifyColumn>>
+%%Verifies column match.
+%%Calling function has set buffer ( @ ) to contain column specification
+%%and has done y0 to lock y into the correct column.
+obz@
+( %%Character loop.
+  %%Check for end of specification line.
+  (rr-, ozx0)
+  %%A ( * ) indicates a wild match - skip any number of characters in the column until we wind a match.
+  ( v/*/ ozon ( %h'=call findVertVerifyWild; okx0, o~ono-omy- x0\ ), )
+  %% blanks are ignored.
+  (v/ /r)0
+  %% ( . ) is a single wild character.
+  v/./o#ozyz@(r2r-, ozx0),
+  %%Escaped characters treated as-is.
+  (v/\/r, )
+  %%Verify all other characters.
+  n.ra$&ozv'$y obz@, x0\)0
+
+<<findVertVerifyWild>>
+%%Verifies column wildcard match, called by findVertVerifyColumn and recursively by itself to synchronize and match the column pattern.
+( %%Find the next-matching character in the column.
+  obz@r (v/ /r)0 (v/\/r, ) (v/./ozy, n.ra$& oz (v'$\ y)0 (v'$, x0\) yobz@ )
+  %%Verify the remainder of column normally.
+  ( %%Character loop.
+    %%Check for end of specification line.
+    (rr-, ozx0)
+    %%A ( * ) indicates another wild match.
+    ( v/*/ ozon ( %h'=call findVertVerifyWild; okx0, o~ono-omy- x0\ ), )
+    %% blanks are ignored.
+    (v/ /r)0
+    %% ( . ) is a single wild character.
+    v/./o#ozyz@(r2r-, okokx0),
+    %%Escaped characters treated as-is.
+    (v/\/r, )
+    %%Verify all other characters.
+    n.ra$&oz v'$yobz@, x0\)0 )0
+
+<<findVertNext>>
+%%Prompt string: Find vertical string:
+%%Finds specified string in any column.
+%%Initialize for search.
+%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+( %%Initial match search loop.
+  obz@r-0
+  %%Find next initial match.
+  (v/ /r)0v/./oz, (v/\/r, )n.ra$&r-0 oz (f'$y0, x0\)
+  %%Verify the column and, if successful, add colour tags.
+  on %h'=call findVertVerifyColumn;\ o~ono-omy-(r, m) )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol2o+omy-(r, m)
+
+<<findVertPrev>>
+%%Prompt string: Find vertical string:
+%%Finds specified string in any column.
+%%Initialize for search.
+%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+( %%Initial match search loop.
+  obz@r-0
+  %%Find next initial match.
+  (v/ /r)0v/./oz, (v/\/r, )n.ra$&r- oz (f-'$y0, x2\)
+  %%Verify the column and, if successful, add colour tags.
+  on %h'=call findVertVerifyColumn;\ ono-omyy-(r-, m-r0) )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol2o+omy-(r-, m-r0)
+
+<<findColNext>>
+%%Prompt string: Find column string:
+%%Finds specified string in current column.
+%%Initialize for search.
+%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+( %%Initial match search loop.
+  yy-
+  obz@r-0
+  %%Find next initial match.
+  (v/ /r)0v/./oz, n.ra$&r- oz(v'$\y)0
+  %%Verify the column and, if successful, add colour tags.
+  on %h'=call findVertVerifyColumn;\ ono-omy )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol3o+omy-
+
+<<findColPrev>>
+%%Prompt string: Find column string:
+%%Finds specified string in current column.
+%%Initialize for search.
+%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+( %%Initial match search loop.
+  y-y
+  obz@r-0
+  %%Find next initial match.
+  (v/ /r)0v/./oz, n.ra$&r- oz(v'$\y-)0
+  %%Verify the column and, if successful, add colour tags.
+  on %h'=call findVertVerifyColumn;\ ono-omy- )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol3o+omy-
+
+<<findRectNext>>
+%%Prompt string: Find rectangle buffer:
+%%Searches the current buffer for a rectangular area matching text in the nominated buffer.
+%h'=call findRectInit;
+%%
+%%Pick up specification
+oq/'=findVerticalSpecification/ z~m-0n.m0r0a@&osozok
+( %%Rectangle-start loop - find next match to top-left character in specification.
+  %%Find initial match and save start position.
+  obz@m-0 (v/ /r)0v/./oz, (v/\/r, ) n.ra$&r- oz(f'$, x3\)y0 oconol0
+  ( %%Column loop.
+    %%Check for a wild column ( * ).
+    obz@ ( v/*/oz ( %h'=call findRectWildColumn; x4, x-4 ), oz)
+    %%Verify this column.
+    on %h'=call findVertVerifyColumn;
+    %%Column match success - save LWM line no. and index to next column.
+    oson(o<\, okon) oso~ono-omy- obz@(moz, ozx3) ry0
+  , %%Column-verification failed, return to previous rectangle start and resume first-character search.
+    o~ono-omy-(r, m) okokokx)0
+  )0
+%%Match success, add colour tags.
+oso-o#omwol-1oso- oso#y-oco~oso- osr-0ory0 (oso~ os o#ou %b=addtag Vertical; y-)0 okok y(r, m)
+
+<<findRectPrev>> 
+%%Prompt string: Find rectangle buffer:
+%%Searches back in the current buffer for a rectangular area matching text in the nominated buffer.
+%h'=call findRectInit;
+%%
+%%Pick up specification
+oq/'=findVerticalSpecification/ z~m-0n.m0r0a@&osozok
+( %%Rectangle-start loop - find next match to top-left character in specification.
+  %%Find initial match and save start position.
+  obz@m-0 (v/ /r)0v/./oz, (v/\/r, ) n.ra$&r- oz(f-'$, x3\)y0 oconol0
+  ( %%Column loop.
+    %%Check for a wild column ( * ).
+    obz@ ( v/*/oz ( %h'=call findRectWildColumn; x4, x-4 ), oz)
+    %%Verify this column.
+    on %h'=call findVertVerifyColumn;
+    %%Column match success - save LWM line no. and index to next column.
+    oson(o<\, okon) oso~ono-omy- obz@(moz, ozx3) ry0
+  , %%Column-verification failed, return to previous rectangle start and resume first-character search.
+    okok ono-om or(r-, m-r0) okx)0
+  )0
+%%Match success, add colour tags.
+oso-o#omwol-1oso- oso#y-oco~oso- osr-0ory0 (oso~ os o#ou %b=addtag Vertical; y-)0 okok y(r-, m-r0)
+
+<<findRectInit>> 
+%%Initialize for rectangle search.
+%h'=call findVertInit; 
+%%findVertInit has only copied the buffer key into findVerticalSpecification, here we copy the actual specification.
+oboq/'=findVerticalSpecification/ 
+%%Copy specified buffer, if buffer key is specified.
+( z~m-0mz$ok %%A previously-defined specification seems to exist.
+, %%Assumed to be just a buffer key.
+  oso#ozos %d$='~; 
+  %%Copy the specification.
+  z$(r\, %%A buffer key was specified, check and copy the spec.
+    r- (q/a-zA-Z0-9/, %x=Error: findRectNext parameter must be a buffer containing the rectangular search specification.; )
+    (q/a-z/cr-, )oicoz m-0n.m0r0a~& ov/'=findVerticalSpecification/ ) )
+
+<<findRectWildColumn>>
+%%Called recursively - finds next 1st-character match and verifies the column.
+( %%Save current position in specification and pick up the character to be matched.
+  obz@onos m(v/\/r, )n.ra$&r- oz (f1'$y0oc, okokx0\) 
+  ( %%Column loop - verify each column.
+    obz@ (v/ /r)0v/./, (v/\/r, )
+    v/*/ %%Another wild column, if that fails then set focus to next first-character search-start point.
+    oz ( %h'=call findRectWildColumn; okokx0, r-0rr obz@m-0osomoz x0\ )
+  , %%A normal column.
+    ozon %h'=call findVertVerifyColumn; 
+    %%Column match success - index to next column.
+    o~ono-omy- obz@(m, ozokokx0) ozry0x-1
+  , %%Column-verification failed, return to wild-column specification and resume wild-column search.
+    ono-om orr obz@osono-om ozx-2) )
+
+<<rotateDiagonal>>
+%%Rotates the current block of text around the leading diagonal.
+%%Init.
+n.a$ m0(rr0b, )
+( %%Main loop - assembles one line of output.
+  m-0 ol0
+  %%Pick up a line of output.
+  ((ro~, i/ /)r-n.ra$+m2m-)0 obz$r0boz
+  %%If all lines are empty, stop now.
+  ol0o=\ok)0 ok
+m-0k0h$
+
+<<rotateVertical>>
+%%Reverses the order of the columns in the buffer, adds whitespace where necessary.
+%%
+%%First find the longest line then pad out all other line ends to match.
+ol0m-0 (r0oc(o<okoc,)m)0 m-0(r0o#ocoso-ol-1o+ (o~i/ /)0 okm)0 ok
+%%Reverse each column.
+m-0 (n.a$ (n.ra$-)0 h$m)0
+
+<<rotateHorizontal>>
+%%Reverses the order of the lines in current buffer.
+%%First get length of buffer.
+m0on(r, ol1o-) r0bm-0
+%%Move lines.
+(ol1o=\ m-0na$ ol1o-o#omh$)0
+%%Remove added linebreak.
+m0j-m-0
 
 <<FindSequencePrev>>
 %%Prompt string: Find-sequence string> 
 %%Finds previous instance of sequence of words in arg.
 %%Set up argument list if given - use last entry if it's null.
-obz$ (rr- (r(v-/*/q/_A-Za-z0-9/b, r-) (q/_A-Za-z0-9/\e)0 q//(q//r)0 brr-)0 r-0(r, j-) z@m-0k0e0h$,) z@m-0o#oz
+%s=system 1; obz$ (rr- (r(v-/*/q/_A-Za-z0-9Ā-𠀹/b, r-) (q/_A-Za-z0-9Ā-𠀹/\e)0 q//(q//r)0 brr-)0 r-0(r, j-) z@m-0k0e0h$,) z@m-0o#oz
 %%If already matched to first item - find next.
 (v'@r-,)
 ( %%Main loop - first find the next occurence of the first item.
   %%Initial search for first item. 
-  (f-'@(q-/_A-Za-z0-9/r?,r-?f1'@-q/_A-Za-z0-9/)r-f-1'@)0 v-'@
+  (f-'@(q-/_A-Za-z0-9Ā-𠀹/r?,r-?f1'@-q/_A-Za-z0-9Ā-𠀹/)r-f-1'@)0 v-'@
   %%Match all remaining items.
   ( %%Index to next item - exit on last item.
     z@mo#oz
     %%Find next word.
-    ((q/_A-Za-z0-9/\r)0r\m)0 r-
-    (v'@(q-/_A-Za-z0-9/r?, rr-f1'@-q/_A-Za-z0-9/))0 (v-'@, obz@(v/*/oz(q/_A-Za-z0-9/r)0, oz\))
+    ((q/_A-Za-z0-9Ā-𠀹/\r)0r\m)0 r-
+    (v'@(q-/_A-Za-z0-9Ā-𠀹/r?, rr-f1'@-q/_A-Za-z0-9Ā-𠀹/))0 (v-'@, obz@(v/*/oz(q/_A-Za-z0-9Ā-𠀹/r)0, oz\))
     )0
   o#ozv-'@\ (r-, m-r0)z@m-0o#oz
-  (f-'@(q-/_A-Za-z0-9/r?,r-?f1'@-q/_A-Za-z0-9/)r-f-1'@)0 v-'@
+  (f-'@(q-/_A-Za-z0-9Ā-𠀹/r?,r-?f1'@-q/_A-Za-z0-9Ā-𠀹/)r-f-1'@)0 v-'@
   )0
 %%Completed search - reset search list and go back to the first item.
-v-'@r-rz@m-0o#oz (f-'@(q-/_A-Za-z0-9/r-?,rr-f1'@-q/_A-Za-z0-9/f-'@))0f-1'@ ok, ok
+v-'@r-rz@m-0o#oz (f-'@(q-/_A-Za-z0-9Ā-𠀹/r-?,rr-f1'@-q/_A-Za-z0-9Ā-𠀹/f-'@))0f-1'@ ok, ok %s=system 0; 
 
-<<FindInParaNext>>
+<<GeneralFindSetup>> 
+%%Set up argument list for a complex find in ( @ ) buffer if given, use previous entry if not and clears colour tags.
+obz$r-0 
+%%If GeneralFindSpec data object is not initialized then do that now.
+( oq/'=GeneralFindSpec/ok, %h'=data GeneralFindSpec; %d~=; ov/'=GeneralFindSpec/ )
+%%
+( r\z@ %%No args given - use previously-defined search specification.
+  oq/'=GeneralFindSpec/z~m-0n.m0r0a@&z@ok
+, %%Extract args to GeneralFindSpec data object and buffer ( @ ).
+  r-
+  %%Respect escaped blanks.
+  ( n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /(v/ /e)0(v/|/r, b) )0 )0 
+  r0b
+  %%Save args in GeneralFindSpec data object.
+  m-0n.m0a~& ov/'=GeneralFindSpec/
+ ) 
+%%Optimization of clause ordering - these complex searches should run faster if the first item has no alternatives.
+%%Also, if there is a choice of no-alternative clauses then it's probably best to have the longest one first.
+%%
+%%Initial search loop - find the longest no-alternative clause.
+z@m-0ol0 ( (v/!/m)0 r (f1/|/, (r0oco<okoc, ) ) m)0
+%%If there was one or more no-alternative clauses select the first one of maximum size.
+m-0 (ol0o=, ( (v/!/m)0 r r0oco=\m)0 r-0n.ma$m-0h$) ok
+%%
+z@m-0 ozoconob
+%%Clear any colour tags.
+%q$=tags;
+( %%Colour-tag removal loop.
+  f/active colour is /-b- 
+  %%First calculate the substring length.
+  o#f-1/ to /-oidf-1/, chr /-oido-os
+  %%Now get the substring start point.
+  f-1/, chr /-oidos
+  %%Finally, the line no.
+  f-1/At rec /-oidos
+  %%Now remove the tag.
+  moz ono-om or o~ou %b=remove_tag colour '$; wz$m)0
+ozono-omor
+
+<<GeneralFindNext>>
+%%Designed for use by FindParaNext/Prev etc. searches the current buffer for a match to the current line of the search specification.
+%%
+%%Assumes search string is in current line of buffer ( @ ) using buffer ( $ ) as temporary data.
+%%
+%%Note current position, system-mode search/verify operations.
+oconob %s=system 1;
+%%
+( %%Success/failure inversion block - in the event of an inverted success, it returns back here to resume the search.
+  ( %%Fail block - exit to the end of this block to indicate a failure.
+    z@r-0(v/!/r, )
+    ( f1/|/\ %%No alternative substrings - use global search to speed things up.
+      ( v/#/ %%An exact match is required.
+        rn.r0a$& %s=system 0; o#oz ( (f'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
+      , %%Simple match required.
+        n.r0a$& o#oz %s=system 0; f'$ x3, x2)
+    , %%There are alternative substrings - plod through one record at a time trying each in turn.
+      r-0
+      ( %%Record loop.
+        ( %%Alternative-substring loop.
+          %%Pick up first/next search substring.
+          z@
+          %%Is it an exact-match search?
+          ( v/#/ %%An exact match is required.
+            rn.(f1/|/, r0)a$& %s=system 0; o#oz ( (f1'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
+          , %%Simple match required - use the speedier global search command not F1.
+            n.(f1/|/, r0)a$& o#oz %s=system 0; f1'$ x5, )
+          %%Current substring match failed in this line - try alternative substrings.
+          z@ (r, x4) (v-/|/, r-))0
+        )0
+      )
+    %%Match failure - possibly inverted by a ( ! ).
+    z@r-0 (v/!/ ozono-omorx3, o#oz (mx-3, okokokx4\) )
+    )
+  %%Match success - possibly inverted by a ( ! ).
+  ( z@r-0v/!/ ozokok x2\, ozokokx2)
+  )
+
+<<GeneralFindPrev>>
+%%Designed for use by FindParaNext/Prev etc. searches the current buffer for a match to the current line of the search specification.
+%%
+%%Assumes search string is in current line of buffer ( @ ) using buffer ( $ ) as temporary data.
+%%
+%%Note current position, system-mode search/verify operations.
+oconob %s=system 1;
+%%
+( %%Success/failure inversion block - in the event of an inverted success, it returns back here to resume the search.
+  ( %%Fail block - exit to the end of this block to indicate a failure.
+    z@r-0(v/!/r, )
+    ( f1/|/\ %%No alternative substrings - use global search to speed things up.
+      ( v/#/ %%An exact match is required.
+        rn.r0a$& %s=system 0; o#oz ( (f-'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
+      , %%Simple match required.
+        n.r0a$& o#oz %s=system 0; f-'$ x3, x2)
+    , %%There are alternative substrings - plod through one record at a time trying each in turn.
+      r-0
+      ( %%Record loop.
+        ( %%Alternative-substring loop.
+          %%Pick up first/next search substring.
+          z@
+          %%Is it an exact-match search?
+          ( v/#/ %%An exact match is required.
+            rn.(f1/|/, r0)a$& %s=system 0; o#oz ( (f-1'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
+          , %%Simple match required - use the speedier global search command not F1.
+            n.(f1/|/, r0)a$& o#oz %s=system 0; f-1'$ x5, )
+          %%Current substring match failed in this line - try alternative substrings.
+          z@ (r, x4) (v-/|/, r-))0
+        )0
+      )
+    %%Match failure - possibly inverted by a ( ! ).
+    z@r-0 (v/!/ ozono-omorx3, o#oz (m-r0x-3, okokokx4\) )
+    )
+  %%Match success - possibly inverted by a ( ! ).
+  ( z@r-0v/!/ ozokok x2\, ozokokx2)
+  )
+
+<<GeneralFindReport>>
+%%Checks status and reports on recently-completed FindParaNext/Prev FindChapNext/Prev
+%%
+%%Note the ( ! ) buffer dimensions and current position
+oconob
+( (o#oz %q$=buffer; f/TagType = Name    Substring,/\ o#oz %b=tagtype Substring colour 7 2; %b=tagtype UnitDelim colour 7 1;, o#oz) 
+  %%Now add the UnitDelim tags above and below the matching section - first tag the last non-blank text above.
+  (ocol0o>\m-r0ok)0 ok ocr-0 ou %b=addtag UnitDelim;? w
+  %%Now tag the next nonblank text below.
+  oso#ono-omos z!m0onoso#ozosol-1o+om (f1'!-, ) (rr-ocr0ocoso-o#ol0oso-or, m(r0ocol0o>\mok)0 ok r-0ox) ou %b=addtag UnitDelim;? w
+  %%Now add the Substring tags.
+  z@m-0
+  ( %%Substring loop.
+    (v/!/m)0 %%Exclude any negated substrings.
+    %%Setup for this substring.
+    z!m-0 oz ono-omor oconobol0 
+    %%If the substring exists in buffer ( ! ) then assume it's in range in the origial text.
+    (z! %h'=call GeneralFindNext; o~oso#ozos %h'=call GeneralFindNext;? %b=addtag Substring; )0 
+    %%Add substring-instance count for report.
+    z@r0oo/ (%d)  /
+    %%Index to next substring.
+    m2m-
+    )0
+  %%Finalize and issue report.
+  z!m0onz@m-0j0r0oo/in %d lines./%m=Found substrings: '@; ozono-omor
+, %%Search failed.
+  ozono-omor %x=Failed to locate a section containing the specified substrings.; )
+
+<<FindParaNext>>
 %%Prompt string: Find-in-paragraph substring list> 
 %%Finds next paragraph containing a set of substrings
-%%Set up argument list if given - use last entry if it's null.
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0o#oz
-( %%Main loop - first find a match to the first substring then abstract the paragraph to buffer $ and check the other required substrings.
-  z@m-0o#oz f'@ (m-(v/ /r)0r)0 mn. ((v/ /r)0rm)0 r-0a$&
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindNext;
+  %%Search back for the start of the paragraph and set the note point. 
+  oq/'=DocBulletString/ r-0 ( ( (v/ /r)0 (v'~r-f1'~-okx3, ) (r\(m-, x3), ) r-\)0 ocm- ( (v/ /r)0 (rr-, mokok\) os(v'~ r-(f1'~-osoco=, mokok)okokx3, os) (oco=, mokok\) (m-, okokx3) )0 ) n.ocon
+  %%Search forward for the end of the paragraph, and abstract to ( ! ). 
+  oq/'=DocBulletString/ r-0 ( (v/ /r)0 (v'~r-f1'~- x2, ) (r\(m, x3), ) r-\)0 oc ( (m, okokm-r0x3) (v/ /r)0 (rr-, r-0okok\) os(v'~ okokm-r0x2, os) oc(o=, okokm-r0\) )0 a!& ob
   %%Check remaining substrings in the list.
-  (z$m-0f'@z@m2m-)0
-  %%Does this paragraph match - if so we're at the end of the substring list.
-  z@m
-  %%No - continue with next paragraph. 
-  o#ozmm-)0
-z@(m\ m-oz w (m-r)0f'@, oz %x=Failed to locate a paragraph containing the specified substrings.; )
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
+%%Overall search success - this paragraph contains matches for all string specifications.
+ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, omm-)or
 
-<<FindInParaPrev>>
+<<FindParaPrev>>
 %%Prompt string: Find-in-paragraph substring list> 
 %%Finds next paragraph containing a set of substrings
-%%Set up argument list if given - use last entry if it's null.
-obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0o#oz
-( %%Main loop - first find a match to the first substring then abstract the paragraph to buffer $ and check the other required substrings.
-  z@m-0o#oz f-'@ (m-(v/ /r)0r)0 mn. ((v/ /r)0rm)0 r-0a$&
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindPrev;
+  %%Search back for the start of the paragraph and set the note point. 
+  oq/'=DocBulletString/ r-0 ( ( (v/ /r)0 (v'~r-f1'~-okx3, ) (r\(m-, x3), ) r-\)0 ocm- ( (v/ /r)0 (rr-, mokok\) os(v'~ r-(f1'~-osoco=, mokok)okokx3, os) (oco=, mokok\) (m-, okokx3) )0 ) n.ocon
+  %%Search forward for the end of the paragraph, and abstract to ( ! ). 
+  oq/'=DocBulletString/ r-0 ( (v/ /r)0 (v'~r-f1'~- x2, ) (r\(m, x3), ) r-\)0 oc ( (m, okokm-r0x3) (v/ /r)0 (rr-, r-0okok\) os(v'~ okokm-r0x2, os) oc(o=, okokm-r0\) )0 a!& ob
   %%Check remaining substrings in the list.
-  (z$m-0f'@z@m2m-)0
-  %%Does this paragraph match - if so we're at the end of the substring list.
-  z@m
-  %%No - continue with next paragraph. 
-  o#oz (m-(v/ /r)0r)0 )0
-z@(m\ m-oz (m(v/ /r)0r)0 w (m-(v/ /r)0)0 f'@, oz %x=Failed to locate a paragraph containing the specified substrings.; )
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz@m-0oz(v'@(r-, m-r0)) x-2)0 )
+%%Overall search success - this paragraph contains matches for all string specifications.
+ozono-om or %h'=call GeneralFindReport; obz@m-0oz (v'@r-, m-r0) %s=system 0;
+
+<<FindSentenceNext>>
+%%Prompt string: Find-in-sentence substring list> 
+%%Finds next sentence containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the sentence to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindNext;
+  %%Now find the start point of the sentence then abstract it to buffer ( ! ).
+  ( (f-1/./\m-(v/ /r)0rr0)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./(v-/./r-)0r- )0 n.ocon
+  %%Search forward for the end of the sentence, and abstract to ( ! ).
+  ( (f1/./\m(v/ /r)0rr-)0 (v/./r)0 (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./)0 a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
+%%Overall search success - this sentence contains matches for all string specifications.
+ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, omm-)or
+
+<<FindSentencePrev>>
+%%Prompt string: Find-in-sentence substring list> 
+%%Finds next sentence containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the sentence to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindPrev;
+  %%Search back for the start of the sentence and set the note point.
+  ( (f-1/./\m-(v/ /r)0rr0)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./ )0 n.ocon
+  %%Search forward for the end of the sentence, and abstract to ( ! ).
+  ( (f1/./\m(v/ /r)0rr-)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./ )0 a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
+%%Overall search success - this sentence contains matches for all string specifications.
+ozono-om or %h'=call GeneralFindReport; %s=system 0;
+
+<<FindPhraseNext>>
+%%Prompt string: Find-in-phrase substring list> 
+%%Finds next phrase containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the phrase to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindNext;
+  %%Search back for the start of the phrase and set the note point.
+  ( ( (q-/,.:;!-/\r-)0(q-//(v/ /, rr-2, \) x2, m-r0\) )0 )  n.ocon
+  %%Search forward for the end of the phrase, and abstract to ( ! ).
+  ( ( ( ( (q/,.:;!-/\r)0q//\m)0 r(v/ /\ r))0x2, m(v/ /r)0)0 ) a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
+%%Overall search success - this phrase contains matches for all string specifications.
+ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, omm-)or
+
+<<FindPhrasePrev>>
+%%Prompt string: Find-in-phrase substring list> 
+%%Finds next phrase containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the phrase to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindPrev;
+  %%Search back for the start of the phrase and set the note point.
+  ( ( ( (q-/,.:;!-/\r-)0(q-//(v/ /\ rr-3) ) )0 x2, m-r0 )0 ) n.ocon
+  %%Search forward for the end of the phrase, and abstract to ( ! ).
+  ( ( ( ( (q/,.:;!-/\r)0q//\m)0 r(v/ /\ r))0x2, m(v/ /r)0)0 ) a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
+%%Overall search success - this phrase contains matches for all string specifications.
+ozono-om or %h'=call GeneralFindReport; %s=system 0;
+
+<<FindHeadedSectionNext>>
+%%Prompt string: Find-in-section substring list> 
+%%Finds next section containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the section to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindNext;
+  %%Search back for the start of the section and set the note point.
+  r-0(q/0-9/\m-)0 n. ocon
+  %%Search forward for the end of the section, and abstract to ( ! ).
+  (mq/0-9/\)0 a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
+%%Overall search success - this section contains matches for all string specifications.
+ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, om w m-)or
+
+<<FindHeadedSectionPrev>>
+%%Prompt string: Find-in-section substring list> 
+%%Finds next section containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the section to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindPrev;
+  %%Search back for the start of the section and set the note point.
+  r-0(q/0-9/\m-)0(q//m-)0m n. ocon
+  %%Search forward for the end of the section, and abstract to ( ! ). 
+  (mq/0-9/\)0 m- a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
+%%Overall search success - this section contains matches for all string specifications.
+ozono-om or %h'=call GeneralFindReport; %s=system 0;
+
+<<FindBlockNext>>
+%%Prompt string: Find-in-block substring list> 
+%%Finds next block containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the block to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindNext;
+  %%Search back for the start of the block and set the note point.
+  r-0 (m-r)0)0 n. ocon
+  %%Search forward for the end of the block, and abstract to ( ! ).
+  r-0 (mr)0 m- a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
+%%Overall search success - this block contains matches for all string specifications.
+ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, om w m-)or
+
+<<FindBlockPrev>>
+%%Prompt string: Find-in-block substring list> 
+%%Finds next block containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the block to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindPrev;
+  %%Search back for the start of the block and set the note point.
+  r-0 (m-r\)0 m n. ocon
+  %%Search forward for the end of the block, and abstract to ( ! ). 
+  r-0(mr)0 m- a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
+%%Overall search success - this block contains matches for all string specifications.
+ozono-om or %h'=call GeneralFindReport; %s=system 0;
+
+<<FindChapterNext>>
+%%Prompt string: Find-in-chapter substring list> 
+%%Finds next chapter containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the chapter to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindNext;
+  %%Search back for the start of the chapter and set the note point.
+  r-0(q/A-Za-zĀ-𠀹/\m-)0(q//m-)0m n. ocon
+  %%Search forward for the end of the chapter, and abstract to ( ! ).
+  (mq/A-Za-zĀ-𠀹/\)0 m- a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
+%%Overall search success - this chapter contains matches for all string specifications.
+ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, om w m-)or
+
+<<FindChapterPrev>>
+%%Prompt string: Find-in-chapter substring list> 
+%%Finds next chapter containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the chapter to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz %h'=call GeneralFindPrev;
+  %%Search back for the start of the chapter and set the note point.
+  r-0(q/A-Za-zĀ-𠀹/\m-)0(q//m-)0m n. ocon
+  %%Search forward for the end of the chapter, and abstract to ( ! ). 
+  (mq/A-Za-zĀ-𠀹/\)0 m- a!& ob
+  %%Check remaining substrings in the list.
+  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
+%%Overall search success - this chapter contains matches for all string specifications.
+ozono-om or %h'=call GeneralFindReport; %s=system 0;
+
+<<FindInNLines>>
+%%Prompt string: Find-in same line string> 
+%%Function finds next sequence of no more than N lines containing a set of substrings in the any order.
+%%
+%%If this is a repeat search, go to end of paragraph
+( oq/'=FindNLinesAperture/ok, %h'=data FindNLinesAperture; ol1 ov/'=FindNLinesAperture/ )
+%s=system 1; obz$r-0 (q/0-9/oide-0 ov/'=FindNLinesAperture/, ) oz
+%%Pick search-specification args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz ( %h'=call GeneralFindNext;, x3 )
+  %%Define the end-point line no.
+  onoq/'=FindNLinesAperture/o+
+  %%For an n-line aperture, begin by going back n-1 lines.
+  oq/'=FindNLinesAperture/ol1oso-om?
+  ( %%Moving aperture loop - abstract next n lines to the ( ! ) buffer.
+    n.oq/'=FindNLinesAperture/oma!& obz@m-0oz
+    %%Check remaining substrings in the list.
+    (obz@(m2m-, x4) z!m-0 %h'=call GeneralFindNext; oz)0 
+    %%That n-line sample failed, check line number then select a new sample and repeat.
+    oz(ono= okx2,) mn.ol0oq/'=FindNLinesAperture/o-om )0
+  %%Repeat the opening search.
+  )0
+%%Overall search success - this paragraph contains matches for all string specifications.
+z@m-0 ozol0oq/'=FindNLinesAperture/o-omok %h'=call GeneralFindReport; oq/'=FindNLinesAperture/om  %s=system 0;
+
+<<FindInNLinesPrev>>
+%%Prompt string: Find-in same line string> 
+%%Function searches back finding next sequence of no more than N lines containing a set of substrings in the any order.
+%%
+%%If this is a repeat search, go to end of paragraph
+( oq/'=FindNLinesAperture/ok, %h'=data FindNLinesAperture; ol1 ov/'=FindNLinesAperture/ )
+%s=system 1; obz$r-0 (q/0-9/oide-0 ov/'=FindNLinesAperture/, ) oz
+%%Pick search-specification args and clear any tagged text.
+%h'=call GeneralFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
+  obz@m-0oz ( %h'=call GeneralFindPrev;, x3 )
+  %%Define the end-point line no.
+  onoq/'=FindNLinesAperture/o+
+  %%For an n-line aperture, begin by going back n-1 lines.
+  oq/'=FindNLinesAperture/ol1oso-om?
+  ( %%Moving aperture loop - abstract next n lines to the ( ! ) buffer.
+    n.oq/'=FindNLinesAperture/oma!& obz@m-0oz
+    %%Check remaining substrings in the list.
+    (obz@(m2m-, x4) z!m-0 %h'=call GeneralFindNext; oz)0 
+    %%That n-line sample failed, check line number then select a new sample and repeat.
+    oz(ono= okx2,) mn.ol0oq/'=FindNLinesAperture/o-om )0
+  %%Repeat the opening search.
+  ol0oq/'=FindNLinesAperture/o-om )0
+%%Overall search success - this paragraph contains matches for all string specifications.
+z@m-0 ozol0oq/'=FindNLinesAperture/o-omok %h'=call GeneralFindReport; %s=system 0;
 
 <<CutRectangle>>
-%%- Copies (to paste buffer) a rectangular block of text from the note point to the current cursor position.
-  %%Check note buffer, get note point.
-  ob %q$=system; f/Note buffer =    /-oico=\oz, f/Note linenumber = /-oidos f/Note character = /-oidos
-  %%Get Y aligned with note point.
-  oz o#ocosr-0ory0oco-or
-  %%Calculate block height and width.
-  ocoso- osono-
-  %%Return to original note point.
-  oso#ol0oso-or oso#(y-o~)0 ok
-  %%Abstract block, one record at a time.
-  n.a_ol1o- (n.oso#or?a_+*obz_r0boz oso~y)0 okok
-  %%Return to note point (top-left corner of abstracted block).
-  obz_m-2onol0oso-osoz (y-o~)0
+%%Copies (to paste buffer) a rectangular block of text from the note point to the current cursor position.
+%%Check note buffer, get note point.
+%s=system 1; ob %q$=system; f/Note buffer =    /-oico=\oz, f/Note linenumber = /-oidos f/Note character = /-oidos
+%%Get Y aligned with note point.
+oz o#ocosr-0ory0oco-or
+%%Calculate block height and width.
+ocoso- osono-
+%%Return to original note point.
+oso#ol0oso-or oso#(y-o~)0 ok
+%%Abstract block, one record at a time.
+n.a_ol1o- (n.oso#or?a_+obz_r0 ocb osoz ol-1oso-o#(o~i/ /)0oko~or oso~y)0 okok
+%%n.a_ol1o- (n.oso#or?a_+*obz_r0boz oso~y)0 okok
+%%Return to note point (top-left corner of abstracted block).
+obz_onol2oso-osoz (y-o~)0ok %s=system 0;
 
 <<PasteRectangle>>
-%%- Pastes a block graphic image in the paste buffer with it's top-left corner character at the current cursor position.
-  %%Get return position.
-  ocon
-  %%Get length of inserted text.
-  obz_m-0onm0ono~o- osoz
-  %%Calculate rightmost column of inserted text.
-  ocobz_r0ocosozo+ ol-1oso-
-  %%Check that we've enough space - add lines and whitespace as necessary.
-  r-0(oso~os o#(o~(r, i/ /))0ok (m2m-, onr-0b-o.) )0 okok
-  %%Restore position
-  ono-om or
-  %%Insert here
-  h_* 
-  %%Move back to original insert point.
-  oc obz_m-0ol0(mo~)0osozol0oso- omor
+%%Pastes a block graphic image in the paste buffer with it's top-left corner character at the current cursor position.
+%%Get return position.
+%s=system 1; ocon
+%%Setup for copying.
+ocol-1oso-r-0 obz_m-0oz 
+%%Copy each record.
+(obz_(mm-, oz\)n.r0oca$&mosoz oso#(o~(r, i/ /))0okh$ osol-1oso-(o~e)0ok m)0 ok
+%%Move back to original insert point.
+ono-omor
 
 <<LineNW>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws line in north-westerly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "\".
-obz$r-0(r, i"\")r-0(r2r-b)0m0oz 
+%s=system 1; obz$r-0(r, i"\")r-0(r2r-b)0m0oz 
 %%Note original column number.
 ocol0oso- 
 (mo#ol-1oso-or
@@ -999,14 +1730,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a NW diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok r-re?i'$ obz$m-oz (m-, r-0b-) ol1o+ )0 
 %%Index to next start point.
-oz(m-, r-0b-)ol2o+(o~(r, i/ /))0ok
+oz(m-, r-0b-)ol2o+(o~(r, i/ /))0ok %s=system 0;
 
 <<LineNE>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws line in north-easterly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "\".
-obz$r-0(r, i"/")r-0(r2r-b)0m-0oz 
+%s=system 1; obz$r-0(r, i"/")r-0(r2r-b)0m-0oz 
 %%Note original column number.
 ocol0oso- 
 (mo#ol1oso-or
@@ -1019,14 +1750,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a NE diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$moz (m-, r-0b-) ol-1o+ )0 
 %%Index to next start point.
-oz(m-, r-0b-) ol0o+(o~(r, i/ /))0ok
+oz(m-, r-0b-) ol0o+(o~(r, i/ /))0ok %s=system 0;
 
 <<LineSW>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws line in south-westerly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "/".
-obz$r-0(r, i"/")r-0(r2r-b)0m0oz 
+%s=system 1; obz$r-0(r, i"/")r-0(r2r-b)0m0oz 
 %%Note original column number.
 ocol0oso- 
 ((m-, r-0b-)o#ol-1oso-or
@@ -1039,14 +1770,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a SW diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok r-re?i'$ obz$m-oz (m, r0b) ol1o+ )0 
 %%Index to next start point.
-oz(m, r0b)ol2o+(o~(r, i/ /))0ok
+oz(m, r0b)ol2o+(o~(r, i/ /))0ok %s=system 0;
 
 <<LineSE>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws line in south-easterly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "\".
-obz$r-0(r, i"\")r-0(r2r-b)0m-0oz 
+%s=system 1; obz$r-0(r, i"\")r-0(r2r-b)0m-0oz 
 %%Note original column number.
 ocol0oso- 
 ((m-, r-0b-)o#ol1oso-or
@@ -1059,14 +1790,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a SE diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$moz (m, r0b) ol-1o+ )0
 %%Index to next start point.
-oz(m, r0b) ol0o+(o~(r, i/ /))0ok
+oz(m, r0b) ol0o+(o~(r, i/ /))0ok %s=system 0;
 
 <<DSLineNW>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws staggerd line in north-westerly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "\".
-obz$r-0(r, i"\")r-0(r2r-b)0m0oz 
+%s=system 1; obz$r-0(r, i"\")r-0(r2r-b)0m0oz 
 %%Note original column number.
 ocol0oso- 
 ((m, r0b)o#ol-2oso-or
@@ -1079,14 +1810,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a NW diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok r-re?i'$ obz$m-oz (m-, r-0b-) ol2o+ )0 
 %%Index to next start point.
-oz(m-, r-0b-)ol2o+(o~(r, i/ /))0ok
+oz(m-, r-0b-)ol2o+(o~(r, i/ /))0ok %s=system 0;
 
 <<DSLineNE>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws staggerd line in north-easterly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "\".
-obz$r-0(r, i"/")r-0(r2r-b)0m-0oz 
+%s=system 1; obz$r-0(r, i"/")r-0(r2r-b)0m-0oz 
 %%Note original column number.
 ocol0oso- 
 ((m, r0b)o#ol2oso-or
@@ -1099,14 +1830,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a NE diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$moz (m-, r-0b-) ol-2o+ )0 
 %%Index to next start point.
-oz(m-, r-0b-) ol0o+(o~(r, i/ /))0ok
+oz(m-, r-0b-) ol0o+(o~(r, i/ /))0ok %s=system 0;
 
 <<DSLineSW>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws line in a staggerd south-westerly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "/".
-obz$r-0(r, i"/")r-0(r2r-b)0m0oz 
+%s=system 1; obz$r-0(r, i"/")r-0(r2r-b)0m0oz 
 %%Note original column number.
 ocol0oso- 
 ((m-, r-0b-)o#ol-2oso-or
@@ -1119,14 +1850,14 @@ ocol0oso-
 %%Main loop - inserts character(s) along a SW diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok r-re?i'$ obz$m-oz (m, r0b) ol2o+ )0 
 %%Index to next start point.
-oz(m, r0b)ol2o+(o~(r, i/ /))0ok
+oz(m, r0b)ol2o+(o~(r, i/ /))0ok %s=system 0;
 
 <<DSLineSE>>
 %%Prompt string: Draw-line string> 
 %%Drawing function - draws line in a staggerd south-easterly direction, with tidy corners.
 %%Pick up optional string argument.
 %%Check - if no arg given, default to "\".
-obz$r-0(r, i"\")r-0(r2r-b)0m-0oz 
+%s=system 1; obz$r-0(r, i"\")r-0(r2r-b)0m-0oz 
 %%Note original column number.
 ocol0oso- 
 ( (m-, r-0b-)o#ol2oso-or
@@ -1139,83 +1870,123 @@ ocol0oso-
 %%Main loop - inserts character(s) along a SE diagonal.
 r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$moz (m, r0b) ol-2o+ )0 
 %%Index to next start point.
-oz(m, r0b) ol0o+(o~(r, i/ /))0ok
+oz(m, r0b) ol0o+(o~(r, i/ /))0ok %s=system 0;
 
-<<LineS>>
-%%Prompt string: Draw-line string> 
-%%Drawing function - draws line in southerly direction, with tidy corners.
-%%Pick up optional string argument.
-%%Check - if no arg given, default to "|".
-obz$r-0(r, i"|")r-0(r2r-b)0m-0oz 
-%%Note original column number.
-ocol0oso- 
-( v-"-" %%We're next on the next character on an easterly line - shift down and right.
-    (m, r0b)ol-2o+
-  , rv"-" %%We're at the next character of a westerly line - shift down and left.
-    (m, r0b)ol-2o+
-  , %%All other cases - start drawing at original cursor position.
-  r- ol-2o+ )
-%%Main loop - inserts character(s) along a southerly line.
-r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$moz (m, r0b) )0 
-%%Index to next start point.
-oz(m, r0b) ol1o+(o~(r, i/ /))0ok
+<<LineDefaultChrs>>
+%%Prompt string: Line-drawing default > 
+%%Sets default characters set for line drawing.
+%%  l - Light (Thin) lines.
+%%  h - Heavy (thick) lines.
+%%  d - double lines.
+%%  anything else - normal ascii line drawing characters.
+%%
+%% 4 Valid verticals:    | │ ┃ ║
+%%
+%% 4 Valid horizontals:  - ─ ━ ═
+%%
+%%28 Valid corners:      ┌ ┍ ┎ ┏ ╒ ╓ ╔
+%%                       ┐ ┑ ┒ ┓ ╕ ╖ ╗ 
+%%                       └ ┕ ┖ ┗ ╘ ╙ ╚ 
+%%                       ┘ ┙ ┚ ┛ ╛ ╜ ╝
+%%
+%%44 Valid Tees:         ├ ┝ ┞ ┟ ┠ ┡ ┢ ┣ ╞ ╟ ╠
+%%                       ┤ ┥ ┦ ┧ ┨ ┩ ┪ ┫ ╡ ╢ ╣ 
+%%                       ┬ ┭ ┮ ┯ ┰ ┱ ┲ ┳ ╤ ╥ ╦ 
+%%                       ┴ ┵ ┶ ┷ ┸ ┹ ┺ ┻ ╧ ╨ ╩ 
+%%
+%%20 Valid crossings:    ┼ ┽ ┾ ┿ ╀ ╁ ╂ ╃ ╄ ╅ ╆ ╇ ╈ ╉ ╊ ╋ ╪ ╫ ╬  
+%%
+%% 3 valid diagonals:    ╱ ╲ ╳
 
-<<LineN>>
-%%Prompt string: Draw-line string> 
-%%Drawing function - draws line in northerly direction, with tidy corners.
-%%Pick up optional string argument.
-%%Check - if no arg given, default to "|".
-obz$r-0(r, i"|")r-0(r2r-b)0m0oz 
-%%Note original column number.
-ocol0oso- 
-( v-"-" %%We're next on the next character on an easterly line - shift up and right.
-    (m-, r-0b-)ol-2o+
-  , rv"-" %%We're at the next character of a westerly line - shift up and left.
-    (m-, r-0b-)ol-2o+
-  , %%All other cases - start drawing at original cursor position.
-  r- ol-2o+ )
-%%Main loop - inserts character(s) along a northerly line.
-r-0(o#o~ (o~(r, i/ /))0ok e?i'$ obz$m-oz (m-, r-0b-) )0 
-%%Index to next start point.
-oz(m-, r-0b-) ol1o+(o~(r, i/ /))0ok
+obz$(v/ /e)0 (q/lLhHdD/, e0)(q/LHD/cr-, )n.r?a~ ov/'=DefaultLineDrawing/ oz
+
+<<LineCheckIntersection>>
+%%Checks all four characters ajacent to current character and modifies current character if lines intersect.
+%%
+%%This function is called with the direction of travel in buffer ( @ ), add the details od sdjacent characters.
+%%If the current character is whitespace then for vertical moves set north and south fonts, for vertical moves set east and west fonts. 
+%%Otherwise look up the current character. 
+%%
+%%Initialization.
+oq/'=LineIntersectionLookup/ ob
+%%Set the @ interfaces vector from direction of travel and neighbouring characters on the other three other sides.
+%%Ensure that there are characters (even whitespace) above, below and to the right of the current character.
+(r(r, i/ /), i/  /)ocr-2
+(m-, r-0b-) o#(or, o#ol-1oso-r-0 ((r, i/ /) o~)0 ok) 
+(m2, r0b)   o#(or, o#ol-1oso-r-0 ((r, i/ /) o~)0 ok) m-orr-2
+%%North side.
+z@r-0 (o#ozocm-o#orn.ra$&mor osz~m-0f'$r2n.ra$&oso#oz, oso#oz%d$=.;) z@r0i'$
+%%South side.
+z@r-0 (o#ozocmo#orn.ra$&m-or osz~m-0f'$rn.ra$&oso#oz, oso#oz%d$=.;) z@r0i'$
+%%East side.
+z@r-0 (o#ozrn.ra$&r-2 osz~m-0f'$r4n.ra$&oso#oz, oso#oz%d$=.;) z@r0i'$
+%%West side.
+z@r-0 (o#ozr-n.ra$& osz~m-0f'$r3n.ra$&oso#oz, oso#oz%d$=.;) z@r0i'$
+%%If it's surrounded by non-connecting characters (typically whitespace) then set the character to a simple horizontal or vertical.
+%%Otherwise just set the font for the side facing the direction of travel.
+oq/'=DefaultLineDrawing/
+z@r-0r (v/..../ (q-/ns/, r2)e2i'~2, (q-/n/, q-/s/r, q-/e/r2, r3)ei'~ ) ok
+%%Search for a matching character.
+z@r-0rbosz~m-0(f'@r-r-\n.ra$&, %m=Match not found: '@ '$; %d$=?;)
+%%
+%%Insert the new character.
+osozoki'$er-
 
 <<LineE>>
 %%Prompt string: Draw-line string> 
-%%Drawing function - draws line in easterly direction, with tidy corners.
-%%Pick up optional string argument.
-%%Check - if no arg given, default to "-".
-obz$r-0(r, i"-")r-0(r2r-b)0m-0oz 
-%%Note original column number.
-ocol0oso- 
-((m-, r-0b-)o#ol0oso-or v"|" %%We're next on the next character on a northerly line - shift right.
-    mol-3o+
-  , (m, r0b)2o#ol0oso-orv"|" %%We're at the next character of a southerly line - shift right.
-    m-ol-3o+
-  , %%All other cases - start drawing at original cursor position.
-  m- ol-2o+ )
-%%Main loop - inserts character(s) along an easterly line.
-r-0o~ (o~(r, i/ /))0ok (e?i'$ obz$moz )0 
-%%Already at next start point.
-oz
+%%Drawing function - draws line in easterly direction.
+%%Pick up optional string argument - if no arg given, default to "-".
+%s=system 1; ocobz$m-0
+( r %%One or more characters is specified insert without checking intersections. 
+  %%Main loop - inserts character(s) along a easterly line.
+  r0ocr-0 osozi'$  ol-1oso- (o~e)0 ok
+, %%No characters specified, put in a ASCII hyphen, this may be changed later to a Unicode chr.
+  %d@=e; oz %h'=call LineCheckIntersection;
+  %%Index to next startpoint.
+  (r, i-/ /) )
+ok %s=system 0;
 
 <<LineW>>
 %%Prompt string: Draw-line string> 
-%%Drawing function - draws line in westerly direction, with tidy corners.
-%%Pick up optional string argument.
-%%Check - if no arg given, default to "-".
-obz$r-0(r, i"-")r-0(r2r-b)0m0oz 
-%%Note original column number.
-ocol0oso- 
-((m-, r-0b-)o#ol0oso-or v"|" %%We're next on the next character on a northerly line - left.
-    mol-1o+
-  , (m, r0b)2o#ol0oso-orv"|" %%We're at the next character of a southerly line - shift right.
-    m-ol-1o+
-  , %%All other cases - start drawing at original cursor position.
-  m- ol-2o+ )
-%%Main loop - inserts character(s) along a westerly line.
-r-0 (o~(r, i/ /))0ok (e-?i-'$ obz$m-oz )0 
-%%Index to next start point.
-oz r-
+%%Drawing function - draws line in westerly direction.
+%%Pick up optional string argument - if no arg given, default to "-".
+%s=system 1; ocobz$m-0
+( r %%One or more characters is specified insert without checking intersections. 
+  %%Main loop - inserts character(s) along a westerly line.
+  r0boz(r, i/ /) (obz$m-(r, x2)r0r-boze-i-'$)0 oz r-
+, %%No characters specified, put in a ASCII hyphen, this may be changed later to a Unicode chr.
+  %d@=w; oz %h'=call LineCheckIntersection;
+  %%Index to next startpoint.
+  r- )
+ok  %s=system 0;
+
+<<LineS>>
+%%Prompt string: Draw-line string> 
+%%Drawing function - draws line in southerly direction.
+%%Pick up optional string argument - if no arg given, default to "|".
+%s=system 1; ocobz$m-0
+( r %%One or more characters is specified insert without checking intersections. 
+  %%Main loop - inserts character(s) along a southerly line.
+  r-0b-oz (obz$mrb-oz ocol-1oso- e?i'$(m, r0b)(o~(r, i/ /))0 ok )0 oz
+, %%No characters specified, put in a ASCII vertical bar, this may be changed later to a Unicode chr.
+  %d@=s; oz %h'=call LineCheckIntersection;
+  %%Index to next start point.
+  (m, r-0b-) ol-1oso-(o~(r, i/ /))0 (rr-, ) )
+ok %s=system 0;
+
+<<LineN>>
+%%Prompt string: Draw-line string> 
+%%Drawing function - draws line in northerly direction.
+%%Pick up optional string argument - if no arg given, default to "|".
+%s=system 1; ocobz$m-0
+( r %%One or more characters is specified insert without checking intersections. 
+  %%Main loop - inserts character(s) along a northerly line.
+  r0boz (obz$m-r0r-boz ocol-1oso- e?i'$(m-, r-0b-)(o~(r, i/ /))0 ok )0 oz
+, %%No characters specified, put in a ASCII vertical bar, this may be changed later to a Unicode chr.
+  %d@=n; oz %h'=call LineCheckIntersection;
+  %%Index to next start point.
+  (m-, r-0b-) ol-1oso-(o~(r, i/ /))0 (rr-, ) )
+ok %s=system 0;
 
 <<Box>>
 %%Prompt string: Box size> 
@@ -1223,7 +1994,7 @@ oz r-
 %%Pick up dimensions argument.
 %%o@%d$=9 5; 
 %%Check - if no arg given, default to "10 5".
-obz$r-0(rr-(q/0-9/ f1/ /(v/ /r)0q/0-9/, %x=Box argument must be <Width> <Height> (both integers).;), i"10 5") r-0oidol0oso-os oidol0oso-os ozos 
+%s=system 1; obz$r-0(rr-(q/0-9/ f1/ /(v/ /r)0q/0-9/, %x=Box argument must be <Width> <Height> (both integers).;), i"10 5") r-0oidol0oso-os oidol0oso-os ozos 
 %%Start drawing - first the top horizontal line.
 o# e?i/ / (o~e?i/-/)0 e?i/ / ok
 %%2nd. the right-hand vertical.
@@ -1231,14 +2002,14 @@ oso# (ocol0oso-(m, r0b)(o~(r, i/ /))0 oke?i/|/o~)0 ok
 %%3rd. the bottom horizontal.
 os ocol0oso-(m, r0b) (o~ (r, i/ /))0 ok (o~e-i-/-/)0 ok
 %%Lastly the left-hand vertical.
-(ocol0oso-m-(o~(r, i/ /))0 okei/|/o~)0 ok
+(ocol0oso-m-(o~(r, i/ /))0 okei/|/o~)0 ok %s=system 0;
 
 <<Lozenge>>
 %%Prompt string: Lozenge size> 
 %%Drawing function - draws a lozenge-shaped box with the top corner at the current cursor position.
 %%Pick up dimensions argument.
 %%Check - if no arg given, default to 5, check that current character is at least the lozenge size.
-obz$r-0(rr-(q/0-9/, %x=Lozenge argument must be <Side> (an integer).;), i"5") r-0oidol-1oso-os oz
+%s=system 1; obz$r-0(rr-(q/0-9/, %x=Lozenge argument must be <Side> (an integer).;), i"5") r-0oidol-1oso-os oz
 %%Check starting point.
 o#oco+ ol0(o< %x=Error can not draw a lozenge of that size from the this starting point.;, ) ok
 %%Start drawing - first the top-right diagonal.
@@ -1249,7 +2020,7 @@ o#r-ocol0oso- (ol1o+ oso~oso#e?i"/"(m, r0b)((r, i/ /)o~)0 ok)0 okok
 o#oc (o#m-or ol-1o+ oso~ose?i"\")0 okok
 %%os ocol0oso-(m, r0b) (o~ (r, i/ /))0 ok (o~e-i-/-/)0 ok
 %%Lastly the top-left diagonal.
-o#roc (ol1o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok
+o#roc (ol1o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok %s=system 0;
 
 <<DSLozenge>>
 %%Prompt string: Lozenge size> 
@@ -1257,7 +2028,7 @@ o#roc (ol1o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok
 %%Pick up dimensions argument.
 %%o@%d$=6; 
 %%Check - if no arg given, default to 5, check that current character is at least the lozenge size.
-obz$r-0(rr-(q/0-9/, %x=Lozenge argument must be <Side> (an integer).;), i"5") r-0oidol-1oso-os oz
+%s=system 1; obz$r-0(rr-(q/0-9/, %x=Lozenge argument must be <Side> (an integer).;), i"5") r-0oidol-1oso-os oz
 %%Check starting point.
 o#ol2o*oco+ ol0(o< %x=Error can not draw a lozenge of that size from the this starting point.;, ) ok
 %%Start drawing - first the top-right diagonal.
@@ -1267,14 +2038,14 @@ o#r-2ocol0oso- (ol2o+ oso~oso#e?i"/"(m, r0b)((r, i/ /)o~)0 ok)0 okok
 %%3rd. the bottom-left diagonal.
 o#(r, i/ /)oc (o#m-or ol-2o+ oso~ose?i"\")0 okok
 %%Lastly the top-left diagonal.
-o#r2oc (ol2o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok
+o#r2oc (ol2o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok %s=system 0;
 
 <<BoxText>>
 %%Prompt string: Box text> 
 %%function - writes given text into line-drawing box.
 %%Pick up optional string argument - if none given then clears out all text.
 %%Split arg into words, if no arg given, default to " ".
-obz$r-0((f/ /r(v/ /e)0b)0r0i/ /m-0, i" ")r-0 oz
+%s=system 1; obz$r-0((f/ /r(v/ /e)0b)0r0i/ /m-0, i" ")r-0 oz
 %%Find top boundary of box (may be lozenge-shaped with diagonal boundaries) load the column no. onto stack.
 ( q-"--"\(q"|/\"\r)0 v"|"oco#m-or, v"/"oco#m-or(v" /"r,), v"\"oco#ol1o-m-or(v-"\"r-,) q"|/\"ok)0 mo#or
 %%
@@ -1293,7 +2064,7 @@ obz$r-0((f/ /r(v/ /e)0b)0r0i/ /m-0, i" ")r-0 oz
   , %%Yes add the word.
     i'$obz$ocosozol0oso-(eo~)0ok obz$ocosozo- obz$mr0ocosoz)0
   obz$mm-oz)0
-ok osokosok z$(m\, %x=Failed to add some of your words.;) ozw
+ok osokosok z$(m\, %x=Failed to add some of your words.;) ozw %s=system 0;
 
 <<Help>>
 %%Prompt string: Help key> 
@@ -1304,7 +2075,7 @@ ok osokosok z$(m\, %x=Failed to add some of your words.;) ozw
 %%  if in some other buffer load from top level, saving original buffer key.
 %%If an argument is specified then list all matching help keys.
 %%
-ob z$r-0(v/ /e)0 
+%s=system 1; ob z$r-0(v/ /e)0 
   (rr-
   %%A search-string was given - Preserve top line, fold header, for return
   z;m-0 (mk0,)e0i/  The following keys refer to "/i'$i/"/b2 z:m-0
@@ -1334,12 +2105,12 @@ ob z$r-0(v/ /e)0
   %%Copy current-level fold marks and text into ';'.
   ((f1/}}}/\(ol-1o= n.ma@h@z;m0h@z:m-, ), o~) (f1/{{{/ol1o-,) m)0 ok )
 %%Add the index help point.
-z;m-0f'$(r-m-0m3, mf/{{{/, m-0) 
+z;m-0f'$(r-m-0m3, mf/{{{/, m-0) %s=system 0;
 
 <<FindAllHelp>>
 %%Prompt string: Find-help string> 
 %%function - returns all keys where text contains the string.
-z$
+%s=system 1; z$
 (v/ /rr\
   %%Argument not given - report hierarchy.
   z;m-0 z:on
@@ -1368,21 +2139,348 @@ z$
     %%Got the item header - now return.
     ono-om m
     )0 z;m-0m3
-  )
+  ) 
+%s=system 0;
 
 <<RemoveHelpFold>>
 %%function - restores original file fold where appropriate.
 %%Collapse file fold in help repository.
-z:m-0f';mn.m-
+%s=system 1; z:m-0f';mn.m-
 ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
 ma$ m-v/{{{ /e4
 %%Collapse file fold in help window.
-z;e4
+z;e4 %s=system 0;
+
+<<ReformatParagraph>>
+%%Reformat current paragraph.
+%%
+%s=system 1;
+oq/'=DocBulletString/ 
+%%Get initial-line indentation.
+(mm- (v/ /\m)0 (v/ /r)0r\m)0 (r-, okx0) (v'~rr-f1'~-, )oc
+%%Find start of the paragraph - checking for bullet strings, 
+r-0 ((v/ / (v/ /r)0 rr- os(v'~rr-f1'~-(osoco=x4, ), os)oc(o=m-, \))0 m) r-0o#orb-r-0bm
+%%Join up lines to the end of paragraph.
+(mo#or rr-v/ /\os(v'~os, os\)\(v-/ /r-)0r-\ j-)0 m-(f1/  /e)0 osokr0b-
+%%Get paragraph right margin and subtract left margin.
+o#oq/'=DocRightMargin/oso-
+%%Restore bullet string.
+oq/'=DocBulletString/ os
+%%
+( %%Record loop - split the long record on word boundaries.
+  r-0rr-o#or (rr-f-1/ /- os(v-'~r-f-1'~f-1/ /2, r-)os, ) (rr-b-,) 
+%%  r-0rr-o#or (rr-f-1/ /-, ) os(v-'~r-f-1'~f-1/ /2, r-) os (rr-b-,) 
+  %%Calculate how many padding blanks are required to align right margin.
+  o#ocoso- ocoxoso-o+
+  %%Insert padding blanks.
+  ol0(o=\mrm-r0f-1/ / (i-/ /o~ (v-/ /r-)0 r-(f-1/ /\r0)0 )0, ) ok
+  %%Prepare for next record, exit if length of next record is less-than or equal right margin.
+  mrr-v/ /er0oc o<)0 okok
+%%Reunite first line with it's indentation or bullet string.
+(m-r)0j2
+%%Reindent.
+ol0oso- (mrr-o# (i/ /o~)0 ok)0 ok
+%%Remove end line break delimiter.
+j-m
+%s=system 0;
+
+<<ReformatAll>>
+%%Format all paragraphs.
+m-0 ( %h'=call ReformatParagraph; mm-)0
+
+<<SetParagraphMargin>>
+%%Prompt string: Specify right margin > 
+obz$r-0(v/ /r)0 
+(q/0-9/oid, %q$=window; f/ screenWidth = /-oidol2o-)osoz 
+ov/'=DocRightMargin/
+
+<<FindParagraphStart>>
+%%Go to start of current paragraph, paragraphs being delimited by blank lines, change in indentation level, underlines or bullets.
+%%  Cursor is left at 1st. character of paragraph,
+%%    for ordinary paragraphs this is the first nonblank,
+%%    for bullets it is the character immediately after the bullet,
+%%    for headings and leave-alone lines it is the begining of the line and
+%%    for blank lines it is the last character.
+%%
+%%
+%%Check that it's a valid paragraph.
+r-0(v/ /, %X=Error: this is not a valid paragraph.; )
+%%Get current indentation level.
+(v/ /r)0 oq/'=DocBulletString/ (v'~rr-f1//-,)oc
+%%(v/ /r)0obz&m+3oz(v'&rr-f1//-,)oc
+(
+  %%Exit if bullet at current level.
+  os(v-'~\, m-?\)
+%%  (v-'&\, m-?\)
+  %%Exit if indentation level has gone up.
+  v/ /\
+  %%Exit if indentation level has gone down.
+  (v-/ /r-)0 r-\
+  %%Try first text column for current level of indentation of line above.
+  %%Exit if nonblank in column 1 - thats a don't touch line.
+  r-0(r\, r-(v/ /, m-?\))
+  %%Exit now if any bullet.
+  (v/ /r)0v'~\
+%%  (v/ /r)0v'&\
+  %%Exit if line is blank.
+  rr-
+  m-
+  %%Index to current indentation level.
+  oso#or )0
+m(v/ /r)0
+okok
+
+<<FindNextParagraphStart>>
+%%Go to start of line following paragraph, paragraphs are  delimited by blank lines, change in indentation level or bullets.
+%%
+%%Check that it's a valid paragraph.
+r-0(v/ /, %X=Error: this is not a valid paragraph.; )
+%%Get the current indentation level.
+oq/'=DocBulletString/ ((v/ /r)0r\m)0r- (v'~rr-f1//-,)oc
+%%obz&m+3oz ((v/ /r)0r\m)0r- (v'&rr-f1//-,)oc
+(
+  %%Exit if a change in indentation level.
+  (v/ /r)0oco=
+  %%Exit if it's a next-level bullet.
+  osv'~\os
+%%  v'&\
+  %%Exit if don't touch line.
+  r-0(r\, r-v/ /)
+  %%Exit if it's a blank line.
+  (v/ /r)0r
+  m)0
+r-0okok
+
+<<SpellcheckGeneral>>
+%%Checks spellings in temporary file /tmp/spell.tmp - the current buffer should be the source text.
+%%
+%%Note the length of the spellcheck section.
+z$m0onos
+%%Acquire pathName for local spelling dictonary.
+o#oz %q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
+%%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
+z_n.a$z$ i"%e#=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+%%Sort and purge.
+%b=sort; (r\k, r-v/& /\k, m)0 m0r0b m-0(n.r2(f1/ /-q/0-9/\)0a$& m(v'$k)0)0
+%%Remove any words which appear in the spelling list.
+o#oz (%i$=spell.dic; (i/ /r0i//m)0m-0 z#m-0(rn.rf1/ /-a;& (z$m-0f';z#k, z#m))0, )
+%%Report number of spelling mistakes.
+z#m-0ol0(ro~m, k)0m-0 
+(ol0o= 
+  ok%m=Congratulations, there were no spelling mistakes.; ozok
+, %%Some spellings to fix.
+  %m=Oh dear, there were '~ spelling mistakes.;
+  %%Add return signpost to buffer ( # ).
+  o#m-0b-oo/Spell-check report, original buffer: %c/ ozo#onoso-o~obosz#r0oo/ lines %d/ ozonol-1o+obosz#r0oo/ to %d/b
+  %%Go to first misspelling.
+  m=2 %h'=call NextMisspelling; )
+
+<<SpellcheckDocument>>
+%%Checks spellings in complete document (sends errors to '#' buffer).
+%%Clear out any old popup data.
+ob z-m-0k0 oz
+%%Copy then output the document.
+m-0n.m0a$& ob%o=/tmp/spell.tmp;
+%h'=call SpellcheckGeneral;
+
+<<SpellcheckChapter>>
+%%Checks spellings in current chapter - chapters are bounded by chapter headings, a line beginning with an alphabetical character or by a document boundary.
+%%Clear out any old popup data.
+ob z-m-0k0 oz
+%%Grab current chapter
+ob r-0(q/a-zA-ZĀ-𠀹/\m-)0n. (mq/a-zA-ZĀ-𠀹/\)0 a$&
+%%Output the chapter.
+z$ %o=/tmp/spell.tmp;
+%h'=call SpellcheckGeneral;
+
+<<SpellcheckParagraph>>
+%%Checks spellings in current paragraph.
+%%Clear out any old popup data.
+ob z-m-0k0 oz
+%%Grab current paragraph
+ob((r\, r-(v/ /r)0r\, r-0v/ /\)m)0 %h'=call FindParagraphStart;  r-0n. %h'=call FindNextParagraphStart;  a$& 
+%%Output the paragraph.
+z$ %o=/tmp/spell.tmp;
+%h'=call SpellcheckGeneral;
+
+<<SpellcheckWord>>
+%%Prompt string: Word(s) for spelling checker> 
+%%Checks spellings of a given word or the word at the current-character position.
+%%
+%%If no word given, pick up word under or left of the cursor.
+obz$r-0(roz, oz(q/a-zA-ZĀ-𠀹/(q//\r-)0,)(q-//r-)0n.(q//r)0a$&v-'$)
+%%write the word(s) for Aspell.
+obz$ %o=/tmp/spell.tmp;
+%%Clear out any old popup data.
+z-m-0k0
+%%Acquire pathName for local spelling dictonary.
+o#oz%q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
+%%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
+z_n.a$z$ i"%e#=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+%%Set up popup menu.
+k(f1/: /-n.r0a-& z-(f1/, /e2b)0 oz %h'=call PopupRestore; , oz %x=The spelling was correct.; ) oz
+
+<<NextMisspelling>>
+%%Goes to next word in spelling-errors list, if at end of line move to next misspelling.
+%%
+%%First go back to start of document.
+z#onm-0f1/original buffer: /-oicos f/lines /-oidos ono-omosozono-om
+obz#(m, oz%x=All done;)
+%%Place current misspelling in $ and suggested corrections in -
+( %%What type of report have we been given.
+  %%Maybe a new-style report with no suggestions.
+  v/# /r2n.f1/ /a$&
+, %%Maybe the old-style report, just pick up the misspelling.
+  v/& /\ n.r0a$& n.a-
+, %%It's a new-style Aspell report, hopefully with suggested corrections.
+  r2n.f1/ /a$& f1/: /-n.r0a-& z-m-0 (f1/, / e2b)0
+  %h'=call PopupRestore;
+%%  %%Announce.
+%%  z-m0m-onm-0 (ol1o=ok, %m=ASpell suggests '~ corrections - see buffer -;)
+ )
+%%Go
+oz %h'=call NextSpellInstance;
+
+<<NextSpellInstance>>
+%%Goes to next instance of misspelt word, if none then move to next mis-spelling in # buffer.
+%%
+obz#r-0(v/& /\n.r0a$&, r2n.f1/ /a$&) r0oz(v'$r, )
+( (f'$(q-/a-zA-ZĀ-𠀹/r?,rr-f1'$-q/a-zA-ZĀ-𠀹/))0f-1'$ 
+  %%Check that we've not gone beyond original spellcheck scope.
+  obz#onm-0r0f-1/ /oidosono-omosoz on(o>ok, ok\)
+, %%Exact-match or scoping check failed - index to next reported mis-spelling in # buffer.
+  %h'=call NextMisspelling; )
+
+<<FixSpelling>>
+%%Substitutes current misspelled instance with word in current line of ; buffer.
+z;onm-0f1/original buffer: /-oicosono-om ozs';
+
+<<SpellLexicon>>
+%%Prompt string: Lexicon-search ReX> 
+%%Greps for string in lexicon.
+%%
+%%Construct the egrep command then do it.
+obz$r-0 i"%e-=\egrep -i '"r0i"' ${JOT_RESOURCES}/lexicon.lis" '$
+%%Announce and display.
+m0onm-0 osoz %m=There were '~ matching words.; %h'=call PopupRestore;
+
+<<MakeParagraphIntoBullet>>
+%%Makes current paragraph a bullet.
+oq/'=DocBulletString/ onoc
+%%obz&m+3oz onoc
+%%Condense paragraph to one line.
+%h'=call FindParagraphStart; on %h'=call FindNextParagraphStart; ono-b-(j-o~)0ok %h'=call FindParagraphStart; 
+%%Go back to start of previous paragraph and get it-s indentation level.
+on(m-(v/ /r)0r\)0 r-0(v/ / %h'=call FindParagraphStart; r-0ol0(v/ /ro~)0, ol2) 
+%%Return to our paragraph and copy in the indent level (defaults to level 2).
+osono-om(v/ /e)0 ol0oso-(i/ /o~)0 okokok
+%%Add a bullet if required.
+(v'~, i'~)ok %h'=call ReformatParagraph; 
+%%(v'&, i'&) %h'=call ReformatParagraph; 
+%%Don't know what this is for?
+%%m-r0(oco=(okono=m, ), ok)ok m
+
+<<CentreAndUnderlineText>>
+%%Centres and underlines text on current line.
+%%
+%%Strip out leading ant trailing whitespace.
+r-0(v/ /e)0r0(v-/ /e-)0
+%%Get length of line.
+oc oq/'=DocLeftMargin/o# oq/'=DocRightMargin/ oso-oco-ol-2o/oso-r-0
+%%ocobz&m+1r-0oidosozo#obz&m+2r-0oidosozoso-oco-ol-2o/oso-r-0
+%%Underline it.
+(o~i/ /)0okn.r-0a$h$r0bh$ol0oso-(i/-/o~)0okm(v/ /r)0(v/--/k,)
+
+<<UnderlineThisLine>>
+%%Underlines text on current line without affecting it
+na$h$2m-(v/ /r, (v/  /\ ei/-/)0r)0m
+
+<<PurgeAllHeadings>>
+%%Purges all headings.
+on
+%%Find the first heading.
+m-0((q/0-9/\m)0mm-q/0-9/((q/0-9/e)0i/1/v/./r)0(v/ /e)0i/ /)0
+%%Change it to all-the-zeros.
+n.a$obz$i/0/oz
+m-0
+( %%Heading loop.
+  %%Find next heading.
+  (q/0-9/\m)0q/0-9/obz$r-0
+  %%Strip out digits
+  ((q/0-9/r)0o#oz(q/0-9/e)0(v/./e,z$e0) z$v/./r)0oz
+  h$(v/ /(q-/0-9/r-)0n.oido~a%oo/%d/,i/./)
+  r-0f1/ /n.r-0a$h$
+m2m-)0
+ono-om
+
+<<InheritHeaderLevel>>
+%%Fetches last header level to current line.
+on
+%%Find last header.
+(m-q/0-9/\)0
+%%Pick it up.
+(q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)
+
+<<UnderlineHeader>>
+%%Underlines heading if level 4 or below.
+r-0ol0
+%%Count up heading levels.
+((q/0-9/r)0v/./ro~)0
+%%Kill off any pre-existing underlines.
+m(v/-/k,)m-r0
+%%If levels < Limit add new underlines.
+oq/'=DocHeaderMax/ o-ol0o< (v-/ /e-)0ol0oco-b(i/-/o~)0okm,
+%%obz&m+4oidosozo-ol0o< (v-/ /e-)0ol0oco-b(i/-/o~)0okm,
+
+<<ConvertLineToHeading>>
+%%Prompt string: Heading proforma> 
+%%Converts current line into a heading.
+%%
+%%If a proforma header tag is given then use that.
+obz$r-0(r, ozr-0(n.(q/0-9./r)0a$, oz))
+%%Locate and pick up previous heading.
+on (m-q/0-9/\)0 (q/0-9/n.f1/ /a$&, i-/0/n.ra$)
+%%Go back.
+ono-om
+%%If heading level is already defined accept that, otherwise inherit from predecessor.
+r-0(v/ /e)0 ol1
+( q/0-9./
+  %%Some heading-level structure exists - first count the levels.
+  ((q/0-9/r)0v/./ro~)0
+, %%No predefined header levels - inherit from predecessor.
+  obz$osr-0 ((q/0-9/r)0v/./ro~)0 osoz )
+%%Insert inherited heading level.
+r-0h$n.(q/0-9./r)0a$i/ /(v/ /e)0
+%%Adjust no. of levels - may be necessary to add or remove subsection numbers.
+ol-1oso- r-0 (o~ ( (q/0-9./(q/0-9/r)0(v/./r,), i/.0/), i/./) )0 (q/0-9./e)0
+%%Finally increment last level.
+(v-/./e-,) (q-/0-9/r-)0 oido~oo/%d/
+%%Add underlining code from ! buffer.
+%h'=call UnderlineHeader; 
+
+<<DownHeadingLevel>>
+%%Adds a new heading level.
+%h'=call InheritHeaderLevel;
+%%Now remove the last element of the heading level.
+i/.1 /(q/0-9. /e)0
+%h'=call UnderlineHeader;
+
+<<UpHeadingLevel>>
+%%Unwinds one heading level.
+%h'=call InheritHeaderLevel;
+%%Now increment the final element of the heading level.
+(((q-/ 0-9/r-)0v-/./r-)2r,)n.oida%o~oo/%d/i/ /(q/0-9. /e)0
+%h'=call UnderlineHeader; oz
+
+<<RightJustifyLine>>
+%%Right-justifies current line.
+r-0(q/	 /e)0r0(q-/	 /e-)0ocob oq/'=DocRightMargin/ o-r-0(i/ /o~)0okr0i/	/m
+%%r-0(q/	 /e)0r0(q-/	 /e-)0ocobz&m+2r-0oidosozo-r-0(i/ /o~)0okr0i/	/m
 
 <<AddNewFunctions>>
 %%Adds function definitions in ( @ ) buffer to code repository and updates hashtable.
 %%
-obz'm0 (rr0bm-, m-)2m0 onh@ ono-om
+%s=system 1; obz'm0 (rr0bm-, m-)2m0 onh@ ono-om
 %%Check the function definitions and set up the function hashtable.
 ((v/<</\m)0 mm-r2n.f1/>>/a@&r2 %h=add '@;)0
 %%
@@ -1392,11 +2490,11 @@ z^m-0(v/{/\m)0
   ( %q=windows;
     %r=WindowsNT_keys;
   , %%unix then.
-    %q$=env TERM; m %r=curses_keys_'$;
-  , %m=Error: No keys for TERM $TERM, using xterm instead.;
+    %q$=env TERM; m %r=curses_keys_'$;?
+  , %m=Error: No jot key-mapping file for TERM '$, using xterm instead.;
     %r=curses_keys_xterm; )
   %%Replace symbolic keys.
-  (z^v/{/n.f1/}/-a$&v-'$ z@m-0(f'$r-0n.r12a$&z^s'$m, m) )0 oz)
+  (z^v/{/n.f1/}/-a$&v-'$ z@m-0(f'$r-0n.r12a$&z^s'$m, m) )0 oz) %s=system 0;
 
 :
   
@@ -1405,210 +2503,272 @@ z^m-0(v/{/\m)0
 
 %%Define functins map in buffer ( ! ).
 %g!
-<<CopyFromMouse>>     {Button1Up}
-<<NoteFromMouse>>     {Button1Down}
-<<FocusToMouse>>      {Button1Click}
-<<InsertHereMouse>>   {Button1DoubleClick}
-<<CopyFromMouse>>     {Button2Up}
-<<NoteFromMouse>>     {Button2Down}
-<<FocusToMouse>>      {Button2Click}
-<<InsertHereMouse>>   {Button3Click}
-<<Help>>              {F1}
-<<FindAllHelp>>       {Shift+F1}
-<<RemoveHelpFold>>    {Ctrl+F1}
-<<Note>>              {Ctrl+Shift+F1}
-<<Note>>              {Home}
-<<TermResize>>        {SizeAdj}
-<<Do>>                {F2}
-<<ScriptByName>>      {Shift+F2}
-<<ScriptByFunc>>      {Ctrl+F2}     
-<<Cut>>               {Ctrl+Shift+F2}
-<<Cut>>               {Delete}
-<<CumulativeCut>>     {Shift+Alt+F2}
-<<CumulativeCut>>     {Shift+Delete}
-<<CutTabular>>        {Ctrl+Shift+Alt+F2}
-<<CutTabular>>        {Ctrl+Delete}
-<<ParagraphUp>>       {F3}
-<<CodeSectionUp>>     {Shift+F3}
-<<IndentMatchUp>>     {Ctrl+F3}
-<<Copy>>              {Ctrl+Shift+F3}
-<<Copy>>              {End}
-<<CumulativeCopy>>    {Shift+Alt+F3}
-<<CumulativeCopy>>    {Shift+End}
-<<CutRectangle>>      {Ctrl+Shift+Alt+F3}
-<<CutRectangle>>      {Alt+Delete}
-<<ParagraphDown>>     {F4}
-<<CodeSectionDown>>   {Shift+F4}
-<<IndentMatchDown>>   {Ctrl+F4}
-<<Paste>>             {Ctrl+Shift+F4}
-<<Paste>>             {Insert}
-<<PasteOver>>         {Shift+Alt+F4}
-<<PasteOver>>         {Ctrl+Insert}
-<<PasteRectangle>>    {Ctrl+Shift+Alt+F4}
-<<PasteRectangle>>    {Alt+Insert}
-<<Substitute>>        {F5}
-<<Remove>>            {Shift+F5}
-<<SubstituteAgain>>   {Ctrl+F5}
-<<AnyMatch>>          {Alt+F5}
-<<AngleMatchLeft>>    {Ctrl+Shift+F5}
-<<ParenMatchLeft>>    {Shift+Alt+F5}
-<<CurlyMatchLeft>>    {Ctrl+Shift+Alt+F5}
-<<Insert>>            {F6}
-<<Overwrite>>         {Shift+F6}
-<<InsertAgain>>       {Ctrl+F6}
-<<AngleMatchRight>>   {Ctrl+Shift+F6}
-<<ParenMatchRight>>   {Shift+Alt+F6}
-<<CurlyMatchRight>>   {Ctrl+Shift+Alt+F6}
-<<FindPrev>>          {F7}
-<<SubsThenFindPv>>    {Shift+F7}
-<<FindPrevAgain>>     {Ctrl+F7}
-<<MarkupMatchLeft>>   {Shift+Alt+F7}
-<<SquareMatchLeft>>   {Ctrl+Shift+Alt+F7}
-<<FindNext>>          {F8}
-<<SubsThenFindNx>>    {Shift+F8}
-<<FindNextAgain>>     {Ctrl+F8}
-<<MarkupMatchRight>>  {Shift+Alt+F8}
-<<SquareMatchRight>>  {Ctrl+Shift+Alt+F8}
-<<FindExactNext>>     {F9}
-<<FindExactPrev>>     {Shift+F9}
-<<SetFindString>>     {Ctrl+F9}
-<<AppendLeftPrev>>    {Alt+F9}
-<<IndentFromPrev>>    {Ctrl+Shift+F9}
-<<JoinLeftPrev>>      {Shift+Alt+F9}
-<<Again>>             {F10}
-<<AppendRightNext>>   {Alt+F10}
-<<IndentFromNext>>    {Ctrl+Shift+F10}
-<<JoinRightNext>>     {Shift+Alt+F10}
-<<Up>>                {UpArrow}
-<<WordUp>>            {Shift+UpArrow}
-<<NewWordUp>>         {Ctrl+UpArrow}
-<<PageUp>>            {PageUp}
-<<PopupPageUp>>       {Ctrl+Alt+PageUp}
-<<ViewUp>>            {Ctrl+Shift+UpArrow}
-<<WindowShrink>>      {Ctrl+Alt+UpArrow}
-<<Down>>              {DownArrow}
-<<WordDown>>          {Shift+DownArrow}
-<<NewWordDown>>       {Ctrl+DownArrow}
-<<PageDown>>          {PageDown}
-<<PopupPageDown>>     {Ctrl+Alt+PageDown}
-<<ViewDown>>          {Ctrl+Shift+DownArrow}
-<<WindowStretch>>     {Ctrl+Alt+DownArrow}
-<<Left>>              {LeftArrow}
-<<WordLeft>>          {Shift+LeftArrow}
-<<LineLeft>>          {Ctrl+LeftArrow}
-<<DeleteChrLeft>>     {Alt+LeftArrow}
-<<PageUp>>            {Alt+UpArrow}
-<<PageDown>>          {Alt+DownArrow}
-<<ViewLeft>>          {Ctrl+Shift+LeftArrow}
-<<DeleteLineLeft>>    {Ctrl+Alt+LeftArrow}
-<<DeleteWordLeft>>    {Shift+Alt+LeftArrow}
-<<RestoreChrLeft>>    {Ctrl+Shift+Alt+LeftArrow}
-<<Right>>             {RightArrow}
-<<WordRight>>         {Shift+RightArrow}
-<<LineRight>>         {Ctrl+RightArrow} Collides with {Ctrl+Alt+PageUp}
-<<DeleteChrRight>>    {Alt+RightArrow} Collides with {Ctrl+PageUp}
-<<ViewRight>>         {Ctrl+Shift+RightArrow}
-<<DeleteLineRight>>   {Ctrl+Alt+RightArrow}
-<<DeleteWordRight>>   {Shift+Alt+RightArrow}
-<<RestoreChrRight>>   {Ctrl+Shift+Alt+RightArrow}
-^[fs        <<FindSequence>>      
-^[-fs       <<FindSequencePrev>>
-^[fo        <<FdInLineOrd>>
-^[-fo       <<FdInLineOrdPrev>>   
-^[fu        <<FdInLineUn>>        
-^[-fu       <<FdInLineUnPrev>>    
-^[fn        <<FdInNLinesUn>>    
-^[-fn       <<FdInNLinesUnPrev>>    
-^[fw        <<FindWild>>          
-^[-fw       <<FindWildPrev>>      
-^[fp        <<FindInParaNext>>    
-^[-fp       <<FindInParaPrev>>    
-^[rw        <<RestoreWordRight>>          
-^[rl        <<RestoreLineRight>>          
-^[-rw       <<RestoreWordLeft>>          
-^[-rl       <<RestoreLineLeft>>          
-^[vs        <<ViewSave>>          
-^[vr        <<ViewRestore>>       
-^[wd        <<WindowDown>>        
-^[wu        <<WindowUp>>          
-^[w1        <<WindowOne>>         
-^[wr        <<WindowReassign>>    
-^[wh        <<WindowHorizSplit>>  
-^[wv        <<WindowVertSplit>>   
-^[wt        <<WindowAlignTop>>    
-^[wc        <<WindowAlignCent>>   
-^[wb        <<WindowAlignBot>>    
-^[w+        <<WindowStretch>>     
-^[w-        <<WindowShrink>>      
-^[ps        <<PopupSearch>>      
-^[pi        <<PopupIncrementalSearch>>      
-^[pr        <<PopupRestore>>      
-^[pu        <<PopupPageUp>>      
-^[pd        <<PopupPageDown>>      
-^[`         <<InsertWithBackTick>>
-^[q         <<QuitDebugger>>
-^[e         <<Enter>>             
-^[i         <<TempInsertMode>>    
-^[I         <<InsertMode>>        
-^[ce        <<CmdEditStart>>      
-^[cg        <<CmdEditGo>>         
-^[cs        <<CmdString>>         
-^[mn        <<UpRegardless>>      
-^[ms        <<DownRegardless>>    
-^[me        <<RightRegardless>>   
-^[mw        <<Left>>              
-^[/d        <<LineSW>>            
-^[/s        <<DSLineSW>>          
-^[\d        <<LineSE>>            
-^[\s        <<DSLineSE>>          
-^[ls        <<LineS>>             
-^[lwl       <<LineW>>             
-^[\u        <<LineNW>>            
-^[\n        <<DSLineNW>>          
-^[/u        <<LineNE>>            
-^[/n        <<DSLineNE>>          
-^[ln        <<LineN>>             
-^[le        <<LineE>>             
-^[br        <<Break>>             
-^[bt        <<BoxText>>           
-^[bx        <<Box>>               
-^[z1        <<Lozenge>>           
-^[z2        <<DSLozenge>>         
-^[0         <<Macro0>>            
-^[1         <<Macro1>>            
-^[2         <<Macro2>>            
-^[3         <<Macro3>>            
-^[4         <<Macro4>>            
-^[5         <<Macro5>>            
-^[6         <<Macro6>>            
-^[7         <<Macro7>>            
-^[8         <<Macro8>>            
-^[9         <<Macro9>>            
-<<Macro1>>            {KP_1}
-<<LineSW>>            {Ctrl+Alt+KP_1}
-<<Macro2>>            {KP_2}
-<<DownRegardless>>    {Ctrl+KP_2}
-<<LineS>>             {Ctrl+Alt+KP_2}
-<<Macro3>>            {KP_3}
-<<LineSE>>            {Ctrl+Alt+KP_3}
-<<Macro4>>            {KP_4}
-<<Left>>              {Ctrl+KP_4}
-<<LineW>>             {Ctrl+Alt+KP_4}
-<<Macro5>>            {KP_5}
-<<BoxText>>           {Ctrl+Alt+KP_5}
-<<Macro6>>            {KP_6}      
-<<RightRegardless>>   {Ctrl+KP_6} 
-<<LineE>>             {Ctrl+Alt+KP_6}
-<<Macro7>>            {KP_7}
-<<LineNW>>            {Ctrl+Alt+KP_7}
-<<Macro8>>            {KP_8}
-<<UpRegardless>>      {Ctrl+KP_8}
-<<LineN>>             {Ctrl+Alt+KP_8}
-<<Macro9>>            {KP_9}
-<<LineNE>>            {Ctrl+Alt+KP_9}
-<<Macro0>>            {KP_0}
-<<Enter>>             {KP_Enter}
-<<Again>>             {KP_Decimal}
+<<CopyFromMouse>>            {Button1Up}
+<<NoteFromMouse>>            {Button1Down}
+<<FocusToMouse>>             {Button1Click}
+<<InsertHereMouse>>          {Button1DoubleClick}
+<<CopyFromMouse>>            {Button2Up}
+<<NoteFromMouse>>            {Button2Down}
+<<FocusToMouse>>             {Button2Click}
+<<InsertHereMouse>>          {Button3Click}
+<<Help>>                     {F1}
+<<FindAllHelp>>              {Shift+F1}
+<<RemoveHelpFold>>           {Ctrl+F1}
+<<Note>>                     {Ctrl+Shift+F1}
+<<Note>>                     {Home}
+<<TermResize>>               {SizeAdj}
+<<Do>>                       {F2}
+<<ScriptByName>>             {Shift+F2}
+<<ScriptByFunc>>             {Ctrl+F2}
+<<Cut>>                      {Ctrl+Shift+F2}
+<<Cut>>                      {Delete}
+<<CumulativeCut>>            {Shift+Alt+F2}
+<<CumulativeCut>>            {Shift+Delete}
+<<CutTabular>>               {Ctrl+Shift+Alt+F2}
+<<CutTabular>>               {Ctrl+Delete}
+<<BlockUp>>                  {F3}
+<<ChapterUp>>                {Shift+F3}
+<<SentenceUp>>               {Ctrl+F3}
+<<Copy>>                     {Ctrl+Shift+F3}
+<<CumulativeCopy>>           {Shift+Alt+F3}
+<<CumulativeCopy>>           {Shift+End}
+<<CutRectangle>>             {Ctrl+Shift+Alt+F3}
+<<CutRectangle>>             {Alt+Delete}
+<<BlockDown>>                {F4}
+<<ChapterDown>>              {Shift+F4}
+<<SentenceDown>>             {Ctrl+F4}
+<<Paste>>                    {Ctrl+Shift+F4}
+<<Paste>>                    {Insert}
+<<PasteRectangle>>           {Ctrl+Shift+Alt+F4}
+<<PasteRectangle>>           {Alt+Insert}
+<<Substitute>>               {F5}
+<<Remove>>                   {Shift+F5}
+<<SubstituteAgain>>          {Ctrl+F5}
+<<AngleMatchLeft>>           {Ctrl+Shift+F5}
+<<ParenMatchLeft>>           {Shift+Alt+F5}
+<<CurlyMatchLeft>>           {Ctrl+Shift+Alt+F5}
+<<Insert>>                   {F6}
+<<Overwrite>>                {Shift+F6}
+<<InsertAgain>>              {Ctrl+F6}
+<<AngleMatchRight>>          {Ctrl+Shift+F6}
+<<ParenMatchRight>>          {Shift+Alt+F6}
+<<CurlyMatchRight>>          {Ctrl+Shift+Alt+F6}
+<<FindPrev>>                 {F7}
+<<SubsThenFindPv>>           {Shift+F7}
+<<FindPrevAgain>>            {Ctrl+F7}
+<<MarkupMatchLeft>>          {Shift+Alt+F7}
+<<IndentMatchUp>>            {Ctrl+Shift+F7}
+<<SquareMatchLeft>>          {Ctrl+Shift+Alt+F7}
+<<FindNext>>                 {F8}
+<<SubsThenFindNx>>           {Shift+F8}
+<<FindNextAgain>>            {Ctrl+F8}
+<<MarkupMatchRight>>         {Shift+Alt+F8}
+<<IndentMatchDown>>          {Ctrl+Shift+F8}
+<<SquareMatchRight>>         {Ctrl+Shift+Alt+F8}
+<<FindExactNext>>            {F9}
+<<FindExactPrev>>            {Shift+F9}
+<<SetFindString>>            {Ctrl+F9}
+<<AppendLeftPrev>>           {Alt+F9}
+<<IndentFromPrev>>           {Ctrl+Shift+F9}
+<<JoinLeftPrev>>             {Shift+Alt+F9}
+<<Again>>                    {F10}
+<<AgainExhaustive>>          {Shift+F10}
+<<AppendRightNext>>          {Alt+F10}
+<<IndentFromNext>>           {Ctrl+Shift+F10}
+<<JoinRightNext>>            {Shift+Alt+F10}
+<<Up>>                       {UpArrow}
+<<WordUp>>                   {Shift+UpArrow}
+<<NewWordUp>>                {Ctrl+UpArrow}
+<<PageUp>>                   {PageUp}
+<<PopupPageUp>>              {Ctrl+Alt+PageUp}
+<<ViewUp>>                   {Ctrl+Shift+UpArrow}
+<<WindowShrink>>             {Ctrl+Alt+UpArrow}
+<<Down>>                     {DownArrow}
+<<WordDown>>                 {Shift+DownArrow}
+<<NewWordDown>>              {Ctrl+DownArrow}
+<<PageDown>>                 {PageDown}
+<<PopupPageDown>>            {Ctrl+Alt+PageDown}
+<<ViewDown>>                 {Ctrl+Shift+DownArrow}
+<<WindowStretch>>            {Ctrl+Alt+DownArrow}
+<<Left>>                     {LeftArrow}
+<<WordLeft>>                 {Shift+LeftArrow}
+<<LineLeft>>                 {Ctrl+LeftArrow}
+<<DeleteChrLeft>>            {Alt+LeftArrow}
+<<PageUp>>                   {Alt+UpArrow}
+<<PageDown>>                 {Alt+DownArrow}
+<<ViewLeft>>                 {Ctrl+Shift+LeftArrow}
+<<DeleteLineLeft>>           {Ctrl+Alt+LeftArrow}
+<<DeleteWordLeft>>           {Shift+Alt+LeftArrow}
+<<RestoreChrLeft>>           {Ctrl+Shift+Alt+LeftArrow}
+<<Right>>                    {RightArrow}
+<<WordRight>>                {Shift+RightArrow}
+<<LineRight>>                {Ctrl+RightArrow} Collides with {Ctrl+Alt+PageUp}
+<<DeleteChrRight>>           {Alt+RightArrow} Collides with {Ctrl+PageUp}
+<<ViewRight>>                {Ctrl+Shift+RightArrow}
+<<DeleteLineRight>>          {Ctrl+Alt+RightArrow}
+<<DeleteWordRight>>          {Shift+Alt+RightArrow}
+<<RestoreChrRight>>          {Ctrl+Shift+Alt+RightArrow}
+<<Macro1>>                   {KP_1}
+<<LineSW>>                   {Ctrl+Alt+KP_1}
+<<Macro2>>                   {KP_2}
+<<DownRegardless>>           {Ctrl+KP_2}
+<<LineS>>                    {Ctrl+Alt+KP_2}
+<<Macro3>>                   {KP_3}
+<<LineSE>>                   {Ctrl+Alt+KP_3}
+<<Macro4>>                   {KP_4}
+<<Left>>                     {Ctrl+KP_4}
+<<LineW>>                    {Ctrl+Alt+KP_4}
+<<Macro5>>                   {KP_5}
+<<Macro6>>                   {KP_6}
+<<RightRegardless>>          {Ctrl+KP_6}
+<<LineE>>                    {Ctrl+Alt+KP_6}
+<<Macro7>>                   {KP_7}
+<<LineNW>>                   {Ctrl+Alt+KP_7}
+<<Macro8>>                   {KP_8}
+<<UpRegardless>>             {Ctrl+KP_8}
+<<LineN>>                    {Ctrl+Alt+KP_8}
+<<Macro9>>                   {KP_9}
+<<LineNE>>                   {Ctrl+Alt+KP_9}
+<<Macro0>>                   {KP_0}
+<<Enter>>                    {KP_Enter}
+<<Again>>                    {KP_Decimal}
+<<ParenMatchRight>>          ^[m(
+<<ParenMatchLeft>>           ^[m)
+<<CurlyMatchLeft>>           ^[m}
+<<CurlyMatchRight>>          ^[m{
+<<SquareMatchLeft>>          ^[m]
+<<SquareMatchRight>>         ^[m[
+<<AngleMatchRight>>          ^[m<
+<<AngleMatchLeft>>           ^[m>
+<<AnyMatch>>                 ^[ma
+<<MarkupMatchRight>>         ^[mm
+<<MarkupMatchLeft>>          ^[-mm
+<<IndentMatchDown>>          ^[mi
+<<IndentMatchUp>>            ^[-mi
+<<ParagraphDown>>            ^[mp
+<<ParagraphUp>>              ^[-mp
+<<SentenceDown>>             ^[ms
+<<SentenceUp>>               ^[-ms
+<<ChapterDown>>              ^[mc
+<<ChapterUp>>                ^[-mc
+<<HeadedSectionDown>>        ^[mh
+<<HeadedSectionUp>>          ^[-mh
+<<BlockDown>>                ^[mb
+<<BlockUp>>                  ^[-mb
+<<FindSequence>>             ^[fq
+<<FindSequencePrev>>         ^[-fq
+<<FindLineOrd>>              ^[fo
+<<FindLineOrdPrev>>          ^[-fo
+<<FindLineUn>>               ^[fu
+<<FindLineUnPrev>>           ^[-fu
+<<FindInNLines>>             ^[fn
+<<FindInNLinesPrev>>         ^[-fn
+<<FindWild>>                 ^[fw
+<<FindWildPrev>>             ^[-fw
+<<FindSentenceNext>>         ^[fs
+<<FindSentencePrev>>         ^[-fs
+<<FindPhraseNext>>           ^[fr
+<<FindPhrasePrev>>           ^[-fr
+<<FindParaNext>>             ^[fp
+<<FindParaPrev>>             ^[-fp
+<<FindBlockNext>>            ^[fb
+<<FindBlockPrev>>            ^[-fb
+<<FindChapterNext>>          ^[fc
+<<FindChapterPrev>>          ^[-fc
+<<FindHeadedSectionNext>>    ^[fh
+<<findColNext>>              ^[fl
+<<findColPrev>>              ^[-fl
+<<findVertNext>>             ^[fv
+<<findVertPrev>>             ^[-fv
+<<findRectNext>>             ^[fe
+<<findRectPrev>>             ^[-fe
+<<FindHeadedSectionPrev>>    ^[-fh
+<<RestoreWordRight>>         ^[rw
+<<RestoreLineRight>>         ^[rl
+<<RestoreWordLeft>>          ^[-rw
+<<RestoreLineLeft>>          ^[-rl
+<<CutRectangle>>             ^[rc
+<<PasteRectangle>>           ^[rp
+<<RightJustifyLine>>         ^[rj
+<<rotateDiagonal>>           ^[rd
+<<rotateHorizontal>>         ^[rh
+<<rotateVertical>>           ^[rv
+<<ViewSave>>                 ^[vs
+<<ViewRestore>>              ^[vr
+<<WindowDown>>               ^[wd
+<<WindowUp>>                 ^[wu
+<<WindowOne>>                ^[w1
+<<WindowSave>>               ^[ws
+<<WindowRestore>>            ^[wr
+<<WindowReassign>>           ^[wa
+<<WindowHorizSplit>>         ^[wh
+<<WindowVertSplit>>          ^[wv
+<<WindowAlignTop>>           ^[wt
+<<WindowAlignCent>>          ^[wc
+<<WindowAlignBot>>           ^[wb
+<<WindowStretch>>            ^[w+
+<<WindowShrink>>             ^[w-
+<<PopupSearch>>              ^[ps
+<<PopupIncrementalSearch>>   ^[pi
+<<PopupRestore>>             ^[pr
+<<PopupPageUp>>              ^[pu
+<<PopupPageDown>>            ^[pd
+<<InsertWithBackTick>>       ^[`
+<<DebuggerQuit>>             ^[q
+<<Enter>>                    ^[e
+<<TempInsertMode>>           ^[i
+<<InsertMode>>               ^[I
+<<CmdEditStart>>             ^[ce
+<<CmdEditGo>>                ^[cg
+<<CmdString>>                ^[cs
+<<Left>>                     ^[mw
+<<LineDefaultChrs>>          ^[ld
+<<LineSW>>                   ^[/d
+<<DSLineSW>>                 ^[/s
+<<LineSE>>                   ^[\d
+<<DSLineSE>>                 ^[\s
+<<LineS>>                    ^[ls
+<<LineW>>                    ^[lw
+<<LineNW>>                   ^[\u
+<<DSLineNW>>                 ^[\n
+<<LineNE>>                   ^[/u
+<<DSLineNE>>                 ^[/n
+<<LineN>>                    ^[ln
+<<LineE>>                    ^[le
+<<Break>>                    ^[br
+<<BoxText>>                  ^[bt
+<<Box>>                      ^[bx
+<<Lozenge>>                  ^[z1
+<<DSLozenge>>                ^[z2
+<<Macro0>>                   ^[0
+<<Macro1>>                   ^[1
+<<Macro2>>                   ^[2
+<<Macro3>>                   ^[3
+<<Macro4>>                   ^[4
+<<Macro5>>                   ^[5
+<<Macro6>>                   ^[6
+<<Macro7>>                   ^[7
+<<Macro8>>                   ^[8
+<<Macro9>>                   ^[9
+<<ReformatParagraph>>        ^[pa
+<<ReformatAll>>              ^[Pa
+<<MakeParagraphIntoBullet>>  ^[bu
+<<CentreAndUnderlineText>>   ^[cu
+<<UnderlineThisLine>>        ^[ul
+<<SetParagraphMargin>>       ^[pm
+<<ConvertLineToHeading>>     ^[he
+<<DownHeadingLevel>>         ^[h+
+<<UpHeadingLevel>>           ^[h-
+<<PurgeAllHeadings>>         ^[ha
+<<SpellcheckParagraph>>      ^[sp
+<<SpellcheckChapter>>        ^[sc
+<<SpellcheckDocument>>       ^[sd
+<<SpellcheckWord>>           ^[sw
+<<NextSpellInstance>>        ^[si
+<<NextMisspelling>>          ^[sn
+<<FixSpelling>>              ^[sf
+<<SpellLexicon>>             ^[sx
+
 :
 %%Windows does not send events on window resize.
 (%q=windows; z!m-0f/{SizeAdj}/k, )
@@ -1619,6 +2779,8 @@ z^m-0(v/{/\m)0
 %%For single-line functions, the code is copied directly into the key-translations buffer ( ^ )
 %%for multi-line functions a call stub of the form "%h'=call <name>;" goes into the key-translations buffer.
 %%
+%s=system 1;
+%%
 %%Key-code identification requires case sensitivity on.
 %s=case 1;
 %%Now check the function definitions and set up the function hashtable.
@@ -1627,22 +2789,27 @@ obz'm-0 ((v/<</\m)0 mm-r2n.f1/>>/a$&r2 ( %h=new '$;, %m=Warning: duplicate funct
 ob z?m0r0b z!m-0
 ( %%Skip blank lines and comments.
   (((v/ /r)0r\m)0 r-v/%%/m)0 
-  %%For each key description, pick up the function name.
-  (v/<</r2n.f1/>>/a$&
+  %%For each function name, pick up either the key description or the escape-sequence specification.
+  ( v/<</r2n.f1/>>/a$&
     %%Check function names ( in $ buffer) and keycodes.
     ( %h'=jump '$;, %m?=Error: No definition of function '$;)
-    %%Add escape sequence to ( ^ ) buffer.
-    %%First pick up the key description to ( ; ) buffer.
-    z!(f1/{/n.r2f1/}/-a;&, %m?=Error: Syntax of key-name to keycode translation for '!.;) 
-    %%Now pick up the key code.
-    z@m-0(f';r-0n.r12a;&, %m?=Error: Syntax or missing keycode in translation of key ''; z?r0i'; ) 
-  , %%Not a key description - maybe a simple escape sequence, these do not require keycode translation.
-    r-0n.r12a;& v/<</r2n.f1/>>/a$& (%h'=jump '$;, %m?=Error: No definition of function '$;)
-  , %m?=Error: syntax of function-names to key-description map at '!.;) 
-  %%Add the key code and single-line function code or, for longer functions, function call to the ( ^ ) buffer.
-  z'on(mv/%%/, r\)0 onm ((v/%%/, (v/ /r)0r\)m)0r-? (v/<</ono-omz^i'',  okz^i/%h'=call /h$i/;/) r-0h; z'ono-om
-  %%If function code has parameters, insert parameter-capture code to ( ^ ) buffer.
-  ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^i|%d$=##"|h$i| " -hereEndsThePercentCommand; | )
+    %%
+    %%The remainder of the line is either a key description or an escape sequence.
+    z! ( f1/ {/ %%It's a key description of the form {<[shift][ctrl][Alt]><KeyName>} to be translated using key translations in ( ! ) buffer.
+      rn.(f1/}/-a;&, %m?=Error: Syntax of key-name to keycode translation for '!.;) 
+      %%Now pick up the key code.
+      z@m-0(f';r-0n.r12a;&, %m?=Error: Syntax or missing keycode in translation of key ''; z?r0i'; ) 
+    , %%Not a key description - should be a simple escape sequence.
+      r2(v/ /r)0n.(r12, r0i/            /f-1/  /-n.r12)a;& 
+    , %m?=Error: syntax of function-names to key-description map at '!.; ) 
+    %%
+    %%Add the key code and single-line function code or, for longer functions, function call to the ( ^ ) buffer.
+    z'on(mv/%%/, r\)0 onm ((v/%%/, (v/ /r)0r\)m)0r-? (v/<</ono-omz^i'', okz^i/%h'=call /h$i/;/) r-0h;i/ / z'ono-om
+    %%If function code has parameters, insert parameter-capture code to ( ^ ) buffer.
+    ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^i|%d$=##"|h$i| " -hereEndsThePercentCommand; | )
+  , %%Line should begin "<<FunctionName>>" flag it as an error.
+    %m?=Error: invalid line in function to key mapping entry "'!"; )
+  %%
   %%Index to next key description.
   z^r0b z!m2m-)0
   
@@ -1660,12 +2827,11 @@ ob
   %m:=Warning: Could not find a help tree below the JOT_RESOURCES directory.; )
 oz
   
-%%%h'=call WindowOne;
-%%%s=console 10;
 %%Check for errors and display them if necessary.
 ob z?m0ol0 (v/Error: /m-o~)0 ol0(o=ok, m0w %m=Oh dear! - there were '~ errors in your startup file - hit {return} to continue; g )
 %%Restore original verbosity level.
 ( %q$=system; f/Verbosity =    /-v/0/, %q=version; ) oz
+%s=system 0;
 :
 
 %%All functions are defined in the code repository ( ' buffer).
@@ -1676,9 +2842,148 @@ ob z?m0ol0 (v/Error: /m-o~)0 ol0(o=ok, m0w %m=Oh dear! - there were '~ errors in
 %%and set up the remaining functions in the code repository buffer ( ' ).
 z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 
-%%Broken \ and | keys on my chromebook.
-obz^m-0
-i"^[bs          %s=commandstring ##\ -hereEndsThePercentCommand;"b
-i"^[vb          %s=commandstring ##| -hereEndsThePercentCommand;"b
-oz
+%%define default properties for document processing.
+%h'=data DocLeftMargin;          ol2         ov/'=DocLeftMargin/
+%h'=data DocRightMargin;         ol78        ov/'=DocRightMargin/
+%h'=data DocBulletString;        %d~=- ;     ov/'=DocBulletString/
+%h'=data DocHeaderMax;           ol4         ov/'=DocHeaderMax/
+%h'=data DefaultLineDrawing;     %d~=a;      ov/'=DefaultLineDrawing/
+%h'=data LineIntersectionLookup;
 
+%%This table is used by <<LineCheckIntersection>> it is part of the line-drawing system (LineN, LineS, LineE and LineW).
+%%It shows the font type for each active direction for each drawing character, each entry consists of 5 characters. with no blanks: 
+%%  - 1 the drawing character,
+%%  - 2 The font code for the North side.
+%%  - 3 The font code for the South side.
+%%  - 4 The font code for the East side.
+%%  - 5 The font code for the West side.
+%%
+%%The font codes are ( . ) no connection, ( a ) ASCII, ( l ) light, ( h ) heavy and  ( d ) double.
+%%
+%g~
+-..aa
+|aa..
++aaaa
+╵l...
+╷.l..
+╹h...
+╻.h..
+╽lh..
+╿hl..
+│ll..
+┃hh..
+║dd..
+
+╴...l
+╶..l.
+╸...h
+╺..h.
+╼..hl
+╾..lh
+─..ll
+━..hh
+═..dd
+
+┌.ll.
+┍.lh.
+╒.ld.
+┎.hl.
+┏.hh.
+╓.dl.
+╔.dd.
+
+└l.l.
+╚d.d.
+╙d.l.
+╘l.d.
+┗h.h.
+┖h.l.
+┕l.h.
+
+┘l..l
+┙l..h
+┚h..l
+┛h..h
+╛l..d
+╜d..l
+╝d..d
+
+┐.l.l
+┑.l.h
+╕.l.d
+┒.h.l
+┓.h.h
+╖.d.l
+╗.d.d
+
+├lll.
+┝llh.
+┞lld.
+┡hlh.
+╞lld.
+┟lhl.
+┠hhl.
+┢lhh.
+┣hhl.
+╟ddl.
+╠ddd.
+
+╢dd.l
+╣dd.d
+┧lh.l
+┨hh.l
+┩hl.h
+┪lh.h
+┫hh.h
+┤ll.l
+┥ll.h
+┦hl.l
+╡ll.d
+
+┬.lll
+┭.llh
+┮.lhl
+┯.lhh
+┰.hll
+┱.hlh
+┲.hhl
+┳.hhh
+╤.ldd
+╥.dll
+╦.ddd
+
+┴l.ll
+┵l.lh
+┶l.hl
+┷l.hh
+┸h.ll
+┹h.lh
+┺h.hl
+┻h.hh
+╧l.dd
+╨d.ll
+╩d.dd 
+
+┼llll
+┽lllh
+┾llhl
+┿llhh
+╀hlll
+╃hllh
+╄hlhl
+╇hlhh
+╪lldd
+╁lhll
+╂hhll
+╅lhlh
+╆lhhl
+╈lhhh
+╉hhlh
+╊hhhl
+╋hhhh
+╫ddll
+╬dddd
+:
+
+ov/'=LineIntersectionLookup/
+  
