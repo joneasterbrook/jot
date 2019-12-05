@@ -1022,7 +1022,7 @@ obz@(m\oz, oz %x=Failed to find a line containing the specified set of substring
 %s=system 1; obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0oz
 %%  obz$ (r\z@, r-n.r0a@&z@  ((v/ /e)0f1/ /b(v/ /e)0)0 r0b) m-0oz
 %%Go
-(f-'@oc (obz@m2m-ozr-0 f1'@-)0 obz@mm-0ozokr-)0 okoz
+(f-'@oc (obz@m2m-ozr-0 f1'@-)0 obz@mm-0ozokr-?)0 okoz
 %%If the previous loop completed at the end of the list of substrings, a match was found - let's see.
 (obz@m\ ozoc o-ou, ozok) %s=system 0;
 
