@@ -60,11 +60,6 @@
 #else
 #include <ncurses/curses.h>
 #endif
-#if !defined(noX11)
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Shell.h>
-#endif
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -3213,7 +3208,7 @@ int Run_Sequence(struct Seq *Sequence)
           sscanf(Buf, "%d %d %d\033MOUSE", &s_MouseBufKey, &s_MouseLine, &s_Mouse_x); }
         else if (s_JournalHand) {
           sprintf(Buf, "%d %d %d", s_MouseBufKey, s_MouseLine, s_Mouse_x);
-          UpdateJournal(Buf, "MOUSE"); }
+          UpdateJournal(Buf, "\e<<MOUSE>>"); }
         MouseBuf = GetBuffer(s_MouseBufKey, NeverNew);
         LocalFail = PushInt(s_Mouse_x + (MouseBuf ? MouseBuf : s_CurrentBuf)->LeftOffset);
         LocalFail |= PushInt(s_MouseLine);
@@ -3885,13 +3880,18 @@ int Run_Sequence(struct Seq *Sequence)
           
         if (RightArg[0]) { //Term-size expression follows.
           ExpandDeferredString(s_TempBuf, RightArg, TextAsIs);
-          sscanf(s_TempBuf->CurrentRec->text + s_TempBuf->CurrentByte, "%dx%d", &GivenWidth, &GivenHeight);
+          sscanf(s_TempBuf->CurrentRec->text + s_TempBuf->CurrentByte, "%d %d", &GivenWidth, &GivenHeight);
           if (s_TermWidth < GivenWidth || s_TermHeight < GivenHeight) {
-            LocalFail = Fail("Height and/orwidth given in %%L expression exceedes corresponding terminal dimension - reverting to %dx%d",
+            LocalFail = Fail("Height and/or width given in %%L expression exceedes corresponding terminal dimension - reverting to %dx%d",
             s_TermWidth, s_TermHeight);
             break; }
           s_TermWidth = GivenWidth;
-          s_TermHeight = GivenHeight; }
+          if (GivenHeight)
+            s_TermHeight = GivenHeight; }
+        else if (s_JournalHand) {
+          char Buf[100];
+          sprintf(Buf, "%d %d", s_TermWidth, s_TermHeight);
+          UpdateJournal(Buf, "\e<<TERM>>"); }
         LocalFail |= InitTermTable();
 #if defined(LINUX)
         clear();
@@ -9098,7 +9098,10 @@ int JotUpdateWindow()
             AttrPoints[AttrIndex] = CurrentChrEndByte;
             Attrs[AttrIndex++] = Attr_CurrChr;
             AttrPoints[AttrIndex] = EndStop;
-            Attrs[AttrIndex++] = Attr_Normal; } }
+            Attrs[AttrIndex++] = Attr_Normal; }
+          if (s_CommandMode & Command_ScreenMode) {
+            s_y = ThisLine;
+            s_x = JotStrlenBytes(s_CurrentBuf->CurrentRec->text, s_CurrentBuf->CurrentByte); } }
         else {
           AttrPoints[AttrIndex] = 0;
           Attrs[AttrIndex++] = 0;
@@ -10218,7 +10221,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
         
         s_CurrentBuf->UnchangedStatus = 0;
         if (0 < ByteCount) { //Easy case - delete characters from CommandBuf.
-          JotDeleteChr(s_x = ByteCount+(s_CurrentBuf->TabStops ? GetChrNo(s_CurrentBuf)-1 : s_CurrentBuf->CurrentByte)-LeftOffset-2, s_y);
+          JotDeleteChr(s_x = ByteCount+(s_CurrentBuf->TabStops ? GetChrNo(s_CurrentBuf)+1 : s_CurrentBuf->CurrentByte)-LeftOffset-1, s_y);
           ByteCount -= ChrByteCount; }
         else { //Delete character from current buffer.
           if (s_CurrentBuf->CurrentByte <= 0) { //No more characters before cursor in current record first join with predecessor record.
@@ -10231,7 +10234,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
             SubstituteString(s_CurrentBuf, NULL, -1);
             JotDeleteChr(s_x = ChrPtr - LeftOffset, s_y); }
           if (s_JournalHand)
-            UpdateJournal(NULL, "<<DEL>>"); } }
+            UpdateJournal(NULL, "\e<<DEL>>"); } }
       else if (ByteCount) {
         int ChrByteCount = JotBytesInChEndr(CommandText, ByteCount-1);
         
@@ -10273,10 +10276,12 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
         {
         if (ScreenMode) {
           s_CurrentBuf->UnchangedStatus = 0;
+          s_x = ByteCount+(s_CurrentBuf->TabStops ? GetChrNo(s_CurrentBuf)-1 : s_CurrentBuf->CurrentByte)-s_CurrentBuf->LeftOffset;
           if (s_CommandMode & Command_OverTypeMode) {
-            int LeftOffset = s_CurrentBuf->LeftOffset;
-            JotDeleteChr(s_x = ByteCount+(s_CurrentBuf->TabStops ? GetChrNo(s_CurrentBuf)-1 : s_CurrentBuf->CurrentByte)-LeftOffset, s_y); }
-          JotInsertChr(Chr); }
+            JotDeleteChr(s_x, s_y); }
+          JotGotoXY(s_x-2, s_y);
+          JotInsertChr(Chr);
+          JotGotoXY(0, s_TermHeight-1); }
         else if( ! s_TTYMode)
 #if defined(VC)
           JotAddChr(Chr);
@@ -10312,7 +10317,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
         if (s_JournalHand) {
           s_JournalDataLines = 0;
           CommandText[ByteCount] = '\0';
-          UpdateJournal(CommandText, "<<BRK>>"); }
+          UpdateJournal(CommandText, "\e<<BRK>>"); }
         ByteCount = 0; }
       else {
         CommandText[ByteCount] = '\0';
@@ -10352,7 +10357,7 @@ int TransEscapeSequence(struct Buf *DestBuf, FILE *FileHandle, signed char Chr, 
     s_CurrentBuf->CurrentByte += ChrPointer;
     s_CurrentBuf->SubstringLength = 0;
     if (s_JournalHand)
-      UpdateJournal(CommandText, "<<INS>>");
+      UpdateJournal(CommandText, "\e<<INS>>");
     CommandText[0] = '\0'; }
   TranslationBuf = GetBuffer('^', NeverNew);
   if ( ! TranslationBuf)
@@ -10496,7 +10501,7 @@ BOOL Ctrl_C_Interrupt( DWORD fdwCtrlType )
       s_TraceMode = OrigTraceMode; }
     if (s_JournalHand) {
       char Temp[100];
-      sprintf(Temp, "<<INT %lld>> %d", s_CommandCounter, s_JournalDataLines);
+      sprintf(Temp, "\e<<INT %lld>> %d", s_CommandCounter, s_JournalDataLines);
       UpdateJournal(NULL, Temp); } }
       
   if (s_Verbose & Verbose_ReportCounter)
@@ -10521,7 +10526,7 @@ void Ctrl_C_Interrupt(int sig)
         Disaster("Restart point not set"); }
     if (s_JournalHand) {
       char Temp[100];
-      sprintf(Temp, "<<INT %lld>> %d", s_CommandCounter, s_JournalDataLines);
+      sprintf(Temp, "\e<<INT %lld>> %d", s_CommandCounter, s_JournalDataLines);
       UpdateJournal(NULL, Temp); }
     if (s_Verbose & Verbose_ReportCounter)
       RunError("Interrupt detected - command count is %lld", s_CommandCounter);
