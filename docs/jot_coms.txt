@@ -881,19 +881,21 @@ get *{F2}
 ---------------
   Journal files are collected when the editor is  started  with  the  -journal
   qualifier see `About not losing your work`. These can  be  used  to  retrace
-  every step in an editor session in the event of n abnormal exit. The journal
-  files  are  held  in  a  subdirectory  alongside  the  primary  file   named
+  every step in an editor session in  the  event  of  an  abnormal  exit.  The
+  journal files are held in a subdirectory alongside the  primary  file  named
   <filename>.jnl (where fileName is the primary file). It holds  snapshots  of
   all files and system queries read by the  session  and  a  history.txt  file
   containing a log of your keyboard and mouse activity. All  these  files  are
-  deleted when the editor closes normally. The journal directory also holds  a
-  lockfile, imaginatively named LOCK, this is normally deleted as the  session
-  exits - unless the session terminates abnormally.
+  deleted when the editor restarts normally. The journal directory also  holds
+  a lockfile, imaginatively named  LOCK,  this  is  normally  deleted  as  the
+  session exits - unless the session terminates abnormally. The LOCK file  has
+  the effect of preventing a new session starting and destroying  the  journal
+  files.
   
   The recover.jot script works by translating  the  history.txt  file  into  a
-  command script that will retrace  your  interactive  session  with  snapshot
-  copies of your input files and then winding it's way  through  all  of  your
-  interactive commands and keystrokes.
+  command script (named recover_now.jot) that will  retrace  your  interactive
+  session with snapshot copies of your input files and then winding  it's  way
+  through all of your interactive commands and keystrokes.
   
   The identities of saved-copies of files is preserved but they are uniquified
   by suffixing them with the file  modification-time  datestamp.  An  extended
@@ -901,6 +903,12 @@ get *{F2}
   It therefor keeps a separate snapshot of every read of the same file. If, on
   inspection, it finds the file's modification time is unchanged on the second
   or subsequent re-reads, the file is not copied again.
+  
+  The history.txt file, in addition to all your interactive activity, contains
+  the uniquified pathnames for the various snapshot files. As they  are  read,
+  the editor checks that the files are read  in  the  same  order  as  in  the
+  original session. It does this by verifying the  new  pathname  against  the
+  original, which is also held in the history file.
   
   For the duration of the recovery run all file writes are disabled - when the
   recover_now script script terminates the session should  continue  normally,
@@ -951,6 +959,29 @@ $ jot <fileName> -init="%r=./recover_now.jot -asConsole"
     - Optionally add the -hold qualifier, this holds the screen before exiting
       so, in the event of an early exit, you can see what's  happening  -  see
      `-hold`.
+     
+  There are several things that might go wrong with this approach  to  session
+  recovery:
+    - If there is some discrepancy in the environment of the recovery session,
+      compared to that of the original session, then it is  possible  for  the
+      sequence of recovery-file pathnames to go out of synchronization. When a
+      script opens a series of files, it is assumed that the recovery  session
+      will open the same files in the  same  order.  Although  this  situation
+      cannot be avoided it can, at least, be detected by checking the original
+      pathnames.
+      
+    - Users may navigate around the using the page-up/down  keys,  this  means
+      that the recovery-session terminal dimensions must match  those  of  the
+      original session. Furthermore, users may change the  terminal  size  mid
+      session and these changes must be reflected  in  the  recovery  session.
+      These details are recorded in the history file and recover.jot initially
+      scans the history to find the maximum terminal size  -  if  the  current
+      term is smaller then recovery halts with a suitable message.
+      
+    - There may be changes in the filing system affecting the file population,
+      file datestamps etc. When a system  query  reports  these  the  original
+      values listed in the report are preserver in history  for  the  recovery
+      session.
         
   Note: the history file in the journal area is  entirely  separate  from  the
   history maintained for the %Q `query history` and is not affected by the the

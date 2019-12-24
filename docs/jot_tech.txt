@@ -799,16 +799,25 @@ M4000   <<InsertHereMouse>>  -- {Button3Click}
   The process for a session editing myfile.txt is described below.
    
     - 1 Start the editor with journal files enabled:
-$ jot myfile.txt -journal [ -<any other valid args>]
+$ jot myfile.txt -journal[ -init=<initializationSequence>] [ -<any other valid args>]
+      As usual, the args may appear in any order.
  
     - 2 After crashing or exiting, restart the editor  but  run  the  recovery
       script recover.jot - any  other  args  will  be  ignored,  the  recovery
-      process will restart with your original arg list:
+      process will restart with the original -init sequence etc.
 $ jot myfile.txt -st=recover
   
     - 3 If there are problems, then edit the command script recover_now.jot in
       your current directory and re-run the recovery using that:
 $ jot myfile.txt  -init="%r=./recover_now.jot -asConsole"
+  
+  The history file contains the replacement pathnames (in the <name>.jnl area)
+  and other bits of information from the original session like adjustments  to
+  terminal size and results of system-query reports. These raw data are munged
+  into a personalized recovery script by the `recover.jot` script.
+  
+  If some mismatch is found, the session  is  terminated  immediately  with  a
+  message explaining what went wrong.
   
   See `about not losing your work`, `%S=RecoveryMode`  and  `recover.jot`  for
   full details of the journal/recovery process.
@@ -4614,21 +4623,24 @@ jot for chrome v2.0, built 27/12/16 16:59:42 using crouton  ncurses 6.0.20150808
 
 3.30.5 %L
 ----------
-%L [<width>x<height>] - Sets the terminal line length and number of lines.
+%L [<width>[ <height>]] - Sets the terminal line length and number of lines.
   
   This is a throwback to the  days  of  VT200-series  terminals,  the  DECCOLM
   function allowed 80/132 switches.
   
   More typically, in an  xterm  environment  the  xterm  size  is  changed  by
-  dragging the window boundaries. After this, %l  can  be  used,  without  the
-  terminal-size parameter, after changing the xterm dimensions. It reads  back
-  the new screen height and width henceforth these  new  values  are  used  in
-  internal calculations involving screen dimensions.
+  dragging the window boundaries. After this,  %l  can  be  used  without  the
+  terminal-size parameter. It reads back  the  new  screen  height  and  width
+  henceforth these new values are  used  in  internal  calculations  involving
+  screen dimensions.
   
   If a terminal size is specified, each of the given dimensions should be less
   that the than or  equal  to  the  corresponding  dimensions  of  the  actual
   terminal you are using - if not then %L fails and both are set to the actual
   screen size.
+  
+  If The width is specified without the height,  the  height  is  set  by  the
+  actual terminal height
   
   After a %L operation, all windows remain valid except any where the right or
   bottom margin exceeds the relevant new terminal dimension.  If  this  should

@@ -33,7 +33,7 @@
   information in some sort of binary code, it would help if  we  humans  could
   also read them and try to make sense of them and diagnose problems.  
   
-  A text editor is an essential tool whereever there is a  need  to  study  or
+  A text editor is an essential tool wherever there is  a  need  to  study  or
   change these text files.
   
   Many windows users will have encountered notepad - this  an  editor  with  a
@@ -473,7 +473,7 @@ $ jot <pathName>
 1.12 About not losing your work
 ------------------------------
   There are many and varied ways of mistakenly losing or corrupting work in an
-  editing session - jot offers a few ways of making this a bit less  easiy  to
+  editing session - jot offers a few ways of making this a bit less easily  to
   do:
   
     - When an editing session has many active buffers it's not always easy  to
@@ -622,7 +622,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   a line then additional lines and/or whitespace is automatically added.
   
   By default jot will insert simple ASCII characters Hyphen (  -  ),  Vertical
-  bar ( | ), Slash ( / ) and Backslash  (  \  )  but  the  approptiat  unicode
+  bar ( | ), Slash ( / ) and Backslash (  \  )  but  the  appropriate  unicode
   characters are available as an option ( 
   
   If the diagrams are to be  part  of  a  document  to  be  processed  by  the
@@ -2578,7 +2578,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   number of iterations (including the original). Typically this might be  used
   to determine how many instances of a string exist in the buffer.
   
-  It's left to the user to add one to the result provided  (it's  alredy  done
+  It's left to the user to add one to the result provided (it's  already  done
   one, remember).
   
   It's also left to the user to  not  attempt  to  use  this  on  commands  or
@@ -2590,13 +2590,15 @@ Fred: This is name frequently used by unimaginative technical authors.
 ----------------
 > {Esc I n}
   
-  Enters insert mode, mode persists until {Ctrl+c} or next {Esc I n}.
+  Enters insert mode, this mode persists until {Ctrl+c} or next {Esc I n}. See
+  `Insert mode` and `Command-mode vs. insert mode`
   
 2.11.4 TempInsertMode
 --------------------
 > {Esc i n}
-  Temporarily enters insert mode, mode persists until next escape-sequence  or
-  function-key operation.
+  Temporarily  enters   insert   mode,   this   mode   persists   until   next
+  escape-sequence  or  function-key   operation.   See   `Insert   mode`   and
+  `Command-mode vs. insert mode`
   
 2.11.5 DebuggerQuit
 ------------------

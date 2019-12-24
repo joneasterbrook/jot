@@ -72,7 +72,7 @@ z$m-0i-/ /n.r0a!
   f/ screenHeight = /-boidol39 (o>, z. %x=Error: Screen height must be at least 40 - this one is '@; ) ok
   %%Check screen width - must be exactly 80.
   z@f/ screenWidth = /-boidol80 (o<\, z. %x=Error: Screen width must be at least 80 columns - this one is '@;) ok
-  %l 80x40;? )
+  %l=80 40;? )
 :
 z.'#
 
@@ -96,7 +96,7 @@ z*m-0z.
 %%
 ( %%Main test loop.
   %%Pick up and run the test, optionally add T command to raw code in ( ' ) buffer.
-  ((z!m+1f1/ -debug/ z. %l 80x40;? %m='*; z'm-0((f'*v-/<</f1/>>/v-'*)\m)0f/%q@=window;/- i/t/, z. %l 80x40;? ) %h'=call '*; z*k, z*m2m-)
+  ((z!m+1f1/ -debug/ z. %l=80 40;? %m='*; z'm-0((f'*v-/<</f1/>>/v-'*)\m)0f/%q@=window;/- i/t/, z. %l=80 40;? ) %h'=call '*; z*k, z*m2m-)
   )0
 z*m-0 %m=; %m=; 
 ( m  %%At least one failure. 
@@ -119,7 +119,7 @@ z*m-0 %m=; %m=;
 <<Test_1>>
 %w;  %w= -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-%l 80x40;? ww
+%l=80 40;? ww
 %q@=window;
 %m=Test_1: Test_1: First line should remain at the top of window (lines 1-30 visible):
 (f/Screen dump follows:/
@@ -133,7 +133,7 @@ z*m-0 %m=; %m=;
 %w;  %w= -height=31 -delim;   
 %i.=${JOT_RESOURCES}/l99.t
 n.m0aqhq m+40wm-20k10 
-%l 80x40;? w
+%l=80 40;? w
 %q@=window;
 %m=Test_2: Should not add blank lines at top of display (lines 10-49 visible):
 (f/Screen dump follows:/
@@ -253,7 +253,7 @@ w
 m0wm-8n.m5aa 
 %%%d1=ham0wm-8n.m5aa
 %%Some bugs cause the display to wrap past the end of buffer into the top of the buffer.
-%l 80x40;? w
+%l=80 40;? w
 %q@=window;
 %m=Test_10: Should not wrap lines (lines 66-91 & 97-99 visible):
 (f/Screen dump follows:/
@@ -270,7 +270,7 @@ m0wm-8n.m5aa
 %i.=${JOT_RESOURCES}/t.t; %w; %w.= -height=6 -delim;   %wq= -height=13 -delim; %w= -height=11 -delim;  
 %iq=${JOT_RESOURCES}/l99.t
 %iw=${JOT_RESOURCES}/Richard_III_Entire_Play.txt;
-%l 80x40;? wzqr9 w
+%l=80 40;? wzqr9 w
 %q@=window;
 %m=Test_11: Check with multiple windows:
 (f/Screen dump follows:/
@@ -1160,7 +1160,7 @@ w
 
 <<Test_67>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r-0f/jon/p w
 %q@=window;
@@ -1172,7 +1172,7 @@ r-0f/jon/p w
 
 <<Test_68>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r-0f/jon/-p w
 %q@=window;
@@ -1184,7 +1184,7 @@ r-0f/jon/-p w
 
 <<Test_69>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r-0f/j/p w
 %q@=window;
@@ -1196,7 +1196,7 @@ r-0f/j/p w
 
 <<Test_70>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r-0f/j/-p w
 %q@=window;
@@ -1208,7 +1208,7 @@ r-0f/j/-p w
 
 <<Test_71>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r-0r17p w
 %q@=window;
@@ -1220,7 +1220,7 @@ r-0r17p w
 
 <<Test_72>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r0p w
 %q@=window;
@@ -1232,7 +1232,7 @@ r0p w
 
 <<Test_73>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r0r-p w
 %q@=window;
@@ -1244,7 +1244,7 @@ r0r-p w
 
 <<Test_74>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r0r-2p w
 %q@=window;
@@ -1256,7 +1256,7 @@ r0r-2p w
 
 <<Test_75>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 r-0p w
 %q@=window;
@@ -1268,7 +1268,7 @@ r-0p w
 
 <<Test_76>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l 80x40;? z$m-0p0z.
+%w; %l=80 40;? z$m-0p0z.
 m+4
 m-0j3r0p w
 %q@=window;
@@ -1282,7 +1282,7 @@ m-0j3r0p w
 <<Test_77>>
 (z!r-0f/ -nounicode/ z;i'*b z., 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l 80x40;? z$m-0p0z. f/jon/
+  %w; %l=80 40;? z$m-0p0z. f/jon/
   r-0f/jon/r-1p w
   %q@=window;
   %m=Test_77: Should highlight unicode correctly when current chr."
@@ -1294,7 +1294,7 @@ m-0j3r0p w
 <<Test_78>>
 (z!r-0f/ -nounicode/ z;i'*b z., 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l 80x40;? z$m-0p0z. f/jon/
+  %w; %l=80 40;? z$m-0p0z. f/jon/
   r-0f/jon/n.r-1aa&r-0f'ap w
   %q@=window;
   %m=Test_78: Should highlight unicode correctly when selected unicode substring.
@@ -1306,7 +1306,7 @@ m-0j3r0p w
 <<Test_79>>
 (z!r-0f/ -nounicode/ z;i'*b z., 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l 80x40;? z$m-0p0z. f/jon/
+  %w; %l=80 40;? z$m-0p0z. f/jon/
   r-0f/jon/n.r-1aa&r-0f'a-p w
   %q@=window;
   %m=Test_79: Should underline unicode when inverse selected unicode substring.
@@ -1318,7 +1318,7 @@ m-0j3r0p w
 <<Test_80>>
 (z!r-0f/ -nounicode/ z;i'*b z., 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l 80x40;? z$m-0p0z. f/jon/
+  %w; %l=80 40;? z$m-0p0z. f/jon/
   r-0f/jon/r-3f1/ /-p w
   %m=Test_80: N.B. Highlighting of whitespace does not show up in windows.
   %q@=window;
@@ -1331,7 +1331,7 @@ m-0j3r0p w
 <<Test_81>>
 (z!r-0f/ -nounicode/ z;i'*b z., 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l 80x40;? z$m-0p0z. f/jon/
+  %w; %l=80 40;? z$m-0p0z. f/jon/
   r-0f/jon/4n.r-16aahar-0f'ap w
   %q@=window;
   %m=Test_81: Should underline strings of unicode correctly "££££££££££££££££"
@@ -1343,7 +1343,7 @@ m-0j3r0p w
 <<Test_82>>
 (z!r-0f/ -nounicode/ z;i'*b z., 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l 80x40;? z$m-0p0z. f/jon/
+  %w; %l=80 40;? z$m-0p0z. f/jon/
   r-0f/jon/4f1/ /n.r-f-1/ /-2aahar-0f'ap w
   %q@=window;
   %m=Test_82: Should highlight strings of unicode right "for ££££££££££££££££jonathans"
@@ -1472,7 +1472,7 @@ w %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %iq=${JOT_RESOURCES}/t.t;
 %i.=${JOT_RESOURCES}/l99.t;
 %w; %wq= -height=1; %w= -height=6 -delim;  
-%l 80x40;?
+%l=80 40;?
 %m=Test_93: Check that overlong lines do not wrap in window when there is a small window above.
 m+50jr0 
 (pw)2w %q@=window;
@@ -1490,7 +1490,7 @@ f/Screen dump follows:/m
 <<Test_94>>
 %i.=${JOT_RESOURCES}/l99.t;
 %w; %w= -height=6 -delim;  
-%l 80x40;?
+%l=80 40;?
 %m=Test_94: Check behaviour with negative line numbers.
 ol-3o.
 w %q@=window; f/Screen dump follows:/m
@@ -1507,7 +1507,7 @@ w %q@=window; f/Screen dump follows:/m
 <<Test_95>>
 %i.=${JOT_RESOURCES}/l99.t;
 %w; %w= -height=6 -delim;  
-%l 80x40;?
+%l=80 40;?
 %m=Test_95: Check that a header line doesn't cause miscalcualtion of window size:
 %b=header '.; m50
 w %q@=window; f/Screen dump follows:/m
@@ -1526,7 +1526,7 @@ w %q@=window; f/Screen dump follows:/m
 %iq=${JOT_RESOURCES}/l99.t;
 %i.=${JOT_RESOURCES}/t.t;
 %w; %w= -height=5 -delim;  
-%l 80x40;?
+%l=80 40;?
 %m=Test_96: Check that a previous window doesn't muck up the current window.
 z. %w; %wq= -height=6 -delim;   %w= -height=16 -delim;   z. w zq w
  %q@=window; f/Screen dump follows:/m
@@ -1860,7 +1860,7 @@ mv//r0v-//
 <<Test_116>>
 %m=Test_116: Verify screen is cleared where necessary.
 %w; %w= -height=30 -delim; 
-%i.=${JOT_RESOURCES}/t.t; b3m3b3 w (%q=windows; %e=ls %JOT_RESOURCES%;, %e=ls ${JOT_RESOURCES};) %l 80x40;? w %q@=window;
+%i.=${JOT_RESOURCES}/t.t; b3m3b3 w (%q=windows; %e=ls %JOT_RESOURCES%;, %e=ls ${JOT_RESOURCES};) %l=80 40;? w %q@=window;
 f/Screen dump follows:/m
 v"                                                                                "m
 v"                                                                                "m

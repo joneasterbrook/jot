@@ -640,6 +640,7 @@ void CommandPrompt(char *, ...);
 void Prompt(char *, ...);
 void InitializeEditor(int, char *[]);
 int Noise(void);
+int OpenJournalFile(int *, FILE **, char *);
 int SwitchToComFile(char *, char *, char *);
 char ReadCommand(struct Buf *, FILE *, char *, ...);
 int TransEscapeSequence(struct Buf *, FILE *, signed char, char *);
@@ -698,7 +699,7 @@ static int s_BombOut;                                 //A an error or an interru
 static char *s_JournalPath = NULL;                    //Directory holding journal files.
 static FILE *s_JournalHand = NULL;                    //File handle for journal file.
 static int s_JournalUniquifier = 0;                   //Appended to some filenames in the journal area.
-static int s_JournalDataLines;                        //Counts data lines in journal, only used for <<Debugger on>> events.
+static int s_JournalDataLines;                        //Counts data lines written to journal, only used for <<Debugger on>> events.
 static int s_RecoveryMode = FALSE;                    //Disables %O writing and %I reads path from recovery script when set.
 static int s_OriginalSession = TRUE;                  //Reset on entry to recovery mode, prevents deletion of journal files on exit from recovery session.
 static struct Buf *s_InitCommands = NULL;             //Buffer holding -init command sequence.
@@ -1081,7 +1082,7 @@ void InitializeEditor(int ArgC, char *ArgV[])
     strcat(LockFilePathname, "/LOCK");
 
     if ( ! stat(LockFilePathname, &Stat)) //LOCK exists - exit now.
-      Disaster("Detected a lock file ( %s ) - original session did not close down normally", LockFilePathname);
+      Disaster("Detected a lock file ( %s ) - previous session did not close down normally", LockFilePathname);
     else { //Delete the journal files.
 #if defined(VC)
       HANDLE DirHand = INVALID_HANDLE_VALUE;
@@ -1131,7 +1132,7 @@ void InitializeEditor(int ArgC, char *ArgV[])
     strcpy(FullPath, s_JournalPath);
     strcat(FullPath, "history.txt");
     Actual[0] = '\0';
-    CrossmatchPathnames(NULL, &s_JournalHand, "w", FullPath, NULL, NULL, Actual);
+    CrossmatchPathnames(0, &s_JournalHand, "w", FullPath, NULL, NULL, Actual);
     if ( s_JournalHand == NULL)
       Disaster("Failed to open journal file \"%s\"", FullPath);
     close(open(LockFilePathname, 0700)); }
@@ -1198,11 +1199,13 @@ void InitializeEditor(int ArgC, char *ArgV[])
         
         DateTime = time(NULL);
         strftime(TimeStamp, 100, "%d/%m/%y, %H:%M:%S", localtime(&DateTime));
-        sprintf(Temp, "<<Primary session pid %d, at %s>>", getpid(), TimeStamp);
+        sprintf(Temp, "%%%%Primary session pid %d, at %s", getpid(), TimeStamp);
         UpdateJournal(Temp, NULL);
-        sprintf(Temp, "<<jot version %s>>", VERSION_STRING);
+        sprintf(Temp, "%%%%jot version %s", VERSION_STRING);
         UpdateJournal(Temp, NULL);
-        sprintf(Temp, "<<Primary file %s>>", FileName);
+        sprintf(Temp, "%%%%Primary file %s", FileName);
+        UpdateJournal(Temp, NULL);
+        sprintf(Temp, "%%%%Recovery terminal size: %d %d", s_TermWidth, s_TermHeight);
         UpdateJournal(Temp, NULL); }
       if ( ! FileDesc) {
         if ( ! FileName )
@@ -1291,16 +1294,8 @@ void StartEdit()
   ThisBacktraceFrame.EditorInput = s_EditorInput;
   s_BacktraceFrame = &ThisBacktraceFrame;
    
-  if (s_JournalHand) {
-    char Temp[StringMaxChr];
-    sprintf(Temp, "<<Screen width %d, Screen height %d, Guard band size %d>>", s_TermWidth, s_TermHeight, s_GuardBandSize);
-    UpdateJournal(Temp, NULL);
-    if (s_InitCommands) {
-      UpdateJournal("<<Init commands follow>>", NULL);
-      UpdateJournal(s_InitCommands->FirstRec->text, NULL); }
-    if (s_StartupFileName) {
-      sprintf(Temp, "<<Startup script>>");
-      UpdateJournal(Temp, NULL); } }
+  if (s_JournalHand && s_StartupFileName)
+    UpdateJournal("%%Startup script", NULL);
   
   if (setjmp(*s_RestartPoint)) //Error detected in editor setup.
     Disaster("Error detected in startup sequence - session abandoned");
@@ -1318,11 +1313,14 @@ void StartEdit()
     Disaster("Error detected in -init commands sequence - session abandoned");
   if (s_JournalHand) {
     char Temp[StringMaxChr];
-    sprintf(Temp, "<<Startup Sequence ends, buffer %c>>", s_CurrentBuf->BufferKey);
+    sprintf(Temp, "%%%%Startup Sequence ends, buffer %c", s_CurrentBuf->BufferKey);
     UpdateJournal(Temp, NULL); }
   if (s_InitCommands) {
     s_BombOut = FALSE;
     s_CommandCounter = 0ll;
+    if (s_JournalHand) {
+      UpdateJournal("%%Init commands follow", NULL);
+      UpdateJournal(s_InitCommands->FirstRec->text, NULL); }
     InitSequence = (struct Seq *)JotMalloc(sizeof(struct Seq));
     JOT_Sequence(s_InitCommands, InitSequence, FALSE);
     s_TraceLevel++;
@@ -2330,10 +2328,10 @@ int Run_Sequence(struct Seq *Sequence)
       if (s_JournalHand) {
         if (s_TraceMode & Trace_AllCommands ) {
           char Temp[20];
-          sprintf(Temp, "<<Debugger on>> %d", s_JournalDataLines);
+          sprintf(Temp, "%%%%Debugger on %d", s_JournalDataLines);
           UpdateJournal(Temp, NULL); }
         else
-          UpdateJournal("<<Debugger off>>", NULL); }
+          UpdateJournal("%%%%Debugger off", NULL); }
       break;
 
     case 'J': { //J - Join line(s).
@@ -2414,7 +2412,7 @@ int Run_Sequence(struct Seq *Sequence)
         if (s_BombOut) {
           s_CurrentBuf->LineNumber--;
           if (s_JournalHand)
-            UpdateJournal("<<G-command terminated>>", NULL);
+            UpdateJournal("%%G-command terminated", NULL);
           break; }
         Rec = s_CurrentBuf->CurrentRec;
         if ((strlen(Rec->text) == 1) && ((Rec->text)[0] == ':')) { // Last record. 
@@ -3359,7 +3357,7 @@ int Run_Sequence(struct Seq *Sequence)
           if (s_Verbose & Verbose_NonSilent)
             Message(NULL, "Writing to \"%s\" was disabled", s_CurrentBuf->PathName); }
         else { //Really do the write.
-          CrossmatchPathnames(NULL, &File, OpenMode, s_TempBuf->CurrentRec->text, s_CurrentBuf->PathName, "./", ResolvedPathName);
+          CrossmatchPathnames(0, &File, OpenMode, s_TempBuf->CurrentRec->text, s_CurrentBuf->PathName, "./", ResolvedPathName);
           if ( ! File) {
             LocalFail = Fail("Failed to open file \"%s\" for writing.", ResolvedPathName);
             break; }
@@ -3419,7 +3417,7 @@ int Run_Sequence(struct Seq *Sequence)
           if ((asConsole = strstr(FirstBlank, "-asConsole")))
             FirstBlank = strchr(FirstBlank, ' '); }
         ScriptPath[0] = '\0';
-        CrossmatchPathnames(NULL, NULL, "r", s_TempBuf->CurrentRec->text, "./.jot", s_DefaultComFileName, ScriptPath);
+        CrossmatchPathnames(0, NULL, "r", s_TempBuf->CurrentRec->text, "./.jot", s_DefaultComFileName, ScriptPath);
         LocalFail = SwitchToComFile(ScriptPath, asConsole, FirstBlank ? FirstBlank : "");
         if (s_Return) {
           s_Return = FALSE;
@@ -3429,7 +3427,7 @@ int Run_Sequence(struct Seq *Sequence)
       case 'I': { //%I - secondary input.
         char *FileName = s_CurrentBuf->PathName;
         char Actual[StringMaxChr];
-        char RecoveryPathName[StringMaxChr];
+//        char RecoveryPathName[StringMaxChr];
         char *AppendQual = NULL, *InsertQual = NULL, *HoldQual = NULL, *SectionQual = NULL, *FSectionQual = NULL;
         char *SeekQual = NULL, *BlockQual = NULL, *BytesQual = NULL, *RecordsQual = NULL, *BinaryQual = NULL;
         char *PathName;
@@ -3524,7 +3522,9 @@ int Run_Sequence(struct Seq *Sequence)
         if ( ! FileDesc)
           CrossmatchPathnames(&FileDesc, NULL, "r", FoundEquals ? PathName : FileName, FileName, "./", Actual);
         if ( ! FileDesc) {
-          LocalFail = 1;
+          LocalFail = Fail("Failed to crossmatch file, Path: %s, name: %s", PathName, FileName);;
+          if (s_JournalHand)
+            UpdateJournal("%%File open failed", NULL);
           break; }
         if (HoldQual && ! (AppendQual || InsertQual)) {
           if ( ! (DestBuf = GetBuffer(BufferKey, OptionallyNew)) ) {
@@ -3556,17 +3556,9 @@ int Run_Sequence(struct Seq *Sequence)
             s_CurrentBuf->CurrentRec = s_CurrentBuf->FirstRec->prev;
             s_CurrentBuf->CurrentByte = strlen(s_CurrentBuf->CurrentRec->text); } }
         if (s_RecoveryMode) { //In recovery mode prompt then read the journal-area pathname.
-          if (FileDesc)
-            close(FileDesc);
-          Prompt("Enter recovery-substitution file for %s", FoundEquals ? s_TempBuf->CurrentRec->text : FileName);
-          if (fgets(RecoveryPathName, StringMaxChr, s_asConsole->FileHandle)) {
-            RecoveryPathName[strlen(RecoveryPathName)-1] = '\0';
-            Message(NULL, "Using recovery-substitution \"%s\"", RecoveryPathName); }
-          else {
-            LocalFail = RunError("Failed to read recovery-substitution pathname");
-            break; }
-          if ( ! (FileDesc = open(RecoveryPathName, O_RDONLY))) {
-            LocalFail = RunError("Error opening recovery-substitution file \"%s\"", RecoveryPathName);
+          if (OpenJournalFile(&FileDesc, NULL, Actual)) {
+            GetRecord(s_CurrentBuf, 1);
+            LocalFail = 1;
             break; } }
             
         if (FileDesc) {
@@ -3581,7 +3573,7 @@ int Run_Sequence(struct Seq *Sequence)
             close(FileDesc); }
         else {
           if (s_JournalHand)
-            UpdateJournal("<<Read file failed>>", NULL);
+            UpdateJournal("%%Read file failed", NULL);
           LocalFail = 1;
           break; }
           
@@ -3660,7 +3652,7 @@ int Run_Sequence(struct Seq *Sequence)
                 s_EditorInput->LineNo++;
               if ( ! ReadNewRecord(DestBuf, s_EditorInput->FileHandle, FALSE)) {
                 if (s_JournalHand)
-                  UpdateJournal("<<G-command terminated>>", NULL);
+                  UpdateJournal("%%G-command terminated", NULL);
                 break; }
               Record = (DestBuf->CurrentRec->text);
               if ((strlen(Record) == 1) && (Record[0] == ':')) { // Last record. 
@@ -3696,23 +3688,19 @@ int Run_Sequence(struct Seq *Sequence)
             LocalFail = Fail("Invalid buffer key");
             break; }
           
+          NameString = (char *)JotMalloc(strlen(RightArg)+25);
+          sprintf(NameString, "[ From CLI command %s ]", RightArg);
+          
           if (s_RecoveryMode) {
-            char RecoveryPathName[StringMaxChr];
-            Prompt("Enter recovery-substitution file for %s", RightArg);
-            do
-              ReadString(RecoveryPathName, StringMaxChr, s_asConsole->FileHandle);
-              while ( RecoveryPathName[0] == '\0');
-            Message(NULL, "Using recovery-substitution \"%s\"", RecoveryPathName);
-            if ( (OutDesc = open(RecoveryPathName, O_RDONLY)) <= 0) {
-                LocalFail = RunError("Error opening recovery-substitution file \"%s\"", RecoveryPathName);
-                break; } }
-          else { //Normal command mode (i.e. not a recovery session).
+            OpenJournalFile(&OutDesc, NULL, NameString); }
+          else { //Not a recovery session.
             if (RightArg[0] == '|') {
               ActualCommands += 1;
               StreamInBuf = TRUE; }
             else if (RightArg[0] == '&') {
               if (s_JournalHand) {
                 LocalFail = Fail("Asynchronous I/O not available  with journal files.");
+                free(NameString);
                 break; }
               ActualCommands += 1;
               Async = TRUE;
@@ -3720,6 +3708,7 @@ int Run_Sequence(struct Seq *Sequence)
               if (DestBuf->IOBlock) {
                 if (DestBuf->IOBlock->OutPipe) {
                   LocalFail = Fail("Buffer ( %c ) already has asynchronous I/O set up.", DestBuf->BufferKey);
+                  free(NameString);
                   break; } }
               else {
                 DestBuf->IOBlock = (struct IOBlock *)JotMalloc(sizeof(struct IOBlock));
@@ -3743,14 +3732,16 @@ int Run_Sequence(struct Seq *Sequence)
             else if ( ! (File = popen(ActualCommands, "r")) ) {
               GetRecord(DestBuf, 0);
               LocalFail = Fail("Could not open reply stream");
+              free(NameString);
               break; }
 #endif
             }
-          NameString = (char *)JotMalloc(strlen(RightArg)+25);
-          sprintf(NameString, "[ From CLI command %s ]", RightArg);
+//          NameString = (char *)JotMalloc(strlen(RightArg)+25);
+//          sprintf(NameString, "[ From CLI command %s ]", RightArg);
             
           if ( ! CheckBufferKey(BufferKey)) {
             LocalFail = Fail("Invalid buffer key \'%c\'", BufferKey);
+            free(NameString);
             break; }
           s_CurrentBuf = DestBuf;
 #if defined(VC)
@@ -3888,10 +3879,20 @@ int Run_Sequence(struct Seq *Sequence)
           s_TermWidth = GivenWidth;
           if (GivenHeight)
             s_TermHeight = GivenHeight; }
+        else if (s_RecoveryMode) { //In recovery mode, read the term dimensions from recovery script.
+          int Width, Height;
+          char Buf[StringMaxChr];
+          fgets(Buf, StringMaxChr, s_asConsole->FileHandle);
+          if (sscanf(Buf, "%%%%Recovery terminal size: %d %d\n", &Width, &Height)) {
+            Message(NULL, "Read term size %dx%d", Width, Height);
+            s_TermWidth = Width;
+            s_TermHeight = Height; }
+          else
+            Disaster("Failed to read a valid recovery terminal size line: \"%s\"", Buf); }
         else if (s_JournalHand) {
           char Buf[100];
-          sprintf(Buf, "%d %d", s_TermWidth, s_TermHeight);
-          UpdateJournal(Buf, "\e<<TERM>>"); }
+          sprintf(Buf, "%%%%Recovery terminal size: %d %d", s_TermWidth, s_TermHeight);
+          UpdateJournal(Buf, NULL); }
         LocalFail |= InitTermTable();
 #if defined(LINUX)
         clear();
@@ -3987,12 +3988,12 @@ int Run_Sequence(struct Seq *Sequence)
             else {
               strcpy(Actual, s_JournalPath);
               strcat(Actual, "history.txt");
-              CrossmatchPathnames(NULL, &s_JournalHand, "a", s_JournalPath, "history.txt", NULL, Actual);
+              CrossmatchPathnames(0, &s_JournalHand, "a", s_JournalPath, "history.txt", NULL, Actual);
               if ( s_JournalHand == NULL)
                 Disaster("Failed to open journal file \"%s\"", FullPath);
               DateTime = time(NULL);
               strftime(TimeStamp, 100, "%d/%m/%y, %H:%M:%S", localtime(&DateTime));
-              sprintf(Temp, "<<Recovery session pid %d, at %s>>", getpid(), TimeStamp);
+              sprintf(Temp, "%%%%Recovery session pid %d, at %s", getpid(), TimeStamp);
               UpdateJournal(Temp, NULL); } } }
 
         else if (strstr(Qualifier, "guardband") == Qualifier) { //%s=guardband <n> - Set window guardband.
@@ -4021,131 +4022,6 @@ int Run_Sequence(struct Seq *Sequence)
           if (s_Verbose & Verbose_NonSilent && Value & Verbose_NonSilent)
             Message(NULL, "Verbosity set to %X (was %X)", Value, s_Verbose);
           s_Verbose = Value; }
-
-//#if !defined(CHROME)
-//#if !defined(noX11)
-//        else if (strstr(Qualifier, "copy") == Qualifier) { //%s=copy - Text between latest note point and current chr defines paste buffer.
-//          int Size = 0, Chr = 0, StatusBits; 
-//          char *Temp;
-//          int ToByteNo = s_AbstractWholeRecordFlag ? strlen(s_CurrentBuf->CurrentRec->text) : s_CurrentBuf->CurrentByte;
-//          int FromByteNo = s_AbstractWholeRecordFlag ? 0 : s_NoteByte;
-//          int FromLineNo = s_NoteLine;
-//          int ToLineNo = s_CurrentBuf->LineNumber;
-//#if defined(VC)
-//          HANDLE hData;
-//          char *ptrData;
-//#endif
-//          
-//          if ( (ToLineNo < FromLineNo) || ((ToLineNo == FromLineNo) && (ToByteNo < FromByteNo)) ) { //Abstracting backwards - switch around.
-//            FromLineNo = ToLineNo;
-//            ToLineNo = s_NoteLine;
-//            FromByteNo = ToByteNo; 
-//            ToByteNo = s_AbstractWholeRecordFlag ? 0 : s_NoteByte;
-//            LocalFail |= AdvanceRecord(s_CurrentBuf, FromLineNo-ToLineNo); }
-//          if ( ! s_NoteBuffer) {
-//            LocalFail = 1;
-//            break; }
-//          if (s_NoteBuffer != s_CurrentBuf) {
-//            LocalFail = RunError("The note point is in a different buffer");
-//            break; }
-//          s_NoteBuffer = NULL;
-//          if (s_CurrentBuf->BufferKey == BufferKey) {
-//            LocalFail = Fail("Abstract source and destination is the same buffer");
-//            break; }
-//            
-//          AdvanceRecord(s_CurrentBuf, FromLineNo-ToLineNo);
-//          while (s_CurrentBuf->LineNumber != ToLineNo) {
-//            Size += strlen(s_CurrentBuf->CurrentRec->text)+1;
-//            AdvanceRecord(s_CurrentBuf, 1); }
-//          Size += ToByteNo - FromByteNo;
-//          
-//          Temp = (char *)JotMalloc(Size+1);
-//          AdvanceRecord(s_CurrentBuf, FromLineNo-ToLineNo);
-//          s_CurrentBuf->CurrentByte = FromByteNo;
-//          while (s_CurrentBuf->LineNumber != ToLineNo) {
-//            char *Line = s_CurrentBuf->CurrentRec->text + s_CurrentBuf->CurrentByte;
-//            strcpy(Temp+Chr, Line);
-//            Chr += strlen(Line);
-//            Temp[Chr++] = '\n';
-//            AdvanceRecord(s_CurrentBuf, 1); }
-//          strncpy(Temp+Chr, s_CurrentBuf->CurrentRec->text+s_CurrentBuf->CurrentByte, ToByteNo-s_CurrentBuf->CurrentByte);
-//          Chr += ToByteNo-s_CurrentBuf->CurrentByte;
-//          Temp[Chr++] = '\0';
-//          s_NoteBuffer = NULL;
-//          
-//#if defined(VC)
-//          hData = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, Size);
-//          ptrData = (char*)GlobalLock(hData);
-//          memcpy(ptrData, Temp, Chr);
-//          GlobalUnlock(hData);
-//          OpenClipboard(NULL);
-//          EmptyClipboard();
-//          SetClipboardData(CF_TEXT, hData);
-//          CloseClipboard();
-//          Message(NULL, "Sent %d bytes", Size);
-//#else
-//          Display *Disp = XOpenDisplay(NULL);
-//          Widget top;
-//          XtAppContext context;
-//          int Args = 0;
-//          int xtime_out = 300; // in ms
-//          jmp_buf *RestartPoint = (jmp_buf *)JotMalloc(sizeof(jmp_buf));
-//          void CopyTimeout(XtPointer p, XtIntervalId*i) {
-//            longjmp(*RestartPoint, 1); }
-//          
-//          if (setjmp(*RestartPoint) != 0)
-//            return 0;
-//          
-//          top = XtVaAppInitialize(&context, "ClearCutBuffers", 0, 0, &Args, NULL, NULL,NULL);
-//          Disp = XtDisplay(top);
-//          StatusBits = XStoreBuffer(Disp, Temp, Size, 0);
-//          XtAppAddTimeOut(context, xtime_out, CopyTimeout, 0);
-//          XtAppMainLoop(context);
-//          Message(NULL, "Sent %d bytes, status %X", Size, StatusBits);
-//#endif
-//          free(Temp); }
-//
-//        else if (strstr(Qualifier, "paste") == Qualifier) { //%s=paste - returns contents of paste buffer to nominated buffer.
-//          char *PasteBuf;
-//          int FirstLineNo = s_CurrentBuf->LineNumber;
-//          int LineStart = 0;
-//          int LastLineNo;
-//#if defined(VC)
-//          HANDLE hClipboardData;
-//         
-//          OpenClipboard(NULL);
-//          hClipboardData = GetClipboardData(CF_TEXT);
-//          if ( ! (PasteBuf = (char*)GlobalLock(hClipboardData))) {
-//            LocalFail = Fail("Failed to open windows paste buffer");
-//            break; }
-//#else
-//          int BufLength = 0;
-//          Display *Disp = XOpenDisplay(NULL);
-//          PasteBuf = XFetchBuffer(Disp, &BufLength, 0);
-//#endif
-//          BreakRecord(s_CurrentBuf);
-//          AdvanceRecord(s_CurrentBuf, -1);
-//          while ( PasteBuf[LineStart] != '\0' ) {
-//            char * LineEnd = strchr(PasteBuf+LineStart, '\n');
-//            if (LineEnd)
-//              LineEnd[0] = '\0';
-//            else
-//              LineEnd = PasteBuf+strlen(PasteBuf);
-//            AddFormattedRecord(TRUE, s_CurrentBuf, PasteBuf+LineStart);
-//            LineStart += LineEnd-(PasteBuf+LineStart)+1; }
-//          LastLineNo = s_CurrentBuf->LineNumber;
-//          AdvanceRecord(s_CurrentBuf, FirstLineNo-LastLineNo+1);
-//          JoinRecords(s_CurrentBuf);
-//          AdvanceRecord(s_CurrentBuf, LastLineNo-FirstLineNo-2);
-//          JoinRecords(s_CurrentBuf);
-//          s_CurrentBuf->LineNumber -= 1;
-//#if defined(VC)
-//          GlobalUnlock(hClipboardData);
-//          CloseClipboard();
-//#endif
-//           }
-//#endif
-//#endif
 
         else if (strstr(Qualifier, "mousemask") == Qualifier) { //%s=mousemask <x> - Define the mouse mask
           ExpandDeferredString(s_TempBuf, ValueString, TextAsIs);
@@ -4228,10 +4104,10 @@ int Run_Sequence(struct Seq *Sequence)
           if (s_JournalHand && (s_TraceMode != OrigValue) ) {
             if (s_TraceMode & Trace_AllCommands ) {
               char Temp[20];
-              sprintf(Temp, "<<Debugger on>> %d", s_JournalDataLines);
+              sprintf(Temp, "%%Debugger on %d", s_JournalDataLines);
               UpdateJournal(Temp, NULL); }
             else
-              UpdateJournal("<<Debugger off>>", NULL); }
+              UpdateJournal("%%Debugger off", NULL); }
           break; }
 
         else if (strstr(Qualifier, "commandcounter") == Qualifier) { //%s=commandcounter <n> - sets the debug counter to some positive value.
@@ -4260,7 +4136,7 @@ int Run_Sequence(struct Seq *Sequence)
           s_ModifiedCommandString = (char *)JotMalloc(strlen(Args)+1);
           strcpy(s_ModifiedCommandString, Args);
           if (s_JournalHand)
-            UpdateJournal("<<%s=commandstring>>", NULL); }
+            UpdateJournal("%% %s=commandstring", NULL); }
 
         else if (strstr(Qualifier, "prompt") == Qualifier) { //%s=prompt <string> - sets the prompt string used by G command.
           ExpandDeferredString(s_TempBuf, RightArg+7, TextAsIs);
@@ -4780,7 +4656,7 @@ void ExitNormally(char *ExitMessage)
   char TempString[StringMaxChr];
   
   TempString[0] = '\0';
-  CrossmatchPathnames(NULL, &File, "w", s_CurrentBuf->PathName, "./", NULL, TempString);
+  CrossmatchPathnames(0, &File, "w", s_CurrentBuf->PathName, "./", NULL, TempString);
   if (File == NULL) { // Denied write access.
     RunError("Error opening file \"%s\" for writing.", TempString);
     return; }
@@ -6855,9 +6731,10 @@ int ParseSort(char *Text, int TabSort)
 int AddFormattedRecord(int AddToJournal, struct Buf *Buffer, char *String, ...)
   { //Appends a new record to buffer using specified format string and values, retuns no. of characters.
   va_list ap;
-  char TempString[StringMaxChr];
+  char *TempString, RealString[StringMaxChr];
   int Len;
    
+  TempString = RealString;
   TempString[0] = '\0';
   va_start(ap, String);
   if ( (Len = vsnprintf(TempString, StringMaxChr-1, String, ap))==StringMaxChr-1 )
@@ -6865,14 +6742,21 @@ int AddFormattedRecord(int AddToJournal, struct Buf *Buffer, char *String, ...)
   va_end(ap); 
   if (AddToJournal && s_JournalPath) {
     if (s_RecoveryMode) { //Replace given text with a line read from the recovery file.
-      if ( ! fgets(TempString, StringMaxChr, s_asConsole->FileHandle))
+      fgets(RealString, StringMaxChr, s_asConsole->FileHandle);
+      if (strstr(RealString, "%%Recovery record: ") == RealString) {
+        TempString = RealString+19;
+        Len = strlen(TempString);
+        if (TempString[Len-1] != '\0')
+          TempString[Len-1] = '\0'; }
+      else if (strstr(RealString, "%%Recovery open-ended report ends") == RealString)
         return 0;
-      Len = strlen(TempString);
-      if (TempString[Len-1] != '\0')
-        TempString[Len-1] = '\0'; }
+      else
+        Disaster("Wrong record type in recovery script, should be \"%%%%Recovery record: ...\" - read: \"%s\"", RealString); }
     else { //Using given text.
+      char Buf[StringMaxChr];
+      sprintf(Buf, "%%%%Recovery record: %s", TempString);
       if (s_JournalHand)
-        UpdateJournal(TempString, NULL); } }
+        UpdateJournal(Buf, NULL); } }
   GetRecord(Buffer, Len+1);
   strcpy(Buffer->CurrentRec->text, TempString);
   return strlen(TempString); }
@@ -7386,9 +7270,9 @@ int QuerySomething(char *QueryString, char BufferKey, int QueryType, int SubQuer
       Win = Win->next; }
       
     if (s_MaxConsoleLines)
-      AddFormattedRecord(FALSE, DestBuf, "  Console area %d lines (%-2d to %d), extendable up to %d lines", s_TermHeight-s_ConsoleTop, s_ConsoleTop, s_TermHeight, s_MaxConsoleLines);
+      AddFormattedRecord(FALSE, DestBuf, "  Console area %d lines (%-2d to %d), extendable up to %d lines", s_TermHeight-s_ConsoleTop, s_ConsoleTop+1, s_TermHeight, s_MaxConsoleLines);
     else
-      AddFormattedRecord(FALSE, DestBuf, "  Console area %d lines (%-2d to %d)", s_TermHeight-s_ConsoleTop, s_ConsoleTop, s_TermHeight);
+      AddFormattedRecord(FALSE, DestBuf, "  Console area %d lines (%-2d to %d)", s_TermHeight-s_ConsoleTop, s_ConsoleTop+1, s_TermHeight);
     AddFormattedRecord(FALSE, DestBuf, "  Current buffer ( %c )", SourceBuf->BufferKey);
     AddFormattedRecord(FALSE, DestBuf, "");
     
@@ -7552,7 +7436,7 @@ int QuerySomething(char *QueryString, char BufferKey, int QueryType, int SubQuer
       return 1;
     ExpandedQuery = s_TempBuf->CurrentRec->text;
     AddFormattedRecord(FALSE, DestBuf, ExpandedQuery);
-    if (s_RecoveryMode) { //Pick up records directly from recovery scrit.
+    if (s_RecoveryMode) { //Pick up records directly from recovery script.
       while ( AddFormattedRecord(TRUE, DestBuf, "") )
         { }
       FreeRecord(DestBuf, DeleteNotAdjust);
@@ -7692,8 +7576,8 @@ int QuerySomething(char *QueryString, char BufferKey, int QueryType, int SubQuer
       Entry = readdir(PathElemDIR); }
     closedir(PathElemDIR);
 #endif
-  if (s_JournalHand) //Add the empty-line endstop marker.
-    UpdateJournal("", NULL);
+  if (s_JournalHand)
+    UpdateJournal("%%Recovery open-ended report ends", NULL);
   break; }
 
   case Q_file: { //file <pathName> - a selection of info on the selected file.
@@ -9381,9 +9265,9 @@ int ReadBuffer(FILE *File, int FileDesc, int NonUnicode, char *Name, struct Buf 
           if (rec == LastRec)
           break; }
         fclose(JournalHand); }
-      sprintf(Temp, "<<Recovery pathname: %s to buffer %c >>", RecoveryPathname, DestBuf->BufferKey); }
+      sprintf(Temp, "%%%%Recovery pathname:%4ld %s, Original pathname:%4ld %s", strlen(RecoveryPathname), RecoveryPathname, strlen(Name), Name); }
     else //Read-only files.
-      sprintf(Temp, "<<Recovery pathname: %s to buffer %c >>", Name, DestBuf->BufferKey);
+      sprintf(Temp, "%%%%Recovery pathname:%4ld %s, Original pathname:%4ld %s", strlen(Name), Name, strlen(Name), Name);
     UpdateJournal(Temp, NULL); }
     
   return RecordsRead; }
@@ -10489,7 +10373,7 @@ BOOL Ctrl_C_Interrupt( DWORD fdwCtrlType )
       s_TraceMode &= (-1 ^ Trace_Interrupt);
       if (s_JournalHand) {
         char Temp[20];
-        sprintf(Temp, "<<Debugger on>> %d", s_JournalDataLines);
+        sprintf(Temp, "%%Debugger on %d", s_JournalDataLines);
         UpdateJournal(Temp, NULL); }
       Message(NULL, "Command count reached %lld", s_CommandCounter);
       if (s_DebugLevel) {
@@ -10537,7 +10421,7 @@ void Ctrl_C_Interrupt(int sig)
       s_TraceMode &= (-1 ^ Trace_Interrupt);
       if (s_JournalHand) {
         char Temp[20];
-        sprintf(Temp, "<<Debugger on>> %d", s_JournalDataLines);
+        sprintf(Temp, "%%Debugger on %d", s_JournalDataLines);
         UpdateJournal(Temp, NULL); }
       if (s_DebugLevel) {
         s_DebugLevel = 0;
@@ -10734,6 +10618,28 @@ int EndCommandFile()
   s_EditorInput = OldComFile;
   return ReturnValue; }
 
+//---------------------------------------------OpenJournalFile
+int OpenJournalFile(int *FileDesc, FILE **File, char * Actual)
+  { // In recovery mode, reads replacement-file details from the history file and opens the file,
+    //If writing the journal, copies the file to the journal dir and writes the pathname to the journal.
+  char Buf[StringMaxChr], *RecoveryPathName, *CheckName;
+  int RecNameLen, CheckNameLen;
+  fgets(Buf, StringMaxChr, s_asConsole->FileHandle);
+  if ( ! strstr(Buf, "%%Recovery pathname:") )
+    Disaster("Failed to find \"%%%%Recovery pathname: ...\" line in history file \"%s\"", Buf);
+  RecoveryPathName = Buf+25;
+  sscanf(Buf+21, "%4d", &RecNameLen);
+  RecoveryPathName[RecNameLen] = '\0';
+  CheckName = RecoveryPathName+RecNameLen+25;
+  sscanf(RecoveryPathName+RecNameLen+20, "%4d", &CheckNameLen);
+  CheckName[CheckNameLen] = '\0';
+  if ( ! strstr(Actual, CheckName) || strlen(Actual) != CheckNameLen )
+    Disaster("At history line \"%s\": file (%s) does not match history name (%s) does not match.", Buf, Actual, CheckName);
+  Message(NULL, "Using recovery-substitution \"%s\"", RecoveryPathName);
+  if (CrossmatchPathnames(FileDesc, File, "r", NULL, NULL, NULL, RecoveryPathName))
+    Disaster("Failed to open recovery file \"%s\"", RecoveryPathName);
+  return 0; }
+
 //---------------------------------------------SwitchToComFile
 int SwitchToComFile(char *NameString, char *asConsole, char *Args)
   { 
@@ -10749,34 +10655,20 @@ int SwitchToComFile(char *NameString, char *asConsole, char *Args)
   char Actual[StringMaxChr];
   struct Buf *ArgsBuf;
   int IsDollar = s_CurrentBuf->BufferKey == '$';
-  char RecoveryPathName[StringMaxChr];
   
   Actual[0] = '\0';
-  CrossmatchPathnames(NULL, NULL, "r", NameString, s_DefaultComFileName, NULL, Actual);
-  if (s_RecoveryMode) { //In recovery mode prompt then read the journal-area pathname.
-    Prompt("Enter recovery-substitution file for %s", NameString ? s_TempBuf->CurrentRec->text : NameString);
-    if (fgets(RecoveryPathName, StringMaxChr, s_asConsole->FileHandle)) {
-      RecoveryPathName[strlen(RecoveryPathName)-1] = '\0';
-      Message(NULL, "Using recovery-substitution \"%s\"", RecoveryPathName); }
-    else {
-      RunError("Failed to read recovery-substitution pathname");
-      return 1; }
-    CrossmatchPathnames(NULL, &File, "r", NULL, NULL, NULL, RecoveryPathName);
-    if ( ! File) {
-      RunError("Error opening recovery-substitution file \"%s\"", RecoveryPathName);
-      return 1; } }
-  else {
-    char Temp[StringMaxChr+40];
-    CrossmatchPathnames(NULL, &File, "r", NULL, NULL, NULL, Actual);
-    if ( ! File) {
-      Fail("Can't find jot command script.");
-      return 1; }
-    if (s_JournalHand) {
+  CrossmatchPathnames(0, NULL, "r", NameString, s_DefaultComFileName, NULL, Actual);
+  if (s_JournalPath) {
+    if (s_RecoveryMode) {
+      if (OpenJournalFile(NULL, &File, Actual))
+        return 1; }
+    else if (s_JournalHand) {
       FILE *CopyHand, *OrigHand;
       char ArchivePath[StringMaxChr];
       struct stat Stat;
       char DateTimeStamp[20];
       char *NameExtnElem = strrchr(Actual, '/');
+      char Temp[StringMaxChr+40];
       
       if ( ! stat(Actual, &Stat))
         strftime(DateTimeStamp, 20, "%Y%m%d_%H%M%S", localtime(&Stat.st_mtime));
@@ -10785,22 +10677,27 @@ int SwitchToComFile(char *NameString, char *asConsole, char *Args)
       strcat(ArchivePath, "/");
       strcat(ArchivePath, Temp);
       if ( ! IsAFile(ArchivePath)) { //journal archive of this version does not exist, create one now.
-        CrossmatchPathnames(NULL, &CopyHand, "w", NULL, NULL, NULL, ArchivePath);
+        CrossmatchPathnames(0, &CopyHand, "w", NULL, NULL, NULL, ArchivePath);
         if ( ! CopyHand)
           Disaster("Failed to open journal file %s", ArchivePath);
         else {
           if ( ! (OrigHand = fopen(Actual, "r")))
             RunError("Failed to open file %s for copying to journal archive", Actual);
-          while (fgets(Temp, StringMaxChr, OrigHand))
-            fputs(Temp, CopyHand);
-          fclose(CopyHand);
-          fclose(OrigHand); } }
-      sprintf(Temp, "<<Recovery pathname: %s>>", ArchivePath);
+          else {
+            while (fgets(Temp, StringMaxChr, OrigHand))
+              fputs(Temp, CopyHand);
+            fclose(OrigHand); }
+          fclose(CopyHand); } }
+      sprintf(Temp, "%%%%Recovery pathname:%4ld %s, Original pathname:%4ld %s", strlen(ArchivePath), ArchivePath, strlen(Actual), Actual);
       UpdateJournal(Temp, NULL); } }
-      
-  if ( ! (ArgsBuf = GetBuffer('$', AlwaysNew))) {
-    Fail("Can't copy args to $ buffer.");
-    return 1; }
+    
+  if ( ! File)
+    CrossmatchPathnames(0, &File, "r", NULL, NULL, NULL, Actual);
+  if ( ! File)
+    return Fail("Can't find jot command script.");
+    
+  if ( ! (ArgsBuf = GetBuffer('$', AlwaysNew)))
+    return Fail("Can't copy args to $ buffer.");
   if (IsDollar)
     s_CurrentBuf = ArgsBuf;
   GetRecord(ArgsBuf, strlen(Args)+1);
@@ -11113,11 +11010,6 @@ void JotAddBoundedString(char *OrigString, int MaxBytes, int MaxChrs, int *ByteC
     else
       attron(s_DefaultColourPair);
       
-    //
-    //addwstr() seems to behave inconsistently when filling a complete line of the screen - normally for, say, an 80-column term,
-    //if x is initially 72 then write an 8-character string, it wraps around to the first chr of the next line.
-    //But if x is initially 0, then writing an 80-chr string will set the current x to 79.
-    //
     for (i = 0; i < *ChrCount; i++)
       if (WideString[i] < 32)
         WideString[i] = L'~';
@@ -11368,7 +11260,7 @@ int Fail(char *FormatString, ...)
       sprintf(String+(Chrs <= MaxLen ? Chrs : MaxLen), " (%lld)", s_CommandCounter); }
     if (s_Verbose & Verbose_QuiteChatty)
       DisplaySource(s_CurrentCommand, String);
-    if ( (s_Verbose & Verbose_PrintLine) &&  s_CurrentBuf->FirstRec)
+    if ( (s_Verbose & Verbose_PrintLine) && s_CurrentBuf->FirstRec)
       DisplayDiag(s_CurrentBuf, TRUE, ""); }
   return 1; }
 
@@ -11709,7 +11601,7 @@ void JotBreak(char *Text)
       s_CurrentBuf->BufferKey);
     if (s_BombOut) {
       if (s_JournalHand)
-        UpdateJournal("<<Debugger off>>", NULL);
+        UpdateJournal("%%Debugger off", NULL);
       s_TraceMode = Trace_Interrupt;
       break; }
     if (ExitNow)
@@ -11750,12 +11642,16 @@ void Disaster(char *Text, ...)
   va_start(ap, Text);
   vsnprintf(string, StringMaxChr, Text, ap);
   va_end(ap);
-  JotTidyUp();
+#if defined(LINUX)
+  if (mainWin) //Close down curses now to ensure message and backtrace are visible in linuxland.
+    endwin();
+#endif
   fprintf(stderr, "\nDisaster: %s\n\r", string);
   if (s_CurrentCommand) {
     s_TTYMode = TRUE;
     Backtrace(NULL);
     fputc('\n', stderr); }
+  JotTidyUp();
   exit(1); } 
 
 //----------------------------------------------JotTidyUp
@@ -11795,7 +11691,7 @@ int JotTidyUp()
     RunError("The following buffers are WriteIfChanged and need writing: \"%s\"", BuffersToBeWritten);
     return 1; }
   
-  while (ThisAsyncBuf) { //Close child pipes and terminat child processes
+  while (ThisAsyncBuf) { //Close child pipes and terminate child processes
     struct Buf *NextAsyncBuf = ThisAsyncBuf->IOBlock->NextAsyncBuf;
     FreeBufferThings(ThisAsyncBuf);
     ThisAsyncBuf = NextAsyncBuf; }
@@ -11820,7 +11716,7 @@ int JotTidyUp()
     strcat(LockFilePathname, "/LOCK");
     if(unlink(LockFilePathname))
       printf("Failed to delete journal/backup file %s\n", LockFilePathname); }
-
+  
   return 0; }
 
 //----------------------------------------------DoHash
@@ -12275,7 +12171,7 @@ void DestroyHtab(struct Buf *TextBuf)
       free(PendingPathName);
       PendingPathName = NULL; }
       
-    //Zombify() frees the objects children but the actual object is only set to be a zombie - this next loop frees these zombies.
+    //Zombify() frees the objects children but the ; object is only set to be a zombie - this next loop frees these zombies.
     ThisAnyObj = TextBuf->FirstObj;
     while(ThisAnyObj) {
       struct AnyObj *NextObj = (struct AnyObj *)ThisAnyObj->next;

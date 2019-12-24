@@ -1205,8 +1205,8 @@ ol0
   
   Now for the bad news:
     - There are some  font-changing  tees  and  crossovers  missing  from  the
-      character set - e.g: there is an asymetric tee ( ┭ ) linking  the  light
-      and heavr fonts but no similar tee for light and double fonts.
+      character set - e.g: there is an asymmetric tee ( ┭ ) linking the  light
+      and heavy fonts but no similar tee for light and double fonts.
       
     - The character-selection method does  not  always  insert  tees  when  it
       should - consider this example:
@@ -1361,6 +1361,17 @@ Find string> {Return}
   
   You are now back in command-driven mode alternatively,  {Ctrl+c}  will  also
   get you back to command mode.
+  
+  It works in pretty-much the same way for tabular text - in this example  the
+  tabcells mode and insert mode are set by the initialization sequence:
+$ jot ${JOT_RESOURCES}/test_table.txt -in="%b=tabcells -1; %s=commandmode 2;"
+  
+  Navigate your way around to any cell and type some stuff in. Note  that,  in
+  order for you to see what you're doing, it initially displays your typing by
+  allowing the  enlarged  cell  to  shift  rightwards,  encroaching  into  the
+  neighbouring column. Then when you press any function  or  cursor  key,  the
+  entire view is redrawn with the enlarged cell  in  a  neatly  tabulated  and
+  suitably widened column.
 
 1.32 Command-editing
 --------------------
@@ -1372,8 +1383,8 @@ Find string> {Return}
   qualifier. When you're happy with  your  command  line  you  exit  and  your
   command line appears in the console area.
   
-  Typically command-editing offer a very restricted range of editing finctions
-  but are entered by simply pressing the relevent cursor  keys.  In  contrast,
+  Typically command-editing offer a very restricted range of editing functions
+  but are entered by simply pressing the relevant cursor  keys.  In  contrast,
   jot's command editing facility requires one escape  sequence  to  enter  and
   exit it also switches focus to a different buffer, but,  once  you're  there
   the full range of editor functions are available.  It's  also  worth  noting

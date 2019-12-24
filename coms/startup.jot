@@ -1,4 +1,3 @@
-
 %%Defines the key functions, these are mapped onto escape sequences by keybord/os-specific keyboard map.
 %%
 %%
@@ -1927,7 +1926,7 @@ z@r-0 (o#ozr-n.ra$& osz~m-0f'$r3n.ra$&oso#oz, oso#oz%d$=.;) z@r0i'$
 oq/'=DefaultLineDrawing/
 z@r-0r (v/..../ (q-/ns/, r2)e2i'~2, (q-/n/, q-/s/r, q-/e/r2, r3)ei'~ ) ok
 %%Search for a matching character.
-z@r-0rbosz~m-0(f'@r-r-\n.ra$&, %m=Match not found: '@ '$; %d$=?;)
+z@r-0rbosz~m-0(f'@r-r-\n.ra$&, %m=Match not found: "'@",  "'$"; %d$=?;)
 %%
 %%Insert the new character.
 osozoki'$er-
@@ -2474,8 +2473,7 @@ i/.1 /(q/0-9. /e)0
 
 <<RightJustifyLine>>
 %%Right-justifies current line.
-r-0(q/	 /e)0r0(q-/	 /e-)0ocob oq/'=DocRightMargin/ o-r-0(i/ /o~)0okr0i/	/m
-%%r-0(q/	 /e)0r0(q-/	 /e-)0ocobz&m+2r-0oidosozo-r-0(i/ /o~)0okr0i/	/m
+r-0(q/	 /e)0r0(q-/	 /e-)0oc oq/'=DocRightMargin/ o-r-0(i/ /o~)0okm
 
 <<AddNewFunctions>>
 %%Adds function definitions in ( @ ) buffer to code repository and updates hashtable.
@@ -2716,8 +2714,8 @@ z^m-0(v/{/\m)0
 <<InsertWithBackTick>>       ^[`
 <<DebuggerQuit>>             ^[q
 <<Enter>>                    ^[e
-<<TempInsertMode>>           ^[i
-<<InsertMode>>               ^[I
+<<TempInsertMode>>           ^[in
+<<InsertMode>>               ^[In
 <<CmdEditStart>>             ^[ce
 <<CmdEditGo>>                ^[cg
 <<CmdString>>                ^[cs
@@ -2851,8 +2849,9 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 %h'=data LineIntersectionLookup;
 
 %%This table is used by <<LineCheckIntersection>> it is part of the line-drawing system (LineN, LineS, LineE and LineW).
-%%It shows the font type for each active direction for each drawing character, each entry consists of 5 characters. with no blanks: 
-%%  - 1 the drawing character,
+%%It shows the correct drawing character for various combinations of adjacent characters.
+%%Each entry consists of 5 characters. with no blanks: 
+%%  - 1 the drawing character to be returned,
 %%  - 2 The font code for the North side.
 %%  - 3 The font code for the South side.
 %%  - 4 The font code for the East side.
@@ -2861,9 +2860,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 %%The font codes are ( . ) no connection, ( a ) ASCII, ( l ) light, ( h ) heavy and  ( d ) double.
 %%
 %g~
--..aa
-|aa..
-+aaaa
+
 ╵l...
 ╷.l..
 ╹h...
@@ -2983,6 +2980,18 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ╋hhhh
 ╫ddll
 ╬dddd
+
+ .a.a
+ .aa.
+ a..a
+ a.a.
+-..aa
+-...a
+-..a.
+|aa..
+|.a..
+|a...
++aaaa
 :
 
 ov/'=LineIntersectionLookup/
