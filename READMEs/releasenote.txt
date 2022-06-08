@@ -1,4 +1,36 @@
-
-  Known bugs:
-    - In insert mode, while erasing typed-in text, it displays the wrong character at the current-character position.
+    
+      
+  Fixed bugs:
+    - With -journal, jot was failing to create a lock file.
+  
+  New features:
+    - All percent commands now allow simple string exptrssions - see `percent-command syntax`
+    - Added %H commands %h=newdata (functionally similar to to OV) and %h=getdata (functionally similar to to OQ) - allowing use of
+      percent-command string expressions.
+    - All %H commands now accept path specifications.
+    - Redefined the method for finding the end of lines - should yield useful performance improveents for long lines.
+    - %E ... -interactive now usess ptys (Pseudo Terminals) - previously used simple pipes, this should increase the range of usable applications.
+    - Added -substitute=<string> to %F command for global or aperture-limited search and replace.
+    - Added new script time_traial.jot - runs a selection of editors given standardized tasks, against the clock.
+    - Added optional -after qualifier to the %s=On_Key command - same except the commands are run *after* the normal command execution.
+    - Added WindowWithLineNumbers function to display line numbers of current file.
+    - %G commands now have an optional end-point label, previously, these were terminated by a simple colon ( : ), this opens the way for 
+      nested %G buffer specifications - see `.
+    - The %s=tagtype -colour=<colour> ...; command can now take colour names as well as numbers.
+    - The -popup qualifier (`%W`) now accepts a numeric parameter, the popup's screen offset.
+    - The %W ... -popup command has been redefined to allow placement of the popup window anywhere on the screen.
+    - fake_emacs.jot, fake_vim.jot and fake_nano.jot are all now less flaky.
+    - %W reorgainized, now has four main commands (%W=refresh, %w=clear %w=new and %w=mdify) with qualifiers.
+    - Added a new script `time_trial.jot` - runs jot against other editors in a competitive time trial.
+    - Fixed bugs affecting backtrace reports.
+      
+  - Known bugs:
+    - {Ctrl+C} handling uses old non-posix functions - occasionally fails.
+    - Mouse-event coordinates are only accurate up to column 100 (xenial) or 
+      about 200 (fedora xterm) - this is assumed to be a feature of the terminal emulators.
+    - In genuine windows-10, test_visual.jot fails any test involving reading back a unicode character from the screen.
+      On visual inspection it seems to be displaying the characters correctly. The same tests all pass in wine
+      so this one is assumed to be a bug in the windows-10 screen-readback function ReadConsoleOutputCharacter( ).
+      The test_visual.jot script accepts the optional qualifier -win10relaxation to skip affected tests.
+    - fake_emacs.jot, fake_vim.jot and fake_nano.jot are superficially OK but incomplete, fake_emacs is particularly lacking functionallity.
     
