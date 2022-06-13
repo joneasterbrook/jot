@@ -3,94 +3,95 @@
 
 1.1 Function keys
 -----------------
-
-|-----------------|------------------|------------------|------------------|------------------|
-|                 |{F1}              |{F2}              |{F3}              |{F4}              |
-|                 |                  |                  |                  |                  |
-|                 | `Help`           | `Do`             | `BlockUp`        | `BlockDown`      |
-|{Shift+          | `FindAllHelp`    | `ScriptByName`   | `SectionUp`      | `SectionDown`    |
-|{Ctrl+           | `RemoveHelpFold` | `ScriptByFunc`   | `SentenceUp`     | `SentenceDown`   |
-|{Alt+            |                  |                  |                  |                  |
-|{Ctrl+Shift+     | `Note`           | `Cut`            | `Copy`           | `Paste`          |
-|{Shift+Alt+      |                  | `CumulativeCut`  | `CumulativeCopy` |                  |
-|{Ctrl+Shift+Alt+ |                  | `CutTabular`     | `CutRectangle`   | `PasteRectangle` |
-|                  
-|                  
-|-----------------|------------------|------------------|------------------|------------------|
-|                 |{F5}              |{F6}              |{F7}              |{F8}              |
-|                 |                  |                  |                  |                  |
-|                 | `Substitute`     | `Insert`         | `FindPrev`       | `FindNext`       |
-|{Shift+          | `Remove`         | `Overwrite`      | `SubsThenFindPv` | `SubsThenFindNx` |
-|{Ctrl+           | `SubstituteAgain`| `InsertAgain`    | `FindPrevAgain`  | `FindNextAgain`  |
-|{Alt+            |                  |                  |                  |                  |
-|{Ctrl+Shift+     | `AngleMatchLeft` | `AngleMatchRight`| `IndentMatchUp`  | `IndentMatchDown`|
-|{Shift+Alt+      | `ParenMatchLeft` | `ParenMatchRight`| `MarkupMatchLeft`|`MarkupMatchRight`|
-|{Ctrl+Shift+Alt+ | `CurlyMatchLeft` | `CurlyMatchRight`| `SquareMatchLeft`|`SquareMatchRight`|
-|                  
-|                  
-|-----------------|------------------|------------------|------------------|------------------|
-|                 |{F9}              |{F10}             |{F11}             |{F12}             |
-|                 |                  |                  |                  |                  |
-|                 | `FindExactNext`  | `Again`          |                  |                  |
-|{Shift+          | `FindExactPrev`  | `AgainExhaustive`|                  |                  |
-|{Ctrl+           | `SetFindString`  |                  |                  |                  |
-|{Alt+            | `AppendLeftPrev` | `AppendRightNext`|                  |                  |
-|{Ctrl+Shift+     | `IndentFromPrev` | `IndentFromNext` |                  |                  |
-|{Shift+Alt+      | `JoinLeftPrev`   | `JoinRightNext`  |                  |                  |
-|{Ctrl+Shift+Alt+ |                  |                  |                  |                  |
-|                   
+  e.g: {Ctrl+Shift+F7} calls function MatchIndentUp
+                                                                                                 
+	┌─────────────────╥──────────────────┬──────────────────┬──────────────────┬──────────────────┐ 
+	│                 ║F1}               │F2}               │F3}               │F4}               │  
+	│                 ║                  │                  │                  │                  │  
+	│{                ║ `Help`           │ `Do`             │ `BlockUp`        │ `BlockDown`      │  
+	│{Shift+          ║ `FindAllHelp`    │ `ScriptByName`   │ `SectionUp`      │ `SectionDown`    │  
+	│{Ctrl+           ║ `RemoveHelpFold` │ `ScriptByFunc`   │ `SentenceUp`     │ `SentenceDown`   │  
+	│{Alt+            ║                  │                  │                  │                  │  
+	│{Ctrl+Shift+     ║ `Note`           │ `Cut`            │ `Copy`           │ `Paste`          │  
+	│{Shift+Alt+      ║                  │ `CumulativeCut`  │ `CumulativeCopy` │                  │  
+	│{Ctrl+Shift+Alt+ ║                  │ `CutTabular`     │ `CutRectangle`   │ `PasteRectangle` │  
+	│                 ║                  │                  │                  │                  │  
+	│                 ║                  │                  │                  │                  │  
+	├─────────────────╫──────────────────┼──────────────────┼──────────────────┼──────────────────┤  
+	│                 ║F5}               │F6}               │F7}               │F8}               │  
+	│                 ║                  │                  │                  │                  │  
+	│{                ║ `Substitute`     │ `Insert`         │ `FindBack`       │ `FindNext`       │  
+	│{Shift+          ║ `Remove`         │ `Overwrite`      │ `SubsThenFindPv` │ `SubsThenFindNx` │  
+	│{Ctrl+           ║ `SubstituteAgain`│ `InsertAgain`    │ `FindBackAgain`  │ `FindNextAgain`  │  
+	│{Alt+            ║                  │                  │                  │                  │  
+	│{Ctrl+Shift+     ║ `MatchAngleLeft` │ `MatchAngleRight`│ `MatchIndentUp`  │ `MatchIndentDown`│  
+	│{Shift+Alt+      ║ `MatchParenLeft` │ `MatchParenRight`│ `MatchMarkupLeft`│`MatchMarkupRight`│  
+	│{Ctrl+Shift+Alt+ ║ `MatchCurlyLeft` │ `MatchCurlyRight`│ `MatchSquareLeft`│`MatchSquareRight`│  
+	│                 ║                  │                  │                  │                  │  
+	│                 ║                  │                  │                  │                  │  
+	├─────────────────╫──────────────────┼──────────────────┼──────────────────┼──────────────────┤  
+	│                 ║F9}               │F10}              │F11}              │F12}              │  
+	│                 ║                  │                  │                  │                  │  
+	│{                ║ `FindExact`      │ `Again`          │                  │                  │  
+	│{Shift+          ║ `FindExactBack`  │ `AgainExhaustive`│                  │                  │  
+	│{Ctrl+           ║ `SetFindString`  │                  │                  │                  │  
+	│{Alt+            ║ `AppendLeftPrev` │ `AppendRightNext`│                  │                  │  
+	│{Ctrl+Shift+     ║ `IndentFromPrev` │ `IndentFromNext` │                  │                  │  
+	│{Shift+Alt+      ║ `JoinLeftPrev`   │ `JoinRightNext`  │                  │                  │  
+	│{Ctrl+Shift+Alt+ ║                  │                  │                  │                  │  
+	└─────────────────╨──────────────────┴──────────────────┴──────────────────┴──────────────────┘  
 
 1.2 Mid keypad
 --------------
- 
-|----------------|------------------|------------------|------------------|
-|                |{Insert}          |{Home}            |{Page Up}         |
-|                |                  |                  |                  |
-|                | `Paste`          | `Note`           | `PageUp`         |
-|{Shift+         |                  |                  |                  |
-|{Ctrl+          |                  |                  |                  |
-|{Alt+           | `PasteRectangle` |                  |                  |
-|{Ctrl+Shift+    |                  |                  |                  |
-|{Ctrl+Alt+      |                  |                  | `PopupPageUp`    |
-|{Shift+Alt+     |                  |                  |                  |
-|{Ctrl+Shift+Alt+|                  |                  |                  |
-| 
-|----------------|------------------|------------------|------------------|
-|                |{Delete}          |{End}             |{Page Down}}      |
-|                |                  |                  |                  |
-|                | `Cut`            | `Copy`           | `PageDown`       |
-|{Shift+         | `CumulativeCut`  | `CumulativeCopy` |                  |
-|{Ctrl+          | `CutTabular`     |                  |                  |
-|{Alt+           | `CutRectangle`   |                  |                  |
-|{Ctrl+Shift+    |                  |                  |                  |
-|{Ctrl+Alt+      |                  |                  | `PopupPageDown`  |
-|{Shift+Alt+     |                  |                  |                  |
-|{Ctrl+Shift+Alt+|                  |                  |                  |
-| 
-| 
-|                |                  |------------------|
-|                |                  |{UpArrow}         |
-|                |                  |                  |
-|                |                  | `Up`             |
-|{Shift+         |                  | `WordUp`         |
-|{Ctrl+          |                  | `NewWordUp`      |
-|{Alt+           |                  |                  |
-|{Ctrl+Shift+    |                  | `ViewUp`         |
-|{Ctrl+Alt+      |                  | `WindowShrink`   |
-|{Shift+Alt+     |                  |                  |
-|{Ctrl+Shift+Alt+|                  |                  |
-|----------------|------------------|------------------|------------------|
-|                |{LeftArrow}       |{DownArrow}       |{RightArrow}      |
-|                |                  |                  |                  |
-|                | `Left`           | `Down`           | `Right`          |
-|{Shift+         | `WordLeft`       | `WordDown`       | `WordRight`      |
-|{Ctrl+          | `LineLeft`       | `NewWordDown`    | `LineRight`      |
-|{Alt+           | `DeleteChrLeft`  |                  | `DeleteChrRight` |
-|{Ctrl+Shift+    | `ViewLeft`       | `ViewDown`       | `ViewRight`      |
-|{Ctrl+Alt+      | `DeleteLineLeft` | `WindowStretch`  | `DeleteLineRight`|
-|{Shift+Alt+     | `DeleteWordLeft` |                  | `DeleteWordRight`|
-|{Ctrl+Shift+Alt+| `RestoreChrLeft` |                  | `RestoreChrRight`|
-|
+                                                                             
+	┌─────────────────╥──────────────────┬──────────────────┬──────────────────┐ 
+	│                 ║Insert}           │Home}             │Page Up}          │  
+	│                 ║                  │                  │                  │  
+	│{                ║ `Paste`          │ `Note`           │ `PageUp`         │  
+	│{Shift+          ║                  │                  │                  │  
+	│{Ctrl+           ║                  │                  │                  │  
+	│{Alt+            ║ `PasteRectangle` │                  │                  │  
+	│{Ctrl+Shift+     ║                  │                  │                  │  
+	│{Ctrl+Alt+       ║                  │                  │ `PopupPageUp`    │  
+	│{Shift+Alt+      ║                  │                  │                  │  
+	│{Ctrl+Shift+Alt+ ║                  │                  │                  │  
+	│                 ║                  │                  │                  │  
+	├─────────────────╫──────────────────┼──────────────────┼──────────────────┤  
+	│                 ║Delete}           │End}              │Page Down}        │  
+	│                 ║                  │                  │                  │  
+	│{                ║ `Cut`            │ `Copy`           │ `PageDown`       │  
+	│{Shift+          ║ `CumulativeCut`  │ `CumulativeCopy` │                  │  
+	│{Ctrl+           ║ `CutTabular`     │                  │                  │  
+	│{Alt+            ║ `CutRectangle`   │                  │                  │  
+	│{Ctrl+Shift+     ║                  │                  │                  │  
+	│{Ctrl+Alt+       ║                  │                  │ `PopupPageDown`  │  
+	│{Shift+Alt+      ║                  │                  │                  │  
+	│{Ctrl+Shift+Alt+ ║                  │                  │                  │  
+	└─────────────────╨──────────────────┴──────────────────┴──────────────────┘  
+                                                                                
+	┌─────────────────╖                  ┌──────────────────┐ 
+	│                 ║                  │UpArrow}          │  
+	│                 ║                  │                  │  
+	│{                ║                  │ `Up`             │  
+	│{Shift+          ║                  │ `WordUp`         │  
+	│{Ctrl+           ║                  │ `NewWordUp`      │  
+	│{Alt+            ║                  │                  │  
+	│{Ctrl+Shift+     ║                  │ `ViewUp`         │  
+	│{Ctrl+Alt+       ║                  │ `WindowShrink`   │  
+	│{Shift+Alt+      ║                  │                  │  
+	│{Ctrl+Shift+Alt+ ║                  │                  │                    
+	├─────────────────╫──────────────────┼──────────────────┼──────────────────┐ 
+	│                 ║LeftArrow}        │DownArrow}        │RightArrow}       │  
+	│                 ║                  │                  │                  │  
+	│{                ║ `Left`           │ `Down`           │ `Right`          │  
+	│{Shift+          ║ `WordLeft`       │ `WordDown`       │ `WordRight`      │  
+	│{Ctrl+           ║ `LineLeft`       │ `NewWordDown`    │ `LineRight`      │  
+	│{Alt+            ║ `DeleteChrLeft`  │                  │ `DeleteChrRight` │  
+	│{Ctrl+Shift+     ║ `ViewLeft`       │ `ViewDown`       │ `ViewRight`      │  
+	│{Ctrl+Alt+       ║ `DeleteLineLeft` │ `WindowStretch`  │ `DeleteLineRight`│  
+	│{Shift+Alt+      ║ `DeleteWordLeft` │                  │ `DeleteWordRight`│  
+	│{Ctrl+Shift+Alt+ ║ `RestoreChrLeft` │                  │ `RestoreChrRight`│  
+	└─────────────────╨──────────────────┴──────────────────┴──────────────────┘  
 
 1.4 Numeric Keypad
 ------------------
@@ -105,38 +106,38 @@
   The key  {KP_0}  -  {KP_9}  are  set  up  to  call  functions  <<Macro0>>  -
   <<Macro9>>, these functions not defined by the startup script - some scripts
   define these, or you may define your own functions.
-  
-|---------------|-----------------|-----------------|-----------------|-----------------|
-|               |        {NumLock}|/     {KP_Divide}|*   {KP_Multiply}|-   {KP_Subtract}|
-|               |                 |                 |                 |                 |
-|               |                 |                 |                 |                 |
-|{Ctrl+         |                 |                 |                 |                 |
-|{Ctrl+Alt+     |                 |                 |                 |                 |
-|---------------|-----------------|-----------------|-----------------|-----------------|
-|               |7          {KP_7}|8          {KP_8}|9          {KP_9}|+        {KP_Add}|
-|               |                 |                 |                 |                 |
-|               | Macro7          | Macro8          | Macro9          |                 |
-|{Ctrl+         |                 |`UpRegardless`   |                 |                 |
-|{Ctrl+Alt+     |`LineNW`         |`LineN`          |`LineNE`         |                 |
-|---------------|-----------------|-----------------|-----------------|                 |
-|               |4          {KP_4}|5          {KP_5}|6          {KP_6}|                 |
-|               |                 |                 |                 |                 |
-|               | Macro4          | Macro5          | Macro6          |                 |
-|{Ctrl+         |`Left`           |                 |`RightRegardless`|                 |
-|{Ctrl+Alt+     |`LineE`          |`BoxText`        |`LineW`          |                 |
-|---------------|-----------------|-----------------|-----------------|-----------------|
-|               |1          {KP_1}|2          {KP_2}|3          {KP_3}|       {KP_Enter}|
-|               |                 |                 |                 |                 |
-|               | Macro1          | Macro2          | Macro3          | `Enter`         |
-|{Ctrl+         |                 |`DownRegardless` |                 |                 |
-|{Ctrl+Alt+     |`LineSW`         |`LineS`          |`LineSE`         |                 |
-|---------------|-----------------|-----------------|-----------------|                 |
-|               |0          {KP_0}|                 |.    {KP_Decimal}|                 |
-|               |                 |                 |                 |                 |
-|               | Macro0          |                 |`Again`          |                 |
-|{Ctrl+         |                 |                 |                 |                 |
-|{Ctrl+Alt+     |                 |                 |                 |                 |
-|---------------|-----------------|-----------------|-----------------|-----------------|
+                                                                                             
+	┌───────────────┬─────────────────┬─────────────────┬─────────────────┬─────────────────┐ 
+	│               │        {NumLock}│/     {KP_Divide}│*   {KP_Multiply}│-   {KP_Subtract}│  
+	│               │                 │                 │                 │                 │  
+	│               │                 │                 │                 │                 │  
+	│{Ctrl+         │                 │                 │                 │                 │  
+	│{Ctrl+Alt+     │                 │                 │                 │                 │  
+	├───────────────┼─────────────────┼─────────────────┼─────────────────┴─────────────────┤  
+	│               │7          {KP_7}│8          {KP_8}│9          {KP_9}│+        {KP_Add}│  
+	│               │                 │                 │                 │                 │  
+	│               │ Macro7          │ Macro8          │ Macro9          │                 │  
+	│{Ctrl+         │                 │`UpRegardless`   │                 │                 │  
+	│{Ctrl+Alt+     │`LineNW`         │`LineN`          │`LineNE`         │                 │  
+	├───────────────┼─────────────────┼─────────────────┼─────────────────┤                 │  
+	│               │4          {KP_4}│5          {KP_5}│6          {KP_6}│                 │  
+	│               │                 │                 │                 │                 │  
+	│               │ Macro4          │ Macro5          │ Macro6          │                 │  
+	│{Ctrl+         │`Left`           │                 │`RightRegardless`│                 │  
+	│{Ctrl+Alt+     │`LineE`          │`BoxText`        │`LineW`          │                 │  
+	├───────────────┼─────────────────┼─────────────────┼─────────────────┼─────────────────┤ 
+	│               │1          {KP_1}│2          {KP_2}│3          {KP_3}│       {KP_Enter}│  
+	│               │                 │                 │                 │                 │  
+	│               │ Macro1          │ Macro2          │ Macro3          │ `Enter`         │  
+	│{Ctrl+         │                 │`DownRegardless` │                 │                 │  
+	│{Ctrl+Alt+     │`LineSW`         │`LineS`          │`LineSE`         │                 │  
+	├───────────────┼─────────────────┼─────────────────┼─────────────────┤                 │  
+	│               │0          {KP_0}│                 │.    {KP_Decimal}│                 │  
+	│               │                 │                 │                 │                 │  
+	│               │ Macro0          │                 │`Again`          │                 │  
+	│{Ctrl+         │                 │                 │                 │                 │  
+	│{Ctrl+Alt+     │                 │                 │                 │                 │  
+	└───────────────┴─────────────────┴─────────────────┴─────────────────┴─────────────────┘  
 
 2 Escape sequences
 ------------------
@@ -158,8 +159,10 @@
   -       {Esc w b}   `WindowAlignBot`
   -       {Esc w s}   `WindowSave`
   -       {Esc w r}   `WindowRestore`
+  -       {Esc w l}   `WindowWithLineNumbers`
   -       {Esc q}     `DebuggerQuit`
   -       {Esc b r}   `Break`
+  -       {Esc c b}   `CompareBufs`
   -       {Esc c e}   `CmdEditStart`
   -       {Esc c g}   `CmdEditGo`
   -       (Esc I n}   `InsertMode`
@@ -181,34 +184,36 @@
   -       {Esc s n}   `NextMisspelling`
   -       {Esc s i}   `NextSpellInstance`
   - <word>{Esc s i}   `FixSpelling`
-  - <args>{Esc f w}   `FindWild`
-  - <args>{Esc - f w} `FindWildPrev`
-  - <args>{Esc f r}   `FindPhraseNext`
-  - <args>{Esc - f r} `FindPhrasePrev`
-  - <args>{Esc f s}   `FindSentenceNext`
-  - <args>{Esc - f s} `FindSentencePrev`
-  - <args>{Esc f p}   `FindParaNext`
-  - <args>{Esc - f p} `FindParaPrev`
-  - <args>{Esc f b}   `FindBlockNext`
-  - <args>{Esc - f b} `FindBlockPrev`
-  - <args>{Esc f h}   `FindHeadedSectionNext`
-  - <args>{Esc - f h} `FindHeadedSectionPrev`
-  - <args>{Esc f c}   `FindChapterNext`
-  - <args>{Esc - f c} `FindChapterPrev`
-  - <args>{Esc f q}   `FindSequence`
-  - <args>{Esc - f q} `FindSequencePrev`
+  - <args>{Esc f *}   `FindWild`
+  - <args>{Esc - f *} `FindWildBack`
   - <args>{Esc f o}   `FindLineOrd`
-  - <args>{Esc - f o} `FindLineOrdPrev`
-  - <args>{Esc f u}   `FindLineUn`
-  - <args>{Esc - f u} `FindLineUnPrev`
-  - <args>{Esc f n}   `FindInNLines`
-  - <args>{Esc - f n} `FindInNLinesPrev`
-  - [<str>]{Esc f l}  `findColNext`
-  - [<str>]{Esc - f l}`findColPrev`
-  - [<str>]{Esc f v}  `findVertNext`
-  - [<str>]{Esc - f v}`findVertPrev`
-  - [<str>]{Esc f e}  `findRectNext`
-  - [<str>]{Esc - f e}`findRectPrev`
+  - <args>{Esc - f o} `FindLineOrdBack`
+  - [<str>]{Esc f y}  `FindCol`
+  - [<str>]{Esc - f y}`FindColBack`
+  - [<str>]{Esc f v}  `findVert`
+  - [<str>]{Esc - f v}`findVertBack`
+  - [<str>]{Esc f e}  `findRect`
+  - [<str>]{Esc - f e}`findRectBack`
+  - <args>{Esc f r}   `ProximityPhrase`
+  - <args>{Esc - f r} `ProximityPhraseBack`
+  - <args>{Esc f s}   `ProximitySentence`
+  - <args>{Esc - f s} `ProximitySentenceBack`
+  - <args>{Esc f p}   `ProximityPara`
+  - <args>{Esc - f p} `ProximityParaBack`
+  - <args>{Esc f b}   `ProximityBlock`
+  - <args>{Esc - f b} `ProximityBlockBack`
+  - <args>{Esc f h}   `ProximityHeadedSection`
+  - <args>{Esc - f h} `ProximityHeadedSectionBack`
+  - <args>{Esc f c}   `ProximityChapter`
+  - <args>{Esc - f c} `ProximityChapterBack`
+  - <args>{Esc f q}   `FindSequence`
+  - <args>{Esc - f q} `FindSequenceBack`
+  - <args>{Esc f l}   `ProximityLines`
+  - <args>{Esc - f l} `ProximityLinesBack`
+  - <args>{Esc f w}   `ProximityWords`
+  - <args>{Esc - f w} `ProximityWordsBack`
+  - <args>{Esc f n}   `ProximityCharacters`
+  - <args>{Esc - f n} `ProximityCharactersBack`
   - <args>{Esc b x}   `Box`
   - <args>{Esc z 1}   `Lozenge`
   - <args>{Esc z 2}   `DSLozenge`
@@ -240,46 +245,47 @@
   These are basic commands recognized  by  the  editor,  you  can  type  these
   straight into the console area, hit return and it will be done.
     
-	  `(`        `O!`           `%A`                      `%Q`                         `%D`                             
-	  `)`        `O#`           `%C`                      `Query system`               `%G`                             
-	  `,`        `O%`           `%E`                      `Query linux`                `%I`                             
-	  `?`        `O&`           `%F`                      `Query windows`              `%L`                             
-	  `\`        `O*`           `%M`                      `Query hashtables`           `%O`                             
-	  `A`        `O+`           `%X`                      `Query wd`                   `%R`                             
-	  `B`        `O-`                                     `Query window`               `%U`                             
-	  `C`        `O.`           `%S`                      `Query time`                 `%W`                             
-	  `E`        `O/`           `%S=case`                 `Query date`                 `%%`                             
-	  `F`        `O<`           `%S=commandmode`          `Query env`                  `%~`                             
-	  `G`        `O=`           `%S=commandcounter`       `Query pid`                                                 
-	  `H`        `O>`           `%S=trace`                `Query stack`                                               
-	  `I`        `O?`           `%s=tracedefault`         `Query tabstops`                                            
-	  `J`        `O@`           `%S=setenv`               `Query backtrace`                                           
-	  `K`        `O|`           `%S=verbose`              `Query buffer`                                              
-	  `M`        `O~`           `%S=guardband`            `Query samesinceio`                                         
-	  `N`        `OA`           `%S=tab`                  `Query samesinceindexed`                                    
-	  `P`        `OB`           `%S=commandstring`        `Query sameflag1`                                           
-	  `Q`        `OC`           `%s=mousemask`            `Query case`                                                
-	  `R`        `OX`           `%S=recoverymode`         `Query inview`                       
-	  `S`        `OF`           `%S=copy`                 `Query commandmode`                  
-	  `T`        `OG`           `%S=paste`                `Query version`                      
-	  `V`        `OI`           `%s=setmouse`             `Query dir`                          
-	  `W`        `OK`           `%s=console`              `Query file`                         
-	  `Y`        `OL`                                     `Query keys`                         
-	  `Z`        `OM`           `%B`                      `Query tags`                         
-	             `ON`           `%B=unrestricted`         `Query heap`                           
-	             `OO`           `%B=readonly`             `Query history`                        
-	             `OP`           `%b=writeifchanged`       `Query verify`                         
-	             `OR`           `%b=leftoffset`                  
-	             `OS`           `%b=tabstops`             `%H`                         
-	             `OU`           `%b=header`               `Hashtable create`           
-	             `OW`           `%b=unicode`              `Hashtable add`              
-	             `OZ`           `%b=pathname`             `Hashtable new`              
-	                            `%b=sameflag1`            `Hashtable jump`             
-	                            `%b=tagtype`              `Hashtable call`             
-	                            `%b=addtag`               `Hashtable fix`              
-	                            `%b=remove_tag`           `Hashtable destroy`          
-	                            `%B=sort`                 `Hashtable testkey`          
-	                            `%B=TabSort`                                         
+	   \ `Reverse status command`
+	  `(`        `O!`           `%A`                      `%F`                         `%D`                             
+	  `)`        `O#`           `%C`                                                   `%G`                             
+	  `,`        `O%`           `%E`                      `%Q`                         `%I`                             
+	  `?`        `O&`           `%F`                      `Query system`               `%L`                             
+	             `O*`           `%M`                      `Query linux`                `%O`                             
+	  `A`        `O+`           `%X`                      `Query windows`              `%R`                             
+	  `B`        `O-`                                     `Query wd`                   `%U`                             
+	  `C`        `O.`           `%S`                      `Query window`               `%W`                             
+	  `E`        `O/`           `%S=case`                 `Query time`                 `%%`                             
+	  `F`        `O<`           `%S=commandmode`          `Query date`                 `%~`                             
+	  `G`        `O=`           `%S=commandcounter`       `Query env`                                                 
+	  `H`        `O>`           `%S=trace`                `Query pid`                                                 
+	  `I`        `O?`           `%s=tracedefault`         `Query stack`                                               
+	  `J`        `O@`           `%S=setenv`               `Query tabstops`                                            
+	  `K`        `O|`           `%S=verbose`              `Query backtrace`                                           
+	  `M`        `O~`           `%S=guardband`            `Query buffer`                                              
+	  `N`        `OA`           `%S=tab`                  `Query samesinceio`                                         
+	  `P`        `OB`           `%S=commandstring`        `Query samesinceindexed`                                    
+	  `Q`        `OC`           `%s=mousemask`            `Query sameflag1`                                           
+	  `R`        `OX`           `%S=recoverymode`         `Query case`                         
+	  `S`        `OF`           `%S=copy`                 `Query inview`                       
+	  `T`        `OG`           `%S=paste`                `Query commandmode`                  
+	  `V`        `OI`           `%s=setmouse`             `Query version`                      
+	  `Y`        `OK`           `%s=console`              `Query dir`                          
+	  `Z`        `OL`                                     `Query file`                         
+	             `OM`           `%B`                      `Query keys`                         
+	             `ON`           `%B=unrestricted`         `Query tags`                           
+	             `OO`           `%B=readonly`             `Query heap`                           
+	             `OP`           `%b=writeifchanged`       `Query history`                        
+	             `OR`           `%b=leftoffset`           `Query verify`              
+	             `OS`           `%b=tabstops`                                          
+	             `OU`           `%b=header`               `%H`                         
+	             `OW`           `%b=unicode`              `Hashtable create`           
+	             `OZ`           `%b=pathname`             `Hashtable newjump`              
+	                            `%b=sameflag1`            `Hashtable addjump`
+	                            `%b=tagtype`              `Hashtable jump`             
+	                            `%b=addtag`               `Hashtable call`             
+	                            `%b=remove_tag`           `Hashtable fix`              
+	                            `%B=sort`                 `Hashtable destroy`          
+	                            `%B=TabSort`              `Hashtable testkey`        
 	                            `%b=codepage`                  
 
 3.1 How can I ...
@@ -307,12 +313,14 @@
     
   - force the editor to display a line in the console area - see `P`
   - check the text at the current-character position - see `V` and `Q`
-  - force the window to be redrawn - see `W` and `%L`
+  - force the window to be redrawn - see `%W`=refresh and `%L`
+  - edit a binary file - see `editing binaries`
   - prevent me accidentally losing my work - see `%b=writeifchanged`
   - prevent me accidentally corrupting a reference buffer `%b=readonly`
   - clear all restrictions from a buffer - see `%b=unrestricted`
   - move to a different buffer - see `Z` and `OZ`
   - create line drawings, block diagrams etc - see `About block graphics`
+  - Read from the stdin stream and/or output to the stdout stream - see `about jot streams`
   - display a file containing tabular text - see `%s=tab`,  `%b=tabstops`  and
     `%b=tabcells`
   
@@ -320,7 +328,6 @@
     a few of the most useful %Q queries follow:
     - Report system-wide state - see `query system`
     - Verify script is running under a particular OS - `query linux`, `query windows`
-    - Report on hashtable cross-referencing - see `query hashtables`
     - find out my pwd - see `query wd`
     - find information about current window configuration - see `query window`
     - obtain a backtrace `query backtrace`
@@ -341,7 +348,7 @@
     - list keys currently set in this buffer - see `query tags`
     - report heap stats - see `query heap`
     - show recent command history - see `query history`
-    - sanity check this buffers internal data structure - see `query verify`
+    - sanity check a buffer's internal data structure - see `query verify`
     - locate internal data structures - see `listbufs.jot`
     
   - set internal state - see `%S`
@@ -375,21 +382,24 @@
     - write the current buffer to the filing system - see `%O`
     - run a command script - see `%R`
     - undo last substitution - see `%U`
-    - set the window configuration - see `%W`
+    - set the display configuration - see `%W`
     - exit current script/macro and send a message to the user - see `%X`
     - insert or display a control character - see `%~`
     - add a comment to my script or macro - see `%%`
     - set up hashtables - see `%H`
     
-  - functions defined by startup.jot:
-    - search for relevant sections in natural-language documents - see `navigation by context`
-    - not lose my work when my computers battery gives up  - see `about not losing your work`
-    - review, modify and/or repeat recent commands - see `about command editing`
-    - debug my scripts `about jot debugging`
-    - do line drawings mixed with text - see `about block graphics`
-    - prepare a reasonably-tidy looking report - see `text document preparation`
-    - count how may times a command will succeed (e.g. count  instances  of  a
-      string) - see `AgainExhaustive`
+  - display line numbers - see `WindowWithLineNumbers`
+  - search  for  relevant  sections  in  natural-language  documents   -   see
+    `navigation by context`
+  - not lose my work when my computers battery  gives  up  -  see  `about  not
+    losing your work`
+  - review, modify and/or repeat recent commands - see `about command editing`
+  - save and restore views - see `ViewSave` and `ViewRestore`
+  - debug my scripts `about jot debugging`
+  - do line drawings mixed with text - see `about block graphics`
+  - prepare a reasonably-tidy looking report - see `text document preparation`
+  - count how may times a command will succeed  (e.g.  count  instances  of  a
+    string) - see `AgainExhaustive`
 
 4 Important Scripts
 -------------------
@@ -409,24 +419,21 @@
   - `copy.jot`           Sets Xterm paste-buffer from current buffer, using xsel.
   - `count.jot`          Counts up the number of words in a text buffer.
   - `csh.jot`            Sets up buttons specific to editing C-shell command files.
-  - `curses_keys_<TERM>.jot` Defines mapping of editor function to keycodes.
+  - `curses_keys_<subVersion>.jot` Defines mapping of editor function to keycodes.
   - `date.jot`           Inserts current date in document, cursor is on a valid date this is removed.
   - `define_keymap.jot`  Defines keymap for any keyboard - requires the user to press buttons.
   - `dic.jot`            Looks up words in websters dictionary.
   - `do.jot`             Performs a cli command and places result into '@' buffer.
-  - `doc2fold.jot`       Transforms a doc-format document into a folded-help file 
-  - `doc2mif.jot`        Transforms a doc-style text document to framemaker mif format.
-  - `txt2help.jot`       Transforms a doc-format document into a folded-help file 
-  - `doc2html.jot`       Translates the current document to HTML.
+  - `txt2html.jot`       Translates the current buffer to HTML.
   - `duplicates.jot`     Starting at current position in buffer, searching for duplicated lines.
   - `edif.jot`           Sets up buttons specific to editing EDIF files.
   - `exit.jot`           Frees all buffers and exits the editor.
-  - `findcol.jot`        Finds string in delimited arg1 in column.
-  - `findhelp.jot`       Uses grep to locate given help keys in the help library.
   - `fold2doc.jot`       Transforms a folded document to the .doc format.
   - `freeall.jot`        Frees (i.e. destroys) all buffers.
   - `get.jot`            Picks up a file relative to current file.
-  - `html2txt.jot`       Translates HTML to a .DOC-format file.
+  - `html2txt.jot`       Translates HTML to text, also useful for web scraping.
+  - `doc2txt.jot`        Translates an MS-word file to text.
+  - `pdf2txt.jot`        Translates a PDF or PS file to text.
   - `ide.jot`            A simple IDE for C-code development with gdb, wine and winedbg.
   - `big_file.jot`       Support for handling big files indexed with grep.
   - `multi_file.jot`     Support for source-file trees indexed with grep.
@@ -442,7 +449,6 @@
   - `mif.jot`            Sets up buttons specific to editing MIF files.
   - `multi_do.jot`       Performs a unix command on a bunch of files specified in a ls -l listing
   - `multi_ed.jot`       Command file to edit a bunch of files starting with a list of paths
-  - `near.jot`           Locates a pair of words near each other.
   - `nonprinting.jot`    Detects next nonprinting character in buffer.
   - `pascal.jot`         Constructs the first n rows of pascals triangle in the current buffer.
   - `paste.jot`          Inserts current Xterm paste-buffer selection into nominated buffer, using xsel.

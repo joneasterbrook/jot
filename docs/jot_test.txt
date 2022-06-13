@@ -19,13 +19,61 @@ $ ./jot_dev ${JOT_RESOURCES}/t.t -in=%r=test
 
 1.2 test_visual.jot
 -------------------
-$ ./jot_dev t.t -in=%r=test_visual
+$ ./jot_dev t.t -in=%r=test_visual[ -debug][ -nosize][ -nounicode]
+  [ -win10relaxation][ -fromtest <n>][ -break <n>][ -cc[ <n>]][ -exit ]
+  - -debug - enters the jot debugger at start of comparison stage of each test.
+  - -nosize - ignores size of terminal nb some tests *are* very much dependant on this.
+  - -nounicode - skips tests involving unicode.
+  - -win10relaxation - skips tests affected by windows10 bug.
+  - -cc[ <n>] - Sets up the jot command counter and displays command counter in messages.
+  - -exit  - On failure, exits with failure status (by default it holds the session open).
+  - -noexit - Always holds the session open.
   
   This runs a series of tests designed to detect any regression in the way  it
   drives the screen. In olden times this was literally a  visual  test  -  the
   intrepid tester had to sit and check each several dozen screenshots to  make
   sure  nothing  was  going  wrong.  These  days,  though,   it's   all   done
   automatically using the `query window` command.
+  
+  Each  of  these  test  (currently  there  are  127   tests)   perfoms   some
+  manipulation of the text and checks  that  the  screen  has  been  correctly
+  updated. It uses the `Query window` report which, in turn relies on  the  OS
+  functions getcchar() in linux (actually part  of  the  ncurses  system)  and
+  ReadConsoleOutputCharacter()  in  winndows).  While  the  linux  version  is
+  totally reliable the windows version is  decidedly  flakey  and,  strangely,
+  windows 10 seems worse than older versions.
+   
+  The -debug qualifier inserts a breakpoint  trap  immediately  after  reading
+  back the window status, it also redefines the window configuration  to  make
+  it easier to see what's going on..
+  
+  Some tests require  an  80*40  terminal,  others  are  less  demanding,  the
+  -nosize skips the terminal-size check.
+  
+  Some linux terminals do not support unicode, if this is true of the  current
+  terminal the -nounicode qualifier will skip these tests.
+  
+  The -win10relaxation  qualifier  skips  any  tests  affected  by  the  flaky
+  console readback functions in windows 10.
+  
+  The -cc[ <n>] qualifier causes all messages to  include  the  commandcounter
+  report. If a value is specified this is used  to  set  the  command  counter
+  triggering  a  breakpoint  when  it  reaches  the   specified   value   (see
+  `%s=commandcounter`). In practice: 
+    - first run the tests with -cc but no  command-counter  value,  this  will
+      cause it to report the command counter with each message, including  the
+      list of failed tests then
+    - in the final summary report, read off the command counter value for  the
+      failure you want to investigate and, finally,- re-spin  the  same  tests
+      but with the -cc arg set to the failed command counter.
+  
+  On successful completion of all tests  the  script  usually  terminates  the
+  session but, if there are failures then the session is  normally  held  open
+  so you can see the report.
+    - the -exit qualifier causes it to exit even  if  there  are  failures  it
+      exiytts with a failure message and an error status code.
+    - the -noexit qualifier forces it to hold the session open, even if  there
+      were no failed tests.
 
 1.3 monkey_test.jot
 -------------------
@@ -97,7 +145,8 @@ $ ./jot_dev t.t -in='n.a$z$i"%% -tests=100000 -exit" %r=monkey_test'
 
 1.4 error_search.jot
 --------------------
-$ jot ${JOT_RESOURCES}/l99.t -in="%r=error_search [-gdb|-valgrind|-xterm]
+$ jot ${JOT_RESOURCES}/l99.t -in="%r=error_search 
+    [-gdb|-valgrind|-xterm|-timeout[=<n>]]
     [ -failif=<jotCommands>]
       -script=<scriptPath1>[ +<scriptPath2>[ +...]]"
   
@@ -109,11 +158,15 @@ $ jot ${JOT_RESOURCES}/l99.t -in="%r=error_search [-gdb|-valgrind|-xterm]
   
   By default, the test sessions are  launched  as  a  simple  subprocess,  the
   -xterm qualifier launches it in an xterm so you can keep an  eye  on  what's
-  happening, the -gdb qualifier launches the test monitored by gdb session and
-  -valgrind monitors with valgrind.
+  happening, the -gdb qualifier launches the test  monitored  by  gdb  session
+  and -valgrind monitors with valgrind, the  -timeout  qualifier  is  used  to
+  lines which cause the script to hang.
+  
+  The timeout qualifier runs the script with the specified  timeout  (defaults
+  to 600), denominated in seconds, using the unix timeout command.
   
   The error_search script detects that it misbehaved by  searching  the  reply
-  from the child process. You can specify a  different  failure  criterion  by
+  from the child session. You can specify a  different  failure  criterion  by
   specifing your own comparator commands in the -failif modifier.
   
   Often it's not that obvious what's going on and it would be useful  to  know
@@ -144,40 +197,103 @@ $ ./jot t.t -in="%r=error_search -valgrind -script=./test108110917.jot"
   reports, the script is whittled down to the minimum  set  of  commands  that
   still results in valgrind errors.
 
-1.6 test.sh
------------
-$ ./test.sh
+1.5 test.sh and test.bat
+------------------------
+$ test.sh[ -test n][ -exe <executable>]
+$ test.bat[ -test n][ -exe <executable>][ -nosetup][ -hold][ -nobble][ -clearout]
+  
+  These scripts have been superseded by `test_all.jot`
+  
+  These two scripts are similar, they run identical tests. test.sh runs  tests
+  on the linux version in a bash shell. test.bat runs the same  tests  on  the
+  windows version in a windows (or wine) console.  Unfortunately,  the  effort
+  required to keep test.bat aligned with test.sh proved too be much.
   
   Some simple tests for the linux version in simulated real-life situations.
   
-  - Test 1 - test.jot   
-  
+  - Test 1 - `test.jot`   
   - Test 2 - Streaming out to stdout
-  
   - Test 3 - Accepting input from stdin stream - in -tty mode.
-  
   - Test 3a - Accepting input from stdin stream - in non-tty mode.
-  
   - Test 4 - Accepting input from stream and piping to stdout - in -tty mode.
-  
   - Test 5 - Read from command, -tty mode
-  
   - Test 5a - Read from command - in non-tty mode.
-  
-  - Test 6 - Filter mode -tty mode
-  
-  - Test 6a - Filter mode - in non-tty mode
-  
+  - Test 6 - `test_visual.jot`
   - Test 7 - streamed-in commands -tty mode
-  
   - Test 7a - streamed-in commands - in non-tty mode
-  
   - Test 8 - journal-keeping and recovery
-  
   - Test 9 - -asConsole
-  
-  - Test 10 - get.jot -  tests  the  get.jot  script  in  the  most  important
+  - Test 10 - Tests operation of -asConsole qualifier to `%R` command.
+  - Test 11 - `get.jot` - tests the  get.jot  script  in  the  most  important
     configurations.
+  - Test 12 - Tests insert-mode operation
+  - Test 13 - Tests recover.jot with some tricky situations.
+  - Test 14 - Tests a few important functions defined by the startup script.
+  
+  Although the tests are almost functionally identical, there  was  a  certain
+  amount of wriggling to get test.bat to work reliably in the wineconsole:
+    - Tests requiring a 40*80 console cause it to wait in a jot session  while
+      you streach the window to the required size.
+      
+    - In wine (but not in genuine windows) running jot sets the console  to  a
+      funny state where it will not redirect streams. e.g: this will  wirk  as
+      expected until jot is run but then fails:
+$echo "This console is OK" | grep "This console is OK"
+      The test.bat contains a test to detect this situation and exits early if
+      a dud console has been detected.
+      
+    - Test 2 checks jots aility to stream to stdout  and  has  been  moved  to
+      become the chronological first test,  but  it  retains  the  tesignation
+      test2. This is because test1 will set wineconsoles to a state where  tis
+      test will *always* fail.
 
-
+1.6 test_all.jot
+----------------
+$ jot -in="%r=test_all[ -exe <executable>][ -nosize][ -test <n>[ <n>[ ...]]][ -debug 1]
+  
+  - -exe <ExecutableName> - specifies the executable to be tested  -  defaults
+    to the executable running the test_all harness.
+    
+  - -nosize -  ignores  size  of  terminal  nb  some  tests  are  *very*  much
+    dependant on this: - tests 1, 7 and  15.  If  started  with  an  undersize
+    screen, the default action is to prompt for you to stretch the  screen  to
+    at least 80 columns by 40 lines.
+    
+  - -noexit - stops it closing the session on completion of the last test.
+  
+  - -test <n1>[ <n2>[ ...]] - list of tests to be done - defaults to all tests.
+  
+  - -debug=<hexMask> - debugging of this script.
+    The hexmask bits are assigned as follows:
+    - 1 - Retains existing test files -  e.g.  test.txt,  test.jot,  test.bat,
+      test.ah and test.ref
+    
+  It runs the following tests:
+    - Test   1  --  Runs `test.jot` - the jot-command regression test;
+    - Test   2  --  Streaming out to stdout;
+    - Test   3  --  Accepting input from stdin stream - in -tty mode.;
+    - Test   4  --  Accepting input from stdin stream - in non-tty mode.;
+    - Test   5  --  Accepting input from stream and piping to stdout - in -tty mode.;
+    - Test   6  --  Read from %E command.;
+    - Test   7  --  Runs `test_visual.jot`
+    - Test   8  --  streamed-in commands.;
+    - Test   9  --  streamed-in commands - in non-tty mode.;
+    - Test  10  --  piping to stdout in -tty mode.;
+    - Test  11  --  -asConsole scripts
+    - Test  12  --  basic journal-keeping and recovery test - `recover.jot`
+    - Test  13  --  A more detailed look at `recover.jot`, including some tricky situations.
+    - Test  14  --  `get.jot`.
+    - Test  15  --  A selection of functions defined in `startup.jot`
+    - Test  16  --  `big_file.jot`
+    - Test  17  --  Verifies basic functionallity of `fake_vim.jot`
+    - Test  18  --  Verifies basic functionallity of `fake_emacs.jot`
+    - Test  19  --  Verifies basic functionallity of `fake_nano.jot`
+    
+  The main jot session is a harness running regression tests on  some  version
+  of jot - typically a development version. By  default  it  tests  a  version
+  named jot_dev, which must be on your search path.
+  
+  test_all.jot is a replacement for `test.sh  and  test.bat`,  maintenence  of
+  these two scripts was a  nightmare  and,  it  is  hoped,  this  script  will
+  provide a more consistent and reliable test for future versions of jot.
 

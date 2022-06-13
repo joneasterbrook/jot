@@ -157,7 +157,7 @@ static int KBD_Descriptor = -1;
 #define Control_U 'U'-64  
 #define UNTRANSLATED_CHR 1        //Returned by TransEscapeSequence() when a control character is not recognized
                                   //behaviour now is to assume it's unicode and enter it into the command string.
-#define CTRL_C_INTERRUPT 2        //Returned by TransEscapeSequence() when a Ctrl+C interrupt is received.
+#define CTRL_C 2                  //Returned by TransEscapeSequence() when a Ctrl+C interrupt is received.
   
 #define FirstRecord_Flag 0X1      //This record is the first received from the input stream.
 #define LastRecord_Flag  0X2      //This record was followed by an EOF from the input stream.
@@ -2771,8 +2771,9 @@ void JOT_Sequence(struct Buf *CommandBuf, struct Seq *ThisSequence, int StopOnEO
               if (CheckToken("KEY", Token, 1, QualLen, ThisCommand, Q_keyQual)) {
                 CommandBuf->CurrentByte++;
                 AddStringArgPercent(ThisCommand, CommandBuf, FALSE); }
-              else
-                LocalFail = SynError(CommandBuf, "Invalid %%Q=keys qualifier ( -%s )", Token); }
+              else {
+                LocalFail = SynError(CommandBuf, "Invalid %%Q=keys qualifier ( -%s )", Token);
+                break; } }
             AddStringArgPercent(ThisCommand, CommandBuf, TRUE); }
           else if (CheckToken("LINUX", Token, 1, QualLen, ThisCommand, Q_linux))
             { }
@@ -2824,8 +2825,12 @@ void JOT_Sequence(struct Buf *CommandBuf, struct Seq *ThisSequence, int StopOnEO
         if (CommandBuf->CurrentRec->text[CommandBuf->CurrentByte] == ';')
           CommandBuf->CurrentByte++;
         if (LocalFail) {
-          if (ThisCommand)
-            FreeCommand(&ThisCommand);
+          if (ThisCommand) {
+            if (PrevCommand)
+              PrevCommand->NextCommand = NULL;
+            else if (ThisSequence->FirstCommand == ThisCommand)
+              ThisSequence->FirstCommand = NULL;
+            FreeCommand(&ThisCommand); }
           return; }
         break; } //% command case ends.
 
@@ -4231,7 +4236,7 @@ int Run_Sequence(struct Seq *Sequence)
           break;
         Bytes = JotRecLenChrs(s_CurrentBuf, Chrs);
         if ( ! Bytes && Chrs)
-          LocalFail = Fail("OR failed, shift offset greater than availabl characters.");
+          LocalFail = Fail(NULL, "OR failed, shift offset greater than availabl characters.");
         s_CurrentBuf->CurrentByte += Bytes;
         s_CurrentBuf->SubstringLength = 0;
         break; }
@@ -4362,7 +4367,7 @@ int Run_Sequence(struct Seq *Sequence)
 
       case 'A': { //%A - Exit without writing file.
         int ExitStatus = BufferKey;
-        char MessageText[StringMaxChr];
+//        char MessageText[StringMaxChr];
         //Don't call FetchStringArgPercent() as it's important to pass the indirect reference to TidyUp().
         char *GivenString = ((ThisArg->type == StringArgType) && (((struct StringArg *)ThisArg)->String)[0] ? ((struct StringArg *)ThisArg)->String : "Edit abandoned");
         
@@ -4790,8 +4795,9 @@ int Run_Sequence(struct Seq *Sequence)
             LocalFail = Fail("Invalid buffer key \'%c\'", BufferKey);
             break; }
           
-          if (s_RecoveryMode)
+          if (s_RecoveryMode) {
             OpenJournalFile(&OutDesc, NULL, NameString);
+            s_CurrentBuf = DestBuf; }
           else { //Not a recovery session.
             int i;
             char *ArgV[20];
@@ -4908,6 +4914,15 @@ int Run_Sequence(struct Seq *Sequence)
           Status = system(CommandString);
           clearok(mainWin, TRUE); }
 #endif
+        if (s_JournalHand) {
+          char Temp[100];
+          sprintf(Temp, "%%%%CLI command status was %d", Status);
+          UpdateJournal(Temp, NULL); }
+        else if (s_RecoveryMode) {
+          char Temp[StringMaxChr];
+          fgets(Temp, StringMaxChr, s_asConsole->FileHandle);
+          if (sscanf(Temp, "%%%%CLI command status was %d", &Status) != 1 )
+            Disaster("Failed to read back %%E status."); }
         if (Status != 0)
           LocalFail = 1;
         break; }
@@ -5512,7 +5527,7 @@ int Run_Sequence(struct Seq *Sequence)
             strcpy(s_PromptString, "> ");
           break; }
 
-        case S_on_key: { //%s=on_key <CommandString> - specifies a command string to be executed after a command
+        case S_on_key: { //%s=on_key[ -after] <CommandString> - specifies a command string to be executed after every keyboard operation
           char TempString[StringMaxChr];
           int Length, AfterQual = FetchIntArgFunc((struct AnyArg **)&ThisArg);
           FetchStringArgPercent(TempString, &Length, &ThisArg);
@@ -5923,7 +5938,7 @@ int Run_Sequence(struct Seq *Sequence)
         struct Rec * FirstRec = NULL;
         int SourceBufKey = SourceBuf->BufferKey, StringArgLen, NoFollowLinksQual;
         char OrigCommand[(StringMaxChr*2)+30], StringArg[StringMaxChr];
-        int AddToJournal = FALSE;
+//        int AddToJournal = FALSE;
         
         OrigCommand[0] = '\0';
         StringArg[0] = '\0';
@@ -6358,7 +6373,7 @@ int Run_Sequence(struct Seq *Sequence)
             LocalFail = TRUE;
             break; }
             
-          AddToJournal = TRUE;
+//          AddToJournal = TRUE;
           TagType = SourceBuf->FirstColObj;
           PathName = SourceBuf->PathName;
           ThisAnyHTabObj = (struct AnyHTabObj *)SourceBuf->FirstObj;
@@ -6610,7 +6625,7 @@ int Run_Sequence(struct Seq *Sequence)
             LocalFail = TRUE;
             break; }
           DateTime = time(NULL);
-          AddToJournal = TRUE;
+//          AddToJournal = TRUE;
           strftime(temp, 100, "%d/%m/%y, %H:%M:%S", localtime(&DateTime));
           AddFormattedRecord(TRUE, DestBuf, "%s", temp);
           break; }
@@ -6672,7 +6687,7 @@ int Run_Sequence(struct Seq *Sequence)
             LocalFail = TRUE;
             break; }
           trans = getenv(StringArg);
-          AddToJournal = TRUE;
+//          AddToJournal = TRUE;
           AddFormattedRecord(TRUE, DestBuf, "%s", trans ? trans : " - <Undefined> - ");
           break; }
 
@@ -6695,7 +6710,7 @@ int Run_Sequence(struct Seq *Sequence)
           int PathLen = 0;
           struct AnyArg *FirstQualifierArg = ThisArg, *ThisQualifierArg;
           
-          AddToJournal = TRUE;
+//          AddToJournal = TRUE;
           ExpandEnv(StringArg, StringMaxChr);
           PathLen = strlen(StringArg);
 #ifdef VC
@@ -6860,7 +6875,7 @@ int Run_Sequence(struct Seq *Sequence)
           struct stat Stat;
 #endif
           
-          AddToJournal = TRUE;
+//          AddToJournal = TRUE;
           if (SourceBufKey == BufferKey) {
             LocalFail = TRUE;
             break; }
@@ -12404,7 +12419,7 @@ int DoublePopen(int *InPipe, int *OutPipe, pid_t *ChildPid, struct Buf *TextBuf,
   char *ArgV[100];
   char *Command = strtok(Commands, " ");
   int i = 1;
-  int LocalFail = FALSE;
+//  int LocalFail = FALSE;
   
   ArgV[0] = Command; 
   do 
@@ -12531,7 +12546,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
     if (feof(s_EditorInput->FileHandle))
       return EOF;
     if (s_BombOut)
-      return CTRL_C_INTERRUPT;
+      return CTRL_C;
       
     if (s_CommandMode & CommandMode_EscapeAll) {
       int TransStatus;
@@ -12634,7 +12649,8 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
         fflush(s_EditorOutput);
         CommandText[ByteCount] = Chr;
         if (RecordLength <= ++ByteCount) { //Abandon this command line, but first suck out any further characters that might screw things up later.
-          while (Chr = JotGetCh(FileHandle))
+          CommandText[ByteCount-1] = '\0';
+          while ( (Chr = JotGetCh(FileHandle)) )
             if (Chr == '\n')
               break;
           return 1; }
@@ -12829,15 +12845,17 @@ void Ctrl_C_Interrupt(int sig)
       RunError("Command-sequence failed.");
     FreeSequence(&OnIntSequence); }
   s_Interrupt = TRUE;
-  if (s_CommandMode & CommandMode_Pass_Ctrl_C) { //Ignore {Ctrl+C}, pass it on like any other character.
-    return FALSE; }
 #if defined(VC)
+  if (s_CommandMode & CommandMode_Pass_Ctrl_C) //Ignore {Ctrl+C}, pass it on like any other character.
+    return FALSE;
   if (fdwCtrlType != CTRL_C_EVENT) // Handle the CTRL-C signal. 
     return TRUE;
   if (s_BombOut) {
     Message(NULL, "Unanswered Ctrl+C interrupt");
     return FALSE; }
 #else
+  if (s_CommandMode & CommandMode_Pass_Ctrl_C) //Ignore {Ctrl+C}, pass it on like any other character.
+    return;
   if (sig != SIGINT)
     RunError("Unknown signal detected"); 
   sigrelse(sig);
@@ -13105,21 +13123,24 @@ int SwitchToComFile(char *NameString, int asConsole, char *Args, struct Com *Cur
   struct Buf *ArgsBuf;
   int IsDollar = s_CurrentBuf->BufferKey == '$';
   
+  Actual[0] = '\0';
+  CrossmatchPathnames(0, &File, "r", NameString, s_DefaultComFileName, NULL, Actual);
+  
   if (s_JournalPath) {
     if (s_RecoveryMode) {
-      if (OpenJournalFile(NULL, &File, NameString))
+      if (OpenJournalFile(NULL, &File, Actual))
         return 1; }
     else if (s_JournalHand) {
       FILE *CopyHand, *OrigHand;
       char ArchivePath[StringMaxChr];
       struct stat Stat;
       char DateTimeStamp[20];
-      char *NameExtnElem = strrchr(NameString, '/');
+      char *NameExtnElem = strrchr(Actual, '/');
       char Temp[(2*StringMaxChr)+100];
       
-      if ( ! stat(NameString, &Stat)) {
+      if ( ! stat(Actual, &Stat)) {
         strftime(DateTimeStamp, 20, "%Y%m%d_%H%M%S", localtime(&Stat.st_mtime));
-        sprintf(Temp, "%s_%s", NameExtnElem ? NameExtnElem+1 : NameString, DateTimeStamp);
+        sprintf(Temp, "%s_%s", NameExtnElem ? NameExtnElem+1 : Actual, DateTimeStamp);
         strcpy(ArchivePath, s_JournalPath);
         strcat(ArchivePath, "/");
         strcat(ArchivePath, Temp);
@@ -13128,22 +13149,22 @@ int SwitchToComFile(char *NameString, int asConsole, char *Args, struct Com *Cur
           if ( ! CopyHand)
             Disaster("Failed to open journal file %s", ArchivePath);
           else {
-            if ( ! (OrigHand = fopen(NameString, "r")))
-              RunError("Failed to open file %s for copying to journal archive", NameString);
+            if ( ! (OrigHand = fopen(Actual, "r")))
+              RunError("Failed to open file %s for copying to journal archive", Actual);
             else {
               while (fgets(Temp, StringMaxChr, OrigHand))
                 fputs(Temp, CopyHand);
               fclose(OrigHand); }
             fclose(CopyHand); } }
-        sprintf(Temp, "%%%%Recovery pathname:%4ld %s, Original pathname:%4ld %s", strlen(ArchivePath), ArchivePath, strlen(NameString), NameString); }
+        sprintf(Temp, "%%%%Recovery pathname:%4ld %s, Original pathname:%4ld %s", strlen(ArchivePath), ArchivePath, strlen(Actual), Actual); }
       else { //Nonexistent file - make sure there's always going to be a nonexistent file at recovery time.
         strcpy(ArchivePath, s_JournalPath);
         strcat(ArchivePath, "/nonexistent");
-        sprintf(Temp, "%%%%Recovery pathname:%4ld %s/nonexistent, Original pathname:%4ld %s", strlen(ArchivePath)+12, ArchivePath, strlen(NameString), NameString); }
+        sprintf(Temp, "%%%%Recovery pathname:%4ld %s/nonexistent, Original pathname:%4ld %s", strlen(ArchivePath)+12, ArchivePath, strlen(Actual), Actual); }
       UpdateJournal(Temp, NULL); } }
   
-  Actual[0] = '\0';
-  CrossmatchPathnames(0, &File, "r", NameString, s_DefaultComFileName, NULL, Actual);
+//  Actual[0] = '\0';
+//  CrossmatchPathnames(0, &File, "r", NameString, s_DefaultComFileName, NULL, Actual);
   if ( ! File)
     return Fail("Can't find jot command script.");
     
@@ -13167,7 +13188,7 @@ int SwitchToComFile(char *NameString, int asConsole, char *Args, struct Com *Cur
   
   if (asConsole) { //-asConsole scripts exit on Ctrl+C
     if (InteractiveEditor())
-    Status = 0; }
+      Status = 0; }
   else {
     for (;;) { // Command-file-record loop. 
       struct Seq *ComFileSequence = NULL;
@@ -13566,10 +13587,10 @@ void JotScroll(struct Window * Win, int Offset)
     Right = s_TermWidth-1; }
   if (Bot < Top) //This happens when some genius has defined a one-line window with a delimiter line.
     return;
-if (s_JournalHand) { //For debugging only.
-  char Temp[StringMaxChr];
-  sprintf(Temp, "Scrolling: Offset %d", Offset); 
-  UpdateJournal(Temp, NULL); }
+//if (s_JournalHand) { //For debugging only.
+//  char Temp[StringMaxChr];
+//  sprintf(Temp, "Scrolling: Offset %d", Offset); 
+//  UpdateJournal(Temp, NULL); }
   if (0 < Offset) { //Scrolling up.
     const SMALL_RECT StartXY = { (short)Left, (short)Top+Offset, (short)Right, (short)Bot };
     const COORD dest = { (short)Left, Top };
@@ -14151,7 +14172,7 @@ int TidyUp(int ExitStatus, char * ExitMessage)
     struct Rec *ThisRec;
     if ( ! ThisBuf)
       return Fail("Invalid reference to a buffer.");
-    while (ThisRec = ThisBuf->FirstRec->prev) {
+    while ( (ThisRec = ThisBuf->FirstRec->prev) ) {
       if ( ! ThisRec->text[0])
         break;
       FreeRecord(ThisBuf, AdjustBack); }
@@ -14598,7 +14619,7 @@ int DoHash(char NomBufKey, struct AnyArg **ThisArg, struct Com *CurrentCommand)
       Fail("Syntax in fuction name.");
       return 1; }
     if ( ! (CodeHeader = QueryCode(FunctionName, NomBuf))) {
-      Fail("Function \"%s\" not found in code repository ( %c )", FunctionName, NomBuf->BufferKey);
+      Fail(NULL, "Function \"%s\" not found in code repository ( %c )", FunctionName, NomBuf->BufferKey);
       return 1; }
     //Named function exists.
     FetchStringArgPercent(Args, &ArgsLen, ThisArg);
@@ -14780,7 +14801,7 @@ int SetDataObject(char *Path)
       LocalFail = Fail("That assignment would result in a circular hierarchy;");
       return TRUE; }
     if (BufFromStack->ExistsInData) {
-      LocalFail = Fail("That buffer is alreay used to define a DataHTabObj buffer.");
+      LocalFail = Fail("That buffer is already used to define a DataHTabObj buffer.");
       return TRUE; }
     if (BufFromStack->ParentObj) {
       LocalFail = Fail("The buffer from stack is already a member of a data-object tree");

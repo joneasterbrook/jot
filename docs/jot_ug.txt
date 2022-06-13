@@ -1,9 +1,20 @@
-
+ 
 1 JOT User Guide
 ----------------
   This is a guide aimed at those who just want to  find  out  how  to  use  an
   editor that works. A more detailed technical guide  can  be  found  at  `jot
   technical guide` or, for real-life examples, there's `jot walkthrough`.
+  
+  The bulk of this guide consists of descriptions  of  the  various  functions
+  defined in the normal startup.jot script (in  ${JOT_HOME}/coms/startup.jot).
+  All of these functions are are held in the code-repository buffer ( ' )  and
+  most are designed to be invoked  by  an  escape  sequence  mediated  by  the
+  key-code buffer ( ^ ), the descriptions of such functions also have  details
+  of the escape sequence.  Others  are  secondary  functions  designed  to  be
+  called by other functions in the startup script  (the  proximity  functions,
+  for example, have several secondary functions).
+  
+  For details of jot primitive commands see `JOT primitive commands`.
  
 1.1 Description of the Editor
 -----------------------------
@@ -34,7 +45,9 @@
   also read them and try to make sense of them and diagnose problems.  
   
   A text editor is an essential tool wherever there is  a  need  to  study  or
-  change these text files.
+  change these text files. In a dire emergency, jot can also be used to change
+  binary files but this is not a recommended everyday  usage  -  see  `editing
+  binaries`.
   
   Many windows users will have encountered notepad - this  an  editor  with  a
   simple command structure that can search for a  substring,  substitute  some
@@ -159,28 +172,28 @@ $ jot <pathName>
   
   A paragraph is any number of words, spanning any number of lines bounded  by
   either blank lines, a discontinuity in  indentation  level  or  the  top  or
-  bottom of the buffer - see `ParagraphUp`,  `ParagraphDown`,  `FindParaNext`,
-  `FindParaPrev` and `spellCheckParagraph`.
+  bottom of the buffer - see `ParagraphUp`, `ParagraphDown`,  `ProximityPara`,
+  `ProximityParaBack` and `spellCheckParagraph`.
   
   A headed section may include any number of paragraphs,  and  is  bounded  by
   section headings or the ends of the text buffer. Section  headings  are  not
   indented and must have any digit in  the  first  character  position  -  see
-  `HeadedSectionUp`,    `HeadedSectionDown`,    `FindHeadedSectionNext`    and
-  `FindHeadedSectionPrev`.
+  `HeadedSectionUp`,   `HeadedSectionDown`,    `ProximityHeadedSection`    and
+  `ProximityHeadedSectionBack`.
   
   A section is any number of paragraphs bounded  by  either  a  chapter  or  a
   section heading - see `SectionUp` and `SectionDown`.
   
   A chapter may include any number of sections and paragraphs, and is  bounded
-  by a chapter headings or the ends of the text buffer. Chapter  headings  are
-  not indented and must have any alphabetical character in the first character
-  position    -    see    `ChapterUp`,    `ChapterDown`,    `FindChapterNext`,
-  `FindChapterPrev` and `spellCheckChapter`.
+  by chapter headings or the ends of the text  buffer.  Chapter  headings  are
+  not  indented  and  must  have  any  alphabetical  character  in  the  first
+  character position -  see  `ChapterUp`,  `ChapterDown`,  `ProximityChapter`,
+  `ProximityChapterBack` and `spellCheckChapter`.
   
   A block is any number of lines, paragraphs, sections or chapters, bounded by
   either a completely blank line or the top or bottom of the buffer. The blank
   line must must not even contain blanks or tabs - see `BlockUp`, `BlockDown`,
-  `FindBlockNext` and `FindBlockPrev`. 
+  `ProximityBlock` and `ProximityBlockBack`. 
   
   The point of blocks is they allow another level of grouping  of  text  above
   paragraphs. When a sequence of paragraphs are to be grouped  into  a  block,
@@ -216,13 +229,13 @@ $ jot <pathName>
     - `ChapterUp`, `ChapterDown`,
     - `SectionUp`, `SectionDown`(matches either chapter or section headings),
     - `SentenceUp`, `SentenceDown`,
-    - `FindPhraseNext`, `FindPhrasePrev`,
-    - `FindSentenceNext`, `FindSentencePrev`,
-    - `FindParaNext`, `FindParaPrev`,
-    - `FindHeadedSectionNext`, `FindHeadedSectionPrev`,
-    - `FindChapterNext`, `FindChapterPrev`,
-    - `FindBlockNext`,  `FindBlockPrev`,
-    - `FindInNLines`, `FindInNLinesPrev`
+    - `ProximityPhrase`, `ProximityPhraseBack`,
+    - `ProximitySentence`, `ProximitySentenceBack`,
+    - `ProximityPara`, `ProximityParaBack`,
+    - `ProximityHeadedSection`, `ProximityHeadedSectionBack`,
+    - `ProximityChapter`, `ProximityChapterBack`,
+    - `ProximityBlock`,  `ProximityBlockBack`,
+    - `ProximityLines`, `ProximityLinesBack`
     - `ReformatParagraph`
     - `MakeParagraphIntoBullet`
     - `SpellcheckParagraph`
@@ -248,131 +261,101 @@ $ jot <pathName>
   specification in some way.
     - The primitive find command `F`,
     - the regular-expression find command `%F`,
-    - The basic `FindNext`, `FindPrev` functions.
+    - The basic `FindNext`, `FindBack` functions.
     - The basic `SubsThenFindNx` and  `SubsThenFindPv`  substitute  then  find
       again functions.
     - the  `FindSequence`  function  -  locates  a  sequence   of   substrings
       irrespective of separating punctuation and whitespace,
     - `PopupSearch` and `PopupIncrementalSearch` - these  display  results  in
       the popup menu - see `the popup-menu functions`
-    - `FindWild` and `FindWildPrev` 
-    - `FindSequence` and `FindSequencePrev` 
+    - `FindWild` and `FindWildBack` 
+    - `FindSequence` and `FindSequenceBack` 
     - the `FindLineOrd` function -  finds  a  line  containing  the  specified
       substrings in the order specified,
-    - the `FindLineUn` function  -  finds  a  line  containing  the  specified
-      substrings in any order and
-    - `the context-proximity functions` (see below) these take  formal  search
+    - `the proximity search functions` (see below) these  take  formal  search
       specification involving several  substrings  and  locate  matching  text
       units.
     - `the vertical-search functions` - these  search  for  a  string  written
       vertically in a column of text.
 
-1.8 The context-proximity functions
------------------------------------
-  Quite often we're looking for a sentence, phrase,  paragraph,  or  whatever,
-  about a specific issue which can only be reliably  identified  by  searching
-  for specific combinations of words.
+1.7.1 The proximity search functions
+------------------------------------
+  These functions can be helpful when  searching  a  large  document,  with  a
+  defined  structure,  for  mentions  of  a  specific  issue,  which  can   be
+  identified by  the  presence  (or,  indeed,  the  absence,  of  a  specified
+  combination of keywords all within a defined area. This area is known  as  a
+  search aperture in jotspeak and will normally correspond  to  structures  in
+  the text.
   
-  In addition to the usual global find functions, jot offers several functions
-  designed to locate combinations of words and substrings within  one  of  the
-  syntactic units  described  in  `about  words,  lines,  phrases,  sentences,
-  paragraphs, sections and chapters`
+  Fortunately, many of the documents we might want to  search  are  structured
+  in some way. Typically,  natural  language  text  might  be  organized  into
+  phrases,  sentences,  paragraphs,  blocks  and  chapters.  Thus  there   are
+  functions for finding  matches  within  these  natural-language  structures.
+  There are also functions for locating matching subblocks  defined  in  terms
+  of a specified number of characters, words or lines.
   
-  There are several options available for navigating by context-proximity:
-    - `FindParaNext`, `FindParaPrev`,
-    - `FindPhraseNext`, `FindPhrasePrev`,
-    - `FindSentenceNext`, `FindSentencePrev`,
-    - `FindHeadedSectionNext`, `FindHeadedSectionPrev`,
-    - `FindChapterNext`, `FindChapterPrev`,
-    - `FindBlockNext`,  `FindBlockPrev`,
-    - `FindInNLines`, `FindInNLinesPrev`
-  These functions take a search specification and, starting from  the  current
-  character position, locate the next appropriate syntactic unit matching  the
-  specification.
-  
-  A search specification consists of a series of elements:
-    - a simple string that must appear in the matching unit,
-    - an exact word that must appear in the matching unit -  i.e.  the  string
-      must be bounded by non-alpha characters,
-    - a sublist of simple strings or exact words, of which at least  one  must
-      appear in a matching unit
-    - an inversion of the normal logic so that  a  matching  unit  must  *not*
-      match to an element.
-      
-  These  functions  Find{Phrase|Sentence|Paragraph|Chapter}{Prev|Next}  search
-  through your document finding a specified selection of substrings within the
-  specified syntactic unit - either a Chapter,  a  paragraph,  a  sentence,  a
-  phrase, a sequence on n consecutive lines or a single line.  The  substrings
-  may appear in any order and can be specified to be either complete words  or
-  fragments of words as required. Where a word has  valid  alternatives  these
-  may also be specified.
-  
-  The FindInNLines and FindInNLinesPrev  functions  are  similar  except  that
-  these ignore natural-language syntactic units. Instead, for these functions,
-  all matches must be within an n-line search aperture.
-  
-  On completion, the forwards-searching functions leave the cursor at the  end
-  of the syntactic unit, the backwards-searching ones leave the cursor at  the
-  begining. This behaviour facilitates repeated searches. The  find  functions
-  mark the syntactic-unit boundaries by highlighting the nearest non-null line
-  with a red background. Inside the syntactic unit,  the  first  instances  of
-  each matching string is highlighted in green.  Note  that,  for  the  longer
-  units (e.g. chapters) the string-matching highlights may not be visible  and
-  that there may be more valid matches which have not appear in highlights.
-  
-  A valid find specification consists of a whitespace-separated  list  of  any
-  number of elements, each element can be one of:
-    - A simple string that must appear in any matching text unit,
-    - A simple string prefixed by a hashmark ( # ) - in this case  the  string
-      specifies a complete word (any string of alphanumeric characters bounded
-      by either whitespace, a non-alphanumeric character or the end of line.
-    - A series of strings separated by vertical bars ( | ) - in this case  any
-      string in the list is a valid match. Any members  of  this  sublist  may
-      also be prefixed with a hashmark to indicate an exact match to a word is
-      required. The vertical bars may be surrounded by any  number  of  blanks
-      which are ignored.
-    - An exclamation mark, ( ! ), also known as pling or bang, may  appear  at
-      the start of a search-specification element - in this case the  matching
-      text unit must *not* match the following specification.
-    - Any number of blanks are allowed to appear in the search strings  -  but
-      each must be escaped by prefixing with a backslash ( \ ).
-  
-  The find functions take a find-specification argument in  the  form  of  any
-  number of these elements in a whitespace-separated list.  This  argument  is
-  parsed to a working specification which has  one  specification  element  on
-  each line with any separating whitespace removed. Immediately after  one  of
-  these searches, the parsed specification can be found in the ( @ ) buffer, a
-  copy is also preserved in the data object "'=GeneralFindSpec".
-  
-  Once a search specification has been successfully entered for one  of  these
-  functions, it can be re-used any number of times with any of them by  giving
-  the relevant escape sequence without entering a new search specification.
-  
-  A few examples - these work on ${JOT_RESOURCES}/Richard_III_Entire_Play.txt:
-> king{Esc f p}
-  This will search forwards and will match to  any  paragraph  containing  the
-  string "king" although the matching string may be a part of  a  longer  word
-  e.g. "looking", "buckingham".
-> #king{Esc f p}
-  This will search forwards and will match to  any  paragraph  containing  the
-  word "king" - rejecting longer words containing the substring "king".
-> #king richard{Esc f p}
-  This will search forwards and will match to any  paragraph  containing  both
-  the exact word "king" and the string "richard" in any order.
-> king\ richard{Esc f p}
-  This searches forwards and will locate the first  paragraph  containing  the
-  string "king richard".
-> #king | #prince{Esc f p}
-  This will search forwards and will match to  any  paragraph  containing  the
-  strings "king" or "prince".
-> #ned | edward{Esc f p}
-  This will search forwards and will match to  any  paragraph  containing  the
-  either exact word "ned" or a simple match with "edward".
-> king richard !safe;{Esc f p}
-  This will match to the next paragraph  containing  the  strings  "king"  and
-  "richard" but pass over any that also contain the string "safe".
+  The aperture is implied by the  function  name,  this  is  a  full  list  of
+  proximity functions:
+    - `ProximityPara`, `ProximityParaBack`,
+    - `ProximityPhrase`, `ProximityPhraseBack`,
+    - `ProximitySentence`, `ProximitySentenceBack`,
+    - `ProximityHeadedSection`, `ProximityHeadedSectionBack`,
+    - `ProximityChapter`, `ProximityChapterBack`,
+    - `ProximityBlock`,  `ProximityBlockBack`,
+    - `ProximityLines`, `ProximityLinesBack`
+    - `ProximityWords`, `ProximityWordsBack`
+    - `ProximityCharacters`, `ProximityCharactersBack`
+    
+  These functions work by
+    - first  analyzing  your  expression  (see  `proximity  expressions`)   to
+      determine an  essential  list  of  keywords  that  *must*  appear  in  a
+      matching block,
+    - then launching a search to find the first instance  of  a  substring  on
+      the essential keywords list,
+    - the proximity aperture is  then  defined,  as  appropriate,  around  the
+      initial search result then, finally,
+    - the expression is applied to the text within the  block  aperture  -  if
+      the expression  is  satisfied,  then  colour  tags  are  added  and  the
+      function exits.
+    - in the event of a failure, the process is  repeated  starting  with  the
+      initial search. 
 
-1.9 Command-mode vs. insert mode
+1.7.2 Proximity Expressions
+---------------------------
+  The simplest proximity expression is a list of substrings, typically  words,
+  separated by ampersands ( & ) - this arrangement specifies that all  of  the
+  substrings should be present in the matching block of text.
+  
+  However, it is frequently the case that we need to specify something  a  bit
+  more complicated - we may want to specify  alternatives  to  some  words  or
+  indicate some words whose presence should cause a match to be rejected.  For
+  these cases we use canonical expressions these may be: 
+    - a word <word>, for the purposes of this discussion, a word  is  said  to
+      be True if it is present within the search aperture if not, it  is  said
+      to be False.
+    - A subscription - this is a grouping of words and smaller  subexpressions
+      enclosed in parenthesis " ( and ) ", these too can be True or False.
+    - a binary operator "&" or "|" - "&" (AND operator)  separates  two  words
+      or subexpressions which must both match,  "|"  (OR  operator)  separates
+      words or subexpressions of which at least one should be  present  for  a
+      valid match.
+    - The NOT operator ( " ! ") this is a prefix to a  word  or  subexpression
+      and reverses it's logical state.
+    - The Exact-match operator ( # ) - this may only be applied  as  a  prefix
+      to individual words and indicates that the  match  must  be  bounded  by
+      non-alphanumeric characters - i.e. the matching  substring  may  not  be
+      part of a longer word.
+  
+  Examples of valid search expressions:
+    - #king & crown --  Matches  to  king  (rejecting  words  like  thinking  or
+      Buckingham) with also the string "crown" somewhere within the  proximity
+      aperture.
+    - ((#jim | jimmy | james) & brown) | jb) -- This search attempts  to  find
+      references to someone by the name of James Brown or his initials.
+    - brown  &  !fred  --  Matches  to  blocks  containing  the  name  "Brown"
+      excludes those which also include the name "Fred".
+
+1.8 Command-mode vs. insert mode
 ---------------------------------
   Jot is essentially a command-driven editor. In other words  it  picks  up  a
   command and a  parameter  terminated  by  a  {Return}  (this  is  a  special
@@ -384,18 +367,20 @@ $ jot <pathName>
   mode of operation is fully supported by jot but it does not insist that  you
   work in this way.
   
-  There are a few circumstances when working in insert mode is more efficient,
-  perhaps when we're making changes to small section of text  using  only  the
-  cursor keys for  navigation.  But  for  pretty-much  every  other  situation
-  command-mode operation requires less keystrokes than insert mode.
-  
   Thus, to enter a line of text in insert mode, we type in the text  and  then
   hit return. To enter a line of text in command mode, we type  the  text  and
-  then hit the appropriate command key. This is because, for a  command-driven
-  system, the {Return} key is used exclusively to enter commands and, in  this
-  case, we want to enter a line of text.
+  then hit the appropriate command key -  typically  {Enter}  on  the  numeric
+  keypad. This is because, for a command-driven system, the  {Return}  key  is
+  used exclusively to enter commands and, in this case, we  want  to  enter  a
+  line of text.
+  
+  There are a few circumstances when working in insert mode is more efficient,
+  perhaps when we're making lots of fiddly little changes to small section  of
+  text using only the cursor keys for navigation. But  for  pretty-much  every
+  other situation jot-style command-mode operation  requires  less  keystrokes
+  than insert mode.
 
-1.10 About help
+1.9 About help
 --------------
   The jot help system is based on fold marks - a sequence of three open braces
   ( {{{ ) at the start of a line is a fold start, a sequence  of  three  close
@@ -427,7 +412,7 @@ $ jot <pathName>
     For details about the format and construction of  help  files  see  `About
     help files`.
 
-1.11 About command editing
+1.10 About command editing
 -------------------------
   Jot is a command-driven text editor so, since it is probably most  used  for
   editing scripts in the  command  language  for  other  text-driven  computer
@@ -470,7 +455,7 @@ $ jot <pathName>
   restriction should not prove overly burdensome since that function  is  only
   used by scripts to add new functions to the code repository.
 
-1.12 About not losing your work
+1.11 About not losing your work
 ------------------------------
   There are many and varied ways of mistakenly losing or corrupting work in an
   editing session - jot offers a few ways of making this a bit less easily  to
@@ -491,6 +476,23 @@ $ jot <pathName>
   Where one of the attribute-setting approaches is relevant,  to  insure  this
   *always* gets done, add these commands to your project-area startup.jot file
   - see `about project files`.
+
+1.12 Made a mistake?
+--------------------
+  Jot lacks an undo facility so, changes you chose to make are likely to  stay
+  changed and jot offers hundreds of ways of corrupting files it's  an  editor
+  of great power for both good and ill.
+  
+  Now some mistakes are fairly easy to rectify - in many instances all  that's
+  happened is that a delete left/right function has deleted some text and  the
+  text is now sitting in the delete buffer (  %  )  and  can  be  restored  by
+  holding down {Ctrl+Alt+Shift+Left|RightArrow}  -  see  `RestoreChrLeft`  and
+  `RestoreChrRight`.
+  
+  But sometimes some complicated macro has not performed as required and  we'd
+  like to wind back history. The  recommended  method  of  dealing  with  this
+  situation is to generate a recovery file and, before running it, remove  the
+  bad operation - see `undoing changes` for details.
 
 1.13 About multi-window working
 ------------------------------
@@ -626,7 +628,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   characters are available as an option ( 
   
   If the diagrams are to be  part  of  a  document  to  be  processed  by  the
-  document-preparation functions and scripts  (`doc2html.jot`,  `doc2fold.jot`
+  document-preparation functions and scripts  (`txt2html.jot`,  `doc2fold.jot`
   and `html2txt.jot`) (see `text document preparation`) then it  is  important
   that the first character of each line in the graphical section  begins  with
   any character other than an ascii space - an ASCII VT (tab) will do.
@@ -692,7 +694,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
   The functions described here are defined by  the  `startup.jot`  file  which
   also links then to the keyboard, the keycodes are are defined in a  separate
-  file `curses_keys_<TERM>.jot` and `WindowsNT_keys.jot`.
+  file `curses_keys_<subVersion>.jot` and `WindowsNT_keys.jot`.
 
 2.1 Help functions.
 -------------------
@@ -710,9 +712,6 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
   The help structure can be ascended by navigating to and  non-fold  line  and
   hitting the help button once more.
-  
-  In addition to the `Help`, `FindAllHelp` and `RemoveHelpFold` the  following
-  scripts may be useful `updatehelp.jot`, `findhelp.jot` and `txt2help.jot`
   
 2.1.1 Help
 ----------
@@ -877,7 +876,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   most recent search without  re-prompting.  It's  entirely  useless  when  in
   command mode - these users need only dab F8 again to repeat the search.
   
-2.3.4 FindExactNext
+2.3.4 FindExact
 -------------------
 > [<string>]{F9}
   
@@ -885,7 +884,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   found - in this context an exact match is where the  matching  substring  is
   bounded by non-alphanumeric characters.
     
-2.3.5 FindExactPrev
+2.3.5 FindExactBack
 -------------------
 > [<string>]{Shift+F9}
   
@@ -898,7 +897,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   The word below the cursor is picked up and defines the find string  for  the
   next find (or find exact) operation.
   
-2.3.7 FindPrev
+2.3.7 FindBack
 ---------------
 > [<string>]{F7}
    
@@ -912,12 +911,12 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   Parameterless  substitute  then   find   previous.   i.e   repeat   previous
   substitution then find previous occurrence of last-found string.
   
-2.3.9 FindPrevAgain
+2.3.9 FindBackAgain
 -------------------
 > {Alt+F7}
   
-  In insert mode, the FindPrev function will  always  prompt  for  the  search
-  string. FindPrevAgain will just apply the last-used search-string  parameter
+  In insert mode, the FindBack function will  always  prompt  for  the  search
+  string. FindBackAgain will just apply the last-used search-string  parameter
   once again.
   
   This function is provided for the benefit of insert-mode users - repeats the
@@ -926,25 +925,28 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 
 2.3.10 FindWild
 ---------------
-> [<string>]{Esc f w}
+> [<string>]{Esc f *}
   This searches for the next occurrence of a string  containing  one  or  more
   wildcards ( * ). The argument list is parsed and held in buffer @.
   
   If no argument is given then it matches to whatever happens to be in  the  @
   buffer.
    
-2.3.11 FindWildPrev
+2.3.11 FindWildBack
 -------------------
-> [<string>]{Esc - f w}
+> [<string>]{Esc - f *}
   This searches for the previous occurrence of a string containing one or more
   wildcards ( * ). The argument list is parsed and held in buffer @.
   
   If no argument is given then it matches to whatever happens to be in  the  @
   buffer.
 
-2.3.12 FindPhraseNext
----------------------
-> [<substringSpecification>]{Esc f r}
+2.3.12 ProximityPhrase
+----------------------
+> [<multiplier> ][[<substringSpecification>]{Esc f r}
+  
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
   
   Working forwards, this  locates  the  next  phrase  containing  all  of  the
   substrings in the substrings list. On successful completion,  it  highlights
@@ -958,24 +960,25 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.13 FindPhrasePrev
----------------------
-> [<substringSpecification>]{Esc - f r}
+2.3.13 ProximityPhraseBack
+--------------------------
+> [<multiplier> ][[<substringSpecification>]{Esc - f r}
   
-  Similar to `FindPhraseNext` except that the text is searched back, from  the
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to `ProximityPhrase` except that the text is searched back, from  the
   current-character position, towards the begining of the buffer.
   
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.14 FindSentenceNext
------------------------
-> [<substringSpecification>]{Esc f s}
+2.3.14 ProximitySentence
+------------------------
+> [<multiplier> ][<substringSpecification>]{Esc f s}
   
-  Working forwards, this locates the  next  sentence  containing  all  of  the
-  substrings in the substrings list. On successful completion,  it  highlights
-  the matching substrings in your specification. If unsuccessful,  the  cursor
-  is left at the end of the file image and a message is issued.
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
   
   A sentence is any number of  words,  extending  over  any  number  of  lines
   bounded by a full-stop, blank lines or the start or end of the buffer. 
@@ -983,19 +986,31 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.15 FindSentencePrev
------------------------
-> [<substringSpecification>]{Esc - f s}
+2.3.15 ProximitySentenceBack
+----------------------------
+> [<multiplier> ][<substringSpecification>]{Esc - f s}
   
-  Similar to `FindSentenceNext` except that the text is  searched  back,  from
-  the current-character position, towards the begining of the buffer.
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to `ProximitySentence` except that the text is  searched  back  from  the
+  current-character position. The proximity aperture runs from the end of  the
+  sentence containing the initial match, back to the start  of  that  sentence
+  or, if a multiplier of more than 1 is specified,  then  the  n-th.  previous
+  sentence.
   
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.16 FindParaNext
--------------------
-> [<substringSpecification>]{Esc f p}
+2.3.16 ProximityPara
+--------------------
+> [<multiplier> ][<substringSpecification>]{Esc f p}
+  
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
   
   Locates  the  next  paragraph  containing  all  of  the  substrings  in  the
   substrings list. On successful completion, it highlights the last  substring
@@ -1009,23 +1024,29 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.17 FindParaPrev
--------------------
-> [<substringSpecification>]{Esc - f p}
+2.3.17 ProximityParaBack
+------------------------
+> [<multiplier> ][<substringSpecification>]{Esc - f p}
   
-  Similar to `FindParaNext` except that the text is searched  back,  from  the
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to `ProximityPara` except that  the  text  is  searched  back,  from  the
   current-character position, towards the begining of the buffer.
   
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.18 FindHeadedSectionNext
-----------------------------
-> [<substringSpecification>]{Esc f h}
+2.3.18 ProximityHeadedSection
+-----------------------------
+> [<multiplier> ][<substringSpecification>]{Esc f h}
   
-  Similar to FindParaNext except that  the  allowable  range  is  an  complete
-  headed section. FindHeadedSectionNext locates the next headed  section  containing
-  all of the substrings in the substrings list. On successful  completion,  it
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to ProximityPara except that the allowable range is  an  complete  headed
+  section. ProximityHeadedSection locates the next headed  section  containing  all
+  of the substrings in the  substrings  list.  On  successful  completion,  it
   highlights the last substring in your parameter list. If  unsuccessful,  the
   cursor is left at the end of the file image and a message is issued.
   
@@ -1036,25 +1057,31 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.19 FindHeadedSectionPrev
-----------------------------
-> [<substringSpecification>]{Esc f h}
+2.3.19 ProximityHeadedSectionBack
+---------------------------------
+> [<multiplier> ][<substringSpecification>]{Esc f h}
   
-  Similar to FindParaPrev except that  the  allowable  range  is  an  complete
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to ProximityParaBack except that  the  allowable  range  is  an  complete
   headed section. 
   
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.20 FindBlockNext
-----------------------
-> [<substringSpecification>]{Esc f b}
+2.3.20 ProximityBlock
+---------------------
+> [<multiplier> ][<substringSpecification>]{Esc f b}
   
-  Similar to FindParaNext except that the allowable range is an entire  block.
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to ProximityPara except that the allowable  range  is  an  entire  block.
   Blocks are any number of lines of text bounded by an completely  blank  line
   (i.e. containing not even blanks) or the buffer end. 
   
-  FindBlockNext locates the next block containing all of the substrings in the
+  ProximityBlockNext locates the next block containing all of the substrings in the
   substrings list. On successful completion, it highlights the last  substring
   in your parameter list. If unsuccessful, the cursor is left at  the  end  of
   the file image and a message is issued.
@@ -1062,22 +1089,28 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.21 FindBlockPrev
-----------------------
-> [<substringSpecification>]{Esc - f b}
+2.3.21 ProximityBlockBack
+-------------------------
+> [<multiplier> ][<substringSpecification>]{Esc - f b}
   
-  Similar to `FindBlockNext` except that the text is searched back, from the
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to `ProximityBlock` except that the  text  is  searched  back,  from  the
   current-character position, towards the begining of the buffer.
   
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.22 FindChapterNext
-----------------------
-> [<substringSpecification>]{Esc f c}
+2.3.22 ProximityChapter
+-----------------------
+> [<multiplier> ][<substringSpecification>]{Esc f c}
   
-  Similar to FindParaNext except that the allowable range is an entire chapter
-  or code section. FindChapterNext locates the next chapter containing all  of
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to ProximityPara except that the allowable range is an entire chapter  or
+  code section. ProximityChapterNext locates the next  chapter  containing  all  of
   the  substrings  in  the  substrings  list.  On  successful  completion,  it
   highlights the last substring in your parameter list. If  unsuccessful,  the
   cursor is left at the end of the file image and a message is issued.
@@ -1089,38 +1122,76 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.23 FindChapterPrev
-----------------------
-> [<substringSpecification>]{Esc - f c}
+2.3.23 ProximityChapterBack
+---------------------------
+> [<multiplier> ][<substringSpecification>]{Esc - f c}
   
-  Similar to `FindChapterNext` except that the text is searched back, from the
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details.
+  
+  Similar to `ProximityChapter` except that the text is  searched  back,  from  the
   current-character position, towards the begining of the buffer.
   
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
   
-2.3.24 FindInNLines
--------------------
-> [<apertureSize> [<substr1>[ <substr2>[ ... ]]{Esc f n}
-  Similar to `FindLineUn` except that it allows the substrings to be scattered
-  over a specified number of lines.  The  aperture  size  (maximum  number  of
-  lines) including any blank and any other non-text lines,  this  must  be  in
-  decimal.
+2.3.24 ProximityLines
+---------------------
+> [<multiplier>] [<substr1>[ <substr2>[ ... ]]{Esc f l}
   
-  E.g the following:
-> 5 wonderful super\ duper amazing{Esc f n}
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details. The multiplier specifies how many full lines  to  be
+  included in the search aperture - it defaults to 1. 
   
-  will search the document for the strings 
-    "wonderful", "super duper" and "amazing"
-  which may appear in any order and must appear in a block of 5 lines or less.
+  If the expression is not specified then the  most  recently  used  proximity
+  expression is used again. If only  the  multiplier  is  specified  then  the
+  previous specification is repeated but with the new aperture size.
   
-2.3.25 FindInNLinesPrev
------------------------
-> [<apertureSize> [<substr1>[ <substr2>[ ... ]]{Esc - f n}
-  Similar to `FindInNLines` except that it  searches  back  from  the  current
+2.3.25 ProximityLinesBack
+-------------------------
+> [<multiplier> [<substr1>[ <substr2>[ ... ]]{Esc - f l}
+  Similar to `ProximityLines` except that it  searches  back  from  the  current
   cursor position, towards the start of the file image.
 
-2.3.26 FindSequence
+2.3.26 ProximityWords
+---------------------
+> [<multiplier>] [<substr1>[ <substr2>[ ... ]]{Esc f w}
+  
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details. The  multiplier  specifies  how  many  words  to  be
+  included in the search aperture - it defaults to 10.  For  the  purposes  of
+  ProximityWords a word is taken to be a string of any  number  of  alphanumeric
+  characters bounded by any number of non-alpha characters or line breaks.
+  
+  If the expression is not specified then the  most  recently  used  proximity
+  expression is used again. If only the multiplier  is  specified  then  the
+  previous specification is repeated but with the new aperture size.
+  
+2.3.27 ProximityWordsBack
+-------------------------
+> [<multiplier> [<substr1>[ <substr2>[ ... ]]{Esc - f w}
+  Similar to `ProximityWords` except that it  searches  back  from  the  current
+  cursor position, towards the start of the file image.
+
+2.3.28 ProximityCharacters
+--------------------------
+> [<multiplier>] [<substr1>[ <substr2>[ ... ]]{Esc f n}
+  
+  This is  one  of  the  proximity  functions  -  see  `the  proximity  search
+  functions` for details. The multiplier specifies how many characters  to  be
+  included in the search aperture - it defaults to 100. 
+  
+  If the expression is not specified then the  most  recently  used  proximity
+  expression is used again. If only  the  multiplier  is  specified  then  the
+  previous specification is repeated but with the new aperture size.
+  
+2.3.29 ProximityCharactersBack
+------------------------------
+> [<multiplier> [<substr1>[ <substr2>[ ... ]]{Esc - f n}
+  Similar to `ProximityCharacters` except that it searches back from the current
+  cursor position, towards the start of the file image.
+
+2.3.30 FindSequence
 ------------------
 > [<string>]{Esc f q}
   The  editor  will  search  for  the   sequence   of   words   ignoring   any
@@ -1135,13 +1206,13 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   been reformatted in some way, with wildcards it is also useful for  locating
   expressions in programming code.
   
-2.3.27 FindSequencePrev
+2.3.31 FindSequenceBack
 ----------------------
 > [<string>] {Esc - f q} 
   Similar to FindSequence except that it searches back towards  the  start  of
   the file.
   
-2.3.28 FindLineOrd
+2.3.32 FindLineOrd
 ------------------
 > [<substr1>[ <substr2>[ ... ]]{Esc f o}
   This finds the next  occurrence  of  a  line  containing  that  sequence  of
@@ -1152,32 +1223,13 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   are escaped with a backslash character ( \ ) e.g:
 > substring1 substring2 substring\ containing\ blanks lastSubstring{Esc f p}
   
-2.3.29 FindLineOrdPrev
+2.3.33 FindLineOrdBack
 ----------------------
 > [<substr1>[ <substr2>[ ... ]]{Esc - f o}
   This is similar to `FindLineOrd` except that it works back from the  current
   line towards the start of the file image.
-  
-2.3.30 FindLineUn
------------------
-> [<substr1>[ <substr2>[ ... ]]{Esc f u}
-  Very similar to `FindLineOrd` except that it matches to  a  line  containing
-  the given substrings in any order. On successful completion,  it  highlights
-  the last of the given substrings. If it fails to find a  matching  line,  it
-  leaves the cursor at the end of the file image.
-  
-  The list of substrings is delimited by blanks,  sequences  of  two  or  more
-  blanks are treated as a single blank. If a substring contains  blanks  these
-  are escaped with a backslash character ( \ ) e.g:
-> substring1 substring2 substring\ containing\ blanks lastSubstring{Esc f p}
-  
-2.3.31 FindLineUnPrev
----------------------
-> [<substr1>[ <substr2>[ ... ]]{Esc - f u}
-  Very similar to `FindLineUn` except that  it  searches  backwards  from  the
-  current line towards the start of the file image.
 
-2.3.32 The vertical-search functions
+2.3.34 The vertical-search functions
 ------------------------------------
   All of the find functions  encountered  so  far  match  to  strings  written
   horizontally across one or more lines, the vertical find functions accept  a
@@ -1193,46 +1245,46 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
     - ( \ ) backslash - used to escape instances of special characters ( .  ),
       ( * ), ( \ ) and blank ( ) - i.e: to match one of the special characters
       prefix the character with a backslash.
-    - ( * ) -  Only  in  findRectNext  and  findRectPrev  functions  -  column
-      wildcard. This matches to any number of columns, this is only meaningful
-      in the leftmost column  of  the  specification  (the  top  line  of  the
-      matching block).
+    - ( * ) - Only in findRect and findRectBack functions -  column  wildcard.
+      This matches to any number of columns, this is only  meaningful  in  the
+      leftmost column of the specification  (the  top  line  of  the  matching
+      block).
     
-    - `findColNext` and `findColPrev`  locate  the  specified  string  in  the
-      current column.
-    - `findVertNext` and `findVertPrev` locate the  specified  string  in  any
+    - `findCol` and `findColBack` locate the specified string in  the  current
       column.
-    - `findRectNext` and `findRectPrev` locate a rectangular block of text.
+    - `findVert` and `findVertBack` locate the specified string in any column.
+    - `findRect` and `findRectBack` locate a rectangular block of text.
     
   For examples of the syntax look at `Locating text in columns and blocks`  in
   the walkthrough examples.
   
-2.3.32.1 findColNext
---------------------
-> [<string>]{Esc f l}
+2.3.34.1 findCol
+----------------
+> [<string>]{Esc f y}
   
-  Searches forwards (down) in the current  column  for  the  specified  string
-  written downwards in the  current  column.  If  the  search  string  is  not
+  Searches forwards  (down)  in  the  current  column  (Y-direction)  for  the
+  specified string written downwards in the  current  column.  If  the  search
+  string is not specified then it searches for the last string given  for  any
+  vertical search.
+  
+2.3.34.2 findColBack
+--------------------
+> [<string>]{Esc - f y}
+  
+  Searches back (up) in the current column  (Y-direction)  for  the  specified
+  string written downwards in the current column. If the search string is  not
   specified then it searches for  the  last  string  given  for  any  vertical
   search.
   
-2.3.32.2 findColPrev
---------------------
-> [<string>]{Esc - f l}
-  
-  Searches back (up) in the current column for the  specified  string  written
-  downwards in the current column. If the search string is not specified  then
-  it searches for the last string given for any vertical search.
-  
-2.3.32.3 findVertNext
----------------------
+2.3.34.3 findVert
+-----------------
 > [<string>]{Esc f v}
   
   Searches forwards (down) in all columns for  the  specified  string  written
   downwards in any column. If the search  string  is  not  specified  then  it
   searches for the last string given for any vertical search.
   
-2.3.32.4 findVertPrev
+2.3.34.4 findVertBack
 ---------------------
 > [<string>]{Esc - f v}
   
@@ -1240,44 +1292,44 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   in any column. If the search string is not specified then  it  searches  for
   the last string given for any vertical search.
   
-2.3.32.5 findRectNext
----------------------
+2.3.34.5 findRect
+-----------------
 > [<key>]{Esc f e}
   
   The  function  searches  for  a  rectangular  block  of  text   matching   a
   specification.
   
-  The key defines a buffer containing the search specification, this defines a
-  rectangular array of characters to be located (see below for  details).  The
-  specification is copied into a data object which will be used for subsequent
-  findVertNext/Prev searches with no  key  specified.  If  no  buffer  key  is
-  specified then it reverts to the previously-defined specification.
+  The key defines a buffer containing the search specification,  this  defines
+  a rectangular array of characters to be located  (see  below  for  details).
+  The specification is copied into a  data  object  which  will  be  used  for
+  subsequent findVert{Back} searches with no key specified. If no  buffer  key
+  is specified then it reverts to the previously-defined specification.
   
   Each line of the specification defines a column  to  be  identified  in  the
   search buffer. As usual, case sensitivity is set by the `%s=case` command.
       
-2.3.32.6 findRectPrev
+2.3.34.6 findRectBack
 ---------------------
 > [<key>]{Esc - f e}
   
-  This is similar to findRectNext except that it searches  backwards  (up  the
+  This is similar to findRect  except  that  it  searches  backwards  (up  the
   screen towards the begining of the buffer.
 
-2.3.33 Substitute
+2.3.35 Substitute
 -----------------
 > [<string>]{F5}
   
   Replaces currently-selected substring  with  the  specified  string,  if  no
   string is specified then the last-substituted or inserted string is used.
   
-2.3.34 Remove
+2.3.36 Remove
 -------------
 > {Shift+F5}
   
   The previously-selected string  (following  a  find,  substitute  etc.),  is
   removed altogether.
   
-2.3.35 SubstituteAgain
+2.3.37 SubstituteAgain
 ----------------------
 > {Alt+F5}
   
@@ -1290,14 +1342,14 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   mode - where it is only necessary to dab F5 again to repeat the substitution
   at some new location.
   
-2.3.36 Insert
+2.3.38 Insert
 -------------
 > [<string>]{F6}
   
   Inserts specified text at the current-character position, if  no  string  is
   specified then the last-substituted or inserted string is used.
   
-2.3.37 Overwrite
+2.3.39 Overwrite
 ----------------
 > [<string>]{Shift+F6}
   
@@ -1307,7 +1359,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   
   The overwrite function is useful when editing tabular data.
   
-2.3.38 InsertAgain
+2.3.40 InsertAgain
 ------------------
 > {Alt+F6}
   
@@ -1319,7 +1371,7 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   where it is only necessary to dab F6 again to repeat the insert at some  new
   location.
   
-2.3.39 InsertWithBackTick
+2.3.41 InsertWithBackTick
 -------------------------
 > [<String>]{Esc ’}
   
@@ -1397,12 +1449,12 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   calculation.
   
   The jot word processor takes a paragraph as any number of nonblank lines  of
-  text at the same level of indentation but note that the paragraph definition
-  used by the startup-defined functions is less strict - for these functions a
-  paragraph is any number of lines bounded by blank lines. These functions are
-  `ChapterUp`,      `ChapterDown`,       `FindParaNext`,       `FindParaPrev`,
-  `FindChapterNext` and `FindChapterPrev` - See `about words, lines,  phrases,
-  sentences, paragraphs, sections and chapters`.
+  text  at  the  same  level  of  indentation  but  note  that  the  paragraph
+  definition used by the startup-defined functions is less strict - for  these
+  functions a paragraph is any number of lines bounded by blank  lines.  These
+  functions     are     `ChapterUp`,      `ChapterDown`,      `ProximityPara`,
+  `ProximityParaBack`, `ProximityChapter`  and  `ProximityChapterBack`  -  See
+  `about words, lines, phrases, sentences, paragraphs, sections and chapters`.
   
   A line of text can be protected from the paragraph processor ({Esc p a}  and
   {Esc P a}) by placing a non-blank character in column 1 - in this context  a
@@ -1479,8 +1531,8 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
   If  a  proformaHeadingKey  is  given  this  defines  the  proforma  and  any
   preexisting heading key is ignored.
   
-  By default, headings below level 4 (i.e. 1.2.3.4...)  are  underlined,  this
-  behaviour is controlled by the number in line 4 of the & buffer.
+  By default, headings above level 4 (i.e. 1.2.3.4...)  are  underlined,  this
+  behaviour is controlled by the DocHeaderMax variable.
        
 2.4.10 UpHeadingLevel
 --------------------
@@ -1600,11 +1652,12 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 
 2.4.21 Doc section and paragraph format
 ---------------------------------------
-  Typically, most lines of of text in documents are in  paragraphs.  Paragraph
-  lines are always indented by at least one blank.  In  order  to  distinguish
-  paragraph lines from special text such as headings, tables and literal  text
-  such as code examples these must have a  non-blank  character  in  column  1
-  (tabs count as non-blanks for this purpose).
+  Typically, most lines of of text in documents are  in  paragraphs.  For  the
+  purposes of the jot document system, paragraph lines are always indented  by
+  at least one blank. In order to distinguish  paragraph  lines  from  special
+  text such as headings, tables and literal text such as code  examples  these
+  must have a non-blank character in column 1 (tabs count  as  non-blanks  for
+  this purpose).
   
   Text documents are deemed to consist of sections, introduced  by  a  section
   heading and containing any number of paragraphs.
@@ -1624,15 +1677,15 @@ $ jot t.t -in="%s=verbose 2; (ol123)1000"
 Fred: This is name frequently used by unimaginative technical authors.
   
     - Bullet points are  paragraphs  introduced  by  a  bullet  character,  by
-      default these are hyphens ( - ) the actual bullet string is  defined  in
-      line 4 of the ( & ) buffer.
+      default these are hyphens ( - ) the actual bullet string is set  to  the
+      string '- ' which must be indented by at least on place.
       
     - A paragraph is a series of  lines,  all  indented  to  the  same  level,
       delimited by either blank lines, special lines or  by  paragraphs  at  a
       different level of indentation.
       
       The rightmost extent of a paragraph  defaults  to  78  characters,  this
-      width is defined in line 3 of the ( & ) buffer.
+      width is defined by the `SetParagraphMargin` function.
 
 2.4.22 AppendLeftPrev
 ---------------------
@@ -2026,7 +2079,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   See `about  words,  lines,  phrases,  sentences,  paragraphs,  sections  and
   chapters`.
      
-2.7.13 IndentMatchUp
+2.7.13 MatchIndentUp
 -------------------
 > {Ctrl+Shift+F7}
   or
@@ -2036,7 +2089,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   the current line. Initially the cursor may  be  anywhere  in  the  line,  on
   completion it is left on the first non-blank character of the line.
    
-2.7.14 IndentMatchDown
+2.7.14 MatchIndentDown
 ---------------------
 > {Ctrl+Shift+F8}
   or
@@ -2046,7 +2099,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   level as the current line. Initially the cursor may be anywhere in the line,
   on completion it is left on the first non-blank character of the line.
   
-2.7.15 AnyMatch
+2.7.15 MatchAny
 --------------
 > {Esc m a}
   
@@ -2054,17 +2107,31 @@ Fred: This is name frequently used by unimaginative technical authors.
   cursor must be positioned over a brace character.
   
   The cursor must initially be placed over one of the following characters: (,
-  {, [, <, ), }, ] or >. The AnyMatch  function  then  calls  the  appropriate
-  matching   function   (respectively   `ParenMatchLeft`,    `CurlyMatchLeft`,
-  `SquareMatchLeft`, `AngleMatchLeft`,  `ParenMatchRight`,  `CurlyMatchRight`,
-  `SquareMatchRight` or `AngleMatchRight`) to locate the matching character in
+  {, [, <, ), }, ] or >. The MatchAny  function  then  calls  the  appropriate
+  matching   function   (respectively   `MatchParenLeft`,    `MatchCurlyLeft`,
+  `MatchSquareLeft`, `MatchAngleLeft`,  `MatchParenRight`,  `MatchCurlyRight`,
+  `MatchSquareRight` or `MatchAngleRight`) to locate the matching character in
   the text. On completion  the  cursor  is  placed  over  the  matching  brace
   character.
   
-2.7.16 ParenMatchLeft
+2.7.16 MatchParenLeft
 --------------------
 > {Shift+Alt+F5}
 > {Esc m ) }
+  
+  This function matches parenthesis characters in  natural  and  some  machine
+  languages. The difficulty with machine  languages  is  they  have  different
+  syntax's for the specification of  strings  and  comments  -  if  unbalanced
+  parenthesis appear in a string or a  comment  then  this  causes  simplistic
+  counting algorithms to fail.
+  
+  The jot functions MatchParenLeft and MatchParenRight have  been  set  up  to
+  recognize  C  and  jot  code  and  it  takes  appropriate  action  to  avoid
+  miscounting. to successfully navigate it's way past any comments and  string
+  expressions. The function begins by identifying the language. It checks  the
+  first few lines of the buffer for a valid C or jot comment beginning at  the
+  start of the line. If none is found then it assumes the  buffer  to  contain
+  natural-language text. 
    
   If the cursor is above a parenthesis close character ')', then the cursor is
   moved back (leftwards and upwards) to the  corresponding  parenthesis  open.
@@ -2079,10 +2146,24 @@ Fred: This is name frequently used by unimaginative technical authors.
   searched back to find the previous parenthesis close and the cursor moved to
   the corresponding parenthesis open.
   
-2.7.17 ParenMatchRight
+2.7.17 MatchParenRight
 ---------------------
 > {Shift+Alt+F6}
 > {Esc m ( }
+   
+  This function matches parenthesis characters in  natural  and  some  machine
+  languages. The difficulty with machine  languages  is  they  have  different
+  syntax's for the specification of  strings  and  comments  -  if  unbalanced
+  parenthesis appear in a string or a  comment  then  this  causes  simplistic
+  counting algorithms to fail.
+  
+  The jot functions MatchParenLeft and MatchParenRight have  been  set  up  to
+  recognize  C  and  jot  code  and  it  takes  appropriate  action  to  avoid
+  miscounting. to successfully navigate it's way past any comments and  string
+  expressions. The function begins by identifying the language. It checks  the
+  first few lines of the buffer for a valid C or jot comment beginning at  the
+  start of the line. If none is found then it assumes the  buffer  to  contain
+  natural-language text. 
    
   If cursor is above a parenthesis open '(' character, then  cursor  is  moved
   forwards (rightwards and downwards) to the corresponding  parenthesis  close
@@ -2097,68 +2178,68 @@ Fred: This is name frequently used by unimaginative technical authors.
   searches forwards for one and then finds the corresponding parenthesis close
   character.
    
-2.7.18 CurlyMatchLeft
+2.7.18 MatchCurlyLeft
 --------------------
 > {Ctrl+Shift+Alt+F5}
 > {Esc m } }
    
-  Similar to <<ParenMatchLeft>>, above, except matches { and }.
+  Similar to <<MatchParenLeft>>, above, except matches { and }.
   
   Note, if intending to traverse C code, `c.jot` is preferable as this  script
   will ignore any curly brackets in C comments and strings.
    
-2.7.19 CurlyMatchRight
+2.7.19 MatchCurlyRight
 ----------------------
 > {Ctrl+Shift+Alt+F6}
 > {Esc m { }
    
-  Similar to <<ParenMatchRight>>, above, except matches { and }.
+  Similar to <<MatchParenRight>>, above, except matches { and }.
   
   Note, if intending to traverse C code, `c.jot` is preferable as this  script
   will ignore any curly brackets in C comments and strings.
    
-2.7.20 AngleMatchLeft
+2.7.20 MatchAngleLeft
 ---------------------
 > {Ctrl+Shift+F5}
 > {Esc m < }
   
-  Similar to <<ParenMatchLeft>>, above, except matches < and >.
+  Similar to <<MatchParenLeft>>, above, except matches < and >.
      
-2.7.21 AngleMatchRight
+2.7.21 MatchAngleRight
 ----------------------
 > {Ctrl+Shift+F6}
 > {Esc m > }
   
-  Similar to <<ParenMatchRight>>, above, except matches < and >.
+  Similar to <<MatchParenRight>>, above, except matches < and >.
    
-2.7.22 SquareMatchLeft
+2.7.22 MatchSquareLeft
 ----------------------
 > {Ctrl+Shift+Alt+F7}
 > {Esc m [ }
   
-  Similar to <<ParenMatchLeft>>, above, except matches [ and ].
+  Similar to <<MatchParenLeft>>, above, except matches [ and ].
    
-2.7.23 SquareMatchRight
+2.7.23 MatchSquareRight
 ----------------------
 > {Ctrl+Shift+Alt+F8}
 > {Esc m ] }
   
-  Similar to <<ParenMatchRight>>, above, except matches [ and ].
+  Similar to <<MatchParenRight>>, above, except matches [ and ].
    
-2.7.24 MarkupMatchLeft
+2.7.24 MatchMarkupLeft
 ----------------------
 > {Esc - m m }
   
-  This is for use with HTML and XML.  MarkupMatchLeft,  works  back  from  the
+  This is for use with HTML and XML.  MatchMarkupLeft,  works  back  from  the
   current cursor position,  it  first  locates  the  previous  "</"  string  -
   indicating the end of a block  in  HTML  and  XML.  It  then  picks  up  the
   block-type tag and finds the corresponding block-start.
    
-2.7.25 MarkupMatchRight
+2.7.25 MatchMarkupRight
 -----------------------
 > {Esc m m }
   
-  This is for use with HTML and XML. MarkupMatchRight works forwards from  the
+  This is for use with HTML and XML. MatchMarkupRight works forwards from  the
   current  cursor  position,  it  first  locates  the  next  "<"  character  -
   indicating a block start in HTML and XML. It then picks  up  the  block-type
   tag and finds the corresponding block-end.
@@ -2210,6 +2291,8 @@ Fred: This is name frequently used by unimaginative technical authors.
 2.8.5 ViewUp
 ------------
 > [<n>]{Ctrl+Shift+UpArrow}
+  or
+> [<n>]{Esc v u}
   
   Shifts the view up by n lines (defaults to 1) without changing  the  current
   line, character or selected substring.
@@ -2246,6 +2329,8 @@ Fred: This is name frequently used by unimaginative technical authors.
 2.8.10 ViewDown
 ---------------
 > [<n>]{Ctrl+Shift+DownArrow}
+  or
+> [<n>]{Esc v d}
   
   Shifts the view down by n lines (defaults to 1) without changing the current
   line, character or selected substring.
@@ -2255,8 +2340,6 @@ Fred: This is name frequently used by unimaginative technical authors.
 > [<n>]{LeftArrow}
   or
 > [<n>]{Ctrl+KP_4}
-  or
-> {Esc m w}
   
   Move the cursor n (defaults to 1) characters left of it's original position.
   
@@ -2268,16 +2351,22 @@ Fred: This is name frequently used by unimaginative technical authors.
 2.8.12 WordLeft
 ---------------
 > [<n>]{Shift+LeftArrow}
+  or
+> [<n>]{Esc - m w}
   
   For tabular text, i.e. the current line contains Tab characters, this  moves
   the cursor to the cell left of the current cell and, if  necessary,  adjusts
-  leftoffset to bring all of the cell into view.
+  leftoffset (see `About long lines`)  to bring all of the cell into view.
    
   For non-tabular text, this moves the cursor to the start of  previous  word.
   If the cursor is not currently above a word the cursor moves to the start of
   the current word.
    
   If n is given the process is repeated that many times.
+  
+  Modern versions of windows have a short-cut  defined  for  {Shift+LeftArrow}
+  and there does not seem to be any  way  of  disabling  it.  The  alternative
+  escape sequence {Esc - m w} has been provided for users affected by this.
    
 2.8.13 LineLeft
 ---------------
@@ -2296,16 +2385,22 @@ Fred: This is name frequently used by unimaginative technical authors.
 2.8.15 WordRight
 ----------------
 > [<n>]{Shift+RightArrow}
+  or
+> [<n>]{Esc m w}
   
   For tabular text, i.e. the current line contains Tab characters, this  moves
   the cursor to the cell right of the current cell and, if necessary,  adjusts
-  leftoffset to bring all of the cell into view.
+  leftoffset (see `About long lines`) to bring all of the cell into view.
    
   For non-tabular text, this moves the cursor to the start of  next  word.  If
   the cursor is not currently above a word the cursor moves to  the  start  of
   the current word.
    
   If n is given the process is repeated that many times.
+  
+  Modern versions of windows have a short-cut  defined  for  {Shift+LeftArrow}
+  and there does not seem to be any  way  of  disabling  it.  The  alternative
+  escape sequence {Esc m w} has been provided for users affected by this.
    
 2.8.16 LineRight
 ----------------
@@ -2378,7 +2473,7 @@ Fred: This is name frequently used by unimaginative technical authors.
     - d -- (double) horizontals and verticals use unicode ( ║ and ═  ),  along
       with appropriate corners and intersection characters.
   
-2.10.1 UpRegardless
+2.11.1 UpRegardless
 -------------------
 > {Ctrl+KP_8}
   
@@ -2390,7 +2485,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   Also, if the original line was the first line in the  buffer,  a  new  blank
   line is inserted and populated with whitespace.
   
-2.10.2 DownRegardless
+2.11.2 DownRegardless
 ---------------------
 > {Ctrl+KP_2}
   
@@ -2402,7 +2497,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   Also, if the original line was the last line in the buffer, a new blank line
   is inserted and populated with whitespace.
   
-2.10.3 RightRegardless
+2.11.3 RightRegardless
 ----------------------
 > [<n>]{Ctrl+KP_6}
   
@@ -2411,7 +2506,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   facilitate navigation around line drawings - see also <<`UpRegardless`>> and
   <<`DownRegardless`>>.
   
-2.10.4 LineNW
+2.11.4 LineNW
 -------------
 > [<string>]{Ctrl+Alt+KP_7}
   or
@@ -2425,7 +2520,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   inserts padding whitespace where necessary but will fail when the cursor  is
   in column 1 (the first character of a line).
   
-2.10.5 LineN
+2.11.5 LineN
 ------------
 > [<string>]{Ctrl+Alt+KP_8}
   or
@@ -2435,7 +2530,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   in a northerly  direction.  If  <string>  is  unspecified,  draws  a  single
   vertical bar ( | ).
   
-2.10.6 LineNE
+2.11.6 LineNE
 -------------
 > [<string>]{Ctrl+Alt+KP_9}
   or
@@ -2445,7 +2540,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   in a north-easterly direction. If <string> is unspecified,  draws  a  single
   slash ( / ).
   
-2.10.7 LineE
+2.11.7 LineE
 ------------
 > [<string>]{Ctrl+Alt+KP_4}
   or
@@ -2455,7 +2550,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   in a easterly direction. If <string> is unspecified, draws a single hyphen (
   - ).
   
-2.10.8 LineW
+2.11.8 LineW
 ------------
 > [<string>]{Ctrl+Alt+KP_6}
   or
@@ -2465,7 +2560,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   in a westerly direction. If <string> is unspecified, draws a single hyphen (
   - ).
   
-2.10.9 LineSW
+2.11.9 LineSW
 -------------
 > [<string>]{Ctrl+Alt+KP_1}
   or
@@ -2479,7 +2574,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   inserts padding whitespace where necessary but will fail when the cursor  is
   in column 1 (the first character of a line).
   
-2.10.10 LineS
+2.11.10 LineS
 -------------
 > [<string>]{Ctrl+Alt+KP_2}
   or
@@ -2489,7 +2584,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   in a southerly  direction.  If  <string>  is  unspecified,  draws  a  single
   backslash ( \ ).
   
-2.10.11 LineSE
+2.11.11 LineSE
 --------------
 > [<string>]{Ctrl+Alt+KP_3}
   or
@@ -2499,7 +2594,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   in a south-easterly direction. If <string> is unspecified,  draws  a  single
   backslash ( \ ).
   
-2.10.12 DSLineNW
+2.11.12 DSLineNW
 ----------------
 > [<string>]{Esc \ n}
   
@@ -2507,7 +2602,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   whitespace to draw at something like 45deg - the  actual  angle  depends  on
   your font size.
   
-2.10.13 DSLineSE
+2.11.13 DSLineSE
 ----------------
 > [<string>]{Esc \ s}
   
@@ -2515,7 +2610,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   whitespace to draw at something like 45deg - the  actual  angle  depends  on
   your font size.
   
-2.10.14 DSLineSW
+2.11.14 DSLineSW
 ---------------
 > [<string>]{Esc / s}
   
@@ -2523,7 +2618,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   whitespace to draw at something like 45deg - the  actual  angle  depends  on
   your font size.
   
-2.10.15 DSLineNE
+2.11.15 DSLineNE
 ----------------
 > [<string>]{Esc / n}
   
@@ -2531,7 +2626,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   whitespace to draw at something like 45deg - the  actual  angle  depends  on
   your font size.
   
-2.10.16 Box
+2.11.16 Box
 -----------
 > [<width> <height>]{Esc b x}
   
@@ -2540,19 +2635,19 @@ Fred: This is name frequently used by unimaginative technical authors.
   are not specified, the box size defaults to 10 characters wide  by  5  lines
   high.
   
-2.10.17 Lozenge
+2.11.17 Lozenge
 ---------------
 > [<size>]{Esc z 1}
   
   This draws a lozenge shape using slashes ( / ) and backslashes (  \  ).  The
   size is the number of slashes down any side, and defaults to 5.
   
-2.10.18 DSLozenge
+2.11.18 DSLozenge
 -----------------
 > [<size>]{Esc z2}
   Similar to the `Lozenge` function except that it uses double-spacing.
   
-2.10.19 BoxText
+2.11.19 BoxText
 ---------------
 > <string>{Esc b t}
   
@@ -2561,16 +2656,16 @@ Fred: This is name frequently used by unimaginative technical authors.
   process of labelling boxes where the label requires more than  one  line  in
   the box.
 
-2.11 Housekeeping Functions
+2.12 Housekeeping Functions
 ---------------------------
-2.11.1 Again
+2.12.1 Again
 ------------
 > [<n>]{F10}
   
   Repeats last command or hotkey once by default or n times if n is  specified
   if n is zero then the command is repeated to exhaustion.
   
-2.11.2 AgainExhaustive
+2.12.2 AgainExhaustive
 ----------------------
 > {Shift+F10}
   
@@ -2586,42 +2681,42 @@ Fred: This is name frequently used by unimaginative technical authors.
   until something breaks - possibly the editor running out of memory and  that
   might take some time.
 
-2.11.3 InsertMode
+2.12.3 InsertMode
 ----------------
 > {Esc I n}
   
   Enters insert mode, this mode persists until {Ctrl+c} or next {Esc I n}. See
   `Insert mode` and `Command-mode vs. insert mode`
   
-2.11.4 TempInsertMode
+2.12.4 TempInsertMode
 --------------------
 > {Esc i n}
-  Temporarily  enters   insert   mode,   this   mode   persists   until   next
+  Temporarily enters (or exits) insert mode, this  mode  persists  until  next
   escape-sequence  or  function-key   operation.   See   `Insert   mode`   and
   `Command-mode vs. insert mode`
   
-2.11.5 DebuggerQuit
+  If you are currently in insert mode - it temporarily exits for you to  enter
+  a command line to the console.
+  
+2.12.5 DebuggerQuit
 ------------------
 > [<n>]{Esc q}
   
   If no value is entered  for  n,  it  exits  the  debugger  prompt  loop  and
-  continues to the next explicit `T` command - see also `About jot debugging`.
+  continues normal execution of the sequence - see also `About jot debugging`.
   
   When n is specified, even if it is  given  the  value  0,  the  DebuggerQuit
   function suppresses normal tracing through to the end of the next  block  at
-  the specified run level. The run level is calculated a relative to  the  run
-  level when the DebuggerQuit function was called.  Each  macro,  function  or
-  script increments the run level on entry and decrements  it  on  exit.  
-  
-  Thus  DebuggerQuit  effectively  steps-over  functions,  macros  etc.   when
-  Trace_Break is set (see `%S=trace`).
+  the specified run  level  (see  `%s=traceskip`).  In  particular,  n=1  will
+  continue normal execution until the current block  exits  -  it  effectively
+  steps over the remainder of the block..
   
   Of all the functions which take a parameter, DebuggerQuit is  the  only  one
   that does not prompt in  screen-edit  mode.  This  is  because  passing  the
   parameter in the ( $ ) buffer will corrupt whatever is in  that  buffer  for
   the code being debugged - and that can sometimes be catastrophic.
   
-2.11.6 CmdEditStart
+2.12.6 CmdEditStart
 -------------------
 > {Esc c e}
   
@@ -2634,7 +2729,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   anywhere in the line and invoking `CmdEditGo`. The line  can  be  edited  if
   necessary using normal editing functions - see `about command editing`.
    
-2.11.7 CmdEditGo
+2.12.7 CmdEditGo
 ----------------
 > {Esc c g}
   
@@ -2642,7 +2737,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   context and leaves the selected command string in the console - (see  `about
   command editing`).
   
-2.11.8 CmdString
+2.12.8 CmdString
 ----------------
 > <JotCommandString>{Esc c s}
   
@@ -2651,19 +2746,38 @@ Fred: This is name frequently used by unimaginative technical authors.
   typed in first, then the command string is entered in response to a prompt -
   see `about command parameters`.
   
-2.11.9 ViewLeft
+2.12.9 CompareBufs
+------------------
+> [<BufferKey>]{<jotCommands>]{Esc c b}
+  
+  Performs a record-by-record comparison of the contents of the current buffer
+  with that of the nominated buffer. Subsequent calls  need  not  specify  the
+  comparison buffer.
+  
+  Comparison initially starts  at  the  current  record  in  each  buffer  and
+  continues until there's either a mismatch or it encounters the end of one or
+  other of the buffers. 
+  
+  After the initial comparison (which must specify a  single-character  buffer
+  key), subsequent calls may specify a jot command string  -  this  *must*  be
+  more than one character long. The command string will  be  applied  to  both
+  buffers before embarking on the next comparison run.
+  
+  See also `comp.jot`.
+
+2.12.10 ViewLeft
 ---------------
 > [<n>]{Ctrl+Shift+LeftArrow}
   
   Shifts the buffer view n columns leftwards, n defaults to 1.
    
-2.11.10 ViewRight
+2.12.11 ViewRight
 ----------------
 > [<n>]{Ctrl+Shift+RightArrow}
   
   Shifts the buffer view n columns rightwards, n defaults to 1.
   
-2.11.11 WindowOne
+2.12.12 WindowOne
 -----------------
 > [n]{Esc w 1}
   
@@ -2681,17 +2795,19 @@ Fred: This is name frequently used by unimaginative technical authors.
   
   See also `WindowHorizSplit` and `WindowVertSplit` functions.
   
-2.11.12 WindowHorizSplit
+2.12.13 WindowHorizSplit
 ------------------------
 > {Esc w h}
   
-  Horizontal split display to one more window than is currently on display.
+  Splits the screen horizontally giving one more window than is  currently  on
+  display.
   
   This function counts the total number of windows <n> currently displayed  on
-  screen, irrespective of  their  current  configuration,  and  redefines  the
-  windows as <n+1> horizontal strips, leaving a 1-line console area. The  size
-  of a window can be adjusted using `WindowShrink` and `WindowStretch` -  note
-  the optional window-selection argument to these functions.
+  screen, irrespective of whether they are vertical or horizontal splits,  and
+  redefines the windows as <n+1> horizontal strips, leaving a  1-line  console
+  area. The size  of  a  window  can  be  adjusted  using  `WindowShrink`  and
+  `WindowStretch` - note  the  optional  window-selection  argument  to  these
+  functions.
   
   The new-window focus is initially set to the current buffer -  this  may  be
   displayed by some other window. Any focus-change operation (`Z`, `%I`,  `%Q`
@@ -2699,7 +2815,7 @@ Fred: This is name frequently used by unimaginative technical authors.
    
   See also `WindowOne` and `WindowVertSplit` functions.
   
-2.11.13 WindowVertSplit
+2.12.14 WindowVertSplit
 -----------------------
 > {Esc w v}
   
@@ -2719,11 +2835,11 @@ Fred: This is name frequently used by unimaginative technical authors.
   height for the first (leftmost) slice in the group - see  `%W`  -  typically
   this will be window 0, In this case, the command to change the height  would
   be:
-> %w= -winno=0 -height=<newHeight>;
+> %w=modify=0 -height=<newHeight>;
   
   See also `WindowOne` and `WindowHorizSplit` functions.
   
-2.11.14 WindowAlignTop
+2.12.15 WindowAlignTop
 ----------------------
 > [winNo]{Esc w t}
   
@@ -2746,7 +2862,7 @@ Fred: This is name frequently used by unimaginative technical authors.
       of the `query window` report. Windows are counted, from 0, from left  to
       right and then from top to bottom.
   
-2.11.15 WindowAlignCent
+2.12.16 WindowAlignCent
 -----------------------
 > [winNo]{Esc w c}
   
@@ -2769,7 +2885,7 @@ Fred: This is name frequently used by unimaginative technical authors.
       of the `query window` report. Windows are counted, from 0, from left  to
       right and then from top to bottom.
   
-2.11.16 WindowAlignBot
+2.12.17 WindowAlignBot
 ----------------------
 > [winNo]{Esc w b}
   
@@ -2794,11 +2910,11 @@ Fred: This is name frequently used by unimaginative technical authors.
       of the `query window` report. Windows are counted, from 0, from left  to
       right and then from top to bottom.
   
-2.11.17 WindowShrink
+2.12.18 WindowShrink
 -------------------
-> [<winno>]{Ctrl+Alt+UpArrow}
+> [<winNo>]{Ctrl+Alt+UpArrow}
   or
-> [<winno>]{Esc w -}
+> [<winNo>]{Esc w -}
   
   Reduces the height of the specified [or current] window by 1  line.  If  the
   window ends up with a width of 0 or less, then the window is deleted.
@@ -2808,13 +2924,17 @@ Fred: This is name frequently used by unimaginative technical authors.
   current buffer is shrunk. Note that slices (vertically split screens) it  is
   the width of the specified slice that is adjusted.
   
+  In some systems the {Ctrl+Alt+UpArrow} combination is a workspace  switching
+  shortcut. For the benefit of users affected by this there is the {Esc  w  -}
+  escape sequence.
+  
   See also `WindowStretch` and `WindowOne`.
    
-2.11.18 WindowStretch
+2.12.19 WindowStretch
 --------------------
-> [<winno>]{Ctrl+Alt+DownArrow}
+> [<winNo>]{Ctrl+Alt+DownArrow}
   or
-> [<winno>]{Esc w +}
+> [<winNo>]{Esc w +}
   
   Increases the height of the specified [or current] window by 1 line.
    
@@ -2823,25 +2943,29 @@ Fred: This is name frequently used by unimaginative technical authors.
   current buffer is stretched. Note that slices (vertically split screens)  it
   is the width of the specified slice that is adjusted.
   
+  In  some  systems  the  {Ctrl+Alt+DownArrow}  combination  is  a   workspace
+  switching shortcut. For the benefit of users affected by this there  is  the
+  {Esc w +} escape sequence.
+  
   See also `WindowShrink` and `WindowOne`.
   
-2.11.19 WindowDown
+2.12.20 WindowDown
 ------------------
 > {Esc w d}
   
    Shifts focus to the next window - windows are  ordered  left-to-right  then
    top-to-bottom as they appear on the screen. If the current focus is already
-   in the last (rightmost, bottommost) window, then focus is switched  to  the
-   first (topmost and leftmost) window.
+   in the last (rightmost/bottommost) window, then focus is switched  to  the
+   first (leftmost/topmost) window.
   
-2.11.20 WindowUp
+2.12.21 WindowUp
 ----------------
 > {Esc w u}
   
   Essentially the same as `WindowDown`, above, except that  it  moves  through
   the windows from right-to-left and from bottom-to-top.
 
-2.11.21 WindowSave
+2.12.22 WindowSave
 ------------------
 > [<configName>]{Esc w s}
   
@@ -2857,7 +2981,22 @@ Fred: This is name frequently used by unimaginative technical authors.
   This function is designed to be used with `WindowRestore` which can be  used
   to restore the original window configuration.
 
-2.11.22 WindowRestore
+2.12.23 WindowWithLineNumbers
+-----------------------------
+> {Esc w l}
+  
+  Sets up a 6-column window slice to the left of the main  window  this  slice
+  displays the line numbers.
+  
+  The line-numbers slice can be removed by invoking the  WindowWithLineNumbers
+  function once more or with the `WindowOne` function.
+  
+  Note that this function is only set up to display line numbers for a  simple
+  window configuration. It works by configuring the windows as two slices  and
+  setting up a `%S=On_Key` command sequence which  updates  the  line  numbers
+  after each user action.
+
+2.12.24 WindowRestore
 ---------------------
 > [<configName>]{Esc w r}
   
@@ -2867,44 +3006,57 @@ Fred: This is name frequently used by unimaginative technical authors.
   
   As with WindowSave, the default window-configuration name "default".
 
-2.11.23 WindowReassign
+2.12.25 WindowReassign
 ----------------------
 > <windowNo>[ <bufferKey>]{Esc w a}
   
   Changes the buffer binding for the specified window.  If  a  buffer  key  is
-  given then the window is bound to that buffer otherwise, the window  is  set
-  to be floating - it displays whatever happens to be the current buffer.
+  given then the window is bound to that buffer otherwise the window is set to
+  be floating - it displays whatever happens to be the current buffer.
   
-2.11.24 ViewSave
+2.12.26 ViewSave
 ----------------
 > [<viewName>]{Esc v s}  
   
-  This function  sets  up  a  jump  object  and  a  data  object  (see  `about
-  hashtables`)  named  ViewJump_<viewName>  and  ViewJump_FirstLine_<viewName>
-  respectively in the code repository hashtable. Where <viewName> is the given
-  viewname - this name, rather imaginatively, defaults to "default". The  view
-  can then be restored using the `ViewRestore` function.
+  This function makes a note of the current view, the view may be returned  to
+  using the `ViewRestore` function, you may save any number of such  views  by
+  assigning each one a different name - in practice the  number  of  views  is
+  limited by hashtable capacity.
   
-  Note that ViewSave and the `ViewRestore` function will not always  work  for
+  To do this it  sets  up  a  jump  object  and  a  data  object  (see  `about
+  hashtables`)  named  ViewJump_<viewName>  and  ViewJump_FirstLine_<viewName>
+  respectively in the code  repository  hashtable.  Where  <viewName>  is  the
+  given viewname - this name, rather  imaginatively,  defaults  to  "default".
+  The view can then be restored using the `ViewRestore` function.
+  
+  Note that the ViewSave and `ViewRestore` functions will not always work  for
   floating buffers (i.e. buffers on the stack) - the correct buffer has to  be
   at the top of the stack for ViewRestore to work correctly.
   
   In the event of a non-unique viewname, the new view  silently  replaces  the
-  original view.
+  original.
   
   Many different views can be held by assigning each a unique name, the actual
   limit is set by the total capacity  of  the  code-repository-buffer  (  '  )
   hashtable, normally set to 1000,  of  which  about  200  are  used  for  the
   function names. View names may be of any length.
   
-2.11.25 ViewRestore
+2.12.27 ViewRestore
 -------------------
 > [<viewName>]{Esc v r}  
   
   This function  restores  a  previously-saved  view  answering  to  the  name
   <viewName>, as with `ViewSave` the default view name is "default".
   
-2.11.26 AddNewFunctions
+  The cursor returns to the same character number and line as was  current  at
+  the time of the corresponding ViewSave operation. It also attempts to  place
+  that line in the same position on the screen as before  -  this  element  of
+  ViewRestore will fail to accurately align the view if the line numbers  have
+  changed by inserting or removing lines above the view.
+  
+  See also the note on floating buffers in `ViewSave`.
+  
+2.12.28 AddNewFunctions
 -----------------------
 > %h'=call AddNewFunctions;
   
@@ -2913,9 +3065,14 @@ Fred: This is name frequently used by unimaginative technical authors.
   buffer, it appends the contents of @ to the code repository  and  makes  the
   correct hash-table entries.
   
+  The new functions  may  require  hot-key  triggers.  To  associate  symbolic
+  hot-key (e.g. {Ctrl+Shift+F1} add these to the escape-sequence field of  the
+  key-code buffer ( ^ ) and the AddNewFunctions function will  substitute  the
+  correct keycodes. 
+  
   For an example of usage look at ${JOT_HOME}/coms/get.jot.
 
-2.12 Mouse-Event Bindings
+2.13 Mouse-Event Bindings
 -------------------------
   In Linux, where X-windows  provides  useful  mouse  functions,  mouse-button
   events are all ignored by jot allowing them to be picked up by X-windows. In
@@ -2923,14 +3080,14 @@ Fred: This is name frequently used by unimaginative technical authors.
   events are picked up by jot. This behaviour is defined in the startup script
   (see `startup.jot`) and can be changed by adopting a custom startup script.
   
-2.12.1 NoteFromMouse
+2.13.1 NoteFromMouse
 -------------------
 > {Button2Down} ({Button1Down} in windows).
   
   This picks up and notes the the coordinates of the button-press and  sets  a
   note point there.
   
-2.12.2 CopyFromMouse
+2.13.2 CopyFromMouse
 -------------------
 > {Button2Up} ({Button1Up} in windows).
   
@@ -2939,35 +3096,35 @@ Fred: This is name frequently used by unimaginative technical authors.
   button-release and abstracts from the current note  point  to  the  position
   indicated by the mouse at Button-Up time.
   
-2.12.3 FocusToMouse
+2.13.3 FocusToMouse
 ------------------
 > {Button2DoubleClick}
   
   This picks up and notes the coordinates of the  button-press  and  sets  the
   editor focus point to the position indicated.
   
-2.12.4 InsertHereMouse
+2.13.4 InsertHereMouse
 ---------------------
 > {Button3Click}
   
   This picks up and notes the the coordinates of the button-press and  inserts
   the contents of the _ buffer there.
 
-2.13 Mouse-Event Bindings - Windows
+2.14 Mouse-Event Bindings - Windows
 -----------------------------------
   One of the many crosses born by windows users is the lack  of  useful  mouse
   actions. Especially selections and most particularly  in  windows  consoles.
   The functions described below are not anything like as useful  as  X-windows
   selections but there we are ... any port in a storm.
   
-2.13.1 SelectionStart
+2.14.1 SelectionStart
 ---------------------
 > {Button1Down}
   
   The mouse cursor position is noted - the real  action  takes  place  as  the
   button is released.
   
-2.13.2 SelectionEnd
+2.14.2 SelectionEnd
 -------------------
 > {Button1Up}
   
@@ -2975,13 +3132,13 @@ Fred: This is name frequently used by unimaginative technical authors.
   the {Button1Down} event the text between the  two  points  is  copied  to  a
   selection buffer without affecting the editors cursor.
   
-2.13.3 SelectionFree
+2.14.3 SelectionFree
 --------------------
 > {Button1Click}
   
   Any text in the selection buffer is deleted.
   
-2.13.4 SelectionWord
+2.14.4 SelectionWord
 --------------------
 > {Button1DoubleClick}
   
@@ -2990,20 +3147,20 @@ Fred: This is name frequently used by unimaginative technical authors.
   word is deemed to be any string consisting  of  alphanumeric  characters  or
   underscores.
   
-2.13.5 SelectionLine
+2.14.5 SelectionLine
 --------------------
 - Not curreutly mapped to any button event.
   
   Similar to SelectionWord except that it selects the entire line.
   
-2.13.6 SelectionPut
+2.14.6 SelectionPut
 -------------------
 > {Button2Click}
   
   The position of  the  mouse  cursor  is  irrelevant,  the  contents  of  the
   selection buffer is dumped into the command line.
 
-2.14 The popup-menu functions
+2.15 The popup-menu functions
 -----------------------------
   The startup script  defines  `PopupSearch`  and  `PopupIncrementalSearch`  -
   functions that search and list matching words in the popup menu.  The  popup
@@ -3025,7 +3182,18 @@ Fred: This is name frequently used by unimaginative technical authors.
   In the event of the popup menu being  longer  than  the  popup  window,  two
   popup-scrolling functions are provided `PopupPageUp` and `PopupPageDown`.
   
-2.14.1 PopupRestore
+  Note that, for some versions of curses, mouse-clicks are not accurate  right
+  of, approximately, column 100. In these circumstances clicking  on  a  popup
+  beyond column 100 will result in this error message 
+{Command-sequence failed.(nnn)}%h'=call PopupMouseSelect; 
+  If this is a problem then two options are available:
+    - Restrict the terminal size using the `%L` command, e.g:
+> %l=100;
+    - Change the function PopupRestore to position the popup on the left side.
+      In the normal version, the popup is given a  width  of  -20  characters,
+      change this from -20 to 20 (see the `%W` command).
+  
+2.15.1 PopupRestore
 -------------------
 > {Esc p r}
   
@@ -3044,7 +3212,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   `NextMisspelling` and `NextSpellInstance`, which offers  suggested  spelling
   corrections via the popup menu.
   
-2.14.2 PopupSearch
+2.15.2 PopupSearch
 ------------------
 > <substring>{Esc p s}
   
@@ -3053,19 +3221,21 @@ Fred: This is name frequently used by unimaginative technical authors.
   underscores) are displayed in the popup menu and may be selected by a  click
   of the left mouse button (see `PopupMouseSelect`).
   
-2.14.3 PopupIncrementalSearch
+2.15.3 PopupIncrementalSearch
 -----------------------------
 > [<initialSearchString>]{Esc p i}
   
   This performs an incremental search -  incremental  in  the  sense  that  it
-  prompts and picks up your characters one at a time. As each new character is
-  entered the document is searched for  instances  of  revised  search  string
-  updating the list of matching words in the popup as the search string grows.
-  Characters may be removed with the backspace key. The recommended method  of
-  exiting the search loop is to hit {Return}. A {Ctrl+c} interrupt  will  also
-  exit the function but this will leave the stack in an untidy state - you may
-  have to clear the stack with the `O@` command - see `using the  popup  menu`
-  for a walkthrough example.
+  prompts and picks up your characters one at a time. As  each  new  character
+  is entered the document is searched for instances of revised  search  string
+  updating the list of matching words  in  the  popup  as  the  search  string
+  grows. Characters may be removed with the  backspace  key.  
+  
+  The correct method of  exiting  the  search  loop  is  to  hit  {Return}.  A
+  {Ctrl+c} interrupt will also exit the function but  will  not  enable  mouse
+  clicks and will leave the stack in an untidy state - you may have  to  clear
+  the stack with the  `O@`  command  -  see  `using  the  popup  menu`  for  a
+  walkthrough example.
   
   Note that, although the popup menu is visible while the  interactive  search
   is progressing, mouse events are disabled and are only re-enabled on exit. 
@@ -3089,7 +3259,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   console, where it can be used as an argument to any jot function that  takes
   a text-string argument.
   
-2.14.4 PopupMouseSelect
+2.15.4 PopupMouseSelect
 -----------------------
 > {Left-click in popup menu}
   
@@ -3098,7 +3268,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   it can be used by any function that picks up an argument from  the  console.
   It could be used to substitute the current word with {F5} - see `Substitute`
   
-2.14.5 PopupPageUp
+2.15.5 PopupPageUp
 ------------------
 > {Esc p u}
   or
@@ -3107,7 +3277,7 @@ Fred: This is name frequently used by unimaginative technical authors.
   Scrolls the popup window to reveal the page above the currently-visible page
   and reports current position.
   
-2.14.6 PopupPageDown
+2.15.6 PopupPageDown
 --------------------
 > {Esc p d}
   or

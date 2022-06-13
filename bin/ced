@@ -8,15 +8,17 @@
 #  ced [-backup <backupFileName>][ -newversion [<versionString>]][ -oldversion <versionString>][ -notest][ -tostick][ -fromstick][ -new]
 #    -backup <fileName>  - compiles specified jot.c from backup area, must be of the form jot.c_<dateStamp>
 #    -sourcefile <name>  - compiles specified source file from ~/ed/source
+#    -sourcedir <path>  -  compiles jot.c file (must be .c) from specified directory
 #    -newversion [v<digits>] - Creates and populates next [or specified] version subdirectory then compiles the new release.
-#    -setversion [v<digits>] - Defines the virsion string - the name of the executable remans jot_dev.
+#    -setversion [v<digits>] - Defines the version string - the name of the executable remains jot_dev.
 #    -oldversion <version> - Compiles a version already copied to a version subtree.
-#    -nolin - skips compilation and test of linux version.
-#    -nowin - skips compilation of windows version.
-#    -win64 - uses 64-bit windows compiler & libraries - defaults to 32-bit.
+#    -lin - For compilation and test of linux version.
+#    -win - For compilation of 32-bit windows version.
+#    -win64 - For 64-bit windows compiler & libraries - defaults to 32-bit.
+#    -debug - enables debugging database generation for windows, also for debugging this script.
 #    -noand - skips compilation of android version.
 #    -notest - skips test after compile.
-#    -static - static linking of ncurses.
+#    -dynamic - dynamic linking of ncurses.
 #    -preproc - preprocessor output sent to stdout .
 #    -strip - strip out all symbols from linux executable.
 #    -listdevs reports names of all storage devicescurrently mounted.
@@ -34,32 +36,33 @@
 #  Examples:
 #    ced                                          - simple recompile jotfor linux and windows, executables are named jot_dev[.exe].
 #    ced -backup jot.c_130828_1805                - compiles ~/ed/source/backup/jot.c_130828_1805, executables are named jot_130828_1805
-#    ced -sourcefile jot_2.c                      - compiles ~/ed/source/jot_2.c, executables are named jot_dev_2
+#    ced -sourcefile jot_2                        - compiles ~/ed/source/jot_2.c, executable is named jot_dev_2
 #    ced -newversion                              - creates the next version up from current top version, populates it and compiles the sources..
 #    ced -newversion v1.99                        - creates v1.99 release subdir, populates it and compiles the sources.
 #    ced -oldversion v1.1                         - makes executables from the source in v1.1
 
 debug=""
+win_debug=""
 verbose="n"
 stick=""
-sourcedir="ed/source/"
-sourcefile="jot.c"
+sourceDir="ed/source/"
+sourceFile="jot"
 versionDir=""
 backup="" 
 backupSuffix="" 
 exeSuffix="_dev"
 stripOpt=""
-staticOpt="-Xlinker -dy -lncursesw -lncurses"
+dynamicOpt="-Xlinker -dn -l:libncursesw.a -lncurses -Xlinker -dy -ldl "
 preprocOpt=""
 version=""
 newVersion=""
 setversion=""
 checkFiles=""
 notest=0
-nowin=0
+win=0
 win64=0
 noand=0
-nolin=0
+lin=0
 nochrome=0
 chrome=0
 touch=0
@@ -74,7 +77,7 @@ help(){
   echo "  Under linux it will normally compile both for linux and windows using wine"
   echo "  Under ChromeOS it will compile only for ChromeOS"
   echo "Options follow:"
-  echo "  -debug - turns on debug mode for remainder of session and compiles to give extra diagnostic information"
+  echo "  -debug - for debugging this script and, if -win is given, compiles to give window debug database"
   echo "  -verbose - turns on verbose mode for remainder of session"
   echo "  -listdevs - lists storage devices currently plugged in"
   echo "  -setstick - defines which storage device for remainder of session (only neccessary if more than one)"
@@ -87,13 +90,13 @@ help(){
   echo "  -backup <backupTag> - compiles source file from the backup area."
   echo "           ced -backup 20140101_1234 - to select ed/source/backup/jot.c_20140101_1234"
   echo "  -notest - suppresses normal post-compilation testing"
-  echo "  -static - static linking of ncurses"
+  echo "  -dynamic - dynamic linking of ncurses"
   echo "  -preproc - preprocessor output to log file."
-  echo "  -strip - strip out all symbols from linux executable."
-  echo "  -nowin - suppresses windows cross-compilation (only under linux)"
-  echo "  -win64 - 64-bit windows cross-compilation (32-bit by default)."
+  echo "  -strip - strip out debugging and backtrace symbols from linux executable."
+  echo "  -win - For 32-bit windows cross compilation"
+  echo "  -win64 - For 64-bit windows cross-compilation."
   echo "  -noand - suppresses android cross-compilation (only under linux)"
-  echo "  -nolin - suppresses linux compilation"
+  echo "  -lin - For linux compilation"
   echo "  -nochrome - suppresses chrome compilation (only under ChromeoS)"
   echo "  -oldversion - compiles an old releaseed version of jot.c"
   echo "  -newversion [<vn.m>] - creates a new version  ed/releases/vn.m and defines the version string"
@@ -109,8 +112,8 @@ getStickPath(){
       dev=/var/run/media/${USER}/
     elif [ -d "/media/removable" ]; then 
       dev="/media/removable"
-    elif [ -d "/media" ]; then 
-      dev="/media"
+    elif [ -d "/media/jone" ]; then 
+      dev="/media/jone"
     else
       dev=/cygdrive/k
     fi
@@ -136,6 +139,7 @@ while test "$1" != ""; do
     
   elif [ "$1" = "-debug" ]; then
     debug="-DJOT_DEBUG"
+    win_debug="/Zi "
     shift
 
   elif [ "$1" = "-verbose" ]; then
@@ -202,14 +206,19 @@ while test "$1" != ""; do
   elif [ "$1" = "-backup" ]; then
     shift
     backup=$1
-    sourcedir="ed/temp_${backup}/"
+    sourceDir="ed/temp_${backup}/"
     exeSuffix=`echo ${backup} | sed s/jot.c_/_/`
     shift
 
   elif [ "$1" = "-sourcefile" ]; then
     shift
-    sourcefile=$1
+    sourceFile=$1
     exeSuffix=`echo $1|sed s/jot/_dev/ | sed s/.c//`
+    shift
+
+  elif [ "$1" = "-sourcedir" ]; then
+    shift
+    sourceDir=ed/${1}
     shift
 
   elif [ "$1" = "-notest" ]; then
@@ -220,16 +229,20 @@ while test "$1" != ""; do
     preprocOpt="Yes"
     shift
    
-  elif [ "$1" = "-static" ]; then
-    staticOpt="-Xlinker -dn -lncursesw -lncurses -ltinfo -Xlinker -dy -ldl"
+  elif [ "$1" = "-dynamic" ]; then
+    if [ "${SYSTEM}" == "CHROME" ]; then
+      echo "The chromebook only has dynamic curses libraries anyway."
+      exit 1
+      fi
+    dynamicOpt="-Xlinker -dy -lncursesw -lncurses -l:libncursesw.so"
     shift
    
   elif [ "$1" = "-strip" ]; then
-    stripOpt="-Xlinker --strip-all"
+    stripOpt="-Xlinker --strip-all "
     shift
    
-  elif [ "$1" = "-nowin" ]; then
-    nowin=1
+  elif [ "$1" = "-win" ]; then
+    win=1
     shift
    
   elif [ "$1" = "-win64" ]; then
@@ -240,8 +253,8 @@ while test "$1" != ""; do
     noand=1
     shift
    
-  elif [ "$1" = "-nolin" ]; then
-    nolin=1
+  elif [ "$1" = "-lin" ]; then
+    lin=1
     shift
    
   elif [ "$1" = "-nochrome" ]; then
@@ -252,20 +265,21 @@ while test "$1" != ""; do
     shift
     version="$1"
     shift
-    sourcedir="ed/release/jot/$version/source/"
+    sourceDir="ed/release/jot/$version/source/"
     versionDir="ed/release/jot/$version/"
-    if [ ! -d $sourcedir]; then
-      echo "Directory $sourcedir does not exist - exiting now."
+    if [ ! -d "${sourceDir}" ]; then
+      echo "Directory $sourceDir does not exist - exiting now."
       exit 1
       fi
-    if [ ! -d ${versionDir}/coms]; then
+    if [ ! -d "${versionDir}/coms" ]; then
       echo "Directory ${versionDir}/coms does not exist - exiting now."
       exit 1
       fi
-    if [ ! -d ${versionDir}/docs]; then
-      echo "Directory ${versionDir}/docs does not exist - exiting now."
+    if [ ! -d "${versionDir}" ]; then
+      echo "Directory ${versionDir} does not exist - exiting now."
       exit 1
       fi
+    exeSuffix="_${version}"
 
   elif [ "$1" = "-newversion" ]; then
     shift
@@ -280,22 +294,24 @@ while test "$1" != ""; do
           fi
         fi
       fi
-    if [ "${version}" = "" ]; then
-      version=`(cd ed/release/jot; \ls -d v* ) | jot -startup -tty -quiet -init='m0(m-r0(q-/0-9/r-)0v-/./\)0oido~oo/%d/p %a'`
-      fi
-    newVersion=${version}
+#    if [ "${version}" = "" ]; then
+#      version=`(cd ed/release/jot; \ls -d v* ) | jot -startup -tty -quiet -init='m0(m-r0(q-/0-9/r-)0v-/./\)0oido~oo/%d/p %a'`
+#      fi
+#    newVersion=${version}
+    newVersion=zzz
     versionDir="release/jot/${version}/"
 
   elif [ "$1" = "-setversion" ]; then
     shift
-    if [ "${version}" = "" ]; then
-      version=`(cd ed/release/jot; \ls -d v* ) | jot -startup -tty -quiet -init='m0(m-r0(q-/0-9/r-)0v-/./\)0oido~oo/%d/p %a'`
-      fi
-    if [ "$1" != "" ]; then
-      echo "No version string specified, exiting now."
-      exit 1;
-      fi
+#    if [ "${version}" = "" ]; then
+#      version=`(cd ed/release/jot; \ls -d v* ) | jot -startup -tty -quiet -init='m0(m-r0(q-/0-9/r-)0v-/./\)0oido~oo/%d/p %a'`
+#      fi
+#    if [ "$1" != "" ]; then
+#      echo "No version string specified, exiting now."
+#      exit 1;
+#      fi
     version=$1
+    shift
     setversion=${version}
 
   elif [ "$1" = "-diff" ]; then
@@ -330,19 +346,19 @@ while test "$1" != ""; do
     echo "verbose = $verbose"
     echo "versionDir = \"${versionDir}\""
     echo "backup = \"${backup}\""
-    echo "sourcefile = \"${sourcefile}\""
-    echo "sourcedir = \"${sourcedir}\""
+    echo "sourceFile = \"${sourceFile}\""
+    echo "sourceDir = \"${sourceDir}\""
     echo "exeSuffix = \"${exeSuffix}\""
     echo "version = \"${version}\""
     echo "newVersion = \"${newVersion}\""
     echo "notest = ${notest}"
-    echo "staticOpt = ${staticOpt}"
+    echo "dynamicOpt = ${dynamicOpt}"
     echo "preprocOpt = ${preprocOpt}"
     echo "stripOpt = ${stripOpt}"
-    echo "nowin = ${nowin}"
+    echo "win = ${win}"
     echo "win64 = ${win64}"
     echo "noand = ${noand}"
-    echo "nolin = ${nolin}"
+    echo "lin = ${lin}"
     echo "nochrome = ${nochrome}"
     echo "chrome = ${chrome}"
     echo "checkFiles = ${checkFiles}"
@@ -367,7 +383,6 @@ if [ "${checkFiles}" != "" ]; then
   #  check     - lists any files that have different datestamps when comparing versions held on stick with that on disc
   shift
   getStickPath
-  \chmod -R u+w "$stick"
   cat - > /tmp/jot_ced_sequence.jot << endOfJotCommands
 %%Temporary jot file used to process directory listings obtained from ls -l --full-time
 %%
@@ -384,15 +399,22 @@ if [ "${checkFiles}" != "" ]; then
 %%-rwxr-xr-x 1 chronos chronos 66412 20160220155054 /media/removable/SD Card/ed/coms/backup/README_backup 
 %%After sorting the local filesystem version appears immediately above the stick version as shown above.
 %%The output record has three fields:
-%%<localDateStamp>,<stickDateStamp>,<subPath>
+%%<localDateStamp>\t<stickDateStamp>\t<subPath>
+%%
+%%Buffers:
+%%  p - subpath
+%%  s - Stick top path.
+%%  w - Main FS path.
+%%
+%%  %o=/tmp/ced_ls; 
 %%
 %%Insert tabs to be used as tabsort column delimiters.
-m-0(((f1/ /(v/ /r)0)5\\k)0 e-0 f1" /"ei/	/f1'pi/	/ m)0
+m-0(((f1/ /(v/ /r)0)5\k)0 e-0 f1" /"ei/	/f1'pi/	/ m)0
 %%
 %%Sort, first by subpath-filenames then by initial path as a secondary sort parameter.
 %b=tabsort 2 1
+%%  %o=/tmp/ced_ls1
 m0r0b m-0(r, k)
-%o=/tmp/ced_lsx; 
 %%
 %%Now merge the pairs of lines into copy commands as appropriate.
 (
@@ -403,10 +425,9 @@ m0r0b m-0(r, k)
 , %%Both versions exist, check datestamps and merge if they're different, otherwise delete.
   %%Allow 1 second slack - USB-stick timestamps are rounded up to next second.
   r-0n.oidratk- (oid o-ol2o/ol0o=kok, okf1/	/-htpm))0
-%o=/tmp/ced_ls
+%%  %o=/tmp/ced_ls2
 %a
 :
-'#
 endOfJotCommands
   
   #Of course cp -p --update would be a much neater way of synchronizing. Unfortunately linux 
@@ -414,16 +435,21 @@ endOfJotCommands
   #that files copied to a stick are always behind the local version.
   #
   for subPath in \
-    mail_archive \
-    mail_archive/dolphins_new_regime \
-    mail_archive/dolphins_old_regime \
-    mail_archive/from_dropbox \
-    mail_archive/ttc \
+    elegoo \
+    elegoo/include \
+    Arduino \
+    archive \
+    archive/dolphins_new_regime \
+    archive/dolphins_old_regime \
+    archive/from_dropbox \
+    archive/slack \
+    archive/ttc \
+    archive/ttt \
+    archive/eye \
     ed/source/backup \
     ed/source \
     ed/my_resources \
     ed/my_resources/ide \
-    ed/my_resources/ide/projects \
     ed/my_resources/ide/ed \
     ed/my_resources/ide/hello \
     ed/my_resources/ide/tree \
@@ -440,6 +466,7 @@ endOfJotCommands
     ed/my_resources/help/opus \
     ed/my_resources/help/your_stuff \
     ed/my_resources/help/notes/ \
+    ed/my_resources/ide/projects \
     ed/resources \
     ed/resources/ide \
     ed/resources/ide/projects \
@@ -459,8 +486,9 @@ endOfJotCommands
     ed/coms \
     ed/coms/backup \
     ed/samples \
-    projects \
-    ed/bin;
+    ed/bin \
+    ed/bin/backup \
+    projects;
   do
     if [ "${checkFiles}" = "new" ]; then
       if [ ! -d "${subPath}" ]; then
@@ -483,22 +511,30 @@ endOfJotCommands
       wd=~
       ( IFS=$'\n'
       for lsRec in $(ls -ld --full-time --time-style=+%Y%m%d%H%M%S "${wd}"/"${subPath}"/* "${stick}"/"${subPath}"/* | \
-        jot -startup -tty -quiet -init="%dp=${subPath}; %ds=${stick}; %dw=${wd}; %r=/tmp/jot_ced_sequence.jot")
+        jot -startup -tty -quiet -init="%dp=${subPath}; %ds=${stick}; %dw=${wd}; %r=/tmp/jot_ced_sequence.jot; '#")
       do
       localDate=$(echo ${lsRec} | cut '-f1')
       stickDate=$(echo ${lsRec} | cut '-f2')
       pathName=$(echo ${lsRec} | cut '-f4')
       
-  #Test it thusly:
-  # 
-  #   cd ; wd=`pwd` ; subPath=ed/source ; stick=~/stick/48C6-AE27
-  #
-  #   ( IFS=$'\n'; \
-  #     for lsRec in $(ls -ld --full-time --time-style=+%Y%m%d%H%M%S "${wd}"/"${subPath}"/* "${stick}"/"${subPath}"/* | \
-  #       jot -startup -tty -quiet -init="%dp=${subPath}; %ds=${stick}; %dw=${wd}; %r=/tmp/jot_ced_sequence.jot"); \
-  #     do echo $lsRec; done; )
-  #
-  #
+#Test it thusly:
+# 
+#   cd ; wd=`pwd` ; subPath=ed/source ; stick=~/stick/DCE4-7C54
+#
+#   ( IFS=$'\n'; \
+#     for lsRec in $(ls -ld --full-time --time-style=+%Y%m%d%H%M%S "${wd}"/"${subPath}"/* "${stick}"/"${subPath}"/* | \
+#       jot -startup -tty -quiet -init="%dp=${subPath}; %ds=${stick}; %dw=${wd}; %r=/tmp/jot_ced_sequence.jot"); \
+#     do echo $lsRec; done; )
+#
+#Or - first build a /tmp/ced_ls file:
+#  ced -check
+#
+#Then run the script on the last directory in the list:
+#If ced is allowd to run to completion the last valid subpath is ed/bin ( %dp ), define buffer s for your stick.
+#  jot /tmp/ced_ls -in="%w; %w 9; %w 0; %dp=projects; %ds=/var/run/media/jone//DCE4-7C54/; %dw=/home/jone/ed; %r=/tmp/jot_ced_sequence.jot;"
+#
+#First add suitable debugging changes to the main macro buffer ( # ), in particular nobble the %a at the end, then:
+#  '#
   
       if [ ${touch} = 1 ]; then
         if [ $localDate != $stickDate ]; then
@@ -541,14 +577,14 @@ endOfJotCommands
 
 if [ ! -z $backup ]; then
   if [ -f ed/source/backup/${backup} ]; then
-#    sourcedir="ed/temp_${backup}/"
+    sourceDir="ed/temp_${backup}/"
     if [ -d "ed/temp_${backup}" ]; then
       echo "***** Using preexisting temporary directory ed/temp_${backup} ******"
     else
       mkdir ed/temp_${backup}
       fi
-    if [ ! -e "${sourcedir}/${sourcefile}" ]; then
-      \cp ed/source/backup/${backup} ${sourcedir}/${sourcefile}
+    if [ ! -e "${sourceDir}/${sourceFile}" ]; then
+      \cp ed/source/backup/${backup} ${sourceDir}/${sourceFile}.c
       fi
   else
     echo "Invalid backup pathname: ed/source/backup/${backup}"
@@ -568,185 +604,250 @@ else
   exit 1
   fi
   
-
-#Windows-compile, using wine.
-which wine > /dev/null
-if [[ $? = 0 && $nowin -eq 0 ]]; then
-  \rm -f bin/jot${exeSuffix}.exe bin/jot${exeSuffix}.pdb bin/jot${exeSuffix}.ilk ${sourcedir}/jot.lis
-  echo "" > ${sourcedir}/jot.lis
-  echo "" >> ${sourcedir}/jot.lis
-  if [ $win64 -ne 0 ]; then
-    bits=64
-  else
-    bits=32
-    fi
-  echo "---------------------------------------------------------------------------------" >> ${sourcedir}/jot.lis
-#  if [ -z $backup ]; then
-    versionString="jot for WindowsNT ${version} ${bits}-bit, from ${sourcedir}${sourcefile}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"
-#  else
-#    backupSuffix=`echo ${backup} | sed s/jot.c//`
-#    versionString="jot for WindowsNT (from backup ${backup}) ${version} ${bits}-bit, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"
-#    fi
-  export WINEDEBUG=-all wine cl.exe
-  echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString} for windows" | tee >> ${sourcedir}/jot.lis
-  echo versionString=${versionString}
-  
-  if [ "${preprocOpt}" != "" ]; then
-    preprocOpt=" /E "
-    fi
-  if [ "$newVersion" != "" ]; then
-    #Insert a temporary link so it can see the gnu libs.
-    chmod u+w ${sourcedir}/..
-    ln -s ~/ed/wine_32 ${sourcedir}/..
-    fi
- if [ $win64 -ne 0 ]; then
-    echo "Win 64 compile: wine cmd /C z:/home/jone/ed/bin/ced_64.bat ${sourcedir} ${sourcefile} "${versionString}" "${backupSuffix}" ${debug} ${preprocOpt}"
-    if [ -e /var/run/media/jone/66C4AC92C4AC6651 ]; then
-      wine cmd /C z:/home/jone/ed/bin/ced_64.bat ${sourcedir} ${sourcefile} "${versionString}" "${backupSuffix}" ${debug} ${preprocOpt}
-    else
-      echo "**************************************************************************************"
-      echo "*                                                                                    *"
-      echo "*                  You must first mount the windows partition.                       *"
-      echo "*                                                                                    *"
-      echo "**************************************************************************************"
-      exit 1
-      fi
-  else
-    echo "Win 32 compile: wine cmd /C Z:/home/jone/ed/bin/ced_32.bat ${sourcedir} ${sourcefile} "${versionString}" ${debug} ${preprocOpt}"
-    wine cmd /C Z:/home/jone/ed/bin/ced_32.bat ${sourcedir} ${sourcefile} "${versionString}" ${debug} ${preprocOpt}
-    fi
-  if [ "${exeSuffix}" != "" ]; then
-    mv bin/jot_dev.exe bin/jot${exeSuffix}.exe
-    mv bin/jot_dev.pdb bin/jot${exeSuffix}.pdb
-    mv bin/jot_dev.ilk bin/jot${exeSuffix}.ilk
-    fi
-  if [ $notest -eq 0 ]; then
-    rm -f test_win.txt
-    test_win.sh jot${exeSuffix}
-    cat test_win.txt
-    fi
-  if [ -z ${backup} ]; then
-    ls -lrt ed/source/${sourcefile} ed/bin/jot_dev*
-  else 
-    ls -lrt ${sourcedir}/${sourcefile} ed/bin/jot_dev*
-    fi
-  echo ""
-  echo ""
-  echo ""
-  \grep -i warning ed/source/jot.lis
-  \grep -i error ed/source/jot.lis
+if [ $win -ne 0 ]; then
+  \rm -f bin/jot${exeSuffix}.exe bin/jot${exeSuffix}.pdb bin/jot${exeSuffix}.ilk ed/source/jot.lis
+  fi
+if [ $lin -ne 0 ]; then
+  \rm -f ed/source/jot.lis bin/jot${exeSuffix}
   fi
 
+which wine > /dev/null
+if [[ $? = 0 && $win -ne 0 ]]; then
+  echo Windows 32-bit compile, using wine and the de/win copy of VC.
+  \rm -f bin/jot${exeSuffix}.exe bin/jot${exeSuffix}.pdb bin/jot${exeSuffix}.ilk ed/source/jot.lis
+  echo "" > ed/source/jot.lis
+  echo "" >> ed/source/jot.lis
+  echo "Compiling for 32-bit windows" >> ed/source/jot.lis
+  if [ -z $backup ]; then
+    versionString="\"jot for WindowsNT ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs\""
+#    versionString=\""jot for WindowsNT ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"\"
+  else
+    versionString=\""jot for WindowsNT (from backup ${backup}) ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"\"
+    fi
+  echo "Version string: ${versionString}" >> /home/jone/ed/source/jot.lis
+  
+  wine "Z:/home/jone/ed/wine/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x86/cl" \
+    z:/home/jone/${sourceDir}${sourceFile}.c \
+    /DVERSION_STRING="${versionString}" \
+    /I "z:/home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt" \
+    /I "z:/home/jone/ed/wine/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/include" \
+    /I "z:/home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um" \
+    /I "z:/home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared" \
+    /I "z:/home/jone/ed/wine/libgw32c-0.4/include" \
+    ${win_debug} \
+    /D__value=_value /D_DEBUG /DVC /DNoRegEx \
+    /DnoX11 \
+    /DNoRegEx \
+    /link \
+    /STACK:100000000 \
+    z:/home/jone/ed/wine/lib/libgcc.lib \
+    z:/home/jone/ed/wine/libgw32c-0.4/lib/libgw32c.a \
+    "z:/home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x86/Ole32.Lib" \
+    /libpath:"z:/home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/ucrt/x86" \
+    /libpath:"z:/home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x86" \
+    /libpath:"z:/home/jone/ed/wine/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/lib/x86" \
+    /libpath:"z:/home/jone/ed/wine/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x86" \
+    /map:z:/home/jone/ed/source/jot.map \
+    /out:z:/home/jone/bin/jot${exeSuffix}.exe \
+      >> ed/source/jot.lis
+echo Done compile of z:/home/jone/bin/jot${exeSuffix}.exe >> ed/source/jot.lis
+
+#It refuses to see __stat32i64 - but this seems to be in /home/jone/ed/wine/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/ucrt/x86/ucrtd.lib (also ucrt.lib libucrtd.lib libucrt.lib)
+#It's supposed to be in api-ms-win-crt-filesystem-l1-1-0.dll 
+#but my copy in /home/jone/.wine/dosdevices/c:/windows/syswow64/api-ms-win-crt-filesystem-l1-1-0.dll does not have any stat objects
+#  I can see references to ucrtd (but not the others) in jot.map
+      
+  cat ed/source/jot.lis
+    if [ -z ${backup} ]; then
+      ls -lrt ed/source/${sourceFile}.c bin/jot_dev*
+    else 
+      ls -lrt ${sourceDir}/${sourceFile}.c bin/jot_dev*
+      fi
+    echo ""
+    echo ""
+    echo ""
+    \grep -i warning ed/source/jot.lis
+    \grep -i error ed/source/jot.lis
+    fi
+
+#Windows-64 compile, using wine - PC only, this requires access to the genuine VC installation.
+which wine > /dev/null
+if [[ $? = 0 && $win64 -ne 0 ]]; then
+  \rm -f bin/jot${exeSuffix}.exe bin/jot${exeSuffix}.pdb bin/jot${exeSuffix}.ilk ed/source/jot.lis
+  echo "" > ed/source/jot.lis
+  echo "" >> ed/source/jot.lis
+  echo "Compiling for 64-bit windows" >> ed/source/jot.lis
+  if [ -z $backup ]; then
+    versionString="\"jot for WindowsNT ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs\""
+  else
+    versionString='"'"jot for WindowsNT (from backup ${backup}) ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using VC 10.0 with VC and GNU libs"'"'
+    fi
+  echo "Version string: ${versionString}" >> ed/source/jot.lis
+  
+  wine "Z:/home/jone/ed/wine/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl" \
+    z:/home/jone/${sourceDir}${sourceFile}.c \
+    /DVERSION_STRING="${versionString}" \
+    ${win_debug} \
+    /D__value=_value /D_DEBUG /DVC /DNoRegEx \
+    /DnoX11 \
+    /DNoRegEx \
+    /link \
+    /STACK:100000000 \
+    libgcc.lib \
+    libgw32c.a \
+    Ole32.Lib \
+    /map:z:/home/jone/ed/source/jot.map \
+    /out:z:/home/jone/bin/jot${exeSuffix}.exe \
+      >> ed/source/jot.lis
+echo Done compile of z:/home/jone/bin/jot${exeSuffix}.exe >> ed/source/jot.lis
+#    /I "z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt" \
+#    /I "z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/include" \
+#    /I "z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um" \
+#    /I "z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared" \
+#    /I "z:/home/jone/ed/wine/libgw32c-0.4/include" \
+  
+#    z:/home/jone/ed/wine/lib/libgcc.lib \
+#    z:/home/jone/ed/wine/libgw32c-0.4/lib/libgw32c.a \
+#    "z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64/Ole32.Lib" \
+  
+#    z:/home/jone/ed/wine/lib/libgcc.lib \
+#    z:/home/jone/ed/wine/libgw32c-0.4/lib/libgw32c.a \
+#    "z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64/Ole32.Lib" \
+#    /libpath:"z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/ucrt/x64" \
+#    /libpath:"z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64" \
+#    /libpath:"z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/lib/x64" \
+#    /libpath:"z:/run/media/jone/2ECC8E65CC8E2765/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64" \
+      
+  cat ed/source/jot.lis
+    if [ -z ${backup} ]; then
+      ls -lrt ed/source/${sourceFile}.c bin/jot_dev*
+    else 
+      ls -lrt ${sourceDir}/${sourceFile}.c bin/jot_dev*
+      fi
+    echo ""
+    echo ""
+    echo ""
+    \grep -i warning ed/source/jot.lis
+    \grep -i error ed/source/jot.lis
+    fi
+
 #Chromebook-linux compile.
-if [ "${SYSTEM}" = "Chrome" ]; then
-  \rm -f ed/source/jot.lis bin/jot${exeSuffix}
+#  In an emergency, compile it like this:
+#  cc source/jot.c -DCHROME -D_FILE_OFFSET=64 /usr/lib/x86_64-linux-gnu/libncursesw.so -o ../bin/jot_dev
+#
+if [[ "${SYSTEM}" == "CHROME" &&  $lin -ne 0 ]]; then
   if [ "${preprocOpt}" != "" ]; then
     preprocOpt=" -E "
     fi
   if [ $nochrome -eq 0 ] ; then
-#    if [ ! -z $backup ]; then
-#      versionString='"'"jot for chrome (from backup ${backup}) ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using crouton  "'"'
-#    else
-      versionString='"'"jot for chrome ${version}, from ${sourcedir}${sourcefile}, built `\date +%d/%m/%y\ %H:%M:%S; ` using crouton  "'"'
-#      fi
+    if [ ! -z $backup ]; then
+      versionString='"'"jot for chrome (from backup ${backup}) ${version}, built `\date +%d/%m/%y\ %H:%M:%S; ` using crouton  "'"'
+    else
+      versionString='"'"jot for chrome ${version}, from ${sourceDir}${sourceFile}.c, built `\date +%d/%m/%y\ %H:%M:%S; ` using crouton  "'"'
+      fi
     
+echo versionString=$versionString
   if [ `uname -m` = "x86_64" ]; then
-    echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString} for ChromeOS" 2>&1 | tee > ed/source/jot.lis
-    cc -DCHROME $debug -g -Wall ${sourcedir}${sourcefile} ${preprocOpt} -D VERSION_STRING="${versionString}" \
+    echo "Compiling ${sourceDir}${sourceFile}.c (version string ${versionString} for X64-ChromeOS" 2>&1 | tee > ed/source/jot.lis
+    cc -DCHROME $debug -g -Wall ${sourceDir}${sourceFile}.c ${preprocOpt} -D VERSION_STRING="${versionString}" \
       -D_FILE_OFFSET_BITS=64 \
+      ${stripOpt} \
       -Xlinker -Map=ed/jot.map \
       /usr/lib/x86_64-linux-gnu/libncursesw.so \
       -o bin/jot${exeSuffix} \
       2>&1 | tee >> ed/source/jot.lis
         
   else #Assume it's an arm chromebook then.
-    echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString} for ChromeOS" 2>&1 | tee > ed/source/jot.lis
-    cc -DCHROME $debug -g -Wall ${sourcedir}${sourcefile} ${preprocOpt} -D VERSION_STRING="${versionString}" \
+    echo "Compiling ${sourceDir}${sourceFile}.c (version string ${versionString} for arm-ChromeOS" 2>&1 | tee > ed/source/jot.lis
+    cc -DCHROME $debug -g -Wall ${sourceDir}${sourceFile}.c ${preprocOpt} -D VERSION_STRING="${versionString}" \
       -D_FILE_OFFSET_BITS=64 \
+      ${stripOpt} \
       -Xlinker -Map=ed/jot.map \
       /usr/lib/arm-linux-gnueabihf/libncursesw.so \
       -o bin/jot${exeSuffix} \
       2>&1 | tee >> ed/source/jot.lis
     fi
+    
+    cat ed/source/jot.lis
   fi
-        
-  if [ $notest -eq 0 ]; then
-    echo ""
-    jot${exeSuffix} ${JOT_RESOURCES}/t.t -in="%r=test; ((v/Successfully completed all basic tests/, v/Pass/) %a0=Successfully completed all basic tests;, %a1=Fail;)"
-    fi
+#        
+#  if [ $notest -eq 0 ]; then
+#    echo ""
+#    jot${exeSuffix} ${JOT_RESOURCES}/t.t -in="%r=test; ((v/Successfully completed all basic tests/, v/Pass/) %a0=Successfully completed all basic tests;, %a1=Fail;)"
+#    fi
   fi
 
 #Raspberry-pi-linux compile.
-echo SYSTEM=$SYSTEM
-pwd
-if [ "${SYSTEM}" = "pi" ]; then
+if [[ "${SYSTEM}" == "pi" &&  $lin -ne 0 ]]; then
   \rm -f ed/source/jot.lis bin/jot${exeSuffix}
   if [ "${preprocOpt}" != "" ]; then
     preprocOpt=" -E "
     fi
-  versionString='"'"jot for ARM ${version}, from ${sourcedir}${sourcefile}, built `\date +%d/%m/%y\ %H:%M:%S; ` using Raspberry-PI  "'"'
+  versionString='"'"jot for ARM ${version}, from ${sourceDir}${sourceFile}.c, built `\date +%d/%m/%y\ %H:%M:%S; ` using Raspberry-PI  "'"'
     
-echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString} for Raspberypi"
-echo sourcedir=$sourcedir
-ls -l $sourcedir/$sourcefile
-echo sourcefile=$sourcefile
-  echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString} for Raspberypi" 2>&1 | tee > ed/source/jot.lis
-  cc -DPI -DnoX11 $debug -g -Wall ${sourcedir}${sourcefile} ${preprocOpt} -D VERSION_STRING="${versionString}" \
+  echo "Compiling ${sourceDir}${sourceFile}.c (version string ${versionString} for Raspberypi"
+  echo "Compiling ${sourceDir}${sourceFile}.c (version string ${versionString} for Raspberypi" 2>&1 | tee > ed/source/jot.lis
+  cc -DPI -DnoX11 $debug -g -Wall ${sourceDir}${sourceFile}.c ${preprocOpt} -D VERSION_STRING="${versionString}" \
     -D_FILE_OFFSET_BITS=64 \
+    ${stripOpt} \
     -Xlinker -Map=ed/jot.map \
     /usr/lib/arm-linux-gnueabihf/libncursesw.so \
     -o bin/jot${exeSuffix} \
     2>&1 | tee >> ed/source/jot.lis
-  fi
-        
-if [ $notest -eq 0 ]; then
-  echo ""
-  jot${exeSuffix} ${JOT_RESOURCES}/t.t -in="%r=test; ((v/Successfully completed all basic tests/, v/Pass/) %a0=Successfully completed all basic tests;, %a1=Fail;)"
+#    
+#  if [ $notest -eq 0 ]; then
+#    echo ""
+#    jot${exeSuffix} ${JOT_RESOURCES}/t.t -in="%r=test; ((v/Successfully completed all basic tests/, v/Pass/) %a0=Successfully completed all basic tests;, %a1=Fail;)"
+#    fi
   fi
 
-#PC-linux compile.
-if [[ "${SYSTEM}" == "PC" &&  $nolin -eq 0 ]]; then
-  \rm -f jot${exeSuffix} jot.o ed/source/jot.lis
-  versionString="jot ${version}, from ${sourcedir}${sourcefile}, built `\date +%d/%m/%y\ %H:%M:%S` `\uname -nspr`  "
+if [[ "${SYSTEM}" == "PC" &&  $lin -ne 0 ]]; then
+echo #PC-linux compile.
+  \rm -f bin/jot${exeSuffix} ed/source/jot.lis
+  versionString="jot ${version}, from ${sourceDir}${sourceFile}.c, built `\date +%d/%m/%y\ %H:%M:%S` `\uname -nspr`  "
   if [ "${preprocOpt}" != "" ]; then
     preprocOpt=" -E "
     fi
   if [ ! -z $backup ]; then
     versionString="${versionString} - from backup source ${backup}  "
     fi
+  echo versionString=$versionString
   echo "" >> ed/source/jot.lis
   echo "" >> ed/source/jot.lis
   echo "---------------------------------------------------------------------------------" >> ed/source/jot.lis
-  echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString}) to bin/jot${exeSuffix}, for linux"
-  echo "staticOpt=$staticOpt, stripOpt=$stripOpt"
-  echo "Compiling ${sourcedir}${sourcefile} (version string ${versionString}) for linux" | tee >> ed/source/jot.lis
-  cc ${preprocOpt} -DLINUX -DnoX11 $debug -g -Wall ${sourcedir}${sourcefile} -D_FILE_OFFSET_BITS=64 -D VERSION_STRING="\"${versionString}\"" \
-     -Xlinker -Map=ed/jot.map ${staticOpt} ${stripOpt} -Xlinker -dy -lgcc_s -o bin/jot${exeSuffix} 2>&1 | tee >> ${sourcedir}/jot.lis
+  echo "Compiling ${sourceDir}${sourceFile}.c (version string ${versionString}) to bin/jot${exeSuffix}, for PC linux"
+  echo "dynamicOpt=$dynamicOpt, stripOpt=$stripOpt"
+  echo "Compiling ${sourceDir}${sourceFile}.c (version string ${versionString}) for linux" | tee >> ed/source/jot.lis
+  
+  cc -dM ${preprocOpt} -DLINUX -DnoX11 $debug -g -Wall ${sourceDir}${sourceFile}.c -D_FILE_OFFSET_BITS=64 -D VERSION_STRING="\"${versionString}\"" \
+     -Xlinker -Map=ed/jot.map ${dynamicOpt} ${stripOpt} -Xlinker -dy -lgcc_s \
+     -o bin/jot${exeSuffix} \
+       2>&1 | tee >> ed/source/jot.lis
+       
   if [ "${preprocOpt}" != "" ]; then
     notest=1
-    \cat  bin/jot${exeSuffix} >> ${sourcedir}/jot.lis
+    \cat  bin/jot${exeSuffix} >> ed/source/jot.lis
     \rm bin/jot${exeSuffix}
     fi
+  fi
   
+if [ $lin -ne 0 ]; then
+  echo ""
+  \grep -i warning ed/source/jot.lis
+  \grep -i error ed/source/jot.lis
+  \grep -i Cannot ed/source/jot.lis
+  \grep -i 'undefined' ed/source/jot.lis
+  \grep -i 'cannot find' ed/source/jot.lis
+  echo ""
   if [ $notest -eq 0 ]; then
     echo ""
     jot${exeSuffix} ${JOT_RESOURCES}/t.t -in="%r=test; ((v/Successfully completed all basic tests/, v/Pass/) %a0=Successfully completed all basic tests;, %a1=Fail;)"
     fi
   fi
-
+    
 if [ "$newVersion" != "" ]; then
-  #Remove temporary link (or it makes zip go wild):
-  rm ${sourcedir}/../wine_32
-  chmod u-w ${sourcedir}/..
-  chmod u-w ${sourcedir}/jot.lis
-  fi
-  
-if [[ $nowin -eq 0 && $notest -eq 0 ]]; then
-  \cat ed/test_win.txt
-  fi
-
-if [ "$newVersion" != "" ]; then
-  #The -newversion qualifier was given.
+  \chmod u-w ${sourceDir}/..
+  \chmod u-w ${sourceDir}/jot.lis
   \chmod -R u+w ed/${versionDir} 
   if [ "`uname`" = "WindowsNT" ]; then
     \cp -p bin/jot${exeSuffix}.exe ed/${versionDir}/bin/win/jot.exe
@@ -754,38 +855,30 @@ if [ "$newVersion" != "" ]; then
     \cp -p bin/jot${exeSuffix}.pdb ed/${versionDir}/bin/win/jot.pdb
   elif [ "`uname -p`" = "x86_64" ]; then
     \cp -p bin/jot${exeSuffix} ed/${versionDir}/bin/lin/jot
-#  elif [ "`uname -p`" = "i686" ]; then 
-#    \cp -p bin/jot${exeSuffix} ed/${versionDir}/bin/lin32/jot
   elif [ "`uname -p`" = "armv7l" ]; then 
     \cp -p bin/jot${exeSuffix} ed/${versionDir}/bin/armv7l/jot
     fi
   \chmod -R ugo-w ed/${versionDir} 
   fi 
    
-echo ""
-\grep -i warning ed/source/jot.lis
-\grep -i error ed/source/jot.lis
-\grep -i Cannot ed/source/jot.lis
-\grep -i 'undefined' ed/source/jot.lis
-\grep -i 'cannot find' ed/source/jot.lis
-\ls -lrt ${sourcedir}${sourcefile} bin/jot_*
+\ls -lrt ${sourceDir}${sourceFile}.c bin/jot_*
 
 if [ "${newVersion}" != "" ]; then
   \mkdir -p ed/${versionDir}/source ed/${versionDir}/bin ed/${versionDir}/coms ed/${versionDir}/docs \
     ed/${versionDir}/bin/lin ed/${versionDir}/bin/win ed/${versionDir}/bin/armv7l
-  \cp -p ed/source/*.c ed/source/*.h ed/${versionDir}/source
-  \cp -p ed/bin/test.sh ed/bin/test.bat ed/bin/test_win.sh ed/READMEs/README ed/READMEs/releasenote.txt ed/${versionDir}
+  \cp -p ed/source/jot.c ed/source/xls2csv.c ed/${versionDir}/source
+  \cp -p ed/bin/test.sh ed/bin/test.bat ed/bin/test_win.sh ed/READMEs/README ed/READMEs/COPYING ed/READMEs/releasenote.txt ed/${versionDir}
   \chmod ugo+x ed/${versionDir}/test.sh ed/${versionDir}/test_win.sh ed/${versionDir}/test.bat
   \cp -pR ed/resources ed/${versionDir}
   \cp -p ed/coms/*.jot ed/${versionDir}/coms
   \cp -p ed/docs/* ed/${versionDir}/docs
   \cp -p bin/jot_dev  ed/${versionDir}/bin/lin/jot
   \cp -p bin/jot_dev.exe  ed/${versionDir}/bin/win/jot.exe
-  \cp -p ed/bin/xterm-jot  ed/${versionDir}/bin/
+  \cp -p ed/bin/xterm-jot ed/bin/install.sh ed/bin/install.bat  ed/${versionDir}/bin/
   \echo "" >> ed/READMEs/releasenote_cumulitive.txt
   \echo "Release version ${version} "`\date` >> ed/READMEs/releasenote_cumulitive.txt
   \cat ed/READMEs/releasenote.txt >> ed/READMEs/releasenote_cumulitive.txt
-  sourcedir="ed/release/jot/$version/source/"
+  sourceDir="ed/release/jot/$version/source/"
   #
-  \echo "Built new version in $sourcedir"
+  \echo "Built new version in $sourceDir"
   fi

@@ -8,907 +8,1763 @@
   and
     https://en.wikipedia.org/wiki/Comparison_of_text_editors
   
-  On my linux installation (a Fedora 27) the vi command launches a vim:
-$ vi --version
-VIM - Vi IMproved 8.0 (2016 Sep 12, compiled Oct  6 2017 15:20:00)
-...
-  
   The editors included in this comparison were:
-    - jot v2.3.1
-    - vim 8.0
-    - gvim v8.0.1573
-    - emacs 25.3.1
-    - nano 2.8.7
+    - jot: v3.2.0
+    - vim: 8.2.3070
+    - emacs: 27.2 
+    - ecce: v2.9c  (source  downloaded  from  the  sourceforge  ecce  project,
+      and compiled with gcc)
+    - nano: GNU nano, version 5.8
+    
+  In windowsland 
+    - jot: v3.2.0
+    - vim: 8.2.2824
+    - emacs: 27.2 (build 1, x86_64-mingw32) of 2021-03-26
+    - ecce: v2.9c  (source  downloaded  from  the  sourceforge  ecce  project,
+      compiled with CL)
+    - nano:
+    
+  For Raspberry pi these editors were tried:
+    - jot: v3.2.0
+    - vi: (actually vim 8.1 - 2018 May 18, compiled Jun 15 2019 16:41:15)
+    - emacs: v26.1
+    - ecce: v2.9c  (source  downloaded  from  the  sourceforge  ecce  project,
+      compiled with gcc)
 
-1.1 Methodology
----------------
-  The performance assessments were done on an otherwise idle  quad-core  Intel
-  64-bit linux box the only other user processes running were top and vmstat:
-$ uname -a
-Linux localhost.localdomain 4.13.9-300.fc27.x86_64 #1 SMP Mon Oct 23 13:41:58 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+1.1 Method
+----------
+  The tasks can in general be describes as "time loading  some  stonking-great
+  text  file,  doing  something  then  exiting  without  writing".  One  might
+  reasonably ask "so who's interested in knowing  how  long  it  takes  to  do
+  something with a file several orders of magnitude bigger than I  shall  ever
+  be dealing with?" The answer  is:  when  our  editors  are  performing  some
+  complicated series of programmed operations, the raw performance  determines
+  how long we have to sit and stare at a  static  screen.  It  also,  perhaps,
+  places our editors under stress so we can detect any  memory-stress  related
+  crashyness.
   
-  For editors that allow commands to be entered via  the  CLI  (jot,  vim  and
-  gvim) this method was used as it avoids including the time taken  to  fumble
-  with the mouse and keyboard.
+  The run-time comparison used the time_trial.jot script,  this  launches  the
+  editors and calculates elapsed  times.  This  script  only  reports  elapsed
+  times but was used in preference to the linux "time"  command  as  it  works
+  equally well in windowsland.
   
-  emacs has a non-interactive mode - not really quite the  same  thing  as  an
-  interactive editor that allows initialization commands from the command line
-  and we're trying to compare like with like. Anyway, most tests  include  two
-  results for emacs - one for a non-interactive lisp script  and  another  for
-  normal interactive mode. In some cases the lisp-script version  was  several
-  orders of magnitude faster - far more than could be  explained  away  by  my
-  slow typing or the requirement to update the screen. The lisp-script version
-  gives the impression of being an entirely different editor.
+  Tests were run using reasonably large files for two reasons:
+    - The size of text files that have to be viewed and changed can  be  quite
+      large anyway these days and
+    - the large file size gives  a  more  accurate  estimate  of  the  editors
+      actual performance for the specified task without  going  to  a  lot  of
+      effort to exclude overhead activity.
   
-  The vim installation  came  out  of  the  box  with  my  linux  (Fedora  27)
-  masquerading as vi, the gvim and  emacs  were  the  default  downloads  from
-  Fedora, nano was also out of the box.
+  Both vi and emacs are, by default, case sensitive whereas jot and  ecce  are
+  not. Case sensitive searches are simpler and one would expect  them  to  run
+  searches a bit faster. All jot runs include a command to make searches  case
+  sensitive - this version of ecce appears to be lacking such a command.
   
-  In general, for quick-running tests (anything under  about  2  minutes)  the
-  test was repeated and the quoted results are for the best of three. The only
-  exceptions were the image-activation tests. For these, in order to clear the
-  cache and swap files, the computer was restarted and each editor  was  fired
-  up only once. In the case of emacs, the system was restarted for each case.
-  
-  Any test run that dragged on for more than 30 minutes was killed.
-  
-  I used GNU time 1.7 - this has the option to collect other performance  data
-  - although this additional data was not as significant as  the  elapsed-time
-  result, it gives some insight into what was going  on  for  under-performing
-  tests.
-  
-  Both jot and nano are, by default case insensitive  whereas  vim,  gvim  and
-  emacs are case sensitive. Case sensitive searches are simpler and one  would
-  expect them to run a little faster. All jot runs include a command  to  make
-  searches case sensitive.
-  
-  The values in the `text density` section were obtained from the RSS field of
-  the time reports in the `Loading a  big  file`  section.  The  numbers  were
-  verified using /usr/bin/pmap which gave roughly the same results.
+  The values in  the  `text  density`  section  were  obtained  from  the  RSS
+  reported by the linux time command, while the editor was processing the  big
+  file. e.g:
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in=%a
   
   In all cases the session was abandoned without writing back  to  the  filing
   system.
+  
+  The linux-PC tests were run on a Fedora 34 desktop  system  with  (according
+  to lscpu and lsmem):
+    - AMD FX(tm)-6100 Six-Core Processor
+    - SSD
+    - 3.3GHz max clock rate
+    - 7.5GB memory
+    - There were several (largely) inactive xterms open one running a  largely
+      inactive jot session and one running top.
+    - xfce4 window manager,
+    
+  The Windows tests were run  on  the  same  system  under  wine  and  genuine
+  windows 10. Under wine, the headless emacs tasks all  failed  -  complaining
+  it was not connected to a genuine terminal.
+  
+  The Raspberry pi was:
+    - Arm Cortex-A7, armv7l, Four-core processor
 
-1.2 Image size
+1.2 The test files
+------------------
+  A sample file of about 500Mb was created by jot using these commands:
+$ rm big_file.txt
+$ jot -in="%eq=ls -RF /usr/lib; %r=ls2list; \
+  %da= 00 aaa This is the start of the big file; za %o= -append big_file.txt; \
+  ol100000000 z. m-0((%i.= -binary=32 'q; i'qbr0b %o= -append big_file.txt;, ) %q$=file big_file.txt; f/ size = /-oid o> zqm)0 \
+  %d$= 00 zzz This is the end of the big file; %o= -append big_file.txt; %a;"
+  
+  A similar file but with very long lines, was created thusly:
+$ rm fat_file.txt
+$ jot -in="%eq=ls -RF /usr/lib; %r=ls2list; \
+  %da= 00 aaa This is the start of the fat file; za %o= -append fat_file.txt; \
+  ol100000000 m-0((%i.= -binary=64 'q; (m-0(jm)0m-)0 r-0i'qbr0b %o= -append fat_file.txt;, ) %q$=file fat_file.txt; f/ size = /-oid o> zqm)0 \
+  %d$= 00 zzz This is the end of the fat file; %o= -append fat_file.txt; %a;"
+
+1.3 Image Size
 --------------
+  The total installed size  of  some  of  these  editors  is  not  immediately
+  obvious - applying du -b to /usr/share/<name>, in the case of jot  the  size
+  given  is  that  of  the  unpacked  tarball,  this  includes  includes   two
+  statically-linked linux executables and the windows executable:
+  
+  - jot:      10140
+  - vim:      35464 
+  - emacs:    95168
+  - nano:       184
+  
   The image sizes refer to the  executable-image  size  for  the  most  recent
   linux-64 versions. This just looks at the size of the  main  image,  in  the
   case of emacs, after following links, then ls -l.
-    - jot     521216
-      The stripped version with dynamically-linked ncurses is 191512
-    - vim    1102216
-    - gvim   3320904
-    - emacs 16913736
-    - nano    239944
+  
+  The linux-PC versions:
+    - jot     240976 (v3.1.0 linux image compiled with the install.sh script)
+    - nano    328304
+    - jot    1106208 (linux image in the v3.1.0 tarball)
+    - vim    3520096
+    - emacs 40084800
     
-  Of course image size depends on how the image is linked. All are dynamically
-  linked to /usr/lib64 libraries, interestingly, while jot, gvim and nano link
-  to the gnu ncurses lib, vim and emacs seem to make their  own  arrangements.
-  Yet, strangely, gvim uses ncurses and it's a much bigger image than vim.
+  The windows-PC versions:
+  
+  The Raspberry-pi (armv7l-linux) versions:
+    jot     239596 (v3.2.0 linux stripped image)
+    nano    202384
+    jot     396116 (v3.2.0 linux from tarball)
+    vi      921704  (the vi installation turned out to be a tiny vim)
+    emacs 21169696
+    
+  Of course image size depends on how the image is linked. The  image  in  the
+  jot  tarballs  is  statically  linked  to  the   ncurses   libs   to   avoid
+  incompatibility problems. It's also not had debugging  information  stripped
+  out to improve diagnostic support.
+  
+  So, if anyone out there is still  at  all  bothered  about  image  size  and
+  activation times, jot would seem to be  a  pretty  good  bet.  Although  the
+  version supplied in  the  tarball  is  about  halfway  down  the  pack,  the
+  stripped, dynamically linked version is comfortably slimmer than  even  nano
+  (all of the other contestants were stripped and dynamically linked).
 
-1.3 Image activation time
+1.4 Text density
+----------------
+  The big file is loaded up and the session exits without  any  other  editing
+  activity while the process is being monitored by  the  linux  time  command.
+  And the The RSS result is recorded - this shows the peak memory used. For  a
+  big file this should give  a  reasonable  indication  of  the  text  packing
+  density. 
+  
+  First the big file:
+    - jot
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="%s=case 1; f/zzz/? %a"
+	  0:00.69 elapsed, 0.41 user, 0.25 system, 96% CPU, (1 major + 64164 minor) faults, 296 io, 258996 rss
+  
+    - vim
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vim big_file.txt +:q
+	  0:00.89 elapsed, 0.52 user, 0.15 system, 76% CPU, (5 major + 29654 minor) faults, 55088 io, 124880 rss
+  
+    - emacs (interactive)
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs -execute '(insert-file-contents "big_file.txt")' -kill
+	  0:02.22 elapsed, 1.01 user, 0.25 system, 57% CPU, (142 major + 32713 minor) faults, 69712 io, 188884 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+end-of-lisp
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
+	  0:00.55 elapsed, 0.42 user, 0.12 system, 99% CPU, (0 major + 29421 minor) faults, 0 io, 158436 rss
+  
+    - nano
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
+	  0:03.28 elapsed, 0.97 user, 0.18 system, 35% CPU, (1 major + 64224 minor) faults, 648 io, 259660 rss
+    
+    - ecce
+$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" ecce big_file.txt
+	  0:03.74 elapsed, 0.95 user, 0.13 system, 28% CPU, (0 major + 48911 minor) faults, 80 io, 196768 rss
+  
+  In summary:                    rss
+    - jot                     258996  
+    - vim                     124776
+    - emacs (interactive)     188884 
+    - emacs (.el-lisp script) 158436
+    - nano                    259660 
+    - ecce                    196768
+    
+  But  nano's  memory  usage  goes  through  the  roof   when   handling   the
+  fat file - see `postscript`
+
+1.5 Image activation time
 -------------------------
   The elapsed time is not particularly reliable in the case of emacs and nano,
   since these do not seem to offer any options to enter editor  commands  from
   the command line. For nano and emacs the session was  quickly  closed  using
   interactive commands.
   
+  PC-linux:
     - jot 
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot t.t -in="%a"
-	  0:00.14 elapsed, 0.01 user, 0.00 system, 10% CPU, (3 major + 347 minor) faults, 1520 io, 3892 rss
+$ time_trial jot t.t -in="%a"
+	  0:00.03 elapsed, 0.03 user, 0.00 system, 94% CPU, (0 major + 431 minor) faults, 0 io, 4028 rss
   
   - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi t.t -c:q
-	  0:00.05 elapsed, 0.00 user, 0.00 system, 5% CPU, (8 major + 206 minor) faults, 2160 io, 4064 rss
-  
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim t.t -v -c:q
-	  0:00.29 elapsed, 0.02 user, 0.01 system, 14% CPU, (26 major + 1411 minor) faults, 7488 io, 18556 rss
+$ time_trial vim t.t -c:q
+	  0:00.02 elapsed, 0.01 user, 0.00 system, 100% CPU, (0 major + 988 minor) faults, 0 io, 9372 rss
   
   - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs -nw t.t
-  - {Ctrl+x}{Ctrl+c}
-	  0:02.96 elapsed, 0.09 user, 0.04 system, 4% CPU, (216 major + 4175 minor) faults, 69840 io, 50212 rss
+$ time_trial emacs -nw t.t -kill
+	  0:00.18 elapsed, 0.15 user, 0.02 system, 98% CPU, (0 major + 4750 minor) faults, 16 io, 54392 rss
   
   - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "t.t")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	  0:02.01 elapsed, 0.09 user, 0.04 system, 6% CPU, (211 major + 3049 minor) faults, 67808 io, 48396 rss
+$ time_trial emacs --script x.el
+	  0:00.11 elapsed, 0.09 user, 0.01 system, 98% CPU, (0 major + 3347 minor) faults, 0 io, 53012 rss
   
   - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano t.t
-	  0:00.51 elapsed, 0.02 user, 0.00 system, 5% CPU, (2 major + 715 minor) faults, 9328 io, 9220 rss
-
-1.4 Loading a big file
-----------------------
-  A sample file was created by jot using these commands:
-$ rm big_file.txt
-$ jot /dev/null -in="%eq=ls -RF /usr/lib64; %r=ls2list; \
-  ol1000000000 m-0((%i.='q -binary 64; i'qbr0b %o=big_file.txt -append;, ) %q$=file big_file.txt; f/ size = /-oid o> zqm)0"
+$ time_trial nano t.t
+  - {Ctrl+x}
+	  0:00.35 elapsed, 0.00 user, 0.00 system, 3% CPU, (0 major + 715 minor) faults, 0 io, 9740 rss
   
-  It turns out that the actual file size was 1000679059. It contained 75300980
-  instances of the string "00" and 20422442 instances of the string "99".
-  
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in=%a
-	0:03.47 elapsed, 2.01 user, 1.05 system, 88% CPU, (8 major + 638535 minor) faults, 98216 io, 2556520 rss
+  PC-windows:
+    - jot 
+$ win_jot t.t -in="%a"
+	  0:01.07 elapsed, 0.08 user, 0.10 system, 17% CPU, (0 major + 3854 minor) faults, 0 io, 21812 rss
   
   - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c:q
-	0:07.44 elapsed, 3.87 user, 0.81 system, 62% CPU, 23 faults, 795248 io, 1251080 rss
+$ win_vim t.t -c:q
+	  0:02.55 elapsed, 0.09 user, 0.08 system, 7% CPU, (0 major + 3866 minor) faults, 0 io, 21728 rss
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v -c:q
-	0:04.13 elapsed, 3.43 user, 0.62 system, 98% CPU, 0 faults, 680 io, 1265032 rss
-   
   - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+x}{Ctrl+c}
-	0:05.19 elapsed, 3.55 user, 0.53 system, 78% CPU, (2 major + 276771 minor) faults, 104 io, 1149140 rss
+$ win_emacs -nw t.t -kill
+	  0:04.71 elapsed, 0.09 user, 0.10 system, 4% CPU, (0 major + 3850 minor) faults, 0 io, 21868 rss
   
   - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "t.t")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:02.92 elapsed, 0.10 user, 0.10 system, 7% CPU, (0 major + 3844 minor) faults, 0 io, 21860 rss
+  
+  - nano
+$ win_nano t.t
+  - {Ctrl+x}
+	
+  
+  Pi-linux:
+    - jot 
+$ time jot t.t -in="%a"
+	  0m0.397s
+  
+  - vi
+$ time vi t.t -c:q
+	  0m0.028s
+  
+  - emacs (interactive)
+$ time emacs -nw t.t -kill
+	  0m1.041s
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "t.t")
+end-of-lisp
+$ time emacs --script x.el
+	  0m0.647s
+  
+  - nano
+$ time nano t.t
+  - {Ctrl+x}
+	  0m0.425s
+  
+  Apart from the arm version of emacs, these figures are not really  important
+  since none of these was less than a few milliseconds. The  result  for  nano
+  should   be   discounted   because   it   includes   the   time   taken   to
+  enter {Ctrl+x} - nano does not  seem  to  have  any  facility  for  entering
+  commands from the CLI line.
+
+1.6 Loading a big file
+----------------------
+  A sample file of about 500Mb was created by jot using these commands:
+$ rm big_file.txt
+$ jot -in="%eq=ls -RF /usr/lib; %r=ls2list; \
+  %da= 00 aaa This is the start of the big file; za %o= -append big_file.txt; \
+  ol500000000 z. m-0((%i.= -binary=32 'q; i'qbr0b %o= -append big_file.txt;, ) %q$=file big_file.txt; f/ size = /-oid o> zqm)0 \
+  %d$= 00 zzz This is the end of the big file; %o= -append big_file.txt; %a;"
+  
+  The resultant file was, unfortunately too big for the  emacs  buffer  so  it
+  was reduced to 445495954B bu editing.
+    - There were 4593051 lines mostly of 96 bytes in length.
+    - There were 24715527 instances of the string "00"
+    - There were 66981 instances of the string "99"
+  
+  PC-linux:
+    - jot
+$ time_trial jot big_file.txt -in=%a
+	  0:01.55 elapsed, 0.77 user, 0.77 system, 99% CPU, (0 major + 197728 minor) faults, 0 io, 793196 rss
+  
+    - vim
+$ time_trial vim big_file.txt -c:q
+	  0:02.10 elapsed, 1.69 user, 0.39 system, 99% CPU, (0 major + 123807 minor) faults, 0 io, 501372 rss
+  
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -kill
+	  0:02.30 elapsed, 1.68 user, 0.50 system, 95% CPU, (20 major + 117153 minor) faults, 0 io, 526636 rss
+  
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:03.73 elapsed, 3.23 user, 0.49 system, 99% CPU, (0 major + 272060 minor) faults, 0 io, 1123744 rss
+$ time_trial emacs --script x.el
+	  0:01.76 elapsed, 1.33 user, 0.42 system, 99% CPU, (0 major + 113727 minor) faults, 0 io, 495376 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
+    - nano
+$ time_trial nano big_file.txt
    {Ctrl+x}  - to exit.
-	0:37.28 elapsed, 36.16 user, 0.90 system, 99% CPU, 5 faults, 9880 io, 2459268 rss
-
-1.5 Loading a different big file
---------------------------------
-  The  file   used   here   was   downloaded   from   the   Federal   Election
-  Commission   -   ​https://www.fec.gov/files/bulk-downloads/2018/indiv18.zip)
-  It's a big (about 4.3Gb) tabular database  organized  as  about  22  million
-  lines of 20 columns separated by vertical bars ( | ).
+	  0:04.23 elapsed, 3.11 user, 0.55 system, 86% CPU, (4 major + 197674 minor) faults, 896 io, 793484 rss
   
-  - jot 
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot itcont.txt -in=%a;
-  3:21.39 elapsed, 7.11 user, 9.46 system, 8% CPU, (69 major + 1484465 minor) faults, 8373136 io, 3482732 rss
+  PC-windows:
+    - jot
+$ win_jot big_file.txt -in=%a
+	  0:04.17 elapsed, 0.10 user, 0.10 system, 4% CPU, (0 major + 3845 minor) faults, 0 io, 21676 rss
   
-  - vi
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi itcont.txt  -c:q
-  1:31.11 elapsed, 17.21 user, 7.03 system, 26% CPU, (24 major + 501048 minor) faults, 8368824 io, 2007368 rss
-    
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs itcont.txt
-  13:27.35 elapsed, 53.08 user, 28.72 system, 10% CPU, (369813 major + 6757217 minor) faults, 31983928 io, 3532996 rss
+    - vim
+$ win_vim big_file.txt -c:q
+	  0:08.60 elapsed, 0.08 user, 0.08 system, 1% CPU, (0 major + 3670 minor) faults, 0 io, 21944 rss
   
-  - emacs (.el-lisp script)
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -kill
+	  0:06.83 elapsed, 0.07 user, 0.07 system, 2% CPU, (0 major + 3674 minor) faults, 0 io, 21836 rss
+  
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
-(insert-file-contents "itcont.txt")
+(insert-file-contents "big_file.txt")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-  5:24.25 elapsed, 19.67 user, 17.98 system, 11% CPU, (245186 major + 3795275 minor) faults, 24057320 io, 3540768 rss  
+$ win_emacs --script x.el
+	  0:04.87 elapsed, 0.06 user, 0.07 system, 2% CPU, (0 major + 3708 minor) faults, 0 io, 21748 rss
   
-  -nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano itcont.txt
-  11:37.87 elapsed, 161.20 user, 27.00 system, 26% CPU, (522701 major + 5100756 minor) faults, 41607872 io, 3535936 rss
+    - nano
+$ time_trial nano big_file.txt
+   {Ctrl+x}  - to exit.
+	  
   
-
-1.6 Text density
-----------------
-  See `methodology` notes.
+  Pi-linux:
+    - jot
+$ time jot big_file.txt -in=%a
+	  0m24.866s
   
-  - jot -   2556520 2.556520
+    - vi
+$ time  vi big_file.txt -c:q
+	  0m30.432s
   
-  - vim -   1251080 1.251080
+    - emacs (interactive)
+$ time  emacs -execute '(insert-file-contents "big_file.txt")' -kill
+	  0m43.753s
   
-  - gvim -  1265032 1.265032
-   
-  - emacs - 1149140 1.149140  (interactive)
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+end-of-lisp
+$ time  emacs --script x.el
+	  0m32.395s
   
-  - emacs - 1123744 1.123744 (.el-lisp script)
+    - nano
+$ time nano big_file.txt
+   {Ctrl+x}  - to exit.
+	  0m45.516s
   
-  - nano -  2459268 2.459268
+  The results are all pretty much the same - jot and vim  were  a  bit  faster
+  but all were within acceptable limits.
 
 1.7 Loading a big file and searching forwards
 ---------------------------------------------
   The big_file.txt is loaded again and this time each editor is set to  search
-  the entire file for a nonexistent string.
+  the entire file for a string that only occurs at the end of the file.
   
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="%s=case 1; f/zzz/? %a"
-	0:09.27 elapsed, 6.35 user, 1.21 system, 81% CPU, (10 major + 638534 minor) faults, 740488 io, 2556728 rss
+  PC-linux:
+    - jot
+$ time_trial jot big_file.txt -in="%s=case 1; f/zzz/? %a"
+	  0:01.89 elapsed, 1.09 user, 0.79 system, 99% CPU, (0 major + 197730 minor) faults, 0 io, 793244 rss
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c/zzz/ +:q
-	0:18.72 elapsed, 14.49 user, 1.29 system, 84% CPU, 19 faults, 820568 io, 1251312 rss
+    - vim
+$ time_trial vim big_file.txt -c/zzz/ +:q
+	  0:04.99 elapsed, 4.55 user, 0.41 system, 99% CPU, (0 major + 123802 minor) faults, 0 io, 501156 rss
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v -c/zzz/ +:q
-	0:09.31 elapsed, 8.59 user, 0.70 system, 99% CPU, (0 major + 313416 minor) faults, 0 io, 1265224 rss
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(search-forward "zzz")' -kill
+	  0:02.84 elapsed, 2.24 user, 0.50 system, 96% CPU, (20 major + 117159 minor) faults, 0 io, 526676 rss
   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+s}zzz{Return}
-  - {Ctrl+x}{Ctrl+c}
-	0:12.98 elapsed, 10.48 user, 0.53 system, 84% CPU, (0 major + 277001 minor) faults, 16 io, 1150076 rss
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(search-forward "zzz")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:02.27 elapsed, 1.80 user, 0.45 system, 99% CPU, (0 major + 113725 minor) faults, 0 io, 495236 rss
+  
+    - nano
+$ time_trial nano big_file.txt
+    - {Ctrl+w}zzz
+    - {Ctrl+x}
+	  0:12.15 elapsed, 7.50 user, 0.61 system, 66% CPU, (0 major + 197681 minor) faults, 0 io, 793588 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="f/zzz/ %a"
+	  0:07.24 elapsed, 0.08 user, 0.09 system, 2% CPU, (0 major + 3703 minor) faults, 0 io, 21844 rss
+  
+    - vim
+$ win_vim big_file.txt -c/zzz/ -c:q
+	  0:09.53 elapsed, 0.07 user, 0.06 system, 1% CPU, (0 major + 3700 minor) faults, 0 io, 21764 rss
+  
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -kill
+	  0:06.75 elapsed, 0.08 user, 0.09 system, 2% CPU, (0 major + 3701 minor) faults, 0 io, 21684 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:04.78 elapsed, 0.09 user, 0.08 system, 3% CPU, (0 major + 3700 minor) faults, 0 io, 21752 rss
+  
+    - nano
+$ win_nano big_file.txt
+   {Ctrl+x}  - to exit.
+	  
+  
+  Pi-linux:
+    - jot
+$ time jot big_file.txt -in=%a
+	  0m40.613s
+  
+    - vi
+$ time  vi big_file.txt -c:q
+	  0m28.833s
+  
+    - emacs (interactive)
+$ time  emacs -execute '(insert-file-contents "big_file.txt")' -kill
+	  0m47.118s
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+end-of-lisp
+$ time  emacs --script x.el
+	  0m29.190s
+  
+    - nano
+$ time nano big_file.txt
+   {Ctrl+x}  - to exit.
+	  0m45.516s
+  
+  Pi-linux:
+      - jot
+$ time jot big_file.txt -in="%s=case 1; f/zzz/? %a"
+	  0m41.093s
+  
+    - vi
+$ time vi big_file.txt -c/zzz/ +:q
+	  1m38.429s
+  - vim reports the wrong character count 898964 - the correct value is 503458461
+  
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' -execute '(search-forward "zzz")' -kill
+	  0m28.249s
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(search-forward "zzz")
+end-of-lisp
+$ time emacs --script x.el
+	  0m40.369s
+  
+    - nano
+$ time nano big_file.txt
+    - {Ctrl+w}zzz{return}
+    - {Ctrl+x}
+	  11m26.101s
+  
+  Jot shows a small advantage over the other contestants, nano shows a significant disadvantage.
+
+1.8 Loading a file and moving to the end
+----------------------------------------
+  The only reason for doing  this  is  to  obtain  a  slightly  more  accurate
+  estimate of the reverse-search time (in the following section).
+  
+  PC-Linux:
+    - jot
+$ time_trial jot big_file.txt -in="m0 %a"
+	  0:01.68 elapsed, 0.92 user, 0.75 system, 99% CPU, (0 major + 197728 minor) faults, 0 io, 793200 rss
+  
+    - vim
+$ time_trial vim big_file.txt -c:$ +:q!
+	  0:02.18 elapsed, 1.79 user, 0.38 system, 99% CPU, (0 major + 123805 minor) faults, 0 io, 501208 rss
+  
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -kill
+	  0:02.37 elapsed, 1.77 user, 0.49 system, 95% CPU, (20 major + 117142 minor) faults, 0 io, 526296 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(goto-char (point-max))
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:30.57 elapsed, 3.27 user, 0.65 system, 12% CPU, (0 major + 197674 minor) faults, 0 io, 793492 rss
+  
+    - nano
+$ time_trial nano big_file.txt
+   {Ctrl+_}{Ctrl+v}{Ctrl+x}
+	  0:09.67 elapsed, 3.24 user, 0.63 system, 40% CPU, (0 major + 197676 minor) faults, 0 io, 793488 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="m0 %a"
+	  0:04.12 elapsed, 0.08 user, 0.08 system, 4% CPU, (0 major + 3672 minor) faults, 0 io, 21600 rss
+  
+    - vim
+$ win_vim big_file.txt -c:$ -:q!
+	  0:01.75 elapsed, 0.09 user, 0.10 system, 11% CPU, (0 major + 3853 minor) faults, 0 io, 21852 rss
+  
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -kill
+	  0:06.51 elapsed, 0.08 user, 0.07 system, 2% CPU, (0 major + 3707 minor) faults, 0 io, 21832 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(goto-char (point-max))
+end-of-lisp
+$ win_emacs --script x.el
+	  0:04.62 elapsed, 0.08 user, 0.06 system, 3% CPU, (0 major + 3702 minor) faults, 0 io, 21764 rss
+  
+    - nano
+$ win_nano big_file.txt
+   {Ctrl+_}{Ctrl+v}{Ctrl+x}
+	  
+  
+  Pi-Linux:
+    - jot
+$ time jot big_file.txt -in="m0 %a"
+	  0:02.29 elapsed, 1.26 user, 1.02 system, 99% CPU, (0 major + 271687 minor) faults, 0 io, 1089072 rss
+  
+    - vim
+$ time vim big_file.txt -c:$ +:q!
+	  0:02.98 elapsed, 2.42 user, 0.54 system, 99% CPU, (0 major + 169817 minor) faults, 0 io, 685344 rss
+  
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -kill
+	  0:03.02 elapsed, 2.20 user, 0.65 system, 94% CPU, (20 major + 157895 minor) faults, 0 io, 689668 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(goto-char (point-max))
+end-of-lisp
+$ time emacs --script x.el
+	  0:02.44 elapsed, 1.81 user, 0.61 system, 99% CPU, (0 major + 154473 minor) faults, 0 io, 658336 rss
+  
+    - nano
+$ time nano big_file.txt
+   {Ctrl+_}{Ctrl+v}{Ctrl+x}
+	  1m0.387s
+
+1.9 Loading a file, moving to the end then searching back
+---------------------------------------------------------
+  In this test we ask our editors to go right to the end of a  big  file  and
+  then find a string that appears only at the very beginning of the file.
+  
+  PC-Linux:
+    - jot
+$ time_trial jot big_file.txt -in="%s=case 1; m0 f-/aaa/? %a"
+	  0:03.30 elapsed, 2.50 user, 0.78 system, 99% CPU, (0 major + 197728 minor) faults, 0 io, 793200 rss
+  
+    - vim
+$ time_trial vim big_file.txt -c:$ +?aaa? +:q!
+	  0:04.67 elapsed, 4.26 user, 0.39 system, 99% CPU, (0 major + 123807 minor) faults, 0 io, 501300 rss
+  
+    - emacs (interactive)
+$ time_trial  emacs -execute '(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill
+	  0:02.80 elapsed, 2.17 user, 0.50 system, 95% CPU, (20 major + 117139 minor) faults, 0 io, 526244 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(goto-char (point-max))
+(search-backward "aaa")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:02.27 elapsed, 1.81 user, 0.44 system, 99% CPU, (0 major + 113725 minor) faults, 0 io, 495296 rss
+  
+    - nano
+$ time_trial nano big_file.txt
+    - {Ctrl+_}{Ctrl+v}
+    - {Alt+b}
+    - {F6}aaa{Return}
+    - {Ctrl+x}
+	  0:22.25 elapsed, 7.74 user, 0.61 system, 37% CPU, (0 major + 197678 minor) faults, 0 io, 793584 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="%s=case 1; m0 f-/aaa/? %a"
+	  0:05.85 elapsed, 0.10 user, 0.09 system, 3% CPU, (0 major + 3697 minor) faults, 0 io, 21728 rss
+  
+    - vim
+$ win_vim big_file.txt -c:$ +?aaa? +:q!
+	  0:09.59 elapsed, 0.08 user, 0.08 system, 1% CPU, (0 major + 4512 minor) faults, 0 io, 21044 rss
+  
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill
+	  0:07.39 elapsed, 0.10 user, 0.10 system, 2% CPU, (0 major + 3862 minor) faults, 0 io, 21924 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(goto-char (point-max))
+(search-backward "aaa")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:04.36 elapsed, 0.10 user, 0.10 system, 4% CPU, (0 major + 3866 minor) faults, 0 io, 21692 rss
+  
+    - nano
+$ win_nano big_file.txt
+    - {Ctrl+_}{Ctrl+v}
+    - {Alt+b}
+    - {F6}aaa{Return}
+    - {Ctrl+x}
+ 
+ Pi-Linux:
+    - jot
+$ time jot big_file.txt -in="%s=case 1; m0 f-/aaa/? %a"
+	  0m48.175s
+  
+    - vim
+$ time vi big_file.txt -c:$ +?aaa? +:q!
+	  0m57.635s
+  
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' \
+    -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill
+	  0m49.166s
   
   - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
-(search-forwards "zzz")
+(goto-char (point-max))
+(search-backward "aaa")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:03.71 elapsed, 3.20 user, 0.49 system, 99% CPU, (0 major + 272229 minor) faults, 0 io, 1124272 rss
+$ time emacs --script x.el
+	  0m38.495s
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
-  - {Ctrl+w}zzz
-  - {Ctrl+x}
-	2:18.92 elapsed, 135.42 user, 0.93 system, 98% CPU, 0 faults, 159784 io, 2459172 rss
+    - nano
+$ time nano big_file.txt
+    - {Ctrl+_}{Ctrl+v}
+    - {Alt+b}
+    - {F6}aaa{Return}
+    - {Ctrl+x}
+	  1m25.248s
 
-1.8 Loading a big file and doing a global search and replace - 1
+1.10 Loading a big file and doing a global search and replace - 1
 ----------------------------------------------------------------
-  In this case the replacement string is the same length as the  original.  My
-  big_file.txt had 96860652 instances if the search string "00".
+  In this case the replacement string is the  same  length  as  the  original.
+  Originally this was tried with the search string "00", and both jot and  vim
+  acquitted themselves quite well but emacs failed miserably  and  had  to  be
+  killed after 30 minutes. This failure appears to be  something  to  do  with
+  the undo journal it maintains.
   
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="%s=case 1; (f/00/s/zz/)0 %a"
-	0:22.67 elapsed, 20.38 user, 1.14 system, 94% CPU, (7 major + 638536 minor) faults, 462272 io, 2556464 rss
+  So, for this test we use the  much  less  commonly-occurring  search  string
+  "99".
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c:%s/00/zz/g +:q!
-	0:54.96 elapsed, 34.97 user, 3.83 system, 70% CPU, 4606 faults, 957048 io, 3552576 rss
+    - jot
+$ time_trial jot big_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
+	  0:02.11 elapsed, 1.35 user, 0.74 system, 99% CPU, (0 major + 197729 minor) faults, 0 io, 793200 rss
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v -c:%s/00/zz/g +:q!
-	1:19.04 elapsed, 39.14 user, 3.79 system, 54% CPU, 5426 faults, 2421776 io, 3583744 rss
+    - vim
+$ time_trial vim big_file.txt -c:%s/99/zz/g +:q!
+	  0:05.49 elapsed, 5.05 user, 0.41 system, 99% CPU, (0 major + 123801 minor) faults, 0 io, 501160 rss
   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}00{Return}zz{Return}
-  - {Ctrl+x}{Ctrl+c}
-  - n - I don't want the file image writing out.
-  - yes{Return} - I still don't want the file image writing and I still want to get out of emacs.
-	17:06.93 elapsed, 1002.50 user, 1.98 system, 97% CPU, (2 major + 816832 minor) faults, 480 io, 1181416 rss
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "zz")' -kill
+	  0:05.16 elapsed, 4.48 user, 0.53 system, 97% CPU, (110 major + 124575 minor) faults, 0 io, 555964 rss
   
-  - emacs (.el-lisp script)
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
-(replace-string "00" "zz")
+(replace-string "99" "zz")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	15:14.29 elapsed, 910.98 user, 0.79 system, 99% CPU, (0 major + 283041 minor) faults, 56 io, 1143092 rss
+$ time_trial emacs --script x.el
+	  0:03.22 elapsed, 2.75 user, 0.45 system, 99% CPU, (0 major + 115753 minor) faults, 0 io, 504012 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
-  - {Ctrl+\}00{Return}zz{Return}a{Return}
-  - After about 10 minutes it crashed my linux session.
+    - nano
+$ time_trial nano big_file.txt
+    - {Ctrl+\}99{Return}zz{Return}a{Return}
+    - {Ctrl+x}
+	  0:23.45 elapsed, 11.18 user, 0.94 system, 51% CPU, (0 major + 276342 minor) faults, 0 io, 1108164 rss
+    
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
+	  0:04.39 elapsed, 0.09 user, 0.09 system, 4% CPU, (0 major + 3703 minor) faults, 0 io, 21740 rss
+  
+    - vim
+$ win_vim big_file.txt -c:%s/99/zz/g +:q!
+	  0:10.04 elapsed, 0.10 user, 0.07 system, 1% CPU, (0 major + 3705 minor) faults, 0 io, 21716 rss
+  
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "zz")' -kill
+	  0:08.94 elapsed, 0.06 user, 0.09 system, 1% CPU, (0 major + 4512 minor) faults, 0 io, 20896 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-string "99" "zz")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:06.94 elapsed, 0.08 user, 0.06 system, 2% CPU, (0 major + 3708 minor) faults, 0 io, 21748 rss
+  
+    - nano
+$ win_nano big_file.txt
+    - {Ctrl+\}99{Return}zz{Return}a{Return}
+  
+  Pi-linux:
+    - jot
+$ time jot big_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
+	  0m42.438s
+  
+    - vi
+$ time vi big_file.txt -c:%s/99/zz/g +:q!
+	  1m46.156s
+  
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "zz")' -kill
+	  1m34.565s
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-string "99" "zz")
+end-of-lisp
+$ time emacs --script x.el
+	  1m0.529s
+  
+    - nano
+$ time nano big_file.txt
+  - {Ctrl+\}99{Return}zz{Return}a{Return}
+  - {Ctrl+x}
+	  11m25.974s
 
-1.9 Loading a big file and doing a global search and replace - 2
+1.11 Loading a big file and doing a global search and replace - 2
 ----------------------------------------------------------------
   In this case the replacement string is the longer than the original. This is
   an important difference since our editors must somehow shuffle the text  and
   allocate more memory for the extended lines.
   
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="%s=case 1; (f/00/s/abcdefghi/)0 %a"
-	0:34.34 elapsed, 30.26 user, 1.77 system, 93% CPU, (31 major + 943014 minor) faults, 384776 io, 3559384 rss
+    - jot
+$ time_trial jot big_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
+	  0:02.13 elapsed, 1.35 user, 0.77 system, 99% CPU, (0 major + 197861 minor) faults, 0 io, 793768 rss
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c:%s/00/abcdefghi/g +:q!
-	12:36.20 elapsed, 78.23 user, 13.76 system, 12% CPU, (46370 major + 1311186 minor) faults, 6721408 io, 3531524 rss
+    - vi
+$ time_trial vi big_file.txt -c:%s/99/abcdefghi/g +:q!
+	  0:06.10 elapsed, 5.66 user, 0.41 system, 99% CPU, (0 major + 127425 minor) faults, 0 io, 515008 rss  
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v -c:%s/00/abcdefghi/g +:q!
-	17:49.37 elapsed, 607.37 user, 16.02 system, 58% CPU, (66980 major + 1694965 minor) faults, 8311200 io, 3542908 rss
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+	  0:05.20 elapsed, 4.56 user, 0.52 system, 97% CPU, (20 major + 126309 minor) faults, 0 io, 562940 rss
   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}00{Return}zz{Return}
-  - {Ctrl+x}{Ctrl+c}
-  - n - I don't want the file image writing out.
-  - yes{Return} - I still don't want the file image writing and I still want to get out of emacs.
-	17:06.93 elapsed, 1002.50 user, 1.98 system, 97% CPU, (2 major + 816832 minor) faults, 480 io, 1181416 rss
-  
-  - emacs (.el-lisp script)
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
-(replace-string "00" "abcdefghi")
+(replace-string "99" "abcdefghi")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	20:55.74 elapsed, 1165.36 user, 2.45 system, 92% CPU, (396 major + 814215 minor) faults, 2255032 io, 1185052 rss
+$ time_trial emacs --script x.el
+	  0:03.36 elapsed, 2.89 user, 0.45 system, 99% CPU, (0 major + 117457 minor) faults, 0 io, 510672 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt  
-  - {Ctrl+\}00{Return}abcdefghi{Return}a{Return}
-  - As before, after a few minutes it crashed my linux session.
-
-1.10 Loading a big file and doing a global regex-search and replace
-------------------------------------------------------------------
+    - nano
+$ time_trial nano big_file.txt  
+    - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
+    - {Ctrl+x}
+	  0:28.30 elapsed, 11.34 user, 0.83 system, 43% CPU, (0 major + 276345 minor) faults, 0 io, 1108168 rss
   
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="(%f=[^a-zA-Z0-9]00[^a-zA-Z0-9];s/ zz /)0 %a;"
-	14:01.91 elapsed, 834.67 user, 1.59 system, 99% CPU, (2 major + 695160 minor) faults, 1353128 io, 2783112 rss
+  PC-Windows:
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c":%s/[^a-zA-Z0-9]00[^a-zA-Z0-9]/ zz /g" +:q!
-	2:35.86 elapsed, 110.08 user, 34.62 system, 92% CPU, (2742 major + 932154 minor) faults, 146392 io, 3551876 rss
-   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v -c":%s/[^a-zA-Z0-9]00[^a-zA-Z0-9]/ zz /g" +:q!
-	2:41.29 elapsed, 119.19 user, 18.48 system, 85% CPU, (2176 major + 969954 minor) faults, 2273216 io, 3569676 rss
+    - jot
+$ win_jot big_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
+	  0:04.35 elapsed, 0.06 user, 0.07 system, 3% CPU, (0 major + 3699 minor) faults, 0 io, 21772 rss
   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}00{Return}zz{Return}
-  - {Ctrl+x}{Ctrl+c}
-  - n - I don't want the file image writing out.
-  - yes{Return} - I still don't want the file image writing and I still want to get out of emacs.
-	17:06.93 elapsed, 1002.50 user, 1.98 system, 97% CPU, (2 major + 816832 minor) faults, 480 io, 1181416 rss
+    - vim
+$ win_vim big_file.txt -c:%s/99/abcdefghi/g +:q!
+	  0:10.47 elapsed, 0.07 user, 0.07 system, 1% CPU, (0 major + 3695 minor) faults, 0 io, 21824 rss
   
-  - emacs (.el-lisp script)
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+	  0:25.60 elapsed, 0.07 user, 0.06 system, 0% CPU, (0 major + 3706 minor) faults, 0 io, 21840 rss
+  
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
-(replace-regexp "[^a-zA-Z0-9]00[^a-zA-Z0-9]" " zz ")
+(replace-string "99" "abcdefghi")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	10:13.22 elapsed, 610.94 user, 0.60 system, 99% CPU, (1 major + 282484 minor) faults, 280 io, 1140232 rss
+$ win_emacs --script x.el
+	  0:08.36 elapsed, 0.09 user, 0.09 system, 2% CPU, (0 major + 3839 minor) faults, 0 io, 21784 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt  
-  nano was excluded from this test.
-
-1.11 Loading a file and moving right to the end
-----------------------------------------------
-  The only reason for doing this is to obtain an accurate measurement  of  the
-  reverse-search time.
+    - nano
+$ win_nano big_file.txt  
+    - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
+    - {Ctrl+x}
   
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="m0 %a"
-	0:06.55 elapsed, 3.04 user, 1.34 system, 67% CPU, (3 major + 695168 minor) faults, 628648 io, 2782912 rss
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c:G +:q!
-	0:08.26 elapsed, 4.16 user, 0.89 system, 61% CPU, (8 major + 312040 minor) faults, 1083528 io, 1251204 rss
+  Pi-linux:
+    - jot
+$ time jot big_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
+	  0m50.851s
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim -v big_file.txt -c:G +:q!
-	0:04.08 elapsed, 3.44 user, 0.60 system, 99% CPU, (0 major + 313412 minor) faults, 8 io, 1265332 rss
+    - vi
+$ time vi big_file.txt -c:%s/99/abcdefghi/g +:q!
+	  1m57.930s
   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Esc >}
-  - {Ctrl+x}{Ctrl+c}
-	0:29.68 elapsed, 20.23 user, 0.54 system, 70% CPU, (0 major + 276972 minor) faults, 0 io, 1149696 rss
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+	  1m27.979s
   
-  - emacs (.el-lisp script)
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
-(goto-char (point-max))
+(replace-string "99" "abcdefghi")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:03.72 elapsed, 3.19 user, 0.49 system, 99% CPU, (0 major + 272082 minor) faults, 0 io, 1124112 rss
+$ time emacs --script x.el
+	  0m58.595s  
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
-   {Ctrl+_}{Ctrl+v}{Ctrl+x}
-	0:33.93 elapsed, 33.05 user, 0.83 system, 99% CPU, (0 major + 563730 minor) faults, 0 io, 2261060 rss
-
-1.12 Loading a file, moving right to the end then searching back
----------------------------------------------------------------
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="%s=case 1; m0 f-/zzz/? %a"
-	0:07.17 elapsed, 6.15 user, 0.99 system, 99% CPU, (0 major + 638540 minor) faults, 0 io, 2556580 rss
-  
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt -c:G +?zzz? +:q!
-	0:12.28 elapsed, 8.50 user, 0.98 system, 77% CPU, (21 major + 312038 minor) faults, 752872 io, 1251380 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v -c:G +?zzz? +:q!
-	0:10.61 elapsed, 8.15 user, 0.72 system, 83% CPU, (128 major + 313414 minor) faults, 29304 io, 1264924 rss
-  
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Esc >}
-  - {Ctrl+r}zzz
-  - {Ctrl+x}{Ctrl+c}
-	0:29.68 elapsed, 20.23 user, 0.54 system, 70% CPU, (0 major + 276972 minor) faults, 0 io, 1149696 rss
-  
-  - emacs (.el-lisp script)
-$ cat - > x.el << end-of-lisp
-(insert-file-contents "big_file.txt")
-(goto-char (point-max))
-(search-backward "zzz")
-end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:04.97 elapsed, 4.46 user, 0.49 system, 99% CPU, (0 major + 272229 minor) faults, 0 io, 1124180 rss
-  
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
-  - {Ctrl+_}{Ctrl+v}
-  - {Alt+b}
-  - {F6}zzz{Return}
+    - nano
+$ time nano big_file.txt  
+  - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
   - {Ctrl+x}
-	2:26.64 elapsed, 135.73 user, 0.93 system, 93% CPU, (5 major + 613280 minor) faults, 147232 io, 2459312 rss
+	  13m25.384s
 
-1.13 Loading, cutting and pasting and pasting all of a big file
----------------------------------------------------------------
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_file.txt -in="n.m0aaha %a;"
-	0:35.42 elapsed, 6.35 user, 3.44 system, 27% CPU, (43 major + 1276767 minor) faults, 1960328 io, 3578088 rss
+1.12 Loading a big file and doing a global search and replace - 3
+----------------------------------------------------------------
+  In this case the replacement string is the shorter than the  original.  This
+  is an important difference since our editors must shuffle the text.
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_file.txt
-    - v - enter visual-selection mode.
-    - G{Return} - goto end of file
-    - d - cut all the highlighted text.
-    - P - paste it all back again.
-    - :q!
-	1:57.08 elapsed, 14.33 user, 5.97 system, 17% CPU, (94996 major + 1804828 minor) faults, 6984168 io, 3578132 rss
+  PC-Linux:
+    - jot
+$ time_trial jot big_file.txt -in="%s=case 1; (f/99/s/a/)0 %a"
+	  0:02.05 elapsed, 1.31 user, 0.73 system, 99% CPU, (0 major + 197726 minor) faults, 0 io, 793236 rss
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_file.txt -v
-    - v - enter visual-selection mode.
-    - G{Return} - goto end of file
-    - d - cut all the highlighted text.
-    - P - paste it all back again.
-    - :q!
-	8:42.73 elapsed, 19.09 user, 16.60 system, 6% CPU, (248435 major + 3119208 minor) faults, 12886392 io, 3553940 rss
+    - vim
+$ time_trial vim big_file.txt -c:%s/99/a/g +:q!
+	  0:05.95 elapsed, 5.50 user, 0.43 system, 99% CPU, (0 major + 123804 minor) faults, 0 io, 501304 rss
+  
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "a")' -kill
+	  0:04.98 elapsed, 4.38 user, 0.52 system, 98% CPU, (100 major + 124603 minor) faults, 0 io, 556044 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-string "99" "a")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:03.20 elapsed, 2.73 user, 0.45 system, 99% CPU, (0 major + 115747 minor) faults, 0 io, 503864 rss
+  
+    - nano
+$ time_trial nano big_file.txt  
+    - {Ctrl+\}99{Return}a{Return}a{Return}
+	  0:16.86 elapsed, 7.81 user, 0.61 system, 49% CPU, (0 major + 201077 minor) faults, 0 io, 807184 rss
+    
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="%s=case 1; (f/99/s/a/)0 %a"
+	  0:04.37 elapsed, 0.07 user, 0.07 system, 3% CPU, (0 major + 3702 minor) faults, 0 io, 21748 rss
+  
+    - vim
+$ win_vim big_file.txt -c:%s/99/a/g +:q!
+	  0:10.25 elapsed, 0.09 user, 0.09 system, 1% CPU, (0 major + 3708 minor) faults, 0 io, 21840 rss
+  
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "a")' -kill
+	  0:11.45 elapsed, 0.09 user, 0.08 system, 1% CPU, (0 major + 3708 minor) faults, 0 io, 21664 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-string "99" "a")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:06.88 elapsed, 0.09 user, 0.07 system, 2% CPU, (0 major + 3712 minor) faults, 0 io, 21676 rss
+  
+    - nano
+$ win_nano big_file.txt  
+    - {Ctrl+\}99{Return}a{Return}a{Return}
+  
+  PI-linux:
+    - jot
+$ time jot big_file.txt -in="%s=case 1; (f/99/s/a/)0 %a"
+	  0m53.286s
+  
+    - vi
+$ time vi big_file.txt -c:%s/99/a/g +:q!
+	  1m48.872s
+  
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "a")' -kill
+	  1m35.383s
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-string "99" "a")
+end-of-lisp
+$ time emacs --script x.el
+	  1m2.212s
+  
+    - nano
+$ time nano big_file.txt  
+    - {Ctrl+\}99{Return}a{Return}a{Return}
+    - {Ctrl+x}
+	  11m26.070s
+
+1.13 Loading a big file and doing a global regex-search and replace
+------------------------------------------------------------------
+  PC-Linux:
+    - jot
+$ time_trial jot big_file.txt -in="(%f= -rex [^a-zA-Z0-9]99[^a-zA-Z0-9];s/ zz /)0 %a;"
+	  0:20.46 elapsed, 19.63 user, 0.76 system, 99% CPU, (0 major + 197730 minor) faults, 0 io, 793372 rss
    
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+@} - to set a mark.
-  - {Esc >} - goto end
-  - {Ctrl+w} - Cut
-  - (Ctrl+y} - Paste it back again.
-  - {Ctrl+x}{Ctrl+c}
-  - n -  no I don't want to write the file
-  - yes{Return} - let me out.
-	2:07.87 elapsed, 16.30 user, 6.12 system, 17% CPU, (33165 major + 1471901 minor) faults, 4204560 io, 3556208 rss
+    - vim
+$ time_trial vim big_file.txt -c":%s/[^a-zA-Z0-9]99[^a-zA-Z0-9]/ zz /g" +:q!
+	  0:30.25 elapsed, 29.15 user, 0.99 system, 99% CPU, (0 major + 123801 minor) faults, 0 io, 501080 rss
   
-  - emacs (.el-lisp script)
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")' -kill
+	  0:16.15 elapsed, 15.41 user, 0.53 system, 98% CPU, (40 major + 124537 minor) faults, 0 io, 556192 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:14.26 elapsed, 13.74 user, 0.46 system, 99% CPU, (0 major + 115763 minor) faults, 0 io, 503972 rss
+  
+    - nano
+$ time_trial nano big_file.txt  
+   - {Ctrl+\}{Alt+r}[^a-zA-Z0-9]99[^a-zA-Z0-9]{Return} zz {Return}a{Return}
+   - {Ctrl+x}
+	  0:45.65 elapsed, 21.38 user, 0.67 system, 48% CPU, (0 major + 200953 minor) faults, 0 io, 806668 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="(%f= -rex [^a-zA-Z0-9]99[^a-zA-Z0-9];s/ zz /)0 %a;"
+	  0:07.51 elapsed, 0.09 user, 0.07 system, 2% CPU, (0 major + 3706 minor) faults, 0 io, 21636 rss
+   
+    - vim
+$ win_vim big_file.txt -c":%s/[^a-zA-Z0-9]99[^a-zA-Z0-9]/ zz /g" +:q!
+	
+  
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")' -kill
+	  0:28.29 elapsed, 0.07 user, 0.07 system, 0% CPU, (0 major + 3704 minor) faults, 0 io, 21916 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:23.87 elapsed, 0.10 user, 0.09 system, 0% CPU, (0 major + 3854 minor) faults, 0 io, 21808 rss
+  
+    - nano (in genuine windows 10)
+$ nano big_file.txt  
+   - {Ctrl+\}{Alt+r}[^a-zA-Z0-9]99[^a-zA-Z0-9]{Return} zz {Return}a{Return}
+   - {Ctrl+x}
+	  1:17
+    
+  Pi-Linux:
+    - jot
+$ time jot big_file.txt -in="(%f= -rex [^a-zA-Z0-9]99[^a-zA-Z0-9];s/ zz /)0 %a;"
+	  0:30.06 elapsed, 28.80 user, 1.12 system, 99% CPU, (0 major + 271688 minor) faults, 0 io, 1089224 rss
+   
+    - vim
+$ time vim big_file.txt -c":%s/[^a-zA-Z0-9]99[^a-zA-Z0-9]/ zz /g" +:q!
+	  0:44.74 elapsed, 42.89 user, 1.56 system, 99% CPU, (0 major + 169820 minor) faults, 0 io, 685392 rss
+  
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")' -kill
+	  0:23.27 elapsed, 22.29 user, 0.73 system, 98% CPU, (20 major + 168170 minor) faults, 0 io, 730368 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")
+end-of-lisp
+$ time emacs --script x.el
+	  0:20.63 elapsed, 19.85 user, 0.66 system, 99% CPU, (0 major + 157284 minor) faults, 0 io, 669932 rss
+  
+$ time nano big_file.txt  
+   - {Ctrl+\}{Alt+r}[^a-zA-Z0-9]99[^a-zA-Z0-9]{Return} zz {Return}a{Return}
+   - {Ctrl+x}
+
+1.14 Loading, cutting and pasting and pasting all of a big file
+---------------------------------------------------------------
+  PC-Linux:
+    - jot
+$ time_trial jot big_file.txt -in="n.m0aaha %a;"
+	  0:04.28 elapsed, 2.63 user, 1.62 system, 99% CPU, (0 major + 542953 minor) faults, 0 io, 2174104 rss
+  
+    - vim
+$ rm ~/.viminfo ; time_trial vim big_file.txt
+    - v - enter visual-selection mode.
+    - G{Return} - goto end of file
+    - d - cut all the highlighted text.
+    - P - paste it all back again.
+    - :q!
+	  0:24.19 elapsed, 7.30 user, 1.47 system, 36% CPU, (0 major + 545949 minor) faults, 0 io, 2189736 rss
+   
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(kill-region 1 (point-max))' -execute '(yank)' -kill 
+	  0:40.71 elapsed, 37.22 user, 2.81 system, 98% CPU, (53 major + 905575 minor) faults, 0 io, 3081920 rss
+  
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "big_file.txt")
 (kill-region 1 (point-max))
 (yank)
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:09.22 elapsed, 3.39 user, 1.07 system, 48% CPU, (144 major + 497113 minor) faults, 980416 io, 2021192 rss
+$ time_trial emacs --script x.el
+	  0:03.67 elapsed, 2.73 user, 0.91 system, 99% CPU, (0 major + 304025 minor) faults, 0 io, 1256872 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_file.txt
+    - nano
+$ time_trial nano big_file.txt
    - {Ctrl+^} - to set a mark.
    - {Alt+/} - move to end
    - {Ctrl+Shift+k} - to cut
    - {Ctrl+Shift+u} - to paste
    - {Ctrl+x}  - to exit.
-  Crashed the linux session after about 5 minutes.
+   - n         - No I don't want to write it back.
+	    0:25.00 elapsed, 8.50 user, 2.75 system, 45% CPU, (0 major + 1085477 minor) faults, 0 io, 4344692 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot big_file.txt -in="n.m0aaha %a;"
+	  0:08.35 elapsed, 0.07 user, 0.07 system, 1% CPU, (0 major + 3680 minor) faults, 0 io, 21648 rss
+  
+    - vim
+$ win_vim big_file.txt
+    - v - enter visual-selection mode.
+    - G{Return} - goto end of file
+    - d - cut all the highlighted text.
+    - P - paste it all back again.
+    - :q!
+	  0:24.19 elapsed, 7.30 user, 1.47 system, 36% CPU, (0 major + 545949 minor) faults, 0 io, 2189736 rss
+   
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "big_file.txt")' -execute '(kill-region 1 (point-max))' -execute '(yank)' -kill 
+	    0:17.99 elapsed, 0.08 user, 0.06 system, 0% CPU, (0 major + 3688 minor) faults, 0 io, 21724 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(kill-region 1 (point-max))
+(yank)
+end-of-lisp
+$ win_emacs --script x.el
+	  0:15.76 elapsed, 0.07 user, 0.08 system, 1% CPU, (0 major + 3693 minor) faults, 0 io, 21916 rss
+  
+    - nano (in genuine windows 10)
+$ nano big_file.txt
+   - {Alt+a}        - to set a mark.
+   - {Alt+/}        - move to end
+   - {Ctrl+Shift+k} - to cut
+   - {Ctrl+Shift+u} - to paste
+   - {Ctrl+x}       - to exit.
+   - n              - No I don't want to write it back.
+  
+  Pi-Linux:
+    - jot
+$ time_trial jot big_file.txt -in="n.m0aaha %a;"
+	  0:04.46 elapsed, 2.71 user, 1.72 system, 99% CPU, (0 major + 542957 minor) faults, 0 io, 2174148 rss
+  
+    - vim
+$ time_trial vim big_file.txt
+    - v - enter visual-selection mode.
+    - G{Return} - goto end of file
+    - d - cut all the highlighted text.
+    - P - paste it all back again.
+    - :q!
+	  0:24.19 elapsed, 7.30 user, 1.47 system, 36% CPU, (0 major + 545949 minor) faults, 0 io, 2189736 rss
+   
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "big_file.txt")' -execute '(kill-region 1 (point-max))' -execute '(yank)' -kill 
+	  0:40.94 elapsed, 37.30 user, 3.13 system, 98% CPU, (43 major + 905556 minor) faults, 0 io, 3082256 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "big_file.txt")
+(kill-region 1 (point-max))
+(yank)
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:04.02 elapsed, 2.90 user, 1.09 system, 99% CPU, (0 major + 304028 minor) faults, 0 io, 1256880 rss
+  
+    - nano
+$ time_trial nano big_file.txt
+   - {Ctrl+^} - to set a mark.
+   - {Alt+/} - move to end
+   - {Ctrl+Shift+k} - to cut
+   - {Ctrl+Shift+u} - to paste
+   - {Ctrl+x}  - to exit.
+   - n         - No I don't want to write it back.
+	  0:24.87 elapsed, 8.77 user, 2.66 system, 46% CPU, (2 major + 1085480 minor) faults, 296 io, 4344716 rss
 
-1.14 Loading a file with very long lines - a fat file
+1.15 Loading a file with very long lines - a fat file
 -----------------------------------------------------
-  A file of just over 100MB was created with these command:
-$ rm fat_file.txt
-$ jot /dev/null -in="%eq=ls -RF /usr/lib64; %r=ls2list; \
-  ol100000000 m-0((%i.='q -binary 64; (m-0(jm)0m-)0 r-0i'qbr0b %o=fat_file.txt -append;, ) %q$=file fat_file.txt; f/ size = /-oid o> zqm)0"
+  A file of just under 300Mb was created  with  these  commands,  it  has  547
+  lines of varying length, some over 20Mb, most are several hundred  Kb  long.
+  There are 18356191 instances of the string "00" and 50192 instances  of  the
+  string "99".
   
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot fat_file.txt -in=%a
-	0:00.32 elapsed, 0.26 user, 0.06 system, 99% CPU, (0 major + 33337 minor) faults, 0 io, 131980 rss
+  This series of tests is intended to compare performance for  handling  files
+  with long lines.
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi fat_file.txt -c:q
-	0:04.54 elapsed, 3.07 user, 1.41 system, 98% CPU, (8 major + 1405333 minor) faults, 2160 io, 116448 rss
+  PC-Linux:
+    - jot
+$ time_trial jot fat_file.txt -in=%a
+	  0:00.56 elapsed, 0.19 user, 0.36 system, 99% CPU, (0 major + 86778 minor) faults, 0 io, 294860 rss
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim fat_file.txt -v -c:q
-	0:04.66 elapsed, 3.17 user, 1.46 system, 99% CPU, (0 major + 1410216 minor) faults, 0 io, 143440 rss
+    - vim
+$ time_trial vim fat_file.txt -c:q
+	  0:02.04 elapsed, 1.73 user, 0.30 system, 99% CPU, (0 major + 92282 minor) faults, 0 io, 318832 rss
    
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs fat_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+x}{Ctrl+c}
-	0:03.10 elapsed, 0.36 user, 0.09 system, 14% CPU, (265 major + 27970 minor) faults, 75000 io, 147784 rss
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "fat_file.txt")' -kill
+	  0:01.74 elapsed, 1.26 user, 0.37 system, 94% CPU, (20 major + 80863 minor) faults, 0 io, 381096 rss
   
-  - emacs (.el-lisp script)
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "fat_file.txt")
-(search-forwards "zzz")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:00.41 elapsed, 0.35 user, 0.06 system, 99% CPU, (0 major + 28152 minor) faults, 0 io, 148308 rss
+$ time_trial emacs --script x.el
+	  0:01.21 elapsed, 0.89 user, 0.31 system, 99% CPU, (0 major + 77449 minor) faults, 0 io, 350080 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano fat_file.txt
-  - {Ctrl+x}  - to exit.
-	0:04.43 elapsed, 4.21 user, 0.08 system, 97% CPU, (1 major + 51042 minor) faults, 8856 io, 186912 rss
+    - nano
+$ time_trial nano fat_file.txt
+    - {Ctrl+x}  - to exit.
+	  0:02.68 elapsed, 2.37 user, 0.27 system, 98% CPU, (4 major + 75143 minor) faults, 928 io, 303200 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot fat_file.txt -in=%a
+	  0:02.24 elapsed, 0.10 user, 0.08 system, 8% CPU, (0 major + 3676 minor) faults, 0 io, 21932 rss
+  
+    - vim
+$ win_vim fat_file.txt -c:q
+	  0:02.24 elapsed, 0.10 user, 0.08 system, 8% CPU, (0 major + 3676 minor) faults, 0 io, 21932 rss
+   
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "fat_file.txt")' -kill
+	  0:02.24 elapsed, 0.10 user, 0.08 system, 8% CPU, (0 major + 3676 minor) faults, 0 io, 21932 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:04.11 elapsed, 0.07 user, 0.07 system, 3% CPU, (0 major + 3717 minor) faults, 0 io, 21740 rss
+  
+    - nano
+$ win_nano fat_file.txt
+    - {Ctrl+x}  - to exit.
+	  0:9.04
+  
+  pi-Linux:
+    - jot
+$ time jot fat_file.txt -in=%a
+	  0m41.855s  
+  
+    - vi
+$ time vi fat_file.txt -c:q
+	  3m49.014s  
+   
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "fat_file.txt")' -kill
+	  Stopped after a few seconds with the message "Maximum buffer size exceeded"
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+end-of-lisp
+$ time emacs --script x.el
+	  Stopped with the message "Maximum buffer size exceeded" 
+  
+    - nano
+$ time nano fat_file.txt
+    - {Ctrl+x}  - to exit.
+	  0m26.093s
 
-1.15 Loading a fat file and searching
+1.16 Loading a fat file and searching
 ------------------------------------
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot fat_file.txt -in="%s=case 1; f/zzz/? %a;"
-	0:00.67 elapsed, 0.59 user, 0.07 system, 99% CPU, (0 major + 33007 minor) faults, 0 io, 131864 rss
+  This test is intended to  compare  performance  for  reading  and  searching
+  files with long lines. The string is right at the end of  the  file  so  our
+  editors must go through the whole file.
   
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi fat_file.txt -c/zzz/ +:q
-	0:11.55 elapsed, 6.76 user, 4.75 system, 99% CPU, (0 major + 4755463 minor) faults, 0 io, 219552 rss
+  PC-linux:
+    - jot
+$ time_trial jot fat_file.txt -in="%s=case 1; f/zzz/? %a;"
+	  0:00.61 elapsed, 0.22 user, 0.38 system, 99% CPU, (0 major + 86778 minor) faults, 0 io, 294904 rss
   
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim fat_file.txt -v -c/zzz/ +:q
-	0:11.80 elapsed, 6.99 user, 4.76 system, 99% CPU, (0 major + 4781384 minor) faults, 0 io, 232112 rss
+    - vim
+$ time_trial vim fat_file.txt -c/zzz/ +:q
+	  0:02.08 elapsed, 1.62 user, 0.36 system, 95% CPU, (20 major + 80865 minor) faults, 0 io, 381104 rss
    
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs fat_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+s}zzz{Return}
-  - {Ctrl+x}{Ctrl+c}
-	0:06.58 elapsed, 1.29 user, 0.09 system, 21% CPU, (0 major + 32913 minor) faults, 0 io, 174632 rss
+    - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(search-forward "zzz")' -kill
+	  0:03.42 elapsed, 3.09 user, 0.31 system, 99% CPU, (0 major + 92286 minor) faults, 0 io, 318980 rss
   
-  - emacs (.el-lisp script)
+    - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "fat_file.txt")
-(search-forwards "zzz")
+(search-forward "zzz")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:00.40 elapsed, 0.35 user, 0.05 system, 99% CPU, (0 major + 28144 minor) faults, 0 io, 148224 rss
+$ time_trial emacs --script x.el
+	  0:01.53 elapsed, 1.20 user, 0.31 system, 99% CPU, (0 major + 77445 minor) faults, 0 io, 350104 rss
   
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano fat_file.txt
-  - {Ctrl+w}zzz
-  - {Ctrl+x}  - to exit.
-	0:21.73 elapsed, 16.65 user, 0.10 system, 77% CPU, (0 major + 51012 minor) faults, 0 io, 186892 rss
+    - nano
+$ time_trial nano fat_file.txt
+    - {Ctrl+w}zzz
+    - {Ctrl+x}  - to exit.
+	  0:13.78 elapsed, 5.56 user, 0.31 system, 42% CPU, (0 major + 75148 minor) faults, 0 io, 303068 rss
+  
+  PC-Windows:
+    - jot
+$ win_jot fat_file.txt -in="%s=case 1; f/zzz/? %a;"
+	  0:02.47 elapsed, 0.10 user, 0.09 system, 7% CPU, (0 major + 3864 minor) faults, 0 io, 21736 rss
+  
+    - vim
+$ win_vim fat_file.txt -c/zzz/ +:q
+	  0:07.53 elapsed, 0.10 user, 0.10 system, 2% CPU, (0 major + 3870 minor) faults, 0 io, 21620 rss
+   
+    - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(search-forward "zzz")' -kill
+	  0:06.46 elapsed, 0.07 user, 0.09 system, 2% CPU, (2 major + 3714 minor) faults, 248 io, 21692 rss
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(search-forward "zzz")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:04.55 elapsed, 0.08 user, 0.06 system, 3% CPU, (0 major + 3683 minor) faults, 0 io, 21972 rss
+  
+    - nano
+$ win_nano fat_file.txt
+    - {Ctrl+w}zzz
+    - {Ctrl+x}  - to exit.
+	 0:39.0 
+  
+  pi-linux:
+    - jot
+$ time jot fat_file.txt -in="%s=case 1; f/zzz/? %a;"
+	  0m38.434s
+  
+    - vi
+$ time vi fat_file.txt -c/zzz/ +:q
+	  3m40.809s
+   
+    - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(search-forward "zzz")' -kill
+	 "Maximum buffer size exceeded" 
+  
+    - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(search-forward "zzz")
+end-of-lisp
+$ time emacs --script x.el
+	  "Maximum buffer size exceeded"
+  
+    - nano
+$ time nano fat_file.txt
+    - {Ctrl+w}zzz
+    - {Ctrl+x}  - to exit.
+	  
 
-1.16 Loading a fat file and and doing a global search and replace - 1
+1.17 Loading a fat file and and doing a global search and replace - 1
 ---------------------------------------------------------------------
+  This test compares the performance for searching and replacing  with  a  new
+  string of the same size. We're searching for "99" because there so too  many
+  instances of "00" all but one of the editors  crashed  or  exceeded  the  30
+  minute limit. That editor was, of course, jot which, if  you're  interested,
+  did the lot in under 3 seconds.
+  
+  Substituting a string of the  same  size  as  the  original  should  be  the
+  simplest search-and-replace situation since no new memory or  byte  shifting
+  is required. Later sections will repeat these tests but for both longer  and
+  shorter substitutions. 
+  
+  PC-linux:
   - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot fat_file.txt -in="%s=case 1; (f/00/s/zz/)0 %a"
-	0:02.28 elapsed, 2.20 user, 0.07 system, 99% CPU, (0 major + 33010 minor) faults, 0 io, 131984 rss
+$ time_trial jot fat_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
+	  0:00.85 elapsed, 0.47 user, 0.37 system, 99% CPU, (0 major + 86779 minor) faults, 0 io, 294860 rss
   
   - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi fat_file.txt -c:%s/00/zz/g +:q!
-Killed at  30:56.24 elapsed, 1836.23 user, 1.51 system, 99% CPU, (0 major + 1427388 minor) faults, 0 io, 158044 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim fat_file.txt -v -c:%s/00/zz/g +:q!
-Killed at   30:28.54 elapsed, 1807.12 user, 1.75 system, 98% CPU, (26 major + 1416782 minor) faults, 8008 io, 170140 rss
+$ time_trial vim fat_file.txt -c:%s/99/zz/g +:q!
+	  0:37.27 elapsed, 36.54 user, 0.49 system, 99% CPU, (2 major + 162374 minor) faults, 64 io, 599368 rss
   
   - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs fat_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}00{Return}zz{Return}
-Killed at   34:30.12 elapsed, 2016.00 user, 0.64 system, 97% CPU, (4 major + 86817 minor) faults, 199328 io, 204116 rss
+$ time_trial  emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "zz")' -kill
+	  0:06.37 elapsed, 5.80 user, 0.40 system, 97% CPU, (86 major + 85713 minor) faults, 1480 io, 400676 rss
   
   - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
 (insert-file-contents "fat_file.txt")
-(replace-string "00" "zz")
-end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	1:32.63 elapsed, 92.22 user, 0.09 system, 99% CPU, (0 major + 33939 minor) faults, 0 io, 167012 rss
-  
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano fat_file.txt
-  - {Ctrl+\}00{Return}zz{Return}a{Return}
-  - {Ctrl+x}
-Crashed at 7:32.92 elapsed, 403.85 user, 2.40 system, 89% CPU, (149 major + 1840211 minor) faults, 37648 io, 3579632 rss
-
-1.17 Loading a fat file and and doing a global search and replace - 2
----------------------------------------------------------------------
-  This time the substitute string is a bit longer than the  original  but,  to
-  make it a  bit  easier  for  our  editors,  they're  searching  for  a  less
-  commonly-occurring string "99" instead of "00" as before.
-  
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot fat_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
-	1:29.93 elapsed, 89.09 user, 0.10 system, 99% CPU, (0 major + 53370 minor) faults, 0 io, 152272 rss
-  
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi fat_file.txt -c:%s/99/abcdefghi/g +:q!
-	2:16.07 elapsed, 129.89 user, 4.91 system, 99% CPU, (0 major + 4827378 minor) faults, 0 io, 457824 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim fat_file.txt -v -c:%s/99/abcdefghi/g +:q!
-	2:17.18 elapsed, 131.03 user, 4.89 system, 99% CPU, (0 major + 4853298 minor) faults, 0 io, 470248 rss
-  
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs fat_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}99{Return}zz{Return}
-  - {Ctrl+x}{Ctrl+c}
-  - n - I don't want the file image writing out.
-  - yes{Return} - I still don't want the file image writing and I still want to get out of emacs.
-	0:59.38 elapsed, 12.12 user, 0.27 system, 20% CPU, (113 major + 80831 minor) faults, 31176 io, 188152 rss
-  
-  - emacs (.el-lisp script)
-$ cat - > x.el << end-of-lisp
-(insert-file-contents "fat_file.txt")
-(replace-string "99" "abcdefghi")
-end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:07.65 elapsed, 7.11 user, 0.49 system, 99% CPU, (0 major + 276715 minor) faults, 32 io, 1139720 rss
-  
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano fat_file.txt
-  - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
-  - {Ctrl+x}
-	6:56.64 elapsed, 396.59 user, 2.41 system, 95% CPU, (715 major + 1841675 minor) faults, 377632 io, 3588260 rss
-
-1.18 Loading a big fat file - big_fat_file.txt
-----------------------------------------------
-  A file of just over 1GB was created with these commands:
-$ rm big_fat_file.txt
-$ jot /dev/null -in="%eq=ls -RF /usr/lib64; %r=ls2list; \
-  ol1000000000 m-0((%i.='q -binary 64; (m-0(jm)0m-)0 r-0i'qbr0b %o=big_fat_file.txt -append;, ) %q$=file big_fat_file.txt; f/ size = /-oid o> zqm)0"
-  
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_fat_file.txt -in=%a
-	0:01.16 elapsed, 0.55 user, 0.59 system, 99% CPU, (0 major + 271742 minor) faults, 0 io, 1020488 rss
-  
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_fat_file.txt -c:q
-	0:19.97 elapsed, 16.87 user, 3.00 system, 99% CPU, (0 major + 2575870 minor) faults, 0 io, 1008944 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_fat_file.txt -v -c:q
-	0:20.20 elapsed, 17.04 user, 3.06 system, 99% CPU, (0 major + 2581583 minor) faults, 0 io, 1039776 rss
-   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_fat_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+x}{Ctrl+c}
-	0:05.18 elapsed, 3.16 user, 0.50 system, 70% CPU, (0 major + 254962 minor) faults, 0 io, 1059484 rss
-  
-  - emacs (.el-lisp script)
-$ cat - > x.el << end-of-lisp
-(insert-file-contents "big_fat_file.txt")
-end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:03.24 elapsed, 2.78 user, 0.44 system, 99% CPU, (0 major + 250083 minor) faults, 0 io, 1036432 rss
-  
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_fat_file.txt
-  - {Ctrl+x}  - to exit.
-	0:33.70 elapsed, 32.99 user, 0.46 system, 99% CPU, (3 major + 259449 minor) faults, 10352 io, 1020272 rss
-
-1.19 Loading a big fat file and searching
------------------------------------------
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_fat_file.txt -in="%s=case 1; f/zzz/? %a;"
-	0:04.56 elapsed, 3.93 user, 0.61 system, 99% CPU, (0 major + 271744 minor) faults, 0 io, 1020440 rss
-  
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_fat_file.txt -c/zzz/ +:q
-	0:25.80 elapsed, 22.77 user, 2.91 system, 99% CPU, (0 major + 2575873 minor) faults, 8 io, 1008952 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_fat_file.txt -v -c/zzz/ +:q
-	0:25.86 elapsed, 22.69 user, 3.06 system, 99% CPU, (0 major + 2581579 minor) faults, 0 io, 1039444 rss
-   
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_fat_file.txt
-  - y - Yes I really want to open a big file.
-  - {Ctrl+s}zzz{Return}
-  - {Ctrl+x}{Ctrl+c}
-	0:12.58 elapsed, 10.26 user, 0.47 system, 85% CPU, (0 major + 254895 minor) faults, 0 io, 1062112 rss
-  
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_fat_file.txt
-  - y - Yes I really do want to read a big file.
-  - {Ctrl+s}zzz{Return}
-  - {Ctrl+x}{Ctrl+c}
-	0:11.01 elapsed, 9.07 user, 0.49 system, 86% CPU, (0 major + 254816 minor) faults, 0 io, 1060732 rss
-  
-  - emacs (.el-lisp script)
-$ cat - > x.el << end-of-lisp
-(insert-file-contents "big_fat_file.txt")
-(search-forwards "zzz")
-end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:03.25 elapsed, 2.80 user, 0.44 system, 99% CPU, (0 major + 250268 minor) faults, 0 io, 1036408 rss
-  
-  - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_fat_file.txt
-  - {Ctrl+w}zzz
-  - {Ctrl+x}  - to exit.
-	2:07.22 elapsed, 125.34 user, 0.48 system, 98% CPU, (0 major + 259416 minor) faults, 0 io, 1020316 rss
-
-1.20 Loading a big fat file and and doing a global search and replace - 1
--------------------------------------------------------------------------
-  None of the editors performed particularly well  at  this  test  -  to  make
-  things easier for them the search string was changed from "00" to  the  less
-  commonly-occurring "99"
-  
-  - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_fat_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
-	0:04.87 elapsed, 4.21 user, 0.65 system, 99% CPU, (0 major + 271743 minor) faults, 0 io, 1020448 rss
-  
-  - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_fat_file.txt -c:%s/99/zz/g +:q!
-	5:21.72 elapsed, 315.29 user, 3.45 system, 99% CPU, (0 major + 2868852 minor) faults, 0 io, 1980576 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_fat_file.txt -v -c:%s/99/zz/g +:q!
-	5:22.95 elapsed, 313.89 user, 3.78 system, 98% CPU, (27 major + 2869893 minor) faults, 1971856 io, 1992508 rss
-  
-  - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_fat_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}99{Return}zz{Return}
-  - {Ctrl+x}{Ctrl+c}
-  - n - No I don't want the file writing out.
-  - yes{Return} - I still don't want the file image writing and I still want to get out.
-	2:17.23 elapsed, 118.42 user, 1.55 system, 87% CPU, (0 major + 504104 minor) faults, 0 io, 1083284 rss
- 
-  - emacs (.el-lisp script)
-$ cat - > x.el << end-of-lisp
-(insert-file-contents "big_fat_file.txt")
 (replace-string "99" "zz")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-	0:09.79 elapsed, 6.20 user, 0.50 system, 68% CPU, (339 major + 254609 minor) faults, 86936 io, 1052068 rss
+$ time_trial emacs --script x.el
+	  0:02.23 elapsed, 1.89 user, 0.32 system, 99% CPU, (0 major + 78984 minor) faults, 0 io, 356752 rss
   
   - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_fat_file.txt
+$ time_trial nano fat_file.txt
   - {Ctrl+\}99{Return}zz{Return}a{Return}
   - {Ctrl+x}
-  This seems to have crashed at 13:43.55 elapsed, 596.73 user, 210.35 system, 98% CPU, (4 major + 194487152 minor) faults, 1966208 io, 1051672 rss
-
-1.21 Loading a big fat file and and doing a global search and replace - 2
--------------------------------------------------------------------------
-  This time the substitute string is a bit longer than the original.
+	  It crashed the X session.
   
+  PC-windows:
   - jot
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot big_fat_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
-	13:19.73 elapsed, 586.50 user, 206.95 system, 99% CPU, (0 major + 194487229 minor) faults, 0 io, 1051324 rss
+$ win_jot fat_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
+	  0:02.19 elapsed, 0.08 user, 0.07 system, 7% CPU, (0 major + 3703 minor) faults, 0 io, 21820 rss
   
   - vim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vi big_fat_file.txt -c:%s/99/abcdefghi/g +:q!
-	6:07.71 elapsed, 343.47 user, 20.50 system, 98% CPU, (8 major + 18713246 minor) faults, 2440 io, 2004156 rss
-  
-  - gvim
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" gvim big_fat_file.txt -v -c:%s/99/abcdefghi/g +:q!
-	6:08.00 elapsed, 343.71 user, 20.07 system, 98% CPU, (26 major + 18714702 minor) faults, 7472 io, 2017948 rss
+$ win_vim fat_file.txt -c:%s/99/zz/g +:q!
+	  3:16.35 elapsed, 0.09 user, 0.09 system, 0% CPU, (0 major + 3853 minor) faults, 0 io, 21868 rss
   
   - emacs (interactive)
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs big_fat_file.txt
-  - y - Yes I really want to open a big file.
-  - {Alt+x}replace-string{Return}99{Return}abcdefghi{Return}
-Gave up - out of memory  2:24.20 elapsed, 123.52 user, 1.83 system, 86% CPU, (1 major + 752843 minor) faults, 168 io, 1102836 rss
+$ win_emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "zz")' -kill
+	  0:11.22 elapsed, 0.07 user, 0.08 system, 1% CPU, (0 major + 3711 minor) faults, 0 io, 21708 rss
   
   - emacs (.el-lisp script)
 $ cat - > x.el << end-of-lisp
-(insert-file-contents "big_fat_file.txt")
-(replace-string "99" "abcdefghi")
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "zz")
 end-of-lisp
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs --script x.el
-Gave up, out of memory at   1:04.16 elapsed, 15.53 user, 5.05 system, 32% CPU, (1020 major + 2732208 minor) faults, 103768 io, 3551296 rss
+$ win_emacs --script x.el
+	  0:05.35 elapsed, 0.09 user, 0.08 system, 3% CPU, (0 major + 3706 minor) faults, 0 io, 21848 rss
   
   - nano
-$ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano big_fat_file.txt
-  - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
+$ win_nano fat_file.txt
+  - {Ctrl+\}99{Return}zz{Return}a{Return}
   - {Ctrl+x}
-  Crashed after 5:40.93
+	  Fails after 28 seconds with "Nano is out of memory"
+  
+  pi-linux:
+  - jot
+$ time jot fat_file.txt -in="%s=case 1; (f/99/s/zz/)0 %a"
+	  0m15.362s
+  
+  - vi
+$ time vi fat_file.txt -c:%s/99/zz/g +:q!
+	  11m3.558s
+  
+  - emacs (interactive)
+$ time  emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "zz")' -kill
+	  1m13.748s
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "zz")
+end-of-lisp
+$ time emacs --script x.el
+	  0m17.509s
+  
+  - nano
+$ time nano fat_file.txt
+    - {Ctrl+\}99{Return}zz{Return}a{Return}
+    - {Ctrl+x}
+	  Crashed after a few minutes.
 
-1.22 Analysis of performance comparison.
+1.18 Loading a fat file and and doing a global search and replace - 2
+---------------------------------------------------------------------
+  This time the substitute string is a bit longer than the  original.
+  
+  PC-linux:
+  - jot
+$ time_trial jot fat_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
+	  1:14.89 elapsed, 54.44 user, 20.01 system, 99% CPU, (0 major + 9890771 minor) faults, 0 io, 325572 rss
+  
+  - vim
+$ time_trial vim fat_file.txt -c:%s/99/abcdefghi/g +:q!
+	  0:39.75 elapsed, 38.99 user, 0.52 system, 99% CPU, (0 major + 166002 minor) faults, 0 io, 601888 rss
+  
+  - emacs (interactive)
+$ time_trial  emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+	  0:06.42 elapsed, 5.91 user, 0.38 system, 98% CPU, (20 major + 86843 minor) faults, 0 io, 405448 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "abcdefghi")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:02.30 elapsed, 1.96 user, 0.32 system, 99% CPU, (0 major + 80121 minor) faults, 0 io, 361448 rss
+  
+  - nano
+$ time_trial nano fat_file.txt
+    - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
+    - {Ctrl+x}
+	  Crashed the X session.
+  
+  PC-windows:
+  - jot
+$ win_jot fat_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
+	  6:40.53 elapsed, 0.10 user, 0.08 system, 0% CPU, (0 major + 3698 minor) faults, 0 io, 21836 rss
+  
+  - vim
+$ win_vim fat_file.txt -c:%s/99/abcdefghi/g +:q!
+	  3:25.46 elapsed, 0.08 user, 0.09 system, 0% CPU, (0 major + 3701 minor) faults, 0 io, 21752 rss
+  
+  - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+	  0:14.25 elapsed, 0.06 user, 0.07 system, 1% CPU, (0 major + 3713 minor) faults, 0 io, 21796 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "abcdefghi")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:06.16 elapsed, 0.08 user, 0.09 system, 2% CPU, (0 major + 3705 minor) faults, 0 io, 21712 rss
+  
+  - nano
+$ win_nano fat_file.txt
+    - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
+    - {Ctrl+x}
+	  Skipped as nano will only crash X.
+  
+  pi-Linux:
+  - jot
+$ time jot fat_file.txt -in="%s=case 1; (f/99/s/abcdefghi/)0 %a"
+	  38m10.914s
+  
+  - vi
+$ time vi fat_file.txt -c:%s/99/abcdefghi/g +:q!
+	  11m29.315s
+  
+  - emacs (interactive)
+$ time  emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+	  1m0.651s
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "abcdefghi")
+end-of-lisp
+$ time emacs --script x.el
+	  0m15.442s
+  
+  - nano
+$ time nano fat_file.txt
+    - {Ctrl+\}99{Return}abcdefghi{Return}a{Return}
+    - {Ctrl+x}
+	  Skipped
+	
+1.19 Loading a fat file and and doing a global search and replace - 3
+---------------------------------------------------------------------
+  This time the substitute string is shorter than the original.
+  
+  PC-linux:
+  - jot
+$ time_trial jot fat_file.txt -in="%s=case 1; (f/99/s/a/)0 %a"
+	  0:17.13 elapsed, 16.71 user, 0.35 system, 99% CPU, (0 major + 86780 minor) faults, 0 io, 294900 rss
+  
+  - vim
+$ time_trial vim fat_file.txt -c:%s/99/a/g +:q!
+	  0:36.89 elapsed, 36.18 user, 0.48 system, 99% CPU, (0 major + 162374 minor) faults, 0 io, 599432 rss
+  
+  - emacs (interactive)
+$ time_trial emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "a")' -kill
+	  0:06.39 elapsed, 5.86 user, 0.38 system, 97% CPU, (60 major + 85716 minor) faults, 672 io, 400948 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "a")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:02.20 elapsed, 1.88 user, 0.30 system, 99% CPU, (0 major + 78977 minor) faults, 0 io, 356920 rss
+  
+  - nano
+$ time_trial nano fat_file.txt
+    - {Ctrl+\}99{Return}a{Return}a{Return}
+    - {Ctrl+x}
+	  Skipped - nano always crashes while working with fat_file.txt
+  
+  PC-windows:
+  - jot
+$ win_jot fat_file.txt -in="%s=case 1; (f/99/s/a/)0 %a"
+	  0:22.06 elapsed, 0.09 user, 0.09 system, 0% CPU, (0 major + 3705 minor) faults, 0 io, 21700 rss
+  
+  - vim
+$ win_vim fat_file.txt -c:%s/99/a/g +:q!
+	  3:14.54 elapsed, 0.09 user, 0.07 system, 0% CPU, (0 major + 3701 minor) faults, 0 io, 21648 rss
+  
+  - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "a")' -kill
+	  0:12.10 elapsed, 0.07 user, 0.07 system, 1% CPU, (0 major + 3693 minor) faults, 0 io, 21876 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "a")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:05.61 elapsed, 0.08 user, 0.08 system, 3% CPU, (0 major + 4513 minor) faults, 0 io, 21056 rss
+  
+  - nano
+$ win_nano fat_file.txt
+    - {Ctrl+\}99{Return}a{Return}a{Return}
+    - {Ctrl+x}
+	  Skipped since fat_file.txt always crashes nano.
+  
+  pi-linux:
+  - jot
+$ time jot fat_file.txt -in="%s=case 1; (f/99/s/a/)0 %a"
+	  2m23.176s
+  
+  - vi
+$ time vi fat_file.txt -c:%s/99/a/g +:q!
+	  9m0.194s
+  
+  - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(replace-string "99" "a")' -kill
+	  0m45.784s
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(replace-string "99" "a")
+end-of-lisp
+$ time emacs --script x.el
+	  0m14.260s
+  
+  - nano
+$ time nano fat_file.txt
+    - {Ctrl+\}99{Return}a{Return}a{Return}
+    - {Ctrl+x}
+	  Skipped.
+
+1.20 Loading the fat file, moving to the end then searching back
+----------------------------------------------------------------
+  PC-Linux:
+  - jot
+$ time_trial jot fat_file.txt -in="%s=case 1; m0 f-/aaa/? %a"
+	  0:01.45 elapsed, 1.05 user, 0.39 system, 99% CPU, (0 major + 86778 minor) faults, 0 io, 294860 rss
+  
+  - vim
+$ time_trial vim fat_file.txt -c:$ +?aaa? +:q!
+	  0:03.37 elapsed, 3.05 user, 0.30 system, 99% CPU, (0 major + 92286 minor) faults, 0 io, 318980 rss
+  
+  - emacs (interactive)
+$ time_trial  emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill
+	  0:02.10 elapsed, 1.61 user, 0.37 system, 94% CPU, (20 major + 80880 minor) faults, 0 io, 381528 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(goto-char (point-max))
+(search-backward "aaa")
+end-of-lisp
+$ time_trial emacs --script x.el
+	  0:01.59 elapsed, 1.27 user, 0.31 system, 99% CPU, (0 major + 77445 minor) faults, 0 io, 350160 rss
+  
+  - nano
+$ time_trial nano fat_file.txt
+    - {Ctrl+_}{Ctrl+v}
+    - {Alt+b}
+    - {F6}aaa{Return}
+    - {Ctrl+x}
+	  Skipped
+  
+  PC-windows:
+  - jot
+$ win_jot fat_file.txt -in="%s=case 1; m0 f-/aaa/? %a"
+	  0:03.23 elapsed, 0.08 user, 0.10 system, 5% CPU, (0 major + 4517 minor) faults, 0 io, 21052 rss
+  
+  - vim
+$ win_vim fat_file.txt -c:$ +?aaa? +:q!
+	  0:07.40 elapsed, 0.09 user, 0.09 system, 2% CPU, (0 major + 3703 minor) faults, 0 io, 21760 rss
+  
+  - emacs (interactive)
+$ win_emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill
+	  0:06.25 elapsed, 0.09 user, 0.08 system, 2% CPU, (0 major + 3697 minor) faults, 0 io, 21752 rss
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(goto-char (point-max))
+(search-backward "aaa")
+end-of-lisp
+$ win_emacs --script x.el
+	  0:04.75 elapsed, 0.10 user, 0.08 system, 3% CPU, (0 major + 3710 minor) faults, 0 io, 21656 rss
+  
+  - nano
+$ win_nano fat_file.txt
+    - {Ctrl+_}{Ctrl+v}
+    - {Alt+b}
+    - {F6}aaa{Return}
+    - {Ctrl+x}
+	  On {Alt+b} it says: not supported on windows yet.
+  
+  pi-Linux:
+  - jot
+$ time jot fat_file.txt -in="%s=case 1; m0 f-/aaa/? %a"
+	  0m13.025s
+  
+  - vi
+$ time vi fat_file.txt -c:$ +?aaa? +:q!
+	  0m18.096s 
+  
+  - emacs (interactive)
+$ time emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill
+	  0m12.628s
+  
+  - emacs (.el-lisp script)
+$ cat - > x.el << end-of-lisp
+(insert-file-contents "fat_file.txt")
+(goto-char (point-max))
+(search-backward "aaa")
+end-of-lisp
+$ time emacs --script x.el
+	  0m10.239s
+  
+  - nano
+$ time nano fat_file.txt
+    - {Ctrl+_}{Ctrl+v}
+    - {Alt+b}
+    - {F6}aaa{Return}
+    - {Ctrl+x}
+	  Skipped.
+
+2 MS-Windows editors
+--------------------
+    - All tests were run under wine in the same fedora installation.
+  
+    - Notepad refused to load any of the big files.
+  
+    - This is how the editors were timed:
+$ time_trial wineconsole "c:\Program Files (x86)"/Vim/vim82/vim t.t -c:q!
+
+2.1 Analysis of performance comparison.
 ----------------------------------------
   - `Image size` No-one, well no-one that's anyone, er.  well  hardly  anyone,
-    frets about the size of executables in this day and age but,  if  it  were
-    important, then jot would win hands down. All the other images  have  been
-    stripped (symbolic  debugging  data  removed)  so,  in  the  interests  of
-    comparing like with like, the size of a stripped jot  with  links  to  the
-    sharable ncurses libraries has been  included.  A  non-stripped  jot  with
-    shared curses was used in the performance comparisons.
+     frets about the size of executables in this day and age but,  if  it  were
+     important, then jot would win hands down. All the other images  have  been
+     stripped (symbolic  debugging  data  removed)  so,  in  the  interests  of
+     comparing like with like, the size of a stripped jot  with  links  to  the
+     sharable ncurses libraries has been  included.  A  non-stripped  jot  with
+     shared curses was used in the performance comparisons.
     
   - `Image  activation  time`  While  there  was   some   variation   in   the
-    image-activation times, the  biggest  surprise  was  nano  -  one  of  the
-    smallest executables but much slower than vim  and  gvim.  Even,  so  this
-    makes no real difference to the price of eggs.  The  biggest  non-surprise
-    was that emacs took considerably longer than all the others put together.
+     image-activation times, the  biggest  surprise  was  nano  -  one  of  the
+     smallest executables but much slower than vim.  Even,  so  this  makes  no
+     real difference to the price of eggs. The biggest  non-surprise  was  that
+     emacs took considerably longer than all the others put together.
     
   - `Loading a big file` To asses  the  reading  speed  which,  for  practical
-    purposes includes the time taken to build the internal image structure,  a
-    fairly large  file  (about  1Gb)  was  used.  Most  of  our  editors  were
-    reasonably quick,  although  nano  is  just  starting  to  look  like  the
-    two-ounce weakling of the group.
+     purposes includes the time taken to build the internal image structure,  a
+     fairly large  file  (about  1Gb)  was  used.  Most  of  our  editors  were
+     reasonably quick,  although  nano  is  just  starting  to  look  like  the
+     two-ounce weakling of the group.
     
-  - `Text density` This shows that the vims and emacs  have  compact  internal
-    data structures. This, in turn, suggests, that for any given system,  they
-    should capable of swallowing much bigger files. The actual  capacity,  for
-    any given system, depends on system tuning. Meanwhile jot  and  nano  have
-    about half the data density and we'd expect them to  reach  system-defined
-    limits with files roughly half the size of the vims and emacs. On  my  PC,
-    vim and emacs can (eventually) load a 5GB file and jot and nano can not.
-    
-    Jot's internal record structure facilitates  jot  tags,  hashtable  jumps,
-    sorting and various other useful features including support for files  too
-    big for vim to swallow. Yet the fact remains - vim can load 10GB files and
-    jot can not.
+  - `Text density` This shows that vim and emacs have  compact  internal  data
+     structures. This, in turn, suggests,  that  for  any  given  system,  they
+     should capable of swallowing much bigger files. The actual  capacity,  for
+     any given system, depends on system tuning. Meanwhile jot  and  nano  have
+     about half the data density and we'd expect them to  reach  system-defined
+     limits with files roughly half the size of the vims and emacs. On  my  PC,
+     vim and emacs can (eventually) load a 5GB file and jot and nano can not.
+     
+     Jot's internal record structure facilitates  jot  tags,  hashtable  jumps,
+     sorting and various other useful features including support for files  too
+     big for vim to swallow. Yet the fact remains - vim can load 10GB files and
+     jot can not.
     
   - `Loading a big file and searching forwards`  Now  we  start  to  do
-    something with our file image, search it for something, in  this  case,  we
-    see a continuation of the trend established in the previous batch of tasks
-    - namely that nano struggles with big files. The rest of  our  interactive
-    editors all performed reasonably well, the non-interactive emacs being the
-    star performer.
-    
+     something with our file image, search it for something, in  this  case,  we
+     see a continuation of the trend established in the previous batch of tasks
+     - namely that nano struggles with big files. The rest of  our  interactive
+     editors all performed reasonably well, the non-interactive emacs being the
+     star performer.
+     
   - `Loading a big file and doing a global search and replace - 1` While  both
-    vim and emacs each have a built-in function for doing  global  search  and
-    replace. It would seem reasonable to expect these to  outperform  the  jot
-    interpretive  approach  -  which  essentially  consists  of   find-string,
-    replace-string and repeat to exhaustion. So how surprising was it that jot
-    came an easy first in this task - by a country mile, in the case of emacs.
-    Poor old nano, unfortunately, fell by the wayside.
-    
+     vim and emacs each have a built-in function for doing  global  search  and
+     replace. It would seem reasonable to expect these to  outperform  the  jot
+     interpretive  approach  -  which  essentially  consists  of   find-string,
+     replace-string and repeat to exhaustion. So how surprising was it that jot
+     came an easy first in this task - by a country mile, in the case of emacs.
+     Poor old nano, unfortunately, fell by the wayside.
+     
   - `Loading a big file and doing a global search and  replace  -  2`  In  the
-    previous task, the substituted string was the same length  as  the  search
-    string. This is not always the case, when the text shrinks or grows,  text
-    may have  to  be  shifted,  depending  on  the  internal  data  structure.
-    Furthermore, allowing the text to grow implies that more  memory  must  be
-    allocated and efficiently deployed. The next task is designed to sort  the
-    men from the boys. This time vim, gvim and  emacs  were  all  more-or-less
-    comparable with jot an order of magnitude faster and, oh dear! nano...
-    
+     previous task, the substituted string was the same length  as  the  search
+     string. This is not always the case, when the text shrinks or grows,  text
+     may have  to  be  shifted,  depending  on  the  internal  data  structure.
+     Furthermore, allowing the text to grow implies that more  memory  must  be
+     allocated and efficiently deployed. The next task is designed to sort  the
+     men from  the  boys.  This  time  vim  and  emacs  were  all  more-or-less
+     comparable with jot an order of magnitude faster and, oh dear! nano...
+     
   - `Loading a big file and doing a  global  regex-search  and  replace`  This
-    shows that jot's regular-expression engine is far less speedy than  vim's.
-    The non-interactive emacs managed to finish well ahead of the  interactive
-    version both emacs times being comparable to jot's.
-    
-  - `Loading a file, moving right to the end then searching back` It could  be
-    that backwards-searching performs differently to forwards searching - thes
-    results should be compared to the earlier section `Loading a big file  and
-    searching forwards`. Interestingly, emacs was much slower in reverse,  the
-    other editors were pretty much the same in either direction.
-    
+     shows that jot's regular-expression engine is far less speedy than  vim's.
+     The non-interactive emacs managed to finish well ahead of the  interactive
+     version both emacs times being comparable to jot's.
+     
+  - `Loading a file, moving to the end then searching back` It could  be
+     that       backwards-searching       performs        differently        to
+     forwards searching - thes  results  should  be  compared  to  the  earlier
+     section `Loading a big file and searching forwards`. Interestingly,  emacs
+     was much slower in reverse, the other editors were pretty  much  the  same
+     in either direction.
+     
   - `Loading a file with very long lines - a fat file` Long lines can  present
-    special difficulties for  editors.  All  of  our  editors  swallowed  this
-    moderately large file (100MB) in good time.
-    
+     special difficulties for  editors.  All  of  our  editors  swallowed  this
+     moderately large file (100MB) in good time.
+     
   - `Loading a fat file and searching` -  All  of  the  editors  did  this  in
-    reasonably good time although, some, less-so than others.
-    
+     reasonably good time although, some, less-so than others.
+     
   - `Loading a fat file and and doing a global search and  replace  -  1`  for
-    this task, our editors were instructed to change all instances of "00"  to
-    "zz". Only jot and the lisp-script emacs managed to complete this task  in
-    under 30 minutes, vim and gvim fell over as did the usual suspect: nano.
-    
+     this task, our editors were instructed to change all instances of "00"  to
+     "zz". Only jot and the lisp-script emacs managed to complete this task  in
+     under 30 minutes, vim fell over as did the usual suspect: nano.
+     
   - `Loading a fat file and and doing a global search and replace - 2` In this
-    test we set our editors the task of change every instance  of  the  string
-    "99" to "abcdefghi". Since there are  quite  a  lot  less  of  these,  the
-    editors might find this slightly easier. Most editors have to work  harder
-    when the new string is a different size to the original,  especially  when
-    it's longer. The editors all  completed  this  in  reasonable  time,  once
-    again, nano was far behind the main pack.
+     test we set our editors the task of change every instance  of  the  string
+     "99" to "abcdefghi". Since there are  quite  a  lot  less  of  these,  the
+     editors might find this slightly easier. Most editors have to work  harder
+     when the new string is a different size to the original,  especially  when
+     it's longer. The editors all  completed  this  in  reasonable  time,  once
+     again, nano was far behind the main pack.
+     
+  - `Loading a file  with  very  long  lines  -  a  fat  file`  All  editors
+     swallowed this file in reasonable time, although  nano  was  significantly
+     slower than the rest.
+     
+  - `Loading a fat file and searching` Jot was a bit  faster  than  vim  and
+     the interactive emacs session, nano was much slower.
     
-  - `Loading a big fat file - big_fat_file.txt`  All  editors  swallowed  this
-    file in reasonable time, although nano was significantly slower  than  the
-    rest.
-    
-  - `Loading a big fat file and searching` Jot was a bit faster than vim, gvim
-    and the interactive emacs session, nano was much slower.
-    
-  - `Loading a big fat file and and doing a global search and replace - 1` Jot
-    was quite a lot faster, nano crashed but vim, gvim  and  interactive-emacs
-    all got there in the end.
-    
-  - `Loading a big fat file and and doing a global search and replace - 2`
-  
-  
-    Now  performing  substitutions  on  very  long  lines  can  present
-    difficulties for text editors that rely in text shuffling as  line-lengths
-    change - jot is one such.
-  
-    For this  relatively  small  file  (only
-    about 100MB) jot won hands down, but the tables  were  turned  later  when
-    they had to do the same thing but with a much bigger file.
+  - `Loading a fat file and and doing a global search and replace -  1`  Jot
+     was quite a lot faster, nano crashed but vim, gvim  and  interactive-emacs
+     all got there in the end.
+     
+  - `Loading a fat file and and doing a global search and replace - 2`
+     Now performing substitutions on very long lines can  present  difficulties
+     for text editors that rely in text shuffling as line-lengths change -  jot
+     is one such.
+   
+     For this relatively small file (only about 100MB) jot won hands down,  but
+     the tables were turned later when they had to do the same thing  but  with
+     a much bigger file.
 
-2 Command structure
+3 Command structure
 -------------------
-  - Number of primitives - jot  62  basic  primitives,  133  counting  the  71
+    - Number of primitives - jot  62  basic  primitives,  133  counting  the  71
     options for %S, %B, %Q and
       %H commands.
       
@@ -917,7 +1773,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
       
     - vim - It looks as though vim just has functions.
   
-  - basic number of user functions (ie. default no. of functions).
+    - basic number of user functions (ie. default no. of functions).
     - jot 117
     
     - emacs - 483 (number of functions found in emacs info pages)
@@ -925,7 +1781,7 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
     - vim 59 (for vimscript language, counted in
         http://www.adp-gmbh.ch/vim/scripting/built_in_functions.html)
   
-  - Basic number of defined keystrokes/hotkeys/escape sequences
+    - Basic number of defined keystrokes/hotkeys/escape sequences
     - jot 160
     
     - emacs 634 (number of keystrokes mentioned in emacs info pages,  some  of
@@ -934,25 +1790,29 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
     - vim 631 listed in http://vimdoc.sourceforge.net/htmldoc/quickref.html#quickref
       
 
-3 More
+4 More
 ------
-  - Line wrapping:
+    - Line wrapping:
     - jot: only supports truncated view
     - emacs defaults to line-wrapping, can be turned off to give  a  truncated
       view with M-x toggle-truncate-lines
   
-  - Split windows:
+    - Split windows:
     - jot: horizontal splits are easy, vertical splits impossible.
     - emacs: both horizontal and vertical splits possible.
     
-  - Annoying features: They've all got some, trouble is, it's  easier  to  see
+    - Annoying features: They've all got some, trouble is, it's  easier  to  see
     these in other people's efforts.
     
     - jot:
       - I guess many will find  the  complicated  Ctrl,  Shift  and/or  Alt  +
-        Function/cursor key combinations more than a little tiresome. This  is
-        probably more of a problem for touch typists  than  for  hunt-and-peck
-        typists such as myself.
+        Function/cursor key combinations more than a  little  tiresome  (there
+        are  alternative  startups  giving  full  menu-driven   operation   or
+        escape-sequence only operation). 
+      - In jot, the distinction between a failure and an error  is  very  much
+        context dependant. This means that many  potentially  useful  messages
+        are normally suppressed. To find out why something failed it is  often
+        necessary to repeat the operation with all messages enabled.
     
     - emacs:
       - emacs - that stupid "Oh golly! that's a big file" query  for  file  of
@@ -960,15 +1820,69 @@ $ /usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R min
         and age? Similarly, there,s not just one but two annoying popups  when
         trying to abandon a session.
       - Oh, and on the subject of stupid questions, the use of blue highlights
-        makes these almost invisible on my (reverse video) xterms.
+        makes these messages almost invisible on my (reverse video) xterms.
+      - Although lisp is a very fine language with a long  history,  it's  too
+        long-winded to be a useful editor scripting language.
         
     - vim:
-      - It's a minefield of special cases, special modes and special  features
-        and the what where and when of how they apply is not always  uniformly
-        intuitive. Not to mention the funny little historical quirks that were
-        in some old-testament version of vi.  While  some  might  be  prepared
-        dedicate their professional lives to mastering it all, the rest of  us
-        have coding to be done. Interestingly, the  jot  command  language  is
-        based on ecce which predates even the dawn of unix.
+      - Vim's a minefield of special cases,  special  modes,  special  buffers
+        and special features and the what where and when of how they apply  is
+        not always uniformly intuitive.
+        
+    - nano
+      - Where to begin with listing nano's  annoying  features?  Probably  the
+        worst is it's crashyness - especially when faced with  a  particularly
+        large file - or even an average-sized file with long lines.
   
+5 Conclusions
+-------------
+    - Headless emacs is easily the fastest
+    - Interactive emacs is easily the slowest
+    - nano is OK(ish) for simple jobs but worse than useless for big files.
+
+6 Postscript
+------------
+  There were persistent problems with editors crashing on tasks  they  usually
+  have no trouble performing. Also nano seemed to be particularly crashy  when
+  attempting the long-line file tasks. It was experimentally  determined  that
+  nano, even if  it  did  not  crash  itself,  was  somehow  cause  subsequent
+  programmes to crash some  time  after  nano  had,  apparently  successfully,
+  finished it's task and exited.
   
+  The editors were run manually with the time utility monitoring a few  system
+  parameters while they did a global search and replace in the same file  with
+  very  long  lines.  The  test_file.txt  used  was  a  shortened  version  of
+  fat_file.txt just under 8Mb with lines of up to 3mb long. The  editors  task
+  was  a  global  substitution  -  changing  the  603  instances  of  "99"  to
+  "abcdefghi",
+  
+/usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" jot test_file.txt -quiet -in="%f= -subs=abcdefghi 99; %a0;"
+  0:00.12 elapsed, 0.08 user, 0.03 system, 99% CPU, (0 major + 4793 minor) faults, 0 io, 16764 rss
+  
+/usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" vim test_file.txt -c:%s/99/abcdefghi/g +:q!
+  0:00.74 elapsed, 0.69 user, 0.04 system, 99% CPU, (0 major + 14512 minor) faults, 0 io, 38760 rss
+  
+/usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" emacs -execute '(insert-file-contents "test_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill
+  0:00.83 elapsed, 0.60 user, 0.09 system, 83% CPU, (20 major + 10360 minor) faults, 0 io, 99372 rss
+  
+/usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" ecce test_file.txt -command "(f/99/s/a/)0" -command "%a"
+  ...
+  0:00.14 elapsed, 0.12 user, 0.01 system, 98% CPU, (0 major + 3914 minor) faults, 0 io, 16720 rss
+  
+/usr/bin/time -f "  %E elapsed, %U user, %S system, %P CPU, (%F major + %R minor) faults, %I io, %M rss" nano test_file.txt 
+  3:35.64 elapsed, 195.80 user, 1.00 system, 91% CPU, (0 major + 488202 minor) faults, 0 io, 1937276 rss
+  
+In summary:
+Name    Elapsed     User System  CPU  Major  Minor      IO      RSS
+jot     0:00.12     0.08   0.03  99%      0   4793       0    16764 
+vim     0:00.74     0.69   0.04  99%      0  14512       0    38760 
+emacs   0:00.83     0.60   0.09  83%     20  10360       0    99372
+ecce    0:00.14     0.12   0.01  98%      0   3914       0    16720 
+nano    3:35.64   195.80   1.00  91%      0 488202       0  1937276
+  
+  Phew!!!! nano's main claim my be that it's small, friendly  and  lightweight
+  but, an RSS of 1937276 for a 8Mb file, that's neither small  or  lightweight
+  and  definitely  unfriendly  -  one  might   easily   mistake   it   for   a
+  memory-gobbling monster.
+  
+    
