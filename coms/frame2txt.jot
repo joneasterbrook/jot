@@ -122,7 +122,7 @@ m-0b
 :
 
 %%Go for it - this is the format-all-paragraphs command from doc.jot.
-(w'+mm-(v/ /\m)0'*)0 m\m-0
+( %w=refresh; '+mm-(v/ /\m)0'*)0 m\m-0
 
 %M Now do tables. 
 %%Now do tables. 
@@ -145,5 +145,5 @@ m-0
 %M Clear up any remaining tabs ( should all be in column 1).
 %%Clear up any remaining tabs ( should all be in column 1).
 m-0 (f/	/r-\e)0
-w
+ %w=refresh; 
 

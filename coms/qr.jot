@@ -21,17 +21,6 @@
 %%
 %%
 
-%g?
-  Prerequsites:
-    JOT_HOME env should point to a valid jot installation.
-  Usage:
-$ jot -st=qr
-$ jot -st="qr -nomod"
-  The -nomod qualifier converts the modified-key expressions to prefixed-key expressions 
-  This is for the benefit of those using the nomod.jot startup script.
-  
-:
-
 %%Read the docs.
 %i.=${JOT_HOME}/docs/jot_qr.txt;
 %it=jot_tech; 
@@ -64,7 +53,32 @@ z.
 %r=${JOT_HOME}/coms/startup.jot;
 
 ob
+
 %r=linkdocs -bufs=. c t w u i e s; 
-oz
+%g$
+jot Quick Reference
+-------------------
+  
+  Prerequsites:
+    JOT_HOME env should point to a valid jot installation.
+  Usage:
+$ jot -st=qr
+$ jot -st="qr -nomod"
+  The -nomod qualifier converts the modified-key expressions to prefixed-key expressions 
+  This is for the benefit of those using the nomod.jot startup script.
+  
+  The jot documantation is held in these buffers:
+    - ( . ) jot_qr.txt
+    - ( t ) jot_tech 
+    - ( c ) jot_coms 
+    - ( u ) jot_ug 
+    - ( w ) jot_walkthrough 
+    - ( i ) index.txt
+    - ( e ) jot_eval
+    - ( s ) jot_test
+    
+  These documents were linked using the linkdocs.jot script:
+:
+z?m-0h$b2 oz
 
 m-0

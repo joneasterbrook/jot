@@ -35,11 +35,11 @@
 %g#
 %%Find first heading and force it to level 1.
 m-0(v/--/\m)0m-
-on(m-q/0-9/\)0(q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)r-0n.oida%o~oo/%d/i/ /(q/0-9. /e)0r-0ol0((q/0-9/r)0v/./ro~)0m(v/-/k,)m-r0ol4o-n.a%obz%oo/%d/r-0v/-/oz(v-/ /e-)0ol0oco-b(i/-/o~)0okm,ok
+on(m-q/0-9/\)0(q/0-9/n.f1/ /a$h$ono-omh$,ono-omi/0 /)r-0n.oida%o~oo/%d/i/ /(q/0-9. /e)0r-0ol0((q/0-9/r)0v/./ro~)0m(v/-/k,)m-r0ol4o-n.a%& obz%oo/%d/r-0v/-/oz(v-/ /e-)0ol0oco-b(i/-/o~)0okm,ok
  
 %%Find remianing level-1 headings and translate. 
 (
-  (v/*Head1 /\m)0 w (k(v/ /r)0r\)0
+  (v/*Head1 /\m)0  %w=refresh;  (k(v/ /r)0r\)0
 on
 %%Find last header.
 (m-q/0-9/\)0

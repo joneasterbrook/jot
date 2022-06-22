@@ -1,0 +1,2038 @@
+%%Full set of regression tests for jot. (replacement for test.sh)
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+  
+%g?
+Usage (command-line startup):
+$ jot -in="%r=test_all[ -nosize][ -noexit][ -test <n>[ <n>[ ...]]][ -debug 1]
+  - By default, runs all tests but n1 n2 ... are test numbers of selected tests to run.
+  - -exe <ExecutableName> - specifies the executable to be tested  -  defaults
+    to the same exe as is running the test_all harness.
+  - -nosize - ignores size of terminal nb some tests *are* very much dependant on this.
+  - -noexit  -- prevents the sesession terminating after the last test
+  - -test <n1>[ <n2>[ ...]] - list of tests to be done - defaults to all tests.
+  - -debug=<hexMask> - debugging of this script.
+    The hexmask bits are assigned as follows:
+    - 1 - Retains existing test files - e.g. test.txt, test.jot and test.ref
+ 
+On successful completion, it exits with the message: "Passed all tests."
+In the event of one or more failures it displays a list of failed tests without exiting.
+To start at a specified test set the stack to to that test no. e.g. for test 44:
+$   ./jot -in="ol1 %r=test_all"
+      
+  Buffer usage:
+    @ - List of tests to do.
+    ! - Temporary parking area for command and data files for the tests.
+    # - test-dispatcher macro
+    * - One line of test-results log, also used as temporary storage in argument parsing.
+    % - executable name (defaults to jot_dev).
+    
+Run all tests
+$ jot -in=%r=test_all
+  
+Run specific tests - e.g: Test_10 and Test_12
+$ jot -in="ol10 ol12 %r=test_all"
+:
+
+%g#
+%%
+%%Pick up and save args from $
+(oq/'=args/, %h'=data args;) z$m-0n.r0a~ov/'=args/
+%%Create data objects.
+(oq/'=executable/, %h'=data executable; )
+(oq/'=debug/, %h'=data debug; )
+(oq/'=noexit/, %h'=data noexit; )
+%%
+%%Copy args to buffer ( * ).
+oq/'=args/z~r-0n.r0a*&z*r-0i/ /r0i/ /ok
+%%
+%%Check terminal dimensions.
+(z*r-0f/ -nosize /s/ /, 
+  ( %%Check screen size.
+    %q@=window;
+    %%Check screen height - must be 40 or more.
+    f/ screenHeight = /-boidol39 (o>ok, okz. %m=Screen height must be at least 40 - this one is &'@;\ )
+    %%Check screen width - must be at least 80.
+    z@f/ screenWidth = /-boidol80 (o<\ok, okz. %m=Error: Screen width must be at least 80 columns - this one is &'@;\ )
+    %l=80 40;? x
+  , %%The screen was not big enough.
+    %m=Tweak the screen size then hit any key to continue or {Ctrl+c} to exit.;
+    og %l; %d$=; %h'=call WindowOne;
+  , %%This can only be a {Ctrl+c}
+    %x=Abandoning test_all;
+   )0 ) 
+%%
+%%Set up executable name.
+z*r-0 (f/ -exe /s/ /(v/ /r)0n.(f1/ /, r0)a%, %q%=system; f/ Invocation name = /-b-k-0mk0 ) z@
+%%z*r-0 (f/ -exe /s/ /(v/ /r)0n.(f1/ /, r0)a%, %d%=jot_dev; ) z@
+%%
+%%Debugging mode.
+z*r-0 (f/ -debug /s/ /oixs/ /, ol0 ) ov/'=debug/ z.
+%%
+%%noexit - prevents it exiting the session after the last test.
+z*r-0 (f/ -noexit /s/ /ol1, ol0 ) ov/'=noexit/ z.
+%%
+%%Check the current directory is writable.
+%q~=wd; m z. %q$=file &'~; f/writable by this UID = /- (v/yes/, z. %a1=Error: Cannot write to directory &'$;)
+  
+:
+z.'#
+
+%g@=Main command macro ends;
+<<Test_1>>
+%%Runs test.jot
+%%
+%%Setup the child-session command.
+z$i@%e=@ i'%i@ ${JOT_RESOURCES}/t.t -in="(%r=test\; %a0=\;, %a1=\;)"@ 
+%d*=Test  1  --  test.jot - the jot-command regression test;
+%%Run command and comparator.
+( '$, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_2>>
+%%Streaming out to stdout.
+%%
+%e=rm -f test.txt;
+%%Setup the child-session command.
+z$i@%e=@ i'%i@ ${JOT_RESOURCES}/t.t -obey -st -quiet -tty -init="p0 %a0\;" > test.txt@
+%d*=Test  2  --  Streaming out to stdout;
+%%Run command and comparator.
+('$ %iz=test.txt; %iq=${JOT_RESOURCES}/t.t; (zzv'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_3>>
+%%Accepting input from stdin stream - in -tty mode.
+%%
+%e=rm -f test.txt;
+%%Setup the child-session command.
+( %q=windows; 
+  z$ i@%e=@ i'% i@ < %JOT_RESOURCES%/t.t - -st -init="%o=test.txt\; %a0=\;"@
+, %%Linux.
+  z$ i@%e=@ i'% i@ < ${JOT_RESOURCES}/t.t - -st -init="%o=test.txt\; %a0=\;"@ )
+%d*=Test  3  --  Accepting input from stdin stream - in non-tty mode.;
+%%Run command and comparator.
+('$ %iq=${JOT_RESOURCES}/t.t; %iz=./test.txt; (zzv'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_4>>
+%%Accepting input from stream and piping to stdout - in -tty mode.;
+%%
+%e=rm -f test.txt;
+%%Setup the child-session command.
+( %q=windows; 
+  z$ i@%e=@ i'% i@ < %JOT_RESOURCES%/t.t - -st -tty -init="%o=test.txt\; %a0=\;"
+, %%Linux.
+  z$ i@%e=@ i'% i@ < ${JOT_RESOURCES}/t.t - -st -tty -init="%o=test.txt\; %a0=\;"@ )
+%d*=Test  4  --  Accepting input from stdin stream - in tty mode.;
+%%Run command and comparator.
+('$ %iq=${JOT_RESOURCES}/t.t; %iz=./test.txt; (zzv'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_5>>
+%%Accepting input from stream and piping to stdout - in -tty mode.
+%%
+%e=\rm -f test.txt; 
+%%Setup the child-session command.
+( %q=windows;
+  z$ i@%e=@ i'% i@ < %JOT_RESOURCES%/t.t - -st -tty -quiet @ i@-init="p0 %a0=\;" > test.txt;@
+, %%Linux.
+  z$ i@%e=@ i'% i@ < ${JOT_RESOURCES}/t.t - -st -tty -quiet @ i@-init="p0 %a0=\;" > test.txt;@ )
+%d*=Test  5  --  Accepting input from stream and piping to stdout - in -tty mode.;
+%%Run command and comparator.
+('$ %iq=${JOT_RESOURCES}/t.t; %iz=./test.txt; (zzv'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_6>>
+%%Read from %E command.
+%%
+%e=\rm -f test.txt; 
+%%Setup the child-session command.
+z$ i@%e=@ i'% i@ -st -tty -quiet -init="%eq=cat ${JOT_RESOURCES}/t.t\; %o=test.txt\; %a0=\;"@
+%d*=Test  6  --  Read from %E command.;
+%%Run command and comparator.
+('$ %iq=${JOT_RESOURCES}/t.t; %iz=./test.txt; (zzv'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_7>>
+%%test_visual.jot
+%%
+%e=\rm -f test.log; 
+%%Setup and run the child-session command.
+%%  ( %q=windows; %e$=cmd -c ver & exit; f/Version 10.0/
+( %q=windows; %e$=cmd -c ver \& exit; f/Version 10.0/
+  m-0k0 i@%e=@ i'% i@ ${JOT_RESOURCES}/t.t -in="%r=test_visual -win10relaxation -noexit\;? %o=test.log\; (m-0m %a1=\;, %a0=\;)"@
+, %%Not windows 10
+  z$m-0k0 i@%e=@ i'% i@ ${JOT_RESOURCES}/t.t -in="%r=test_visual -noexit\;?  %o=test.log\; (m-0m %a1=\;, %a0=\;)"@ ) '$?
+%d*=Test  7  --  test_visual.jot;
+%%Run comparator.
+( %i$=test.log; (i/  /m)0m-0m\, o~z*i/** Fail **  /r0bh$ ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_8>>
+%%streamed-in commands.
+%%
+%%First define the command file - if bit 1 of debug-mask is not set.
+%g!=Test_8 command file ends;
+%%Test_8 command file.
+m-0 (i/zzz /m2m-)0
+%o=test.txt;
+%a0=;
+  
+Test_8 command file ends:
+oq/'=debug/olx1o&ol0 (o=ok 
+%%  z! m-0f/%%Test_8 command file./ n.(rm)0 a$& 
+  z! %o=test.jot; m-0k0, ok)
+%%
+%%Define the command.
+m-0k0
+z$i"%e="i'% i@ ${JOT_RESOURCES}/t.t < test.jot -obey -tty@
+%d*=Test  8  --  streamed-in commands.;
+%%Run command and comparator.
+('$
+  %iq=${JOT_RESOURCES}/t.t; 
+  %iz=./test.txt; 
+  (zz v/zzz /r4v'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_9>>
+%%streamed-in commands - in non-tty mode.
+%%
+%%First define the command file.
+%g!=Test_9 command file ends;
+%%Test_9 command file.
+m-0 (i/zzz /m2m-)0
+%o=test.txt;
+%a0=;
+  
+Test_9 command file ends:
+oq/'=debug/olx1o&ol0 (o=ok 
+%%  m-0f/%%Test_9 command file./ n.(rm)0 a$& 
+  z! %o=test.jot; m-0k0, ok)
+%%
+%%Define the command.
+z$i"%e="i'% i@ ${JOT_RESOURCES}/t.t < test.jot -obey@
+%d*=Test  9  --  streamed-in commands - in non-tty mode.;
+%%Run command and comparator.
+('$
+  %iq=${JOT_RESOURCES}/t.t; 
+  %iz=./test.txt; 
+  (zzv/zzz /r4v'qr0v-'q mzqmzz)0 zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_10>>
+%%piping stdout in -tty mode.
+%%
+%%Define the command.
+( %q=windows;
+  %e=rm -f test.bat test.txt;
+  z$i'% i@ %JOT_RESOURCES%/t.t -tty -init="f/1234567890/p %%a0="|grep "3 :1234567890" > test.txt@b %o=test.bat;
+  z$m-0k0e0 i"%e=test.bat"
+, %%Linux.
+  %e=rm -f test.sh test.txt;
+  z$ i"#! /bin/sh"b i'% i@ ${JOT_RESOURCES}/t.t -tty -quiet -init="f/1234567890/p %a" | grep "3 :1234567890" > test.txt@b  %o=test.sh; %e=chmod u+x test.sh;
+  z$m-0k0e0 i"%e=./test.sh" )
+%d*=Test 10  --  piping stdout in -tty mode.;
+%%Run command and comparator.
+('$? %iq=test.txt; v/3 :1234567890/r0v-//mr\m\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_11>>
+%% -asConsole.
+%%
+%%First define the command file.
+%g!=Test_11 command macro ends;
+%%Test_11 command file.
+%d^=\\^[Xd0       m-0f/jon/i/##/
+z.
+Congratulations Xd0
+%o=test.txt;
+%a0=;
+
+Test_11 command macro ends:
+oq/'=debug/olx1o&ol0 (o=ok 
+%%  m-0f/%%Test_11 command file./ n.(rm)0 a$& 
+  z! %o=test.jot; m-0k0, ok)
+%%Define the command.
+z$i"%e=" i'% i@ ${JOT_RESOURCES}/t.t -startup -init="%w=new -height=15 -delim\; %r= -asConsole ./test.jot\;"@
+%d*=Test 11  --  -asConsole.;
+%%Run command and comparator.
+('$
+  %iz=test.txt; m=4 
+  v/4 :Test file for Congratulations jonathans wonderful editor./r0v-//, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_12>>
+%%Basic journal-keeping and recovery test.
+%%
+%e=rm -f test.txt.jnl/LOCK test.txt test.ref;
+%%Define the text file.
+%i$=${JOT_RESOURCES}/t.t; %o=test.txt; m-0k0
+%%
+%%Fire up the slave session.
+%%  z$i"%ez= -interactive " i'% i" test.txt -screen=80x40 -obey -journal\;" '$
+%%  z$i"%ez= -interactive -exit=%a " i'% i" test.txt -screen=80x40 -obey -journal;" '$
+%ez= -interactive -exit=%a &'%& test.txt -screen=80x40 -obey -journal;
+%%
+%%Send it some test commands.
+%%A few simple edits.
+%pz=m-0 (i/zzz /r0i/ zzz/m2m-)0;
+%pz=m-0f/jon/;
+%pz=%ea=ls -l ${JOT_RESOURCES}/help\; z.ha;
+%pz=z.mha;
+%pz=%ib=test.txt;
+%pz=z.mhb;
+( %q=windows; %e=sleep 1;, %e=sleep 0.1; )
+%pz=%o=test.txt;
+%pz=%a0=\;
+%%
+%%Rename the edited text to the reference version - the short sleep seems necessary for some systems?
+%s=sleep 100; 
+%e=cp test.txt test.ref;
+%%  %iq=test.txt; %o=test.ref;
+%%Remove any interactive I/O stuff from buffer ( Z ).
+z.n.az 
+%%Fire up the recovery session.
+z$m-0k0 i@%e= -interactive -exit=%a @ i'% i@ test.txt -startup=recover -init="%o\; %a0=\;"@ '$
+%d*=Test 12  --  basic journal-keeping and recovery test.;
+%%Comparator
+%iq=test.txt; %iz=test.ref; (zzv'qr0v-'q mzqmzz)0 (zqm\ zzm\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+z*r0b %o= -append test_all.log; %m='*;
+
+<<Test_13>>
+%%A more detailed look at recover.jot, including some tricky situations
+%%
+%g!=End of Test_13 history;
+%%Test_13 history file.
+%%
+%%To enter the debugger in this file, insert the line %s=trace B001;.
+%%Primary session pid 30821, at 18/03/20, 14:31:09
+%%jot version jot for chrome v2.4.7_dev, from ed/source/jot.c, built 18/03/20 12:54:36 using crouton  
+%%Primary file test.txt
+%%Recovery terminal size: 80 25
+%%Recovery pathname:   8 test.txt, Original pathname:   8 test.txt
+%%Startup Sequence ends, buffer .
+%%Make a copy of the original file.
+n.m0ax&
+%%Set up windows;
+%w=new -height=9 -delim;
+zrm-0bz.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 1: A {Ctrl+c} interrupt of a loop - the original command was separated from the <<INT ...>> line by the output from an OP report.;
+%%
+m-0k0hxm-0 op f/jon/ (r, m, m-0)0
+0 0 0<<MOUSE>>
+<<INT 1234 1>>
+(onol9o=ok ocol4o=ok, %qr= -append backtrace; ) z.
+%%(onol9o=ok ocol3o=ok, %qr= -append backtrace; ) z.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 2: A {Ctrl+c} interrupt of a loop - several lines of funny stuff separating the <<INT ...>> line from the original command.;
+%%
+m-0k0hxm-0 
+%qz=file .; %iq=test.txt; op z.m-0f/jon/ (r, m, m-0)0
+%%Recovery record:                  Name = "."
+%%Recovery record:                 inode = 390435
+%%Recovery record:                  Mode =  40755
+%%Recovery record:                   uid = 1000
+%%Recovery record:                   gid = 1000
+%%Recovery record:                  size = 4096
+%%Recovery record:  writable by this UID = yes
+%%Recovery record:             directory = 1
+%%Recovery record:                  link = 0
+%%Recovery record:           Access time = 2018/05/11, 01:00:00 (1525996800)
+%%Recovery record:           Modify time = 2020/03/18, 15:28:37 (1584545317)
+%%Recovery record:         Creation time = 2020/03/18, 15:28:37 (1584545317)
+%%Recovery pathname:   8 test.txt, Original pathname:   8 test.txt
+0 0 0<<MOUSE>>
+<<INT 9999 14>>
+(onol6o=ok ocol33o=ok, %qr= -append backtrace;) z.
+%%(onol6o=ok ocol33o=ok, %qr= -append backtrace;) z.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 3: The interrupt is delivered mid-debug session.;
+%%
+m-0k0hxm-0 
+f/1234/ (r, m, m-0)0
+%%Debugger on 0
+
+
+
+
+
+
+
+<<INT 13 8>>
+%%Debugger off
+(onol3o=ok ocol13o?o=ok, ob %qr= -append backtrace;  ozm) z.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 4: The interrupt terminates a G command.;
+%%
+m-0k0hxm-0 
+f/1234/  op g3 %qz=file .; z.g0 %iq=test.txt; z.g0
+0 0 0<<MOUSE>>
+123
+456
+789
+%%Recovery record:                  Name = "."
+%%Recovery record:                 inode = 656388
+%%Recovery record:                  Mode =  40755
+%%Recovery record:                   uid = 1000
+%%Recovery record:                   gid = 1000
+%%Recovery record:                  size = 4096
+%%Recovery record:  writable by this UID = yes
+%%Recovery record:             directory = 1
+%%Recovery record:                  link = 0
+%%Recovery record:           Access time = 2020/03/19, 02:20:46 (1584584446)
+%%Recovery record:           Modify time = 2020/03/19, 03:01:55 (1584586915)
+%%Recovery record:         Creation time = 2020/03/19, 03:01:55 (1584586915)
+abc
+def
+:
+%%Recovery pathname:   8 test.txt, Original pathname:   8 test.txt
+1
+2
+3
+4
+<<INT 10 21>>
+%%G-command terminated
+m-0
+v/1 :abcdefghijklmnopqrstuvwxyz/m
+v/2 :ABCDEFGHIJKLMNOPQRSTUVWXYZ/m
+v/123/m
+v/456/m
+v/789/m
+v/abc/m
+v/def/m
+v/1/m
+v/2/m
+v/3/m
+v/4/m
+v/3 :1234567890/m
+(onol13o=, ob %qr= -append backtrace;  ozm) z.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 5: The interrupt terminates a G command in a valid line.;
+%%
+m-0k0hxm-0 
+f/1234/ %qz=file .; z.g0
+%%Recovery record:                  Name = "."
+%%Recovery record:                 inode = 656388
+%%Recovery record:                  Mode =  40755
+%%Recovery record:                   uid = 1000
+%%Recovery record:                   gid = 1000
+%%Recovery record:                  size = 4096
+%%Recovery record:  writable by this UID = yes
+%%Recovery record:             directory = 1
+%%Recovery record:                  link = 0
+%%Recovery record:           Access time = 2020/03/19, 02:20:46 (1584584446)
+%%Recovery record:           Modify time = 2020/03/19, 04:05:42 (1584590742)
+%%Recovery record:         Creation time = 2020/03/19, 04:05:42 (1584590742)
+123
+456
+<<INT 5 11>>
+789
+%%G-command terminated
+m-0
+v/1 :abcdefg/m
+v/2 :ABCDEFG/m
+v/123/m
+v/456/m
+v/789/m
+v/3 :1234567890/m
+(onol7o=, ob %qr= -append backtrace;  ozm) z.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 6: The interrupt terminates a G command in a blank line.;
+%%
+m-0k0hxm-0 
+f/1234/ %iq=test.txt; z.g0
+%%Recovery pathname:   8 test.txt, Original pathname:   8 test.txt
+abc
+def
+ghi
+
+<<INT 4 5>>
+%%G-command terminated
+m-0
+v/1 :abcdefg/m
+v/2 :ABCDEFG/m
+v/abc/m
+v/def/m
+v/ghi/m
+r\m
+v/3 :1234567890/m
+(onol8o=, ob %qr= -append backtrace;  ozm) z.
+
+%%------------------------------------------------------------------------------------------
+%mr=Part 7: The debugger session contains typed-in commands.;
+%%
+m-0k0hxm-0 
+%qz=file .; z.t %iq=test.txt; z.(r)0
+%%Recovery record:                  Name = "."
+%%Recovery record:                 inode = 390435
+%%Recovery record:                  Mode =  40755
+%%Recovery record:                   uid = 1000
+%%Recovery record:                   gid = 1000
+%%Recovery record:                  size = 4096
+%%Recovery record:  writable by this UID = yes
+%%Recovery record:             directory = 1
+%%Recovery record:                  link = 0
+%%Recovery record:           Access time = 2018/05/11, 01:00:00 (1525996800)
+%%Recovery record:           Modify time = 2020/03/19, 23:25:22 (1584660322)
+%%Recovery record:         Creation time = 2020/03/19, 23:25:22 (1584660322)
+%%Recovery record: 
+%%Recovery record: file .
+%%Debugger on 12
+
+%%Recovery pathname:   8 test.txt, Original pathname:   8 test.txt
+
+
+
+
+
+
+
+zq
+p5
+zz
+p3
+z.
+
+
+
+
+
+
+op
+0 0 0<<MOUSE>>
+
+
+
+
+
+<<INT 29 42>>
+%%Debugger off
+(onol1o=ok ocol8o=ok, ob %qr= -append backtrace;  ozm) z.
+%%------------------------------------------------------------------------------------------
+zrm0r0bi/All done/
+
+End of Test_13 history:
+%%
+%%Keep existing test files if bit 1 of debug-mask is set.
+oq/'=debug/olx1o&ol0 
+( o=ok
+  %%Clear the log file.
+  z$m-0k0e0 %o=test.log;
+  %%Define the text file.
+  %i$=${JOT_RESOURCES}/t.t; %o=test.txt; m-0k0
+  %%Write the history file.
+  ( %q=dir test.txt.jnl; %e=\rm -f test.txt.jnl/* recover_now.jot;, %e=\mkdir test.txt.jnl; )
+  %%Windows does not support linux links and hence "link = ... " lines do not appear in windows %q=file reports - purge them from the history.
+z!%%  z! (%q=windows; m-0(f/   Link = 0/k)0, )
+
+  %%Now write the test history file.
+  %o=test.txt.jnl/history.txt; m-0k0, ok)
+%%Create the recover_now.jot script.
+z$i"%e=" i'% i@ test.txt -startup="recover -nosize -norun" -init="%a0="@ '$
+%%
+%%Now setup the command to run recover_now script in -tty mode.
+z$m-0k0e0 i"%er=" i'% i@ test.txt -tty -init="%r= -asconsole recover_now.jot\;? zr %o=test.log\;? %a0=\;"@
+%%
+%d*=Test 13  --  A more detailed look at recover.jot, including some tricky situations.
+%%Update the logfile - in addition to looking for backtrace reports check that it completed all tasks - it's liable to exit early.
+( ( '$ ol0, ol1 ) %i$=test.log; (r\k)0r- (i/    /m)0 ol0o=m-0m5m-0f/backtrace/\m0v/    All done/k?z*ok,  o+z*i/** Fail **/) r0bh$b %o= -append test_all.log; %m='*;
+
+<<Test_14>>
+%%get.jot
+%%
+%%From test 11 of test.sh
+%%
+%g!=End of Test_14 command script;
+%%Test_14 command script.
+%%
+%g*=Test_14_inner;
+%%This env is used by part 7.
+%s=setenv GetDefaultPath /usr/include
+%%
+%mr=Part 1  Check it correctly picks up a pathname from the text and prepends the default pathname.
+( %q=windows;
+  zri/(Skipped in windows) /
+, %%Linux puts it's include files in a predictable place.
+  z. f"stdio.h" %r=get -to=q; %qz=buffer; ( f/ pathname = /-v"/usr/"f1"stdio.h", ob %mr=Test 14 Part 1 Follow an include specification ; %qr= -append backtrace;  ozm?) ) 
+z.
+%%
+%%----------------------------------------------Part 2
+%mr=Part 2  Check simple wildcards in end of name of a pathname element.
+z. %r=get -to=q test_get/another*/t.t; (m- v"dir test_get/another_dir1/"r0v-//mv/t.t/mr\ m v"dir test_get/another_dir2/"r0v-//mv/t.t/mr\ m\ , ob %mr=Test  14 part 2; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------Part 3part 3
+%mr=Part 3  Check simple wildcard at begining of a path-element name
+z. %r=get -to=q ${JOT_RESOURCES}/test_get/*eeper/t.t; (m- f1"test_get/deeper/"-r\mv/t.t/mr\ m f1"/test_get/not_deeper/"-r\mv/t.t/mr\ m\ , ob %mr=Test  14 part 3; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 4
+%mr=Part 4  A simple wildcard expression relative to current-file's directory.
+z.m-0 %iq=deeper/t.t; %r=get -to=q deeper_yet/*ther*; (%qz=buffer; f/ pathName = /-v"test_get/deeper/deeper_yet/another_t.t"r0v-//, ob %mr=Test  14 part 4;  %qr= -append backtrace;  ozm?) z.
+%%----------------------------------------------part 5
+%mr=Part 5  The given path element is a subdirectory.
+z. %r=get -to=q deeper; (m-v"dir test_get/deeper/"mv"../"mv"./"mv"another_t.t"mv"deeper_yet/"mv"deeper_yet_not/"mv"not_deeper_yet/"mv/t.t/mr\m\, ob %mr=Test  14 part 5; %qr= -append backtrace;  ozm?) z.
+%%----------------------------------------------part 6
+%mr=Part 6  With no given path element and no vaild pathname in the text;
+%%It should list files in the current file's parent directory.
+z.m-0 %r=get -to=q test_get/*.c; (%qz=buffer; f/ pathName = /-v"./test_get/hello.c"r0v-//, ob %mr=Test  14 part 6; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 7
+%mr=Part 7  Check that it presents the correct options for multiple directories.
+z. %r=get -to=q ${JOT_RESOURCES}/test_get/*/*.t; 
+( m-
+  f1"/test_get/another_dir1/"-r\mv/t.t/mr\m
+  f1"/test_get/another_dir2/"-r\mv/t.t/mr\m
+  f1"/test_get/deeper/"-r\mv/another_t.t/mv/t.t/mr\m
+  f1"/test_get/deeper_not/"r0v-//mv/t.t/mr\ m
+  f1"/test_get/dir with whitespace in name/"-r\mv/t with whitespace.t/mv/t.t/mr\m
+  f1"/test_get/not_deeper/"-r0v-//mv/t.t/mr\ m\ 
+, %%Something went wrong
+  ob %mr=Test  14 part 7; %qr= -append backtrace;  ozm?) z.
+%%
+%%Check that a simple wildcard will select correctly at the to level.
+z. %r=get -to=q *; (f/Richard_III_Entire_Play.txt/ , ob %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 8
+%mr=Part 8  Recursive search with no wildcards in termination exptrssion.
+z. %r=get -to=q ./test_get/**/t.t; 
+( r0v-"test_get/"mv/t.t/mv"t.t.jnl/"mr\ m
+  r0v-"test_get/another_dir1/"mv/t.t/mr\ m
+  r0v-"test_get/another_dir2/"mv/t.t/mr\ m
+  r0v-"test_get/deeper/"mv/t.t/mr\ m
+  r0v-"test_get/deeper/deeper_yet/"mv/t.t/mr\ m
+  r0v-"test_get/deeper/deeper_yet/deeper_yet_again/"mv/t.t/mr\ m
+  r0v-"/test_get/deeper/deeper_yet/deeper_yet_again_not/"mv/t.t/mr\ m
+  r0v-"/test_get/deeper/deeper_yet/not_deeper_yet_again/"mv/t.t/mr\ m
+  r0v-"/test_get/deeper/deeper_yet_not/"mv/t.t/mr\ m
+  r0v-"/test_get/deeper/not_deeper_yet/"mv/t.t/mr\ m
+  r0v-"/test_get/deeper_not/"mv/t.t/mr\ m
+  r0v-"test_get/dir with whitespace in name/"mv/t.t/mr\ m
+  r0v-"/test_get/not_deeper/"mv/t.t/mr\ m   
+, ob %mr=Test  14 part 8;  %qr= -append backtrace; oz) z.
+%%
+%%----------------------------------------------part 9
+%mr=Part 9  Recursive search with lots of wild-card filtering.
+z. %r=get -to=q ./test_get/**/*dee*p*er*/t.t; 
+( v"dir ./test_get/deeper/"r0v-//mv/t.t/mr\m 
+  v"dir ./test_get/deeper/deeper_yet/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet/deeper_yet_again/"r0v-//mv/t.t/mr\m 
+  v"dir ./test_get/deeper/deeper_yet/deeper_yet_again_not/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet/not_deeper_yet_again/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet_not/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/not_deeper_yet/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper_not/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/not_deeper/"r0v-//mv/t.t/mr\ m
+, ob %mr=Test  14 part 9; %qr= -append backtrace;  oz) z.
+%%
+%%----------------------------------------------part 10
+%mr=Part 10 Recursive search with lots of wildcards in the final path element.
+z. %r=get -to=q ./test_get/**/deeper/an*o*t*t*e*r*.t; (v"dir ./test_get/deeper/"r0v-//mv/another_t.t/mr\ mr\ m\ 
+, ob %mr=Test  14 part 10; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 11
+%mr=Part 11 Recursive search with wildcards in the path and matches at different levels.
+z. %r=get -to=q ./test_get/**/deeper*/t.t;
+( v"dir ./test_get/deeper/"mv/t.t/r0v-//mr\m
+  v"dir ./test_get/deeper/deeper_yet/"r0v-//mv/t.t/mr\m
+  v"dir ./test_get/deeper/deeper_yet/deeper_yet_again/"r0v-//mv/t.t/mr\ 
+, ob %mr=Test  14 part 11; %qr= -append backtrace;  oz) z.
+%%
+%%----------------------------------------------part 12
+%mr=Part 12 Recursive serarch terminated by a simple path element and a wildcard file name.
+z. %r=get -to=q ./test_get/**/deeper/*anoth*er*t.t*; (v"dir ./test_get/deeper/"r0v-//mv/another_t.t/mr\ 
+, ob  %mr=Test  14 part 12; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 13
+%mr=Part 13 A recursive search involving a completely wild terminating subpath.
+z. %r=get -to=q ./test_get/**/*/*; ( f/another_t.t/ 
+, ob %mr=Test  14 part 13; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 14
+%mr=Part 14 A recursive search involving a simple terminating subpath.
+%r=get -to=q ./test_get/**/deeper/*;
+( v"dir ./test_get/deeper/"r0v-//mv/another_t.t/mv"deeper_yet/"r0v-//mv"deeper_yet_not/"r0v-//mv"not_deeper_yet/"mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet/"r0v-//mv/another_t.t/mv"deeper_yet_again/"mv"deeper_yet_again_not/"mv"not_deeper_yet_again/"mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet/deeper_yet_again/"r0mv/another_t.t/mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet/deeper_yet_again_not/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet/not_deeper_yet_again/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/deeper_yet_not/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/not_deeper_yet/"r0v-//mv/t.t/mr\ m
+  r\ m\ 
+, ob %mr=Test  14 part 14; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 15
+%mr=Part 15 Recursive search terminated by an explicit path element and an explicit file name.
+z. %r=get -to=q ./test_get/**/deeper/t.t; (v"dir ./test_get/deeper/"r0v-//mv/t.t/mr\ mr\ m\  
+, ob %mr=Test  14 part 15; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 16
+%mr=Part 16 Two wild path elements followed by an explicit file name.
+z. %r=get -to=q */*/another_t.t; (%qz=buffer; f/ pathName = /-v"./test_get/deeper/another_t.t" , ob %mr=Test  14 part 16; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 17
+%mr=Part 17 First termination expr starts with a wildcard.
+z. %r=get -to=q ./test_get/**/*eeper_yet/t.t; 
+( v"dir ./test_get/deeper/deeper_yet/"r0v-//mv/t.t/mr\ m
+  v"dir ./test_get/deeper/not_deeper_yet/"r0v-//mv/t.t/mr\ mr\ m\ 
+, ob %mr=Test  14 part 17; %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 18
+%mr=Part 18 Extract file from tar archive.
+z. %r=get -to=q test_get/*; 
+( f/test.tar/'0 f"test_get/t.t" '0 %qz=buffer; f/ pathName = /- v@[ From CLI command tar -Oxf @ f1@./test_get/test.tar@ f1@test_get/t.t@ , ob %qr= -append backtrace;  ozm?) z.
+%%
+%%----------------------------------------------part 19
+%mr=Part 19 Test that it can pick up from a given subdirectory of the file path
+%%Should offer directories test_get/another_dir1 and another_dir2
+z.
+z. %r=get -to=q test_get/another*; (m-v"dir test_get/"r0v-//m v"another_dir1/" mv"another_dir2/" mr\ m\ 
+, ob %mr=Test  14 part 19; %qr= -append backtrace; ozm) z.
+%%
+%%----------------------------------------------part 20
+%mr=Part 20 Test pickup of a file that's in in the current-file's dir;
+%%Should offer four *s* files in test_get (test.tar, test.tz, test_get.tar and test_get.zip)
+z.
+%d$=test_get/s; %h'=call GetInitializeSearch; 
+( m- v"dir test_get/dir with whitespace in name/"mv"../"mv"./"mv"t with whitespace.t"mv"t.t"mr\ 
+  mv"dir test_get/"mv"new_test_get.tz"mv"test.tar"mv"test.tz"mv"test_get.tar"mv"test_get.zip"  mr\ 
+  m\ 
+, ob %mr=Test  14 part 20; %qr= -append backtrace; ozm) z.
+%%
+%%----------------------------------------------part 21
+%mr=Part 21 Test pickup of a file in a local subdirectory;
+%%Should prompt and pick up ./another_dir1/hello.c .
+z.
+%r=get -to=q test_get/another_dir1/.c; (%q~=buffer;  f"pathName = "f1"test_get/another_dir1/hello.c" z.ok
+, ob %mr=Test  14 part 21; %qr= -append backtrace; ozm) z.
+%%
+%%----------------------------------------------part 22
+%mr=Part 22 Test similar but incomplete path;
+%%Should offer a selection of items in ./test_get/ .
+z. %r=get -to=q test; 
+( m- f"dir ./"mf"test_block.txt"mf"test_doc.t"mf"test_get/../"mf"test_get/./"m
+  f"test_get/.cproject"mf"test_get/.project"mf"test_get/another_dir1/"mf"test_get/another_dir2/"m
+  f"test_get/deeper/"mf"test_get/deeper_not/"mf"test_get/dir with whitespace in name/"m
+  f"test_get/hello.c"
+  f"test_get/test_get.zip"mf"test_table.txt"mf"test_table.xls"mr\ m\ 
+, ob %mr=Test  14 part 22; %qr= -append backtrace; ozm) z.
+%%
+%%----------------------------------------------part 23
+%mr=Part 23 Test pick up a simple name from text when file local;
+%%Should prompt and pick up /usr/include/stdio.h .
+( %q=windows;
+  zri/(Skipped in windows) /
+, %%Linux
+  z.f/stdio/ %d$=\-to=a; %h'=call GetInitializeSearch; %q~=buffer; (f"pathName = /usr/include/stdio.h" z.ok
+  , ob %mr=Test  14 part 23; %qr= -append backtrace; ozm) ) z.
+%%
+%%----------------------------------------------part 24
+%mr=Part 24 Test pick up a pathname from text when file in GetDefaultPath env;
+%%Should prompt and pick up /usr/include/stdio.h .
+z. f"stdio.h"
+( %q=windows;
+  zri/(Skipped in windows) /
+, %%Linux
+  %d$=\-to=a; %h'=call GetInitializeSearch; 
+  %q~=buffer; (f"pathName = /usr/include/stdio.h" z.ok
+  , ob %mr=Test  14 part 24; %qr= -append backtrace; ozm) ) z.
+%%
+%%----------------------------------------------part 25
+%%Should return t.t from the another_dir1 dir in archive. 
+( %q=windows; %%The windows version of tar does not do compressed tarballs.
+, %%Linux.
+  %mr=part 25 A compressed tarball
+  z. %r=get -to=q test_get; 
+  ( f/test.tar/ '0 m5'0 %qz=buffer; f"pathName = [ From CLI command tar -Oxf " f1@"test_get/test.tar" "test_get/another_dir1/hello.c" ]@ z.ok
+  , ob %mr=Test  14 part 25; %qr= -append backtrace; ozm)
+  z.
+  %d$=test.tz -to=q; %h'=call GetInitializeSearch; 
+  ( mf/t.t/'0
+    %q~=buffer; f"pathName = [ From CLI command tar -zOxf "f1"test_get/test.tz test_get/t.t ]" z.ok
+  , ob %mr=Test  14 part 26; %qr= -append backtrace; ozm) z. )
+:Test_14 inner:
+'*
+End of Test_14 command script:
+%%
+%%Keep existing test files if bit 1 of debug-mask is set.
+oq/'=debug/olx1o&ol0 
+( o=ok
+  %%Clear the log file.
+  z$m-0k0e0 %o=test.log;
+  %%Define the text file.
+  %i$=${JOT_RESOURCES}/t.t; %o=test.txt; m-0k0
+  %%Define the test.jot script.
+  z! %o=test.jot;
+  %%Setup the launch script.
+  ( %q=windows;
+    %e=rm -f test.bat;
+    %q$=wd; kn.(f1"\"s"/")0r0a* i@cd %JOT_RESOURCES%@b i'% i@ test_get/hello.c -in="%%r=@ h* i@/test.jot;? zr %%o=@ h* i@/test.log; %%a0=;"@ %o=test.bat; 
+  , %%Linux
+    %q$=wd; kn.r0a* i@#! /bin/sh@b2 i@cd ${JOT_RESOURCES}@b i'%i@ test_get/hello.c -in="%r=@ h* i@/test.jot;? zr %o=@ h* i@/test.log; %a0=;"@ %o=test.sh;, ok ) )
+%%Setup the launch command.
+z$m-0k0e0 (%q=windows; i"%e=test.bat", i"%e=chmod u+x ./test.sh; "b i"%e=./test.sh" )
+%%Launch the script and run the comparator.
+( '$? %i$=test.log; f/backtrace/\, o~z*i/** Fail **  / ) 
+%%Update the logfile.
+%d*=Test 14  --  get.jot.
+%i$=test.log; (r\k, ) (i/    /m)0 z*r0h$b (f-/ backtrace /m-0i/** Fail **/, ) %o= -append test_all.log; %m='*;
+
+<<Test_15>>
+%%A selection of functions defined in startup.jot
+%%
+%g$=End of Test_15 command script;
+%%Test_15 command script.
+%%Initialize report buffer.
+  
+%%------------------------------------------------------------------------------------------
+%m?=Part  1: <<ViewUp>>, <<CutRectangle>> and <<PasteRectangle>>;
+f/Now are our brows bound /
+%h'=call LineRight;
+%h'=call LineLeft;
+%h'=call WordRight;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call ViewUp;
+%h'=call Note;
+%h'=call WordRight;
+%h'=call WordRight;
+%h'=call WordRight;
+%h'=call WordRight;
+%h'=call NewWordDown;
+%h'=call NewWordDown;
+%h'=call NewWordDown;
+%h'=call CutRectangle;
+%w=refresh; %qz=window;
+f/    In the deep bosom of the ocean buried./m, ob %q?= -append backtrace;  ozm
+v/    Now                     with victorious wreaths;/m, ob %q?= -append backtrace;  ozm
+v/Attrs: (X=7 Current_Chr) (X=8 Normal_Text)/m, ob %q?= -append backtrace;  ozm
+v/    Our                    p for monuments;/m, ob %q?= -append backtrace;  ozm
+v/    Our                    ed to merry meetings,/m, ob %q?= -append backtrace;  ozm
+v/    Our                     delightful measures./m, ob %q?= -append backtrace;  ozm
+v/    Grim-visaged war hath smooth'd his wrinkled front;/m, ob %q?= -append backtrace;  ozm
+z.
+%h'=call PasteRectangle;
+%w=refresh; %qx=window
+f/    In the deep bosom of the ocean buried./m, ob %q?= -append backtrace;  ozm
+v/    Now are our brows bound with victorious wreaths;/m, ob %q?= -append backtrace;  ozm
+v/Attrs: (X=7 Current_Chr) (X=8 Normal_Text)/m, ob %q?= -append backtrace;  ozm
+v/    Our bruised arms hung up for monuments;/m, ob %q?= -append backtrace;  ozm
+v/    Our stern alarums changed to merry meetings,/m, ob %q?= -append backtrace;  ozm
+v/    Our dreadful marches to delightful measures./m, ob %q?= -append backtrace;  ozm
+v/    Grim-visaged war hath smooth'd his wrinkled front;/m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  2: <<ProximitySentence>>;
+z.m-0
+merry meetings Our dreadfulfq        
+(onol21o=ok ocol33o=ok, ob %q?= -append backtrace;  ozm)
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  3: <<ProximitySentence>>;
+z.m-0
+m-0
+#our & #tofs        
+%w=refresh; %qz=window;
+%w=clear; %w=new -hei=9 -del;
+f/    And all the clouds that lour'd upon our house/m, ob %q?= -append backtrace;  ozm
+v/    In the deep bosom of the ocean buried./m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=0 colour 7/4) (X=42 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=0 colour 7/1) (X=42 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+v@    Now are our brows bound with victorious wreaths;                            @m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=12 colour 7/2) (X=15 Normal_Text) @m, ob %q?= -append backtrace;  ozm
+v@    Our bruised arms hung up for monuments;                                     @m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=4 colour 7/2) (X=7 Normal_Text) @m, ob %q?= -append backtrace;  ozm
+v@    Our stern alarums changed to merry meetings,                                @m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=4 colour 7/2) (X=7 Normal_Text) (X=30 colour 7/2) (X=32 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=4 colour 7/2) (X=7 Normal_Text) (X=32 Normal_Text) @m, ob %q?= -append backtrace;  ozm)  )
+v@    Our dreadful marches to delightful measures.~                               @m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=4 colour 7/2) (X=7 Normal_Text) (X=25 colour 7/2) (X=27 Normal_Text) (X=48 Current_Chr) (X=49 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=4 colour 7/2) (X=7 Normal_Text) (X=27 Normal_Text) (X=48 Current_Chr) (X=49 Normal_Text) @m, ob %q?= -append backtrace;  ozm)  )
+v@    Grim-visaged war hath smooth'd his wrinkled front;                          @m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=0 colour 7/4) (X=54 Normal_Text) @m, ob %q?= -append backtrace;  ozm ) )
+( %q=windows;,  (v@Attrs: (X=0 colour 7/1) (X=54 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+v@    And now, instead of mounting barded steeds                                  @m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  4: <<ProximityWordsBack>>;
+z.m=178
+15 ((king&true)|(queen&obey))-fw
+%qz=window;
+f/We know thy charge, Brakenbury, and will obey/m
+( %q=windows;\, (v@Attrs: (X=0 colour 7/4) (X=15 Normal_Text) (X=45 colour 7/2) (X=49 Normal_Text)@m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;, (v@Attrs: (X=0 colour 7/1) (X=15 Normal_Text) (X=45 colour 7/2) (X=49 Normal_Text)@m, ob %q?= -append backtrace;  ozm ) )
+(v/ /r)0r\m, ob %q?= -append backtrace;  ozm
+v@*GLOUCESTER*@m, ob %q?= -append backtrace;  ozm
+(v/ /r)0r\m, ob %q?= -append backtrace;  ozm
+v@    We are the queen's abjects, and must obey.@m, ob %q?= -append backtrace;  ozm
+( %q=windows;\,  (v@Attrs: (X=15 colour 7/2) (X=20 Normal_Text) (X=40 Current_Chr) (X=41 colour 7/2) (X=45 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=15 colour 7/2) (X=20 Normal_Text) (X=40 Current_Chr) (X=45 Normal_Text) @m, ob %q?= -append backtrace;  ozm)  )
+v@    Brother, farewell: I will unto the king;@m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=0 colour 7/4) (X=44 Normal_Text) @m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=0 colour 7/1) (X=44 Normal_Text) @m, ob %q?= -append backtrace;  ozm)  )
+%%  v@Attrs: (X=0 colour 7/1) (X=44 Normal_Text) @m, ob %q?= -append backtrace;  ozm
+f1@Richard_III_Entire_Play.txt@m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  5: <<WindowTop>> and <<WindowOne>>;
+z.f-/Now is the winter of our discontent/m- %w=refresh;
+wt         
+w1         
+%s=verbose 13;
+%qz=window;
+f/    Now is the winter of our discontent/m, ob %q?= -append backtrace;  ozm
+v/    Made glorious summer by this sun of York;/m, ob %q?= -append backtrace;  ozm
+v/    And all the clouds that lour'd upon our house/m, ob %q?= -append backtrace;  ozm
+v/    In the deep bosom of the ocean buried./m, ob %q?= -append backtrace;  ozm
+v/    Now are our brows bound with victorious wreaths;/m, ob %q?= -append backtrace;  ozm
+v/    Our bruised arms hung up for monuments;/m, ob %q?= -append backtrace;  ozm
+v/    Our stern alarums changed to merry meetings,/m, ob %q?= -append backtrace;  ozm
+v/    Our dreadful marches to delightful measures./m, ob %q?= -append backtrace;  ozm
+v/    Grim-visaged war hath smooth'd his wrinkled front;/m, ob %q?= -append backtrace;  ozm
+%%v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text) /r0v-//m, ob %q?= -append backtrace;  ozm
+v/    And now, instead of mounting barded steeds/m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  6: <<WindowVertSplit>>;
+z. %w=refresh;
+wv        
+%iq=${JOT_RESOURCES}/l99.t
+%w=refresh; %qz=window;
+%w=new -height=9 -delim;
+v/window/m, ob %q?= -append backtrace;  ozm
+v/  screenHeight = 40/m, ob %q?= -append backtrace;  ozm
+v/  screenWidth = 80/m, ob %q?= -append backtrace;  ozm
+v/      win:0  = fixed on buffer  ( . ), 39 lines (0  to 38), 40 column slice (0  to 39), Leftmost, Height includes an end delimiter./m,t ob %q?= -append backtrace;  ozm
+v/      win:1  = currently buffer ( Q ), 39 lines (0  to 38), 40 column slice (40 to 79), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/  Console area 1 lines (40 to 40), extendable up to 20 lines/m, ob %q?= -append backtrace;  ozm
+v/  Current buffer ( Q )/m, ob %q?= -append backtrace;  ozm
+r\m, ob %q?= -append backtrace;  ozm
+v/No valid mouse point set./m, ob %q?= -append backtrace;  ozm
+r\m, ob %q?= -append backtrace;  ozm
+v/Screen dump follows:/m, ob %q?= -append backtrace;  ozm
+v/                                        __01: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/Attrs: (X=40 Current_Chr) (X=41 Normal_Text) /m, ob %q?= -append backtrace;  ozm
+v/    Now is the winter of our discontent __02: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/    Made glorious summer by this sun of __03: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/    And all the clouds that lour'd upon __04: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/    In the deep bosom of the ocean burie__05: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/    Now are our brows bound with victori__06: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/    Our bruised arms hung up for monumen__07: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+v/    Our stern alarums changed to merry m__08: abc def ghi jkl mno pqr stu vwxyz:/m, ob %q?= -append backtrace;  ozm
+
+%%  v/                                        __01: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/Attrs: (X=40 Current_Chr) (X=41 Normal_Text)/m, ob %q?= -append backtrace;  ozm
+%%  v/                   The Life and Death of __02: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                    -------------------- __03: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __04: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __05: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/       ACT I                             __06: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __07: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __08: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/       SCENE I. London. A street.        __09: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __10: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v"     /Enter GLOUCESTER, solus/           __11: abc def ghi jkl mno pqr stu vwxyz"m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __12: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/ *GLOUCESTER*                            __13: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/                                         __14: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+%%  v/     Now is the winter of our discontent __15: abc def ghi jkl mno pqr stu vwxyz/m, ob %q?= -append backtrace;  ozm
+  
+zq
+wv        
+%iw=${JOT_RESOURCES}/t.t
+%w=refresh; %qz=window;
+v/window/m, ob %q?= -append backtrace;  ozm
+v/  screenHeight = 40/m, ob %q?= -append backtrace;  ozm
+v/  screenWidth = 80/m, ob %q?= -append backtrace;  ozm
+v/      win:0  = fixed on buffer  ( . ), 39 lines (0  to 38), 26 column slice (0  to 25), Leftmost, Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:1  = fixed on buffer  ( Q ), 39 lines (0  to 38), 26 column slice (26 to 51), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:2  = currently buffer ( W ), 39 lines (0  to 38), 26 column slice (52 to 77), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/  Console area 1 lines (40 to 40), extendable up to 20 lines/m, ob %q?= -append backtrace;  ozm
+v/  Current buffer ( W )/m, ob %q?= -append backtrace;  ozm
+r\m, ob %q?= -append backtrace;  ozm
+v/No valid mouse point set./m, ob %q?= -append backtrace;  ozm
+r\m, ob %q?= -append backtrace;  ozm
+v/Screen dump follows:/m, ob %q?= -append backtrace;  ozm
+v/                          __01: abc def ghi jkl mno 1 :abcdefghijklmnopqrstuv/m, ob %q?= -append backtrace;  ozm
+v/Attrs: (X=52 Current_Chr) (X=53 Normal_Text)/m, ob %q?= -append backtrace;  ozm
+v/    Now is the winter of o__02: abc def ghi jkl mno 2 :ABCDEFGHIJKLMNOPQRSTUVW  /m, ob %q?= -append backtrace;  ozm
+v/    Made glorious summer b__03: abc def ghi jkl mno 3 :1234567890/m, ob %q?= -append backtrace;  ozm
+v/    And all the clouds tha__04: abc def ghi jkl mno 4 :Test file for jonathans/m, ob %q?= -append backtrace;  ozm
+v/    In the deep bosom of t__05: abc def ghi jkl mno 5 :aaaaaaaaaaaaaaaaaaaaaaa/m, ob %q?= -append backtrace;  ozm
+v/    Now are our brows boun__06: abc def ghi jkl mno 6 :bbbbbbbbbbbbbbbbbbbbbbb/m, ob %q?= -append backtrace;  ozm
+v/    Our bruised arms hung __07: abc def ghi jkl mno 7 :qwertyuiop[]/m, ob %q?= -append backtrace;  ozm
+v/    Our stern alarums chan__08: abc def ghi jkl mno 8 :asdgfghjkl;'/m, ob %q?= -append backtrace;  ozm
+v"    Our dreadful marches t__09: abc def ghi jkl mno 9 :zxcvbnm,./"m, ob %q?= -append backtrace;  ozm
+v/    Grim-visaged war hath __10: abc def ghi jkl mno 10:<>\|~!@#$%^&*()_+-=/m, ob %q?= -append backtrace;  ozm
+v/    And now, instead of mo__11: abc def ghi jkl mno  /m, ob %q?= -append backtrace;  ozm
+
+%%  v/                    The Li __02: abc def ghi jkl mno 2 :ABCDEFGHIJKLMNOPQRSTUV/m, ob %q?= -append backtrace;  ozm
+%%  v/                    ------ __03: abc def ghi jkl mno 3 :1234567890            /m, ob %q?= -append backtrace;  ozm
+%%  v/                           __04: abc def ghi jkl mno 4 :Test file for jonathan/m, ob %q?= -append backtrace;  ozm
+%%  v/                           __05: abc def ghi jkl mno 5 :aaaaaaaaaaaaaaaaaaaaaa/m, ob %q?= -append backtrace;  ozm
+%%  v/       ACT I               __06: abc def ghi jkl mno 6 :bbbbbbbbbbbbbbbbbbbbbb/m, ob %q?= -append backtrace;  ozm
+%%  v/                           __07: abc def ghi jkl mno 7 :qwertyuiop[]          /m, ob %q?= -append backtrace;  ozm
+%%  v/                           __08: abc def ghi jkl mno 8 :asdgfghjkl;'          /m, ob %q?= -append backtrace;  ozm
+%%  v"       SCENE I. London. A  __09: abc def ghi jkl mno 9 :zxcvbnm,./            "m, ob %q?= -append backtrace;  ozm
+%%  v/                           __10: abc def ghi jkl mno 10:<>\|~!@#$%^&*()_+-=   /m, ob %q?= -append backtrace;  ozm
+%%  v"     /Enter GLOUCESTER, so __11: abc def ghi jkl mno                          "m, ob %q?= -append backtrace;  ozm
+%%  v/                           __12: abc def ghi jkl mno                          /m, ob %q?= -append backtrace;  ozm
+%%  v/ *GLOUCESTER*              __13: abc def ghi jkl mno                          /m, ob %q?= -append backtrace;  ozm
+%%  v/                           __14: abc def ghi jkl mno                          /m, ob %q?= -append backtrace;  ozm
+%%  v/     Now is the winter of  __15: abc def ghi jkl mno                         /m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  7: <<WindowShrink>> and <<WindowStretch>>;
+%%Also, while it's all set up, we can check <<WindowUp>> and <<WindowDown>>
+zw %w=refresh;  z. %w=refresh; 
+wd        
+ob (obol81o=ok, ob %q?= -append backtrace;  ozm) oz
+wd        
+ob (obol87o=ok, ob %q?= -append backtrace;  ozm) oz
+wd        
+ob (obol46o=ok, ob %q?= -append backtrace;  ozm) oz
+wu        
+ob (obol87o=ok, ob %q?= -append backtrace;  ozm) oz
+wu        
+ob (obol81o=ok, ob %q?= -append backtrace;  ozm) oz
+wu        
+ob (obol46o=ok, ob %q?= -append backtrace;  ozm) oz
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  8: <<WindowShrink>> and <<WindowStretch>>;
+%%Note: there is no user escape sequence for WindowShrink/Stretch so we just call them directly.
+n.a$ %h'=call WindowShrink;     
+n.a$ %h'=call WindowShrink;     
+n.a$ %h'=call WindowShrink;     
+wd        
+n.a$ %h'=call WindowShrink;     
+n.a$ %h'=call WindowShrink;     
+n.a$ %h'=call WindowShrink;     
+wd        
+n.a$ %h'=call WindowShrink;     
+n.a$ %h'=call WindowShrink;     
+n.a$ %h'=call WindowShrink;     
+%qz=window; 
+m=4 (f1/, 23 column slice /m, ob %q?= -append backtrace;  ozm)03
+(onol7o=ok, ob %q?= -append backtrace;  ozm) 
+%%
+n.a$ %h'=call WindowStretch;     
+n.a$ %h'=call WindowStretch;     
+n.a$ %h'=call WindowStretch;     
+wd        
+n.a$ %h'=call WindowStretch;     
+n.a$ %h'=call WindowStretch;     
+n.a$ %h'=call WindowStretch;     
+wd        
+n.a$ %h'=call WindowStretch;     
+n.a$ %h'=call WindowStretch;     
+n.a$ %h'=call WindowStretch;     
+%qz=window;
+m=4
+v/      win:0  = fixed on buffer  ( . ), 39 lines (0  to 38), 26 column slice (0  to 25), Leftmost, Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:1  = fixed on buffer  ( Q ), 39 lines (0  to 38), 26 column slice (26 to 51), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:2  = currently buffer ( Z ), 39 lines (0  to 38), 26 column slice (52 to 77), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/  Console area 1 lines (40 to 40), extendable up to 20 lines/m, ob %q?= -append backtrace;  ozm
+m=4 (f1/, 26 column slice /m, ob %q?= -append backtrace;  ozm)03
+
+%%------------------------------------------------------------------------------------------
+%m?=Part  9: <<WindowHorizSplit>>;
+%%Note that, for this test, we rely on the behaviour of <<WindowHorizSplit>> to create n+1 horizontally-split windows,
+%%where n is the number of windows - ( in this case 3 vertically-split windows from the previous test).
+%%
+z.m9
+%ie=${JOT_RESOURCES}/Sample_UTF-8.txt;
+%w=refresh;
+%qx=win;
+wh        
+%w=refresh; %qz=window; 
+v/window/m, ob %q?= -append backtrace;  ozm
+v/  screenHeight = 40/m, ob %q?= -append backtrace;  ozm
+v/  screenWidth = 80/m, ob %q?= -append backtrace;  ozm
+v/      win:0  = fixed on buffer  ( . ), 19 lines (0  to 18), 26 column slice (0  to 25), Leftmost, Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:1  = fixed on buffer  ( Q ), 19 lines (0  to 18), 26 column slice (26 to 51), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:2  = fixed on buffer  ( X ), 19 lines (0  to 18), 26 column slice (52 to 77), Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/      win:3  = currently buffer ( @ ), 19 lines (19 to 37), Leftmost, Height includes an end delimiter./m, ob %q?= -append backtrace;  ozm
+v/  Console area 2 lines (39 to 40), extendable up to 20 lines/m, ob %q?= -append backtrace;  ozm
+v/  Current buffer ( X )/m, ob %q?= -append backtrace;  ozm
+r\m, ob %q?= -append backtrace;  ozm
+v/No valid mouse point set./m, ob %q?= -append backtrace;  ozm
+r\m, ob %q?= -append backtrace;  ozm
+v/Screen dump follows:/m, ob %q?= -append backtrace;  ozm
+v/                          __01: abc def ghi jkl mno win /m, ob %q?= -append backtrace;  ozm
+v/Attrs: (X=52 Current_Chr) (X=53 Normal_Text)/m, ob %q?= -append backtrace;  ozm
+v/    Now is the winter of o__02: abc def ghi jkl mno   screenHeight = 40/m, ob %q?= -append backtrace;  ozm
+v/    Made glorious summer b__03: abc def ghi jkl mno   screenWidth = 80/m, ob %q?= -append backtrace;  ozm
+v/    And all the clouds tha__04: abc def ghi jkl mno       win:0  = fixed on bu/m, ob %q?= -append backtrace;  ozm
+v/    In the deep bosom of t__05: abc def ghi jkl mno       win:1  = fixed on bu/m, ob %q?= -append backtrace;  ozm
+v/    Now are our brows boun__06: abc def ghi jkl mno       win:2  = currently b/m, ob %q?= -append backtrace;  ozm
+v/    Our bruised arms hung __07: abc def ghi jkl mno   Console area 1 lines (40/m, ob %q?= -append backtrace;  ozm
+v/    Our stern alarums chan__08: abc def ghi jkl mno   Current buffer ( E )/m, ob %q?= -append backtrace;  ozm
+v/    Our dreadful marches t__09: abc def ghi jkl mno/m, ob %q?= -append backtrace;  ozm
+v/    Grim-visaged war hath __10: abc def ghi jkl mno No valid mouse point set./m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part 10: <<WindowSave>> and <<WindowRestore>>;
+z.m-0
+w1        
+%s=verbose 13;
+%d$=winter; %h'=call FindExact;
+(onol15o=ok ocol15o=ok, ob %q?= -append backtrace;  ozm) 
+wintervs        
+%d$=king; %h'=call FindExact;
+(onol48o=ok ocol39o=ok, ob %q?= -append backtrace;  ozm) 
+kingvs        
+wintervr        
+%x=bye;
+(onol15o=ok ocol15o=ok, ob %q?= -append backtrace;  ozm) 
+kingvr        
+(onol48o=ok ocol39o=ok, ob %q?= -append backtrace;  ozm) 
+m-0
+
+%%------------------------------------------------------------------------------------------
+%m?=Part 11: <<WindowAlignTop>>, <<WindowAlignBottom>> and <<WindowAlignCentre>>;
+z.m=500
+%w=refresh;
+wt        
+(ofol500o=ok, ob %q?= -append backtrace;  ozm) 
+%w=refresh;
+wb        
+(ofol463o=ok, ob %q?= -append backtrace;  ozm) 
+%w=refresh;
+wc        
+(ofol481o=ok, ob %q?= -append backtrace;  ozm) 
+
+%%------------------------------------------------------------------------------------------
+%m?=Part 12: <<PopupIncrementalSearch>>;
+%%
+%%Change the right margin to suit an 80-column terminal.
+ol60 ov/'=DocRightMargin/
+m-0 %w=refresh;
+kpi
+%qz=window;
+%w=clear; %w=new -height=9 -delim;
+f/screen dump follows:/m
+v/~                                                                    York/m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=0 Current_Chr) (X=1 Normal_Text) (X=69 colour 7/1) (X=73 Normal_Text)@m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=0 Current_Chr) (X=1 Normal_Text) (X=69 colour 7/4)@m, ob %q?= -append backtrace;  ozm) )
+v/                   The Life and Death of Richard the Third           wrinkled/m, ob %q?= -append backtrace;  ozm
+( %q=windows;\, (v@Attrs: (X=69 colour 7/1) (X=77 Normal_Text)@m, ob %q?= -append backtrace;  ozm) )
+( %q=windows;,  (v@Attrs: (X=69 colour 7/4) (X=77 Normal_Text)@m, ob %q?= -append backtrace;  ozm) )
+v/                   ---------------------------------------           tricks/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     looking/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     bark/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/      ACT I                                                          weak/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     spoken/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     drunken/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/      SCENE I. London. A street.                                     king/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     BRAKENBURY/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v@    /Enter GLOUCESTER, solus/                                        Alack@m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     belike/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/*GLOUCESTER*                                                         know/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/                                                                     hearkens/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    Now is the winter of our discontent                              plucks/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    Made glorious summer by this sun of York;                        like/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    And all the clouds that lour'd upon our house                    think/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    In the deep bosom of the ocean buried.                           kindred/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    Now are our brows bound with victorious wreaths;                 walking/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    Our bruised arms hung up for monuments;                          keep/m, ob %q?= -append backtrace;  ozm
+v@Attrs: (X=69 colour@m,  ob %q?= -append backtrace;  ozm
+v/    Our stern alarums changed to merry meetings,/m, ob %q?= -append backtrace;  ozm
+
+%%------------------------------------------------------------------------------------------
+%m?=Part 13:  line-drawing functions - <<LineDefaultChrs>>, <<LineCheckIntersection>, <<LineE>>, ...;
+z.m-0k0 b20m=2i/ /20m-i/ /20
+m=2r10  %d$=a; %h'=call LineDefaultChrs; (%d$=; %h'=call LineE;)30  (%d$=; %h'=call LineS;)20
+m=4r10  %d$=l; %h'=call LineDefaultChrs; (%d$=; %h'=call LineE;)27  (%d$=; %h'=call LineS;)20
+m=6r10  %d$=d; %h'=call LineDefaultChrs; (%d$=; %h'=call LineE;)24  (%d$=; %h'=call LineS;)20
+m=8r10  %d$=h; %h'=call LineDefaultChrs; (%d$=; %h'=call LineE;)21  (%d$=; %h'=call LineS;)20
+%%Simple intersections
+m=1r13  %d$=h; %h'=call LineDefaultChrs;  (%d$=; %h'=call LineS;)10  (%d$=; %h'=call LineE;)30
+m=1r16  %d$=d; %h'=call LineDefaultChrs;  (%d$=; %h'=call LineS;)13  (%d$=; %h'=call LineE;)30
+m=1r19  %d$=l; %h'=call LineDefaultChrs;  (%d$=; %h'=call LineS;)16  (%d$=; %h'=call LineE;)30
+m=1r22  %d$=a; %h'=call LineDefaultChrs;  (%d$=; %h'=call LineS;)19  (%d$=; %h'=call LineE;)30
+%%Corners, tees and crossovers.
+  
+ m0r0b3i/ /100b %d$=l; %h'=call LineDefaultChrs; i/  / (%d$=; %h'=call LineE;)40b i/ /100b m-2 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  %d$=d; %h'=call LineDefaultChrs; 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  %d$=h; %h'=call LineDefaultChrs; 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  
+m0r0b3i/ /100b %d$=d; %h'=call LineDefaultChrs; i/  / (%d$=; %h'=call LineE;)40b i/ /100b m-2 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  %d$=d; %h'=call LineDefaultChrs; 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  %d$=h; %h'=call LineDefaultChrs; 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  
+m0r0b3i/ /100b %d$=h; %h'=call LineDefaultChrs; i/  / (%d$=; %h'=call LineE;)40b i/ /100b m-2 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  %d$=d; %h'=call LineDefaultChrs; 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+  %d$=h; %h'=call LineDefaultChrs; 
+  r6 (%d$=; %h'=call LineN;)2 y0y2r3  (%d$=; %h'=call LineS;)2 y0y-2r3 y0y- (%d$=; %h'=call LineS;)3 y-2 
+  r3 i-/  /r- (%d$=; %h'=call LineN;)2 y0y2  r6i-/   /r- (%d$=; %h'=call LineS;)2 y0y-2
+
+%%Verify
+m=2
+v/                      |/m, ob %q?= -append backtrace;  ozm
+v/                   │  |/m, ob %q?= -append backtrace;  ozm
+v/                ║  │  |  /m, ob %q?= -append backtrace;  ozm
+v/             ┃  ║  │  |                   /m, ob %q?= -append backtrace;  ozm
+v/          ---?--?--?--+-----------------  /m, ob %q?= -append backtrace;  ozm
+v/             ┃  ║  │  |                 |/m, ob %q?= -append backtrace;  ozm
+v/          ───╂──╫──┼──?──────────────┐  |/m, ob %q?= -append backtrace;  ozm
+v/             ┃  ║  │  |              │  |/m, ob %q?= -append backtrace;  ozm
+v/          ═══?══╬══╪══?═══════════╗  │  |/m, ob %q?= -append backtrace;  ozm
+v/             ┃  ║  │  |           ║  │  |/m, ob %q?= -append backtrace;  ozm
+v/          ━━━╋━━?━━┿━━?━━━━━━━━┓  ║  │  |  /m, ob %q?= -append backtrace;  ozm
+v/             ┃  ║  │  |        ┃  ║  │  |  /m, ob %q?= -append backtrace;  ozm
+v/             ┃  ║  │  |        ┃  ║  │  |    /m, ob %q?= -append backtrace;  ozm
+v/             ┗━━?━━┿━━?━━━━━━━━╋━━?━━┿━━?━━ /m, ob %q?= -append backtrace;  ozm
+v/                ║  │  |        ┃  ║  │  |      /m, ob %q?= -append backtrace;  ozm
+v/                ╚══╪══?════════?══╬══╪══?═════ /m, ob %q?= -append backtrace;  ozm
+v/                   │  |        ┃  ║  │  |        /m, ob %q?= -append backtrace;  ozm
+v/                   └──?────────╂──╫──┼──?──────── /m, ob %q?= -append backtrace;  ozm
+v/                      |        ┃  ║  │  |      /m, ob %q?= -append backtrace;  ozm
+v/                       --------?--?--?--+----------- /m, ob %q?= -append backtrace;  ozm
+v/                               ┃  ║  │  |   /m, ob %q?= -append backtrace;  ozm
+v/                               ┃  ║  │  |  /m, ob %q?= -append backtrace;  ozm
+v/                               ┃  ║  │  |  /m, ob %q?= -append backtrace;  ozm
+  , ob %q?= -append backtrace;  ozm
+%%Note, some intersections do not exist - these are denoted by ( + ).
+%%, ob %q?= -append backtrace;  ozm
+m11v/  ────┴──┬──┼─┘  ──┐   ──╨──╥──╫─╜  ──╖   ──┸──┰──╂─/, ob %q?= -append backtrace;  ozm
+  
+m7v/  ════╩══╦══╬═╝  ══╗   ══╩══╦══╬═╝  ══╗   ══?══?══?═/, ob %q?= -append backtrace;  ozm
+  
+m7v/  ━━━━┻━━┳━━╋━┛  ━━┓   ━━?━━?━━?━?  ━━?   ━━┻━━┳━━╋━/, ob %q?= -append backtrace;  ozm
+  
+m0
+%%------------------------------------------------------------------------------------------
+End of Test_15 command script:
+z$ %o=test.jot;
+%%
+%%Keep existing test files if bit 1 of debug-mask is set.
+oq/'=debug/olx1o&ol0 
+( o=ok
+  %%Clear the log file.
+  z$m-0k0e0 %o=test.log;
+%%  %%Define the jot command script.
+%%  z! m-0f/%%Test_15 command script/ n.f/End of Test_15 command script/ a$& z$ %o=test.jot; m-0k0
+  %%Apply Windows-10 relaxation if required.
+  ( %q=windows; %e$=cmd -c ver; f1/10.0./
+    %%Nobble this test.
+    %i$=test.jot; f"v/__05: abc"(r-0i/m %%/m)15 %o;
+  , )
+, ok)
+%%Define the launch macro.
+z$m-0k0e0 i"%e=" i'% i@ ${JOT_RESOURCES}/Richard_III_Entire_Play.txt -screen=80x40 @
+  i@-init="%w=clear\; %w=new -height=39 -delim\; %r= -asConsole test.jot\;? z?m-0j2m0r0b %o=test.log\; %a0=\;"@
+%d*=Test 15  --  A selection of functions defined in startup.jot
+%%Launch and run the comparator.
+( '$ %i$=test.log; (v/Part /i/    /m,m)0 m-0f/backtrace/\, o~z*i/** Fail **  / ) z*r0bh$ %o= -append test_all.log;
+
+<<Test_16>>
+%%big_file.jot
+%%
+%g$=End of Test_16 command macro;
+%w=clear; %w=new -height=9 -delim;
+%r=big_file  -file=test.txt -grep=/coms/ -trim=(f1/:/-2n.r0f-./.-a$m,m)0;
+z?m-0k0
+z. %qz=keys;
+%%
+%m?=Step 1: First query big_file.jot
+big_file.jotbq            
+m-m-\, ob %q?= -append backtrace;  ozm
+mv/------------------------------------------ big_file.jot/m, ob %q?= -append backtrace;  ozm
+f1"coms/big_file.jot"-r\m, ob %q?= -append backtrace;  ozm
+v/25 25 52 65 61 64 73 20 /m, ob %q?= -append backtrace;  ozm
+%%
+%m?=Step 2: Query ascii.jot
+ascii.jotbq            
+(f1/---- ascii.jot/, %q? -append backtrace; z.)m
+(f1"coms/ascii.jot", %q? -append backtrace; z.)m
+(v/25 25 50 72 69 6E /, %q? -append backtrace; z.)
+m-0m
+(f1/----- big_file.jot/, %q? -append backtrace; z.)m
+(f1"coms/big_file.jot", %q? -append backtrace; z.)m
+(v/25 25 52 65 61 64 73 20 73/, %q? -append backtrace; z.)m
+%%
+%m?=Step 3: Use big_file_grepQuery to search for a match in the big file.
+29 2C 28 28 27 23 2C 29 68 5F 6E 2E 28 71 2F 3Dbg            
+m(f1"coms/bcplc.jot", %q? -append backtrace; z.)m
+%%
+%m?=Step 4: Query a few more sections, scrambling the order.
+backup.jotbq            
+curses_keys_xterm.jotbq            
+comp.jotbq            
+multi_do.jotbq            
+mail.jotbq            
+ide.jotbq            
+%%
+%m?=Step 5: Do a little edit and write it back using big_file_writeModifiedFile.
+m-0f/------ multi_do.jot/m2f1/ 66 6F /s/ zz zz /
+bw            
+%%
+%m?=Step 6: Verify the modified big file.
+%ea=diff test.txt_orig test.txt;
+m
+(v/< 25 25 50 65 72 66 6F 72 6D 73 20 61 20 75 6E 69/,  ob %q?= -append backtrace; ) m
+(v/---/,  ob %q?= -append backtrace; ) m
+(v/> 25 25 50 65 72 zz zz 72 6D 73 20 61 20 75 6E 69/,  ob %q?= -append backtrace; ) m
+(m\ ,  ob %q?= -append backtrace; ) 
+End of Test_16 command macro:
+z$ %b=pathname test.jot; %o;
+%%
+%%Keep existing test files if bit 1 of debug-mask is set.
+oq/'=debug/olx1o&ol1 
+( o=ok
+  %%Use old test files - if there's a test.txt.orig then assume that is usable.
+  %e=rm test.txt;
+  ( %q=file test.txt_orig; %e=mv test.txt_orig test.txt;, %x=Error: test.txt_orig does not exist, try again without -debug 1; )
+, %%Create new test files.
+  %%Clear the log file.
+  z$m-0k0e0 %o=test.log;
+  %%Create the text file.
+  %e=rm -f test.txt; 
+  %qz=dir ${JOT_HOME}/coms/; r4n.(f1"\"s"/")0r0a$k (f1/.jot/r-0h$m, k)0 %b=sort; m0r0b m-0 
+  ( (%i.= -binary 'z; b2i'zb %o= -append test.txt;, )  zzm)0 )
+%%  %%Define the jot command script.
+%%  z! m-0f/Test_16 command macro/ n.f/End of Test_16 command macro/ a$& z$ %o=test.jot; m-0k0, ok)
+%%Define the launch macro.
+z$m-0k0e0 i"%e=" i'% i@ text.txt -screen=80x40 -in="%r= -asConsole ./test.jot\; z?m-0j2?m0r0 b %o=test.log\; %a0=\;"@ 
+%d*=Test 16  --  big_file.jot
+%%Run the comparator.
+('$ %i$=test.log; (v/Step /i/    /m, m)0 m-0f/backtrace/\, o~z*i/** Fail **  / ) z*r0bh$ %o= -append test_all.log;
+
+<<Test_17>>
+%%fake_vim.jot
+%%
+%%  %%This is a comparitor macro for fake_vim testing:
+%%  obz^m0i/1B 56 /bi/ono=ok oco=ok, %q?= -append backtrace; /oz
+%%
+%g$=End of vim tests;
+%%Test file created by Test_17 of test_all.jot
+%%
+%%Clear out all the help words.
+n.a?
+%%
+%%First check simple navigation with h, j, k and l keys then a simple check on cursor position.
+%%  Vim_Left;                {h}
+%%  Vim_Right;               {l}
+%%  Vim_Right                { }
+^[ijjjlllkh^[i
+( onol3o=ok ocol2o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%Now check Vim_Down with an optional multiplier.
+%%  Vim_Down;                {j}
+%%  Vim_Down;                {Ctrl+N}
+%%  Vim_Up;                  {k}
+%%  Vim_Up;                  {Ctrl+P}
+^[i3j^[i
+( onol6o=ok ocol2o=ok,  ob %q?= -append backtrace; oz )
+%%
+%% Vim_Ex_n, Vim_Ex_N, Vim_Ex_n! and Vim_Ex_N!
+^[i:n
+:n
+:N
+^[i
+( obolcBo=ok onol1o=ok ocol0o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%  Vim_PrevSentance;        {(}
+%%  Vim_NextSentance;        {)}
+m=1602r40  %%This place was chosen on account of it being a normal-looking sentence.
+^[i)^[i
+( onol1605o=ok ocol4o=ok,  ob %q?= -append backtrace; oz )
+^[i(^[i
+( onol1600o=ok ocol26o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%
+%%  Vim_VisualModeChr;       {v}
+%%  Vim_Yank;                {y}
+%%  Vim_PutAfter;            {p}
+%%
+^[ivjjjy:n^Mp^[i
+(obolcCo=,  ob %q?= -append backtrace; oz )
+(v/As we paced along/r0v-//,  ob %q?= -append backtrace; oz )m
+(v/    Upon the giddy footing of the hatches,/r0v-//,  ob %q?= -append backtrace; oz )m
+(v/    Methought that Gloucester stumbled; and, in falling,/r0v-//,  ob %q?= -append backtrace; oz )m
+(v/ /r)0(r\,  ob %q?= -append backtrace; oz )m
+%%
+%%  Vim_VisualModeBlock;     {Ctrl+V}
+%%  Vim_PutBefore;           {P}
+^[i:N^M:N^M^Vllllllllljjjjjy:n^MP^[i
+(v-/   What dreadful noise of/v/ waters in mine ears!/,  ob %q?= -append backtrace; oz ) m-
+(v/    Lord, Lord! methought,11: abc d what pain it was to drown!/,  ob %q?= -append backtrace; oz ) m-
+(v/    Into the tumbling bill10: abc dows of the main./,  ob %q?= -append backtrace; oz ) m-
+(v/    Struck me, that though09: abc dt to stay him, overboard,/,  ob %q?= -append backtrace; oz ) m-
+(v/    Methought that Glouces08: abc dter stumbled; and, in falling,/,  ob %q?= -append backtrace; oz ) m-
+(v/    Upon the giddy footing07: abc d of the hatches,/,  ob %q?= -append backtrace; oz ) m-
+(v/    That had befall'n us. 06: abc dAs we paced along/,  ob %q?= -append backtrace; oz ) m-
+(v/    During the wars of York and Lancaster/,  ob %q?= -append backtrace; oz ) m-
+%%
+%%  Vim_InsertHere;          {i}
+%%
+^[i:n^Mi1234567890
+abc def ghi jkl mno
+pqr stu vwxyz^[i^[i
+(v-/pqr stu vwxy/v/z1 JOT User Guide/, ob%q?= -append backtrace; oz )
+m-(v/abc def ghi jkl mno/r0v-//, ob%q?= -append backtrace; oz )
+m-(v/1234567890/r0v-//, ob%q?= -append backtrace; oz )
+m-(v/ /r)0r\, ob%q?= -append backtrace; oz )
+%%
+%%At the end of the fake_vim test script.
+%%
+End of vim tests:
+  
+%%Housekeeping functions:
+%%  Vim_KeyboardScanner;     {Esc i}
+%%  Vim_SwitchMode;          {Esc i}
+%%  Vim_ExitVimMode;         {Esc I}
+%%  Vim_QuitDebugger;        {Esc q}
+%%  Vim_DebugKey;            {Esc x}
+%%
+%%Functions defined by fake_vim but not tested by test_all:
+%%  Vim_VisualModeLine;      {V}
+%%  Vim_YankLine;            {Y}
+%%  Vim_ChangeCommand;       {c}
+%%  Vim_MarkPos;             {m}
+%%  Vim_MoveToMark;          {`}
+%%  Vim_MoveToMarkCol;       {'}
+%%  Vim_ReplaceChr;          {r}
+%%  Vim_Undo;                {u}
+%%  Vim_ChangeView;          {z}
+%%  Vim_GotoLineNoLast;      {G}
+%%  Vim_HomeCursor;          {H}
+%%  Vim_MidCursor;           {M}
+%%  Vim_EndCursor;           {L}
+%%  Vim_JoinNext;            {J}
+%%  Vim_FindNextPrompt;      {/}
+%%  Vim_FindPrevPrompt;      {?}
+%%  Vim_SearchAgain;         {n}
+%%  Vim_SearchAgainRev;      {N}
+%%  Vim_FindChrBefore;       {t}
+%%  Vim_FindChrBeforePrev;   {T}
+%%  Vim_FindNextChr;         {f}
+%%  Vim_FindPrevChr;         {F}
+%%  Vim_Find;                {;}
+%%  Vim_a_Commands;          {a}
+%%  Vim_EnterOrSwap;         {o}
+%%  Vim_InsertChr;           {s}
+%%  Vim_InsertAtEoL;         {A}
+%%  Vim_DelToEoLInsert;      {C}
+%%  Vim_NonBlankInsert;      {I}
+%%  Vim_InsertAbove;         {O}
+%%  Vim_InsertOvertype;      {R}
+%%  Vim_DelAllLineInsert;    {S}
+%%  Vim_CmdMode;             {Q}
+%%  Vim_RestoreLine;         {U}
+%%  Vim_GotoLineNoFirst;     {gg}
+%%  Vim_WordEndPrev;         {ge}
+%%  Vim_FileFromCursor;      {gf}
+%%  Vim_ShowAscii;           {ga}
+%%  Vim_ShowCursorPos;       {g}
+%%  Vim_SearchWordCurPrev;   {#}
+%%  Vim_SearchWordCurFor;    {*}
+%%  Vim_SearchPartCurPrev;   {g#}
+%%  Vim_SearchPartCurFor;    {g*}
+%%  Vim_DefineLocalSym;      {gd}
+%%  Vim_DefineGlpobalSym;    {gD}
+%%  Vim_WordStartNext;       {w}
+%%  Vim_WordStartPrev;       {b}
+%%  Vim_WordEndNext;         {e}
+%%  Vim_BlankStartNext;      {W}
+%%  Vim_BlankStartPrev;      {B}
+%%  Vim_BlankEndNext;        {E}
+%%  Vim_Delete;              {d}
+%%  Vim_DelToEoL;            {D}
+%%  Vim_DelNextChr;          {x}
+%%  Vim_DelPrevChr;          {X}
+%%  Vim_QickSave1;           {Z}
+%%  Vim_GotoChr;             {|}
+%%  Vim_Digit0;              {0}
+%%  Vim_Digit1;              {1}
+%%  Vim_Digit2;              {2}
+%%  Vim_Digit3;              {3}
+%%  Vim_Digit4;              {4}
+%%  Vim_Digit5;              {5}
+%%  Vim_Digit6;              {6}
+%%  Vim_Digit7;              {7}
+%%  Vim_Digit8;              {8}
+%%  Vim_Digit9;              {9}
+%%  Vim_CliCmdToBuf;         {!}
+%%  Vim_Eval;                {@}
+%%  Vim_GotoEoL;             {$}
+%%  Vim_DoPercent;           {%}
+%%  Vim_FirstNonBlankOdd;    {_}
+%%  Vim_FirstNonBlankPrev;   {-}
+%%  Vim_FirstNonBlankNext;   {+}
+%%  Vim_Ex_Something;        {:}
+%%  Vim_AccessBuffer;        {"}
+%%  Vim_ChangeCase;          {~}
+%%  Vim_DoBackspace;         {Backspace}
+%%  Vim_RptLastChange;       {.}
+%%  Vim_ReduceIndent;        {<}
+%%  Vim_IncreaseIdent;       {>}
+%%  Vim_ExitEditor;          {Ctrl+X}
+%%  Vim_PageUp;              {Ctrl+B}
+%%  Vim_PageDown;            {Ctrl+F}
+%%  Vim_PageHalfDown;        {Ctrl+D}
+%%  Vim_PageHalfUp;          {Ctrl+U}
+%%  Vim_ScrollUpOrMove;      {Ctrl+E}
+%%  Vim_ScrollDownOrMove;    {Ctrl+Y}
+%%  Vim_ShowEditStatus;      {Ctrl+G}
+%%  Vim_Left;                {Ctrl+H}
+%%  Vim_Refresh;             {Ctrl+L}
+%%  Vim_NextLineStart;       {Ctrl+M}
+%%  Vim_NextLineStart;       {Ctrl+J}
+%%  Vim_RestoreFocus;        {Ctrl+T}
+%%  Vim_RestoreFocus;        {Esc t}
+%%  Vim_ExitVisualMode;      {Ctrl+\}
+%%  Vim_TagFromCurrWord;     {Ctrl+]}
+%%  Vim_Ex_split;            {Ctrl+W s}
+%%  Vim_Ex_new;              {Ctrl+W n}
+%%  Vim_Ex_on;               {Ctrl+W o}
+%%  Vim_WindowDown;          {Ctrl+W j}
+%%  Vim_WindowUp;            {Ctrl+W k}
+%%  Vim_WindowUpWrap;        {Ctrl+W w}
+%%  Vim_WindowDownWrap;      {Ctrl+W W}
+%%  Vim_ParaStart;           "{"
+%%  Vim_ParaEnd;             "}"
+%%  Vim_StartDebugger;       {Esc d}
+%%
+%%These function are currently only placeholders - typically a message echoing the function name..
+%%  Vim_RevFindRpt;          {,}
+%%  Vim_SubsAgain;           {&}
+%%  Vim_XON;                 {Ctrl+Q}
+%%  Vim_XOFF;                {Ctrl+S}
+%%  Vim_DoNothing;           {Ctrl+R}
+%%  Vim_SwitchFileBufs;      {Ctrl+^}  - maybe this is the same as Vim_Ex_n/Vim_Ex_N.
+%%
+z$ m-0(f/^/eoicolx40o-oo/%c/)0 %o=./test.jot;
+%%
+%%N.B. the startup.jot script was run at the start of the session, the key mappeing will have disappeared ftom ( @ ) yonks ago.
+%r=fake_vim ${JOT_RESOURCES}/l99.t ${JOT_RESOURCES}/Richard_III_Entire_Play.txt ${JOT_HOME}/docs/jot_ug.txt ${JOT_HOME}/source/jot.c -debug -test;
+%r= -asconsole ./test.jot;?
+%%
+%%Clear out all traces of fake_vim.
+z^m-0 (f/call Vim_/k2)0
+%%
+%d*=Test 17  --  fake_vim.jot
+z?m-0 ( (r\k)0 mm- (i/    /m)0 z*r0bh?b f-/ backtrace/m-0i/** Fail **/, z*)r0b %o= -append test_all.log; %m='*;
+
+<<Test_18>>
+%%fake_emacs.jot
+%%
+%g$=End of emacs tests;
+%%Test file created by Test_18 of test_all.jot
+%%
+%%Clear out all the help words.
+n.a?
+%%
+%%    emacs_GotoChrForwards;             {Ctrl+F}
+^[i^F^F^F^F^F^F^F^F^F^F^[i
+(onol1o=ok ocol10o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_DownInColumn;                {Ctrl+N}
+^[i^N^N^N^N^N^[i
+(onol6o=ok ocol10o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_UpInColumn;                  {Ctrl+P}
+^[i^P^P^[i
+(onol4o=ok ocol10o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_GotoChrBack;                 {Ctrl+B}
+^[i^B^B^[i
+(onol4o=ok ocol8o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_ReadFile;                    {Ctrl+X Ctrl+F}
+^[i^X^FRichard_III_Entire_Play.txt
+^[i
+%qz=file; f/ Name = /r0v-/Richard_III_Entire_Play.txt"/
+%%
+%%    emacs_GotoSentanceEnd;             {Esc e}
+zam=30
+^[i^[e^[i
+(onol45o=ok ocol46o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_GotoSentanceStart;           {Esc a}
+^[i^[a^[i
+(onol28o=ok ocol4o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_GotoParaStart;               {Esc {}
+^[i^[{^[i
+(onol14o=ok ocol0o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%    emacs_GotoParaEnd;                 {Esc}
+^[i^[}^[i
+(onol57o=ok ocol0o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%At the end of the fake_emacs test script.
+%%
+End of emacs tests:
+  
+%%
+%%The following emacs moves are defined in the fake_emacs keymap biffer - but many are just placeholders with dummy functions.  
+%%    emacs_EnterJotMode;                {Esc i}
+%%    emacs_EraseCharacter;              {Backspace}
+%%    emacs_PageDown;                    {PageDown}
+%%    emacs_PageUp;                      {PageUp}
+%%    emacs_Exit;                        {Ctrl+X Ctrl+C}
+%%    emacs_SaveFileImage;               {Ctrl+X Ctrl+S}
+%%    emacs_SaveAllFiles;                {Ctrl+X S}
+%%    emacs_InsertFileImage;             {Ctrl+X i}
+%%    emacs_ReplaceFileImage;            {Ctrl+X Ctrl+V}
+%%    emacs_WriteToPathName;             {Ctrl+X Ctrl+W}
+%%    emacs_ToggleReadOnly;              {Ctrl+X Ctrl+Q}
+%%    emacs_Help;                        {Ctrl+H Ctrl+H}
+%%    emacs_HelpTutorial;                {Ctrl+H t}
+%%    emacs_HelpClose;                   {Ctrl+X 1}
+%%    emacs_HelpScroll;                  {Esc Ctrl+V}
+%%    emacs_HelpApropos;                 {Ctrl+H a}
+%%    emacs_HelpDescribeKey;             {Ctrl+H k}
+%%    emacs_HelpFunction;                {Ctrl+H f}
+%%    emacs_HelpMode;                    {Ctrl+H m}
+%%    emacs_RecoverSession;              {Esc x}
+%%    emacs_Undo;                        {Ctrl+X u}
+%%    emacs_RestoreOriginal;             {Esc x}
+%%    emacs_IncrementalSearchNext;       {Ctrl+S}
+%%    emacs_IncrementalSearchPrev;       {Ctrl+R}
+%%    emacs_SearchRexNext;               {Esc Ctrl+S}
+%%    emacs_SearchRexPrev;               {Esc Ctrl+R}
+%%    emacs_SearchHistoryPrev;           {Esc p}
+%%    emacs_SearchHistoryNext;           {Esc n}
+%%    emacs_SearchExit;                  {Ctrl+M}
+%%    emacs_GotoWordBack;                {Esc b}
+%%    emacs_GotoWordForwards;            {Esc f}
+%%    emacs_GotoLineStart;               {Ctrl+A}
+%%    emacs_GotoLineEnd;                 {Ctrl+E}
+%%    emacs_GotoPageStart;               {Ctrl+X [}
+%%    emacs_GotoPageEnd;                 {Ctrl+X ]}
+%%    emacs_GotoSexpStart;               {Esc Ctrl+B}
+%%    emacs_GotoSexpEnd;                 {Esc Ctrl+F}
+%%    emacs_GotoFunctionStart;           {Esc Ctrl+A}
+%%    emacs_GotoFunctionEnd;             {Esc Ctrl+E}
+%%    emacs_GotoBufferStart;             {Esc <}
+%%    emacs_GotoBufferEnd;               {Esc >}
+%%    emacs_GotoPagePrev;                {Esc v}
+%%    emacs_GotoPageNext;                {Ctrl+V}
+%%    emacs_ViewScrollLeft;              {Ctrl+X <}
+%%    emacs_ViewScrollRight;             {Ctrl+X >}
+%%    emacs_ViewCentTopBot;              {Ctrl+L}
+%%    emacs_GotoLineNo;                  {Esc gg}
+%%    emacs_GotoChrNo;                   {Esc gc}
+%%    emacs_GotoFirstNonBlank;           {Esc m}
+%%    emacs_DeleteChrPr;                 {Ctrl+?}
+%%    emacs_DeleteChrNx;                 {Ctrl+D}
+%%    emacs_DeleteWordNx;                {Esc d}
+%%    emacs_DeleteWordPr;                {Esc Delete}
+%%    emacs_DeleteToLineStart;           {Esc 0Ctrl+K}
+%%    emacs_DeleteToLineEnd;             {Ctrl+K}
+%%    emacs_DeleteToSentanceEnd;         {Ctrl+X Ctrl+?}
+%%    emacs_DeleteToSentanceStart;       {Esc k}
+%%    emacs_DeleteSexpBackwards;         {Esc - Esc Ctrl+K}
+%%    emacs_DeleteSexpForwards;          {Esc Ctrl+K}
+%%    emacs_RegionKill;                  {Ctrl+W}
+%%    emacs_RegionCopy;                  {Esc w}
+%%    emacs_KillToChar;                  {Esc z}
+%%    emacs_YankLastKilled;              {Ctrl+Y}
+%%    emacs_YankReplaceKill;             {Esc y}
+%%    emacs_MarkHere;                    {Ctrl+Space}
+%%    emacs_SwapMark;                    {Ctrl+X Ctrl+X}
+%%    emacs_RegionMarkNWords;            {Esc @}
+%%    emacs_MarkParagraph;               {Esc h}
+%%    emacs_MarkPage;                    {Ctrl+X Ctrl+P}
+%%    emacs_MarkSexp;                    {Esc Ctrl+@}
+%%    emacs_MarkFunction;                {Esc Ctrl+H}
+%%    emacs_MarkBuffer;                  {Ctrl+X h}
+%%    emacs_ReplaceText;                 {Esc %}
+%%    emacs_RegxReplace;                 {Esc x}
+%%    emacs_RecursiveEdit;               {Esc r}
+%%    emacs_WindowDeleteallButCurrent;   {Ctrl+X 1}
+%%    emacs_WindowHorizSplit;            {Ctrl+X 2{Ctrl+X 52}
+%%    emacs_WindowDeleteCurrent;         {Ctrl+X 0{Ctrl+X 50}
+%%    emacs_WindowVertSplit;             {Ctrl+X 3}
+%%    emacs_ScrollOtherWindow;           {Esc Ctrl+V}
+%%    emacs_WindowSwapFocus;             {Ctrl+X o}
+%%    emacs_FrameSwapFocus;              {Ctrl+X 5o}
+%%    emacs_WindowSwap;                  {Ctrl+X 4b}
+%%    emacs_FrameSwapFocus;              {Ctrl+X 5b}
+%%    emacs_WindowDisplayBuffer;         {Ctrl+X 4Ctrl+O}
+%%    emacs_FrameDisplayBuffer;          {Ctrl+O Ctrl+X 5 Ctrl+O}
+%%    emacs_WindowFile;                  {Ctrl+X 4f}
+%%    emacs_FrameFile;                   {Ctrl+X 5f}
+%%    emacs_WindowROFile;                {Ctrl+X 4r}
+%%    emacs_FrameROFile;                 {Ctrl+X 5r}
+%%    emacs_WindowDired;                 {Ctrl+X 4d}
+%%    emacs_FrameDired;                  {Ctrl+X 5d}
+%%    emacs_WindowGotoTag;               {Ctrl+X 4.}
+%%    emacs_FrameGotoTag;                {Ctrl+X 5.}
+%%    emacs_WindowTaller;                {Ctrl+X Ctrl+}
+%%    emacs_WindowSlimmer;               {Ctrl+X {}
+%%    emacs_WindowFatter;                {Ctrl+X}
+%%    emacs_IndentRegion;                {Esc Ctrl+\}
+%%    emacs_IndentSexp;                  {Esc Ctrl+Q}
+%%    emacs_IndentRegionTab;             {Ctrl+X TAB}
+%%    emacs_IndentForComment;            {Esc ;}
+%%    emacs_Break;                       {Ctrl+O}
+%%    emacs_BreakShift;                  {Esc Ctrl+O}
+%%    emacs_DeleteSurroundingBlankLines; {Ctrl+X Ctrl+O}
+%%    emacs_JoinPrev;                    {Esc Ctrl+}
+%%    emacs_DeleteSurroundingBlanks;     {Esc \}
+%%    emacs_InsertBlank;                 {Esc SPC}
+%%    emacs_ParagraphFill;               {Esc q}
+%%    emacs_FillColumn;                  {Ctrl+X f}
+%%    emacs_PrefixSet;                   {Ctrl+X .}
+%%    emacs_FaceSet;                     {Esc o}
+%%    emacs_UppercaseWord;               {Esc u}
+%%    emacs_LowercaseWord;               {Esc l}
+%%    emacs_CapitalizeWord;              {Esc c}
+%%    emacs_uppercaseRegion;             {Ctrl+X Ctrl+U}
+%%    emacs_LowercaseRegion;             {Ctrl+X Ctrl+L}
+%%    emacs_CompleteAndExecute;          {Ctrl+M}
+%%    emacs_CompleteSuggestions;         {?}
+%%    emacs_PreviousInput;               {Esc p}
+%%    emacs_LaterInput;                  {Esc n}
+%%    emacs_HistorySearchBack;           {Esc r}
+%%    emacs_HistorySearchForwards;       {Esc s}
+%%    emacs_HistoryRepeat;               {Ctrl+X Esc Esc}
+%%    emacs_BufferSelect;                {Ctrl+X b}
+%%    emacs_BufferList;                  {Ctrl+X Ctrl+B}
+%%    emacs_BufferKill;                  {Ctrl+X k}
+%%    emacs_TransposeCharacters;         {Ctrl+T}
+%%    emacs_TransposeWords;              {Esc t}
+%%    emacs_TransposeLines;              {Ctrl+X Ctrl+T}
+%%    emacs_TransposeSexps;              {Esc Ctrl+T}
+%%    emacs_SpellWord;                   {Esc $}
+%%    emacs_SpellRegion;                 {Esc x}
+%%    emacs_SpellBuffer;                 {Esc x}
+%%    emacs_SpellOnOff;                  {Esc x}
+%%    emacs_IndexFindDef;                {Esc .}
+%%    emacs_IndexFindNx;                 {Esc .}
+%%    emacs_IndexFindPr;                 {Ctrl+U Esc .}
+%%    emacs_IndexNewFile;                {Esc x}
+%%    emacs_IndexSearchAllFiles;         {Esc x}
+%%    emacs_IndexQueryReplace;           {Esc x}
+%%    emacs_IndexContinueSearch;         {Esc ,}
+%%    emacs_ShellCommand;                {Esc !}
+%%    emacs_ShellCommandNowait;          {Esc &}
+%%    emacs_ShellCommandRegion;          {Esc |}
+%%    emacs_ShellCommandFilterRegion;    {Ctrl+U Esc |}
+%%    emacs_ShellStartInWindow;          {Esc x}
+%%    emacs_RectCopy;                    {Ctrl+X rr}
+%%    emacs_RectKill;                    {Ctrl+X rk}
+%%    emacs_RectYank;                    {Ctrl+X ry}
+%%    emacs_RectOpen;                    {Ctrl+X ro}
+%%    emacs_RectBlank;                   {Ctrl+X rc}
+%%    emacs_PrefixLines;                 {Ctrl+X rt}
+%%    emacs_AbbrAddGlobal;               {Ctrl+X ag}
+%%    emacs_AbbrAddLocal;                {Ctrl+X al}
+%%    emacs_AbbrAddGlobalExp;            {Ctrl+X aig}
+%%    emacs_AbbrAddLocalExp;             {Ctrl+X ail}
+%%    emacs_AbbrExpand;                  {Ctrl+X ae}
+%%    emacs_AbbrExpandPrev;              {Esc /}
+%%    emacs_PosArg;                      {Ctrl+U}
+%%    emacs_NegArg;                      {Esc -}
+%%    emacs_String;                      {Ctrl+Q}
+%%    emacs_LanguageSet;                 {Ctrl+X Ctrl+M l}
+%%    emacs_LanguageListInput;           {Esc x}
+%%    emacs_LanguageInputToggle;         {Ctrl+\}
+%%    emacs_LanguageSetCoding;           {Ctrl+X Ctrl+M c}
+%%    emacs_LanguageListCoding;          {Esc x}
+%%    emacs_LanguagePrefer;              {Esc x}
+%%    emacs_InfoStart;                   {Ctrl+H i}
+%%    emacs_InfoFind;                    {Ctrl+H S}
+%%    emacs_InfoScrollRev;               {Delete}
+%%    emacs_RegSaveRegion;               {Ctrl+X rs}
+%%    emacs_RegInsertHere;               {Ctrl+X ri}
+%%    emacs_RegSaveValue;                {Ctrl+X rSPC}
+%%    emacs_RegJump;                     {Ctrl+X rj}
+%%    emacs_KbdDefineStart;              {Ctrl+X (}
+%%    emacs_KbdDefineEnd;                {Ctrl+X )}
+%%    emacs_KbdExLast;                   {Ctrl+X e}
+%%    emacs_KbdAppend;                   {Ctrl+U Ctrl+X (}
+%%    emacs_KbdName;                     {Esc x}
+%%    emacs_KbdLisp;                     {Esc x}
+%%    emacs_EvalSesp;                    {Ctrl+X Ctrl+E}
+%%    emacs_EvalCurrent;                 {Esc Ctrl+X}
+%%    emacs_EvalRegion;                  {Esc x}
+%%    emacs_EvalRead;                    {Esc :}
+%%    emacs_LoadLibLisp;                 {Esc x}
+%%    emacs_Customize;                   {Esc x}
+%%    emacs_InteractiveSpec;             {Ctrl+H f}
+%%    emacs_Interactive;                 {Ctrl+M}
+%%    emacs_CompleteWord;                {SPC}
+%%    emacs_CompleteAll;                 {TAB}
+%%
+z$ m-0(f/^/(v-/\/e-r, eoicolx40o-oo/%c/) )0 %o=./test.jot;
+%%
+%i.=${JOT_RESOURCES}/l99.t;
+%r=fake_emacs -test -debug;
+%r= -asconsole ./test.jot;?
+%%
+%%Clear out all traces of fake_emacs.
+z^m-0 (f/call emacs_/k2)0
+%%
+%d*=Test 18  --  fake_emacs.jot
+z?m-0 ( (r\k)0 mm- (i/    /m)0 z*r0bh?b f-/ backtrace/m-0i/** Fail **/, z*)r0b %o= -append test_all.log; %m='*;
+
+<<Test_19>>
+%%fake_nano.jot
+%%
+%g$=End of nano tests;
+%%Test file created by Test_19 of test_all.jot
+%%    
+%%  nano_MoveChrRight;              {Ctrl+F}
+%%  nano_MoveDownInColumn;          {Ctrl+N}
+%%  nano_MoveChrLeft;               {Ctrl+B}
+%%  nano_MoveUpInColumn;            {Ctrl+P}
+^[i^F^F^F^F^F^F^F^F^F^F^N^N^N^N^N^B^B^B^B^B^P^P^P^[i
+(onol3o=ok ocol5o=ok,  ob %q?= -append backtrace; oz )
+%%
+%%  nano_ZoomNext;
+^[i^[>^[i
+%qz=buffer; f/ pathName = /(f1/Richard_III_Entire_Play.txt/, %q?= -append backtrace; ) z~
+%%
+%%  nano_ZoomPrev;           {Alt+,}
+^[i^[<^[i
+%qz=buffer; (f/ pathName = /f1/l99.t/, %q?= -append backtrace; ) z~
+%%
+%%  nano_InsertFile;                {Ctrl+R}
+^[i^R${JOT_RESOURCES}/t.t
+^[i
+%qz=buffer; (f/ pathName = /f1/t.t/,  %q?= -append backtrace; ) z~
+%%
+%%  nano_Mark;                      {Esc a}
+%%  nano_Copy;                      {Ctrl+Shift+6}
+%%  nano_Cut;                       {Ctrl+k}
+%%  nano_Paste;                     {Ctrl+U}
+%%
+%%First move back to l99.t
+^[i^[>^[>^[a^N^N^[i
+%w=refresh;
+%qz=window;
+f/Screen dump follows:/ m6
+(v"__03: abc def ghi jkl mno pqr stu vwxyz:0123456789", %q?= -append backtrace; ) zzm
+( %q=windows; (v"Attrs: (X=5 colour 6/2) (X=50 Normal_Text)", %q?= -append backtrace; ), (v"Attrs: (X=5 colour 3/2) (X=50 Normal_Text)", %q?= -append backtrace; ) ) zzm
+(v"__04: abc def ghi jkl mno pqr stu vwxyz:0123456789", %q?= -append backtrace; ) zzm
+( %q=windows; (v"Attrs: (X=0 colour 6/2) (X=50 Normal_Text)", %q?= -append backtrace; ), (v"Attrs: (X=0 colour 3/2) (X=50 Normal_Text)", %q?= -append backtrace; ) ) zzm
+(v"__05: abc def ghi jkl mno pqr stu vwxyz:0123456789", %q?= -append backtrace; ) zzm
+( %q=windows; (v"Attrs: (X=0 colour 6/2) (X=5 Current_Chr) (X=6 Normal_Text)", %q?= -append backtrace; ), (v"Attrs: (X=0 colour 3/2) (X=5 Current_Chr) (X=6 Normal_Text)", %q?= -append backtrace; ) ) zzm
+%%
+  
+End of nano tests:
+z$ m-0(f/^/eoicolx40o-oo/%c/)0 %o=./test.jot;
+%%
+  
+%%
+%%Fire it up with multibuffers enabled - reads each new file into a new buffer.
+%r=fake_nano -test -debug --multibuffer ${JOT_RESOURCES}/l99.t ${JOT_RESOURCES}/Richard_III_Entire_Play.txt;
+n.a?
+%r= -asconsole ./test.jot;?
+%%
+%%Clear out all traces of fake_nano.
+z^m-0 (f/call nano_/k2)0
+%d*=Test 19  --  fake_nano.jot
+z?m-0 ( (r\k)0 mm- (i/    /m)0 z*r0bh?b f-/ backtrace/m-0i/** Fail **/, z*)r0b %o= -append test_all.log; %m='*;
+  
+%%The following functions are defined and may or may not have been tested informally but are as yet untested by this script.
+%%  nano_MoveLineStart;             {Ctrl+A}
+%%  nano_MoveLineEnd;               {Ctrl+E}
+%%  nano_KeyboardScanner;           {Esc i}
+%%  nano_ReturnToJotMode;           {Esc i}
+%%  nano_debuggerExit;              {Esc q}
+%%  nano_debuggerSkipBlock;         {Esc 2}
+%%  nano_Save;                      {Ctrl+S}
+%%  nano_SaveAs;                    {Ctrl+O}
+%%  nano_Exit;                      {Ctrl+X}
+%%  nano_SearchBack;                {Ctrl+Q}
+%%  nano_SearchForward;             {Ctrl+W}
+%%  nano_SearchForward;             {Ctrl+}
+%%  nano_NextBack;                  {Esc q}
+%%  nano_NextForward;               {Esc w}
+%%  nano_SearchAndReplace;          {Esc r}
+%%  nano_DeleteChrForwards;         {Ctrl+D}
+%%  nano_DeleteWordBack;            {Esc }
+%%  nano_JustifyAll;                {Esc j}
+%%  nano_MovePageUp;                {Ctrl+Y}
+%%  nano_MovePageDown;              {Ctrl+V}
+%%  nano_MoveToStart;               {Esc \}
+%%  nano_MoveToEnd;                 {Esc /}
+%%  nano_MoveLineNo;                {Esc g}
+%%  nano_MatchBracket;              {Esc ]}
+%%  nano_ReportCursor;              {Ctrl+C}
+%%  nano_Help;                      {Ctrl+G}
+%%  nano_Help;                      {F1}
+%%  nano_Mark;                      {Ctrl+Shift+6}
+%%  nano_MoveWordRight;             {Ctrl+Space}
+%%  nano_MoveWordLeft;              {Esc Space}
+%%  nano_MoveParaStart;             {Esc 9}
+%%  nano_MoveParaStart;             {Esc (}
+%%  nano_MoveParaEnd;               {Esc 0}
+%%  nano_MoveParaEnd;               {Esc (}
+%%  nano_CutToEnd;                  {Esc t}
+%%  nano_ToggleCutMode;             {Esc k}
+%%  nano_ToggleMouseMode;           {Esc m}
+%%  nano_LeftClick;                 {Esc M 0 0 0 4}
+%%  nano_JustifyPara;               {Ctrl+J}
+%%  nano_ScrollUp;                  {Esc -}
+%%  nano_ScrollUp;                  {Esc _}
+%%  nano_ScrollDown;                {Esc +}
+%%  nano_ScrollDown;                {Esc =}
+%%  nano_Help;                      {F1}
+%%  nano_SearchForward;             {F6}
+%%  nano_Cut;                       {F9}
+%%  nano_Paste;                     {F10}
+%%  nano_MoveUpInColumn;            {UpArrow}
+%%  nano_MoveLineStart;             {Home}
+%%  nano_MoveLineEnd;               {End}
+%%  nano_MoveDownInColumn;          {DownArrow}
+%%  nano_MoveChrRight;              {RightArrow}
+%%  nano_MoveChrLeft;               {LeftArrow}
+%%  nano_MoveWordRight;             {Ctrl+RightArrow}
+%%  nano_MoveWordLeft;              {Ctrl+LeftArrow}
+%%  nano_MoveBlockUp;               {Ctrl+UpArrow}
+%%  nano_MoveBlockDown;             {Ctrl+DownArrow}
+%%  nano_MovePageUp;                {PageUp}
+%%  nano_MovePageDown;              {PageDown}
+%%  nano_MovePageUp;                {F7}
+%%  nano_MovePageDown;              {F8}
+%%  nano_MovePageUp;                {Esc UpArrow}
+%%  nano_MovePageDown;              {Esc DownArrow}
+%%  
+%%The following functions are only placeholders - typically these echo back with the function name.
+%%  nano_WordComplete;              {Ctrl+]}
+%%  nano_Comment;                   {Esc 3}
+%%  nano_Undo;                      {Esc u}
+%%  nano_Redo;                      {Esc e}
+%%  nano_DeleteChrBack;             {Ctrl+H}
+%%  nano_DeleteWordForwards;        {Ctrl+}
+%%  nano_DeleteLine;                {Ctrl+}
+%%  nano_ExecuteCmd;                {Ctrl+T}
+%%  nano_SyntaxCheck;               {Esc b}
+%%  nano_Formatter;                 {Esc f}
+%%  nano_RecordAction;              {Esc :}
+%%  nano_ReplayMacro;               {Esc ;}
+%%  nano_ReportSize;                {Esc d}
+%%  nano_IndentLine;                {Esc }}
+%%  nano_UnIndentLine;              {Esc {}
+%%  nano_LineNumbers;               {Esc n}
+%%  nano_ShowWhitespace;            {Esc p}
+%%  nano_Verbatim;                  {Esc v}
+%%  nano_Refresh;                   {Ctrl+L}
+  
+Main command macro ends:
+
+%g_=End of test launcher macro;
+%%This macro performs final setup and runs the selected tests.
+%%
+%%Pick up test no. of last test.
+z@m0f-/<<Test_/-oid
+%%Add tests to main subroutine repository.
+%h'=call AddNewFunctions;
+%%
+%%Set up list of tests in data object buffer '=testList
+z*r-0 (f/ -test /s/ /ok n.(f1/ -/, r0) a~z~((v/ /e)0f1/ /b)0, z. ol0oso- n.a$z$ol1 (o#oo/%d/bo~oso~os)0 okok m-0n.m0a~z~ ) m-0b-z. %h=setdata -new \\'=testList; 
+%%
+%%Pick up buffer ( ! ) directly from this script.
+%i!=${JOT_HOME}/coms/test_all.jot; m0f-/%%Command and misc. data files required for some tests./m-k-0
+%%
+%%Check for unrecognized args.
+z*r-0(v/ /r)0 (r %a1=Error: Unrecognized qualifier &'*;, )
+%%
+%s=console 0;
+%%Initialize test-fail counter.
+ol0
+%%
+oq/'=testList/z~m-0 n.a* z* %b=pathname test_all.log; %o; z.ok
+( %%Test-dispatch loop.
+  oq/'=testList/ z~k n.a$z. %h'=call Test_&'~;
+  )0
+%%Completed all tests.
+%dz=; zzb %o= -append test_all.log; 
+  
+End of test launcher macro:
+'_
+%%
+%%Trim the backtrace reports.
+%i$=test_all.log; 
+(r-0f/    -append backtrace/km ( (v/ /r)0 v/Line /k, r\k )0 )0 
+m0r0b
+%o;
+%%
+oq/'=noexit/ (o0 m-0 (f/** Fail **/ z$m0bi/***** One or more tests failed *****/b %a1='$;, z$m0bi/Passed all tests/b %a0='$; ), )
+

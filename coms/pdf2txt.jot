@@ -21,43 +21,122 @@
 %%
 
 %g?
+  Usage:
+    pdf2txt {-raw|-ps2ascii|-tika} <pathName>{F2}           - Translates the single pdf.
+      On completion, the translated text is appended to the current buffer.
+  
   Buffer usage:
-    $ - initially contains the pathname for PDF.
-    ! - contains a working copy of pathname.
+    $ - initially contains args and PDF pathname.
+    ! - pathname extracted from command line.
     # - Main macro.
-    @ - destination buffer - holds converted text.
+    @ - initially a copy of the PDF pathname then the destination buffer - holds converted text on exit.
     
   Args:
-    - -raw=<pathName>  -- Picks up a previously-extracted text file instead of a pdf.
-    - if no args given, then the script only defines the function pdf2doc_translate.
+    - <pathName> - pathname of the PDF to be processed.
+    - -ps2ascii - forces it to use only ps2ascii for conversion.
+      - the ps2ascii translaton attempts to preserve whitespace - this is preferable for tabular documents.
+    - -tika - forces it to use only tika for conversion.
+      - The tika translation seems more reliable for most documents, but fails completely for more recent flavours of PDF.
+    - -raw <pathName>  -- Picks up a previously-extracted text file instead of a pdf.
+      -raw is useful for debugging this script but probably for nothing eles.
+    - if no args given, then the script defines the function pdf2txt_translate and exits.
+    
+  Usage examples:
+    -  > pdf2txt{F2}                                 -- The pdf2txt_translate function is defined, script then exits.
+    -  > pdf2txt <pdfPathname>{F2}                   -- The pdf text is extracted using ps2ascii, otherwise it uses tika.
+    -  > pdf2txt -tika <pdfPathname>{F2}             -- The pdf text is extracted using only tika
+    -  > pdf2txt -ps2ascii <pdfPathname>{F2}         -- The pdf text is extracted using only ps2ascii
+    -  $ jot -in="%r=ps2ascii <pdfPathname>;"        -- Just the same except it's all done from the command line.
     
 :
 
 %g@
 <<pdf2txt_translate>>
 %%Translates named pdf to plain text, the translated text is left in the ( @ ) buffer.
-%%Buffer ( $ ) is assumed to contain the PDF pathname.
-z$m-0r0(v/ /e)0r0(v-/ /e-)0
-( r-0v/-raw=/  %% -raw <pathname> given.
-  e5 %i@='$;
-, %%No raw file given, first attempt to convert using ps2ascii, if that fails then try tika.
-  n.r0a!&z! i"%e@=ps2ascii '"r0i"'" ('!, z$r-0n.r0a!& z!i"%e@=java -jar ~/bin/tika-app-1.18.jar --text " '! )
-  %q!=date; m z@m-0i/Created: /i'!i/, / %q!=buffer; f/ pathname = /-b z@i'!b3
-  %%Set the pathname.
-  z$r0(v-/.pdf/s/_pdf.txt/, i/.txt/) z@%b=pathname '$; )
+%%
+%%Extract pathname from ( $ ).
+z$ 
+m-0i/ /r-(f/ -/r(v-/ /e-)0b)0  
+%%The PDF pathname must be the last item in the arg list.
+r-0(v/-/f1/ /(v/ /e)0b, )
+( m-0(v/-raw/\m)0 v//km0  %% -raw <pathname> given.
+  %i@='$;
+, %% -raw not given, first attempt to convert using either ps2ascii or tika.
+  %%Last item in current record of buffer ( $ ) must be the PDF pathname.
+  ( z$m-0(v/-ps2ascii/\m)0 v//m %%Use only ps2ascii.
+    %e@=ps2ascii &'$;
+  , z$m-0(v/-tika/\m)0 v//m     %%Use only tika.
+    m0(v/ /e)0 ( %q@=dir ${JOT_RESOURCES}; e4m(f1/tika/\k)0j-i./.mk0, %x=Error: Failed to locate a tika jarfile in ${JOT_RESOURCES}; )
+    %e@=java -jar &'@& --text &'$;?
+  , %%If neither -ps2ascii or -tika is given then first try ps2ascii, if that fails try tika.
+    z$m-0(v/-ps2ascii/\ v/-tika/\m)0 v//\  %%No preferrence. 
+    ( %%First try ps2ascii
+      %e@=ps2ascii &'$;
+    , %%ps2ascii failed - try tika.
+      z$m-0(v/-tika/\m)0 v//m
+      m0(v/ /e)0 ( %q@=dir ${JOT_RESOURCES}; e4m (f1/tika/\k)0j-i./.mk0, %x=Error: Failed to locate a tika jarfile in ${JOT_RESOURCES}; )
+      %e@=java -jar &'@& --text &'$;? ) ) )
+%%Add header.
+%q!=buffer; f/ pathname = /-b-k-0mk0  %q!= -append date; k-2ji/  / z@i'!b3
+%%Set the pathname.
+z$r0(f-1/./s/_/r0, )i/.txt/ z@ %b=pathname '$;
 
 %%Strip out terminating linefeeds and whitespace.
 m-0 (r0 (v-/\r/e-, ) (v-/ /e-)0 m)0
-%%Assume sentence-ends at line ends to be paragraph breaks.
-m-0 ( (r0v-/./\m)0 m(v/ /r)0(rr-0b, ) )0
-%%Restore superscripts.
-m-0 (f/ st/-((r r-v/  /\)\ e-2i/    /ocol1o+mor? (v-/ /r-)0q-/0-9/i/st. /m-(v/ /r)0(r, k), ) )0
-m-0 (f/ nd/-((r r-v/  /\)\ e-2i/    /ocol1o+mor? (v-/ /r-)0q-/0-9/i/nd. /m-(v/ /r)0(r, k), ) )0
-m-0 (f/ rd/-((r r-v/  /\)\ e-2i/    /ocol1o+mor? (v-/ /r-)0q-/0-9/i/rd. /m-(v/ /r)0(r, k), ) )0
-m-0 (f/ th/-((r r-v/  /\)\ e-2i/    /ocol1o+mor? (v-/ /r-)0q-/0-9/i/th. /m-(v/ /r)0(r, k), ) )0
+%%Sometimes ps2ascii throws in a mid-sentence line break - sniff them out and fix them.
+m-0 (r0q-/a-z, / mr, m(q/a-z/j-,)m )0 
 
+%%Final tidyup depends on convertion helper app:
+z@m-0 ( f1/ ps2ascii /  %%For ps2ascii check for tabular text (two consecutive lines containing runs of whitespace).
+  %%This defines these data objects:
+  %%  pdf2txt_blockStart - the line number of the first line in the block.
+  %%  pdf2txt_blockEnd - the line nubber of last line in the block.
+  %%
+  m-0f/	/
+  %%The document contains tabs - maybe it's tabular data.
+  z@m-0 %h=destroy; %h=create 10; %h=data pdf2txt_blockStart;  %h=data pdf2txt_blockEnd;
+  %%
+  %%Init.
+  ol0ov/pdf2txt_blockEnd/
+  %b=tabcells -1;
+  %%
+  %%A ps2ascii conversion.
+  ( %%Block loop - for each block of valid lines this determines the start and end points.
+    oq/pdf2txt_blockEnd/o~ono-om
+    f/	/ onov/pdf2txt_blockStart/ (onov/pdf2txt_blockEnd/mf1/	/)0 r-0
+%%    f/  / onov/pdf2txt_blockStart/ (onov/pdf2txt_blockEnd/mf1/  /)0 r-0
+    %%There must be two or more lines to a valid block.
+    oq/pdf2txt_blockStart/o~on(o=okx-2, ok)
+    ( %%Tabstop loop - each pass analyses and then replaces all tabstops at the current level.
+      %%First return to the top of the block.
+      oq/pdf2txt_blockStart/ono-om
+      ( %%Tabstop search loop - find the leftmost tabstop in the current block.
+        %%Locate the next tabstop - exit the block loop if we're out of bounds.
+        f/	/ onoq/pdf2txt_blockEnd/(o<\ okx2, ok)
+%%        f/  / onoq/pdf2txt_blockEnd/(o<\ okx2, ok)
+        %%Init the leftmost-tabstop value to the first tabstop.
+        (v/ /r)0oc mf/	/-
+%%        (v/ /r)0oc mf/  /-
+        ( %%Line loop - identify any tabstops to the left of the current value.
+          (v/ /r)0oc  (o>\, okoc)
+          %%Next tabstop.
+          m(f/	/- oq/pdf2txt_blockEnd/on(o<\ok, okx3), x2) )0 )0
+%%          m(f/  /- oq/pdf2txt_blockEnd/on(o<\ok, okx3), x2) )0 )0
+        %%
+        oq/pdf2txt_blockStart/ono-om  %w=refresh; 
+        ( %%Tabstop-replacement loop.
+          %%Exit at end of block.
+          onoq/pdf2txt_blockEnd/o~o<\ okx, ok
+          %%If this line has a tabstop at the current tab level, replace with a tab.
+          o#(orv-/ /(v-/ /e-)0i/	/, ) m 
+        )0  %%Tabstop-replacement-loop ends.
+      ok )0 %%Tabstop loop ends.
+    )0      %%Block loop ends.
+  ok
+  , )
+z@m-0
 :
 
-%h'=call AddNewFunctions;
-obz$r-0(rr-oz %h'=call pdf2txt_translate;, oz)
+obz' (%q=keys -key=pdf2txt_translate;, %h'=call AddNewFunctions; )oz
+obz$r-0(rr-oz %h'=call pdf2txt_translate;, )
 

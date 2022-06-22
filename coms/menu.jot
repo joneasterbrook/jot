@@ -391,12 +391,12 @@ obz-((r\ m), %%There is no predefined menu proforma in buffer ( - ) - use one of
 
 %%Define colour tags.
 z-
-%b=tagtype Menu    colour     7  5;  %%Mauve colour tag for static menu.
-%b=tagtype Option  colour     7  6;  %%Magenta colour tag for the secondary drop-down menu.
+%b=tagtype -colour=7:5 Menu;  %%Mauve colour tag for static menu.
+%b=tagtype -colour=7:6 Option;  %%Magenta colour tag for the secondary drop-down menu.
 
 %%Macro to analyse the user-defined menu and create the necessary functions etc.
 %g#
-z-m-0n.a@
+z-m-0n.a@&
 ( %%Line loop
   v/+/ %%It's a static menu item, this remains in the menu buffer, abstract function-name prefix to ( ! ) buffer.
   m,
@@ -425,10 +425,10 @@ z-m-0(r\,
   z-n.f1/ /a!e
   z@m0bi|<<TopMenu>>|b
   i|z-m-0k0|b
-  (i|i/|i'-i|/r-0( f/"/eoco#n.f1/"/a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text='!'$; )0|b z-m z@i|r0b|)0
+  (i|i/|i'-i|/r-0( f/"/eoco#n.f1/"/a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text='!&'$; )0|b z-m z@i|r0b|)0
   z@m0b-i|z-m0r0i/ /|b
   i|%%Set up the menu window as a popup with one dummy line at the top.|b
-  i|%q$=window; f/screenHeight = /-oidol2o- %w; %w?= -height=1; %w= -height='~ -delim; f/screenWidth = /-oid %w-= -popup -height=10 -width='~; w|b )
+  i|%q$=window; f/screenHeight = /-oidol2o- %w=clear; %w?=new -height=1; %w=new -height='~ -delim; f/screenWidth = /-oid %w-=new -popup -height=10 -width='~; %w=refresh;|b )
 
 :
 '#
@@ -451,7 +451,7 @@ z-m-0(r\,
   %%Clear all but static menu bars from menu buffer.
   z-m-0 (v/+/\k, m)0
   %%If the function takes a parameter, prompt and pick up value.
-  %h'=jump '!; m ( f1/%%Prompt string: /-n.r0a$& %s=prompt '$; z$m-0k0g1k- %s=prompt > ;, )
+  %h'=jump -code '!; ( f1/%%Prompt string: /-n.r0a$& %s=prompt '$; z$m-0k0g1k- %s=prompt > ;, )
   %%Call the function.
   %s=system 0; oz (%h'=call '!;)? ob %s=system 1; )
 , %%Event was not on a valid clickable menu point - restore menu to original state.
@@ -466,7 +466,7 @@ obz-m-0(v/-/s/+/m, m)0 oz
 %%Functions for the "M1_File" menu bar.
 <<Reload>>
 %%Re-reads the current buffer.
-obo#n.a$z$oo/%%i%c/ oz'$
+obo#n.a$& z$oo/%%i%c/ oz'$
 
 <<Abandon>>
 %a;

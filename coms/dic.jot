@@ -41,9 +41,10 @@
 %g7
 %%Macro to launch a dictionary query.
 %%Change query word(s) to upper case.
-z$(q/a-z/c, r)0
+obz$(q/a-z/c, r)0
 %%Read entry for word.
-zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
+oq/'=Websters/z~ (%i@= -section='$ ${JOT_RESOURCES}/websters.txt; okok, osozok %m=Word not recognized "&'$&"; )
+%%zw (%i@= -section='$ ${JOT_RESOURCES}/websters.txt; ok, oz %m=Word not recognized "&'$&"; )
 :
 
 %g#
@@ -51,14 +52,14 @@ zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
   %m=Error: Dictionary file (${JOT_RESOURCES}/websters.txt) could not be read;
   %x=you can download one from the www.gutenberg.org; )
 %%
-%hw=create 110000;
+(oq/'=Websters/n.a~& ok, %d~=; %h=data \'=Websters; ov/'=Websters/)
 ( %q=file ${JOT_RESOURCES}/websters.txt;, %X=Error: Your JOT_RESOURCES area does not contain a websters.txt; )
 ( %q=file ${JOT_RESOURCES}/websters_index.txt;,
   %%No preexisting index - create one now.
-  %m=Extracting index.
-  ol0ol0 n.a@ n.a* %s=verbose 0; %d$=INTRODUCTORY WORDS FROM GUTENBERG PROJECT; 
-  ( %%Bucket loop - read the dictionary in 100000-byte bucketfuls.
-    %i@=${JOT_RESOURCES}/websters.txt -hold -bytes=100000 -append;
+  ol0ol0 n.a@&  n.a*&  %s=verbose 0; %d$=INTRODUCTORY WORDS FROM GUTENBERG PROJECT; 
+  ( %%Bucket loop - read the complete dictionary in 100000-byte bucketfuls.
+    %i@= -hold -bytes=100000 -append ${JOT_RESOURCES}/websters.txt;
+    %b=unicode 0;
     ( %%Record loop - each line of the file is examined to see it it looks like a new word all upper-case characters starting in column 1.
       ( %%Valid-entry block - a series of tests can reject the current line as not being a valid entry.
         %%Is the line all upper-case characters starting in column 1?
@@ -78,13 +79,15 @@ zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
   %%Now write the index for next time.
   z*m-0b-i/Index file for Websters dictionary/ %o=${JOT_RESOURCES}/websters_index.txt; )
 %%
-%%An index exists, read it now.
-%m=Reading index.
-%i@=${JOT_RESOURCES}/websters_index.txt;
-%%Sanity-check index.
-(v/Index file for Websters dictionary/m, %x=Error: This is not a websters index.; )
-%%Set up hash table in ( W ) buffer.
-(n.f1/:/a$&roid roid %hw=setsect '$;? okok m)0
+( %%Exit iniitialization if the index hashtable is already set up.
+  oq/'=Websters/ z~ %q$=buffer; f/HashtableMode = 0/\ ok , 
+  %m=Reading index.
+  %i~= -append ${JOT_RESOURCES}/websters_index.txt;
+  %h=create 110000;
+  %%Sanity-check index.
+  (v/Index file for Websters dictionary/m, %x=Error: This is not a websters index.; )
+  %%Set up hash table.
+  (n.f1/:/a$&roid roid %h=setsect '$;? okok m)0 m-0k0 ) osozok
 :
-ob'#oz
+ob'#
 

@@ -29,7 +29,7 @@ z$m-0
 %%( f/%%/-(v/ /r)0q/0-9/
 ( (v/ /r)0q/0-9/
   ,  %%Year not specified - take this year.
-  %e=date | cut -d' ' -f6 > /tmp/cal
+  %e=date | cut -d\' \' -f6 > /tmp/cal
   %i$=/tmp/cal
   )
 n.(q/0-9/r)0a@z@r-0 i"%e=cal -s "r0i" > /tmp/cal"
@@ -40,14 +40,14 @@ n.(q/0-9/r)0a@z@r-0 i"%e=cal -s "r0i" > /tmp/cal"
 %%First resolve tabs - stolen from tab.jot
 %%
 %%Set tabs at 8 character intervals.
-ol8 n.a$z$i/ /8z@
+ol8 n.a$&z$i/ /8z@
 %%First perform simple substitution of easy tabs at left margin.
 m-0((v/	/s'$)0m)0
 %%Now for the more complicated task of translating embedded tabs.
 m-0 (f/	/o#o#eocoso%oso-(i/ /o~)0ok)0ok m\m-0
 
 %%Set up format for two-digit writes
-n.a$z$i/%2d:/ z@
+n.a$& z$i/%2d:/ z@
  
 %%Initialize first week no. - 1 if starts on Sunday or Monday, otherwise 2
 %%f/ S  M Tu  W Th  F  S/m(v/     /ol0, ol1) m-0

@@ -51,11 +51,11 @@ $ jot /dev/null -init="%r=cdl -file=<cdlFileName>;"
 %g#
 %%
 %%Prepare ! buffer and note the original buffer
-n.a! obz!oo/%c/b4
+n.a!& obz!oo/%c/b4
 %%
 %%Pick up mandatory -file=<pathName> arg and check it exists.
 z!m+2 z$r-0 (f/-file=/-n.(f1/ /, r0)a!., %X=Error: No -file=<pathname> arg - cannot continue.;)
-( %q=file '!;, %m=Error: CDL file '! not found.; )
+( %q=file '!;, %m=Error: CDL file &'!& not found.; )
 %%
 %%Pick up optional -size=<noOfHashTableEntries> arg.
 z!m+3 z$(r-0f/-size=/-n.(f1/ /, r0)a!., z!i/10000/)
@@ -74,7 +74,7 @@ z!m+4
     %%First set up the -filter commands.
     %d*=(f1/.SUBCKT /- (v/ /r)0n.(f1/ /, r0)a$& z%o#oo/%10d	/h$bz@, ) oeo+o~ k? 
     %%Go for it.
-    z!m+2 n.a$ ol0 %i@='! -filter='*;
+    z!m+2 n.a$& ol0 %i@='! -filter='*;
     %%Add the seek offset to the last byte in the file.
     z%oo/%10d	**End of File**/b
     %%Write the new index file.
@@ -83,14 +83,14 @@ z!m+4
     %d$=Initial_gumph; )
   %%Now read the index file
   z!m+1oic m+3 oz %h=create '!; 
-  %d*=o#oidoso- %h=setseek \\'$\;? o+ f1/	/-n.r0a$& k?;
+  %d*=o#oidoso- %h=setseek \\&\\'$\;? o+ f1/	/-n.r0a$& k?;
   %%Read it now.
   ol0 z!m+1oic m+4 oz %i='! -filter='* -noinit;? okok
 , %%No index-file pathname given do the direct index build.
   z!m+1oic m+3 oz %h=create '!; 
-  %d*=(f1/.SUBCKT /- %h=setseek \\'$\;? o+ol0 (v/ /r)0n.(f1/ /, r0)a$&, ) oeo+o~ k?;
+  %d*=(f1/.SUBCKT /- %h=setseek \\&\\'$\;? o+ol0 (v/ /r)0n.(f1/ /, r0)a$&, ) oeo+o~ k?;
   %m=Extracting index.
-  z!m+1oic m+2 n.a$ ol0ol0 %i='! -filter='*;
+  z!m+1oic m+2 n.a$& ol0ol0 %i='! -filter='*;
   %%There's still one more pending subcircuit.
   %h=setseek '$;?
   okok )
@@ -101,15 +101,16 @@ z!m+4
 %%
 %%Pick up buffer key and CDL pathname
 z!m+1oic m+2 oz m0on
-( %i='! -section='$ -append;
+( %i= -section='$ -append '!;
+%%( %i='! -section='$ -append;
   %%Read success - change original SeekObj entry to a conventional HtabObj.
   ono-omm-r0b2i/*------------------------------------------ /h$r-0
   %%Replace SeekObj with HtabObj pointing at the start of the newly-read subcircuit.
-  %h=add '$;
+  %h=addjump '$;
   %%get top of new subcircuit at top of view.
-  wm*w %h=jump '$;
+   %w=refresh; m* %w=refresh;  %h=jump '$;
 , %%Read failure.
-  ok ( %h=jump '$; wm*w %h=jump '$; , z!m+1oicoz %X=Error: Subcircuit '$ is not in the CDL index.; ) )
+  ok ( %h=jump '$;  %w=refresh; m* %w=refresh;  %h=jump '$; , z!m+1oicoz %X=Error: Subcircuit &'$& is not in the CDL index.; ) )
 :
 
 %g8

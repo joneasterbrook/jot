@@ -48,21 +48,21 @@ $ jot /dev/null -in="%r=grep_index -file=LargeFilePathName;"
 %g#
 %%
 %%Prepare ! buffer and note the original buffer
-n.a! obz!oo/%c/b4
+n.a!& obz!oo/%c/b4
 %%
 %%Pick up mandatory -file=<pathName> arg and check the file exists.
 z!m+3 z$r-0 (f/-file=/s/ /n.(f1/ /, r0)a!., %X=Error: No -file=<pathname> arg - cannot continue.;)
-( %q=file '!;, %m=Error: file '! not found.; )
+( %q=file '!;, %m=Error: file &'!& not found.; )
 %%
 %%Pick up optional -size=<noOfHashTableEntries> arg.
 z!m+2 z$(r-0f/-size=/s/ /n.(f1/ /, r0)a!., z!i/100000/)
 %%
 %%Pick up name of index file or default to <bigFileName>_index
 z!m+4z$r-0(f/ -index=/s/ /n.(f1/ /, r0)a!., z!m-n.r0a_&mh_i/_index/)
-(%q=file '!;, %x=Error: Index file "'!" does not exist.;)
+(%q=file '!;, %x=Error: Index file "&'!&" does not exist.;)
 %%
 %%Check for unrecognized qualifier keys.
-z$r-0(v/ /e)0(r\, oz%x=Error: Unrecognized qualifier '$; )
+z$r-0(v/ /e)0(r\, oz %x=Error: Unrecognized qualifier &'$; )
 %%
 %%Clear ( $ )in preparation for index-build operation.
 %d$=Initial_gumph;
@@ -85,15 +85,16 @@ m-0r\m(m %x=Error: there were some errors while building the hashtable from the 
 %%
 %%Pick up buffer key and pathname
 z!m+1oic m+3 oz m0on
-( %i='! -section='$ -append;
+( %i= -section='$ -append '!;
+%%( %i='! -section='$ -append;
   %%Read success - change original SeekObj entry to a conventional HtabObj.
   ono-omm-r0b2i/------------------------------------------ /h$r-0
   %%Replace SeekObj with HtabObj pointing at the start of the newly-read section.
-  %h=add '$;
+  %h=addjump '$;
   %%get top of new section at top of view.
-  wm*w %h=jump '$;
+   %w=refresh; m* %w=refresh;  %h=jump '$;
 , %%Read failure.
-  ok ( %h=jump '$; wm*w %h=jump '$; , z!m+1oicoz %X=Error: Section '$ is not in the index.; ) )
+  ok ( %h=jump '$;  %w=refresh; m* %w=refresh;  %h=jump '$; , z!m+1oicoz %X=Error: Section &'$& is not in the index.; ) )
 :
 
 ob'# oz

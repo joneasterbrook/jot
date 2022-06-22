@@ -43,7 +43,7 @@ m-0n.m0r0a$
   %%Shift all rows 1 column rightward.
   m-0(i/	/m)0
   %%Construct new row by adding pairs from current last row.
-  n.a$ (v/	/roid (v/	/roid o+obz$osr0oo/		%lld/ozf-/	/, ok) )0
+  n.a$& (v/	/roid (v/	/roid o+obz$osr0oo/		%lld/ozf-/	/, ok) )0
   %%Add new row.
   r0bh$
   )0

@@ -22,11 +22,11 @@
 %%
 %%
 %t2
-%w
+%w=clear;
 
 m0r0(q-/0-9/r-)0(v-/;/r-,)v-/.TEX/s-/.RNO/r-0n.r0a!
 
-m-0nf/\sloppy/m-a@,n.a@
+m-0nf/\sloppy/m-a@,n.a@&
 m-0(f/\&/s-/_&/)0
 m-0(f/*/i-/_/r2)0
 m-0(f/</i-/_/r2)0
@@ -111,6 +111,5 @@ m0e0h!
 :
 m-0h:
 
-%w 20
-%w 0
+%w=new -height=20 -delim;
 %t

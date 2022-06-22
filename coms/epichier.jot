@@ -39,7 +39,7 @@
 %g#
 %%Initialization 
 %%
-n.a;
+n.a;&
 %%
 %%Check that we've got a valid epic include netlist in buffer n.
 znm0m-(v/include /, r0v-/.epic/

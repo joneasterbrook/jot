@@ -28,7 +28,8 @@ $ jot <pathNameForATika-generated text file> -in=%r=tika2doc
 :
 
 %%If doc.jot has not been called, then do it now.
-ob (z'%q$=key ReformatParagraph;, %r=doc;) oz
+ob (z'%q$=keys -key=ReformatParagraph;, %r=doc;) oz
+%%ob (z'%q$=key ReformatParagraph;, %r=doc;) oz
   
 %%Find any bullet points and convert to simple ASCII dashes.
 m-0 (v//\v/□/\v/�/\v/•/\v/- /\v/o /\v/·/\m, s/  - /(v/ /e)0m)0

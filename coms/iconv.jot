@@ -53,7 +53,7 @@ z$m-0n.r0a~& r-0(f1"/"s"_")0
 %%Use iconv to convert to UTF-8.
 z@r-0i"%e@=\iconv "h~ok i" -f=" r0i" -t=UTF-8 > /tmp/"h$ i";\" '@
 %%Read converted file into specified buffer, defaults to current buffer.
-oz %i=/tmp/'$;
+oz %i=/tmp/&'$;
 %%Set up a little hashtable to hold original pathname and format.
 %h=create 10;
 %h=data OriginalPathName; ov/OriginalPathName/

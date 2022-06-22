@@ -22,6 +22,7 @@
 %%
 
 %g?
+jot.jot: help
 Optional qualifier:
   -noinvalid  - ignore invalid jot command characters, just skip to the next line.
   
@@ -30,11 +31,12 @@ Buttons:
   {KP_2}       - From a '(' then find its matching ')', from a ',' find next case  clause or end of parent block.
   <cmd>{KP_3}  - Find next instance of the command. 
   {* KP_3}     - Find any unterminated string specifications. 
+  KP_4         - Visit the next place mentioned in the  ( @ ) buffer.
   
 Buffer usage: 
   1 - The '1 macro, Find previous ')', go to it's matching '(' using hash tables.
   2 - The '2 macro, Find next '(', go to it's matching ')' using hash tables.
-  3 - The '3 macro, search buffer, from current chr, for command given in arg.
+  3 - The '3 macro, search the current buffer, from current chr, for command given in arg.
     Macro 3 searches current buffer for syntax errors and matches to  a  given
     command sequence, reports are also logged in the ( @ ) buffer.
   4 - The '4 macro - maps first occurence of specified command in a cat listing of all command scripts.
@@ -62,14 +64,14 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
 %%they will be used later to build the reverse index.
 %%
 ( %q=samesinceindexed;, 
-  %%Code has been changed since index was built - destroy the old index.
+  %%Code has changed since index was built - destroy the old index.
   %m=Rebuilding the hashtable. 
   %%
   %h=destroy;
   %%For the code-repository buffer ( ' ) restore the entry-point index.
-  ( obol39o= okm-0 ((v/<</\m)0 mm-r2n.f1/>>/a$& %h=add '$; )0 , ) ok
+  ( obol39o= okm-0 ((v/<</\m)0 mm-r2n.f1/>>/a$& %h=addjump '$; )0 , ) ok
   %%Create a hashtable of roughly the right size, allow for 100 macros.
-  ol0m-0 (f/(/o~)0 ol2o*ol100o+ %h=create '~ -adjust; )
+  ol0m-0 (f/(/o~)0 ol2o*ol100o+ %h=create -adjust '~; )
 %%
 %%
 %%Find start and end of current sequence (a macro, a procedure or just a series of commands in a file image.
@@ -79,7 +81,7 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
 ( %%Go to start of module and enter start point - this acts as an endstop and fails if routine is already indexed.
   ono-omor oconob ((v/ /r)0(v/%g/\ v/<</\) m-)0
   %%Register/check registration of this routine.
-  (on %h=new macroStart_'~; on %m=Adding macroStart_'~;pm )
+  (on %h=newjump macroStart_&'~; on %m=Adding macroStart_&'~; pm )
   %%
   %%This module was previously unregistered - locate and index the block start and end points.
   %%
@@ -87,48 +89,46 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
   n.a$& z$b-o#oz
   %%
   ( %%Main parsing loop
-    %%Basic check next character.
-    q/ a-zA-Z(),\%?':/\ p%x=Invalid jot command character; ,
     ( %%Parser case block.
       %%If a '(' Add entries to stack.
       v/(/oconz$r0bi/blockStart_/r-roo/%d/i/_/r-roo/%d/o#ozr,
       %%If a ')' make the key using the start-point on the stack then add the entry.
-      v/)/ %h=add '$; z$(m-, mo#oz %m=surplus end brace here:; p?\)  o#ozr(q/0-9/r)0,
-      %%Skip remainder of line for all percent commands.
-      v/%/ (v/%%/r0, v/%e/r0, r2f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
+      v/)/ %h=addjump '$; z$(m-, (m, x0) o#oz %m=surplus end brace here:; p?x0)  o#ozr(q/0-9/r)0,
+      %%For percent commands, skip to end of last continuation line or terminating semicolon.
+      v/%/ ( v/%%/r0, r3 ( (f1/;/\r0v-/&/m)0 (v-/\/ (ol0 (v-/\/r-o~)0ol2o%ol0o=\okf1/;/r) ) )0 v/;/\r0, r),
       %%Simple commands (some have numeric argument).
-      q/bcegjkprtwxyBCEGJKPRTWXY?\/ r(q/-0-9-/r)0,
+      q/bcegjkprtxyBCEGJKPRTXY?\/ r(q/-0-9-/r)0,
       %% Commands with string argument.
       q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra!&f1'!-, m?) (q/-0-9/r)0 ),
       %%Commands with a buffer-key argument.
       q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&/r)?, v/h/r2(q/0-9/r)0, r2),
-%%      q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&*/r)?, v/h/r2(q/*0-9/r)0, r2),
       %%Operand-stack commands.
-      q/oO/r(q/lL/r(q/-0-9./r)0, q/iI/r2, q/oOvVqQ/ rn.ra!&f1'!-, r),
+      q/oO/r(q/lL/r(q/-.0-9/r(q/.0-9/r)0, q/xX/(q/0-9a-fA-F/r)0, q/cC/r2), q/iI/r2, q/oOvVqQ/ rn.ra!&f1'!-, r),
       %%Move command.
       q/mM/r(q/=+*/r,)(q/-0-9/r)0,
       %%Note.
       q/nN/r(v/./r,),
       %%Invalid alphanumerics.
-      q/dDlLxX/ onp%m=Invalid command character at line '~; r(q/0-9/r)0,
+      q/dDlLxX/ onp %m?=Invalid command character at line &'~; r(q/0-9/r)0,
       %%Else i.e. comma. 
       v/,/ r,
-%%      v/,/t o#oconz$r0b oo/BlockElse_%d/r0oo/_%d/oz r,
       %% `'`
       v/'/r2,
       %%Skip any whitespace.
-      v/ /(rv/ /)0, )
+      v/ /(rv/ /)0
+    , %%An invalid command character.
+      onocr-0n.r0a@&r-0o#or obosz@ori/[/ri/]/ozr %m?=Invalid command character at line &'~&'@$; )
     %%Skip past comments and whitespace-only lines.
     ( (v/ /r)0 ( v/%%/, (r\, r-\) ) (m, r0x3) )0 
     %%If it's a new line check for end of module.
     (r-r, (rr- v/:/\ v/<</\ (v/ /r)0v/%g/\) ) )0
    
   %%Add an endstop marker - this stops queries wandering off into adjacent modules (or hyperspace).
-  ( (v/<</\ v/%g/\), m-) on %h=new macroEnd_'~;
+  ( (v/<</\ v/%g/\), m-) on %h=newjump macroEnd_&'~;
   %%Now construct the reverse index using the list of keys in $ buffer.
   z$m-0mo#ozn.a;&
   ( %%Block loop - constructs the blockEnd_ links for each blockStart_ in the index.
-    %h=jump '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=new '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
+    %h=jump '$; oconn.a@& z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=newjump '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
   %%Report any unmatched block start points.
   (z;m-0rr- (f/blockStart_/s/ '(' at line /f/_/s/ chr no. /m)0m-0 %x=Error the listed block-starts could not be matched;, ) o#oz
   )?
@@ -136,7 +136,8 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
 %%Resume original focus.
 okono-om or
 :
-ob z'm0bh$b (m-v/<</\)0 r2n.f1/>>/a$& m %h=add '$; oz
+ob z'm0bh$b (m-v/<</\)0 r2n.f1/>>/a$& m %h=code '$; oz
+%d$;
 
 %g1
 %%Searching back, match next valid ')' with it's start-point '(' from hashtable.
@@ -146,7 +147,7 @@ ocon
 %%
 %%Identify current position and prepare list of keys to find the next end point in the hashtable.
 ( %%If we're already at a block end-point then just launch a hashtable lookup to go back to the start point.
-  obocon n.a$&z$oo/blockEnd_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
+  obocon n.a$& z$oo/blockEnd_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at an end point search back for next one.
   ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-oidoo/	%04d/f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries after current line then all those before start of current code block.
@@ -168,7 +169,7 @@ ocon
 %% 
 %%Identify current position and prepare list of keys to find the next start point in the hashtable.
 ( %%If we're already at a block start-point then just launch a hashtable lookup to go to the end point.
-  obocon n.a$&z$oo/blockStart_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
+  obocon n.a$& z$oo/blockStart_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at a start point search for next one.
   ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-oidoo/	%04d/f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries before current line then all those after end of current code block.
@@ -184,24 +185,46 @@ ocon
 :
 
 %g3
-%%Sanity check on jot code, optionally searching for given command.
+%%Plods through valid jot commands until it encounters one of the following:
+%%  - A macro end mark i.e  a colon ( : ) - (indicates the end of a %G macro definition),
+%%  - a new function definition i.e a "<<" at the start of a line - this terminates the current function definition,
+%%  - the end of the buffer - also the end of the macro.
+%%
+%%Acts as a sanity check on jot code, optionally searching for given command.
+%%
 %%Starting from current character position, detects the following errors and builds a report in buffer @.
 %%  - Unterminated strings.
 %%  - invalid command characters.
 %%
-%%Since this one is often used to search through concatinations of all jot scripts,
-%%It has a few tweaks for searching macros defined by %G commands.
+%%  By default it scans all files with pathnames in the current buffer.
+%%  With a command string defined the commands are executed at each new command.
+%%    For example:
+%%      v/w/{Esc 3}                                         -- detects and prints line for W commands.
+%%      (v/w/ocon %m@=Found W at line &'~&:&'~; , ){Esc 3}  -- detects and reports position for W commands.
+%%      (v/w/s/%w=;/ %o;, )){Esc 3}                         -- detects W commands and changes them to %w=; and writes the modified file.
+%%
+%%  E.g: Scan a whole directory-full of scripts like this:
+%%    jot_dev -in="%r=jot.jot; %eq=ls ${JOT_HOME}/coms/*.jot; ( %iw='q; %d$=(v/%w\\;/s/%w=refresh\\;/ %o\\;, ); '3 zqm)0"
+%%      This reads every script and sniffs out any simple %w; command, changing these to %w=refresh;
+%%        - The ( q ) buffer contains the list of pathnames,
+%%        - the ( w ) buffer contains the latest script,
+%%        - Each iteration defines the command string to be (v/%w;/s/%w=refresh;/ %o;, )
+%%
+%%  Buffer usage:
+%%    $ - the user-supplied command string.
+%%    ! - The main command string.
+%%    @ - the report buffer.
+%%
+%%To avoid false calls due to messages etc. and informational ( ? ) buffer 
+%%definitions, it has a few tweaks for searching macros defined by %G commands.
 %%  - It rejects any %G that does not contain a jot comment starting at the begining of the line.
 %%  - it allows colons ( : ) and ignores them.
 %%  - It skips past function headers: <<FunctionName>>
 %%
-%%Can scan a whole directory-full of scripts like this:
-%%        jot_dev /dev/null -in="%r=do ls ${JOT_HOME}/coms/*.jot; zqh@ %r=multi_do cat; z.h@m-0 %r=jot; n.a$ '3"
-%%
 %%Initialization.
 %%
 %%Set up search-for-command macro.
-obz$n.a@n.a!m-0 (rr-n.a!z!i"(v/"i'$i"/ onp%m@=Command match found at line '~;, )", ) 
+obn.a!& z!i'$b
 %%Add commands to ignore Bill's folly.
 z!r0i/ /r0ol13oo" (v/%c/(rrr-, m), )" oz
 %%Reset line and character counters.
@@ -209,32 +232,32 @@ ol0 ol0
   
 %%Plod through commands.
 ( ((v/ /r)0 rr-, (oso~osm\ os 
-    %m@=Checking complete '~ errors reported in buffer @.;
-    %x=End of file.; ,v/:/\ (v/ /r)0r\)0r-)
+    %m@=Checking complete &'~& errors reported in buffer @.;
+    %m@=End of file.; x3 ,v/:/\ (v/ /r)0r\)0r-)
   %%Have we found a matching command?
   '!
-  %%Check next character.
+  %%Check next character - move to next line if it looks like the end of a macro definition of a new function definition.
   o~(q/ a-zA-Z(),\%?'/, v/<</(r-r?\,) r0v-/>>/, 
-    ocr-0n.r0a$&obosz$r-0o#ori/[/r?i/]/osozr-0oron %m@=Invalid jot command character at line '~:  ; obz@r0h$oz m ,  )
-  %%Skip to end of line or terminating semicolon for percent commands.
-  v/%/ (v/%g/ on(mv/%%/\v/:/\)0(v/%%/ono-om, mok))? (v/%%/r0, v/%e/r0, r3f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
+    ocr-0n.r0a$&obosz$r-0o#ori/[/r?i/]/osozr-0oron %m@=Invalid jot command character at line &'~&:  ; obz@r0h$oz m ,  )
+  %%
+  %%For percent commands, skip to end of line or terminating semicolon.
+  v/%/ ( v/%%/r0, r3 ( f1/;/ (v-/\/ (ol0 (v-/\/r-o~)0ol2o%ol0o=\okf1/;/r) ) )0 v/;/\r0, r),
   %%Simple commands (some have numeric argument).
-  q/bcegjkprtwxyBCEGJKPRTWXY?\/r(q/-0-9/r)0,
+  q/bcegjkprtxyBCEGJKPRTXY?\/r(q/-0-9/r)0,
   %% Commands with string argument.
   q/fiqsuvFIQSUV/(r(q/-0-9/r)0 (v/'/r2, n.ra$&f1'$-, 
-    ocr-0n.r0a$&obz$oso#orr-?i/[/r?i/]/osozr-0oron %m@=Unterminated string starts at line '~; obz@r0h$oz m) (q/0-9-/r)0 ),
+    ocr-0n.r0a$&obz$oso#orr-?i/[/r?i/]/osozr-0oron %m@=Unterminated string starts at line &'~; obz@r0h$oz m) (q/0-9-/r)0 ),
   %%Commands with a buffer-key argument.
   q/ahuzAHUZ/(v/a/r2(q/+-./r,)(q/&/r,), v/h/r2(q/+-0-9/r)0, r2),
-%%  q/ahuzAHUZ/(v/a/r2(q/+-./r,)(q/&*/r,), v/h/r2(q/*+-0-9/r)0, r2),
   %%Operand-stack commands.
-  q/oO/r(q/lL/r(q/-0-9./r)0, q/iI/r2, q/oOvVqQ/ r(v/'/r2, n.ra$&f1'$-), r),
+  q/oO/r(q/lL/r(q/-.0-9/r(q/.0-9/r)0, q/xX/(q/0-9a-fA-F/r)0, q/cC/r2), q/iI/r2, q/oOvVqQ/ r(v/'/r2, n.ra$&f1'$-), r),
   %%Move command.
   q/mM/r(q/=+*/r,)(q/-0-9/r)0,
   %%Note.
   q/nN/r(v/./r,),
   %%Invalid alphanumerics.
   q/dDlLxX/ 
-    ocr-0n.r0a$&obz$oso#ori/[/r?i/]/osozr-0oron %m@=Invalid command character at line '~ ; obz@r0h$oz r(q/0-9/r)0,
+    ocr-0n.r0a$&obz$oso#ori/[/r?i/]/osozr-0oron %m@=Invalid command character at line &'~& ; obz@r0h$oz r(q/0-9/r)0,
   %% `'`
   v/'/r2,
   %% ( , and )
@@ -242,9 +265,13 @@ ol0 ol0
   %% : - appearing at the end of %G buffer definitions.
   v/:/(r-r)\ rr\, 
   )0
-(v/(/(rq/0-9/)0, )
+(v/(/r, )
+%%  (v/(/(rq/0-9/)0, )
 ok
 :
+  
+%%If -noinvalid qualifier was given then nobble those %x=Invalid jot command character; commands
+ol1(o= ob z1m-0(f/%x=Invalid jot command character/i/m, /r)0 z2m-0(f//i/m, /r)0 z3m-0(f//i/m, /r)0 oz, ) ok
 
 %g5
 %%Macro 5 - reads current file to buffer &
@@ -262,7 +289,7 @@ z@r-0n.f1/ line /a$&z& %q~=buffer; f/pathname = /-
   z&okz@r-0f1/ line /-oidf1/, chr /-oidosm
   %%go to specified place in file image.
   z&ono-omor
-, z& %x=File is not '$; )
+, z& %x=File is not &'$; )
 :
 
 %g7
@@ -272,11 +299,29 @@ obz@f/at line /- oid ozono-om
 %%Assuing we're looking at the output of "multi_do cat" pick up file name.
 onf-/%%-------------------------------------------------------------- /-n.r0a$&
 %%Return to error line and report file name.
-ono-o#om obosz$r0oo/, at line %d/oz %m=This translates to file '$;
+ono-o#om obosz$r0oo/, at line %d/oz %m=This translates to file &'$;
 :
 
-%%%%Add the hashtable setup section to both main macros.
-%%obz1f/<<Insert hashtable setup here>>/e0h$ z2f/<<Insert hashtable setup here>>/e0h$ oz
+%g8
+%%Macro 8 reports percent commands wiith indirect references.
+%%
+%%This setup is designed to locate instances of indirect references in percent commands.
+%%Initialize.
+n.a?& n.a@&
+%%
+%%The test macro is deined this way to avoid loads of complicated escapes.
+%d$ -LITERAL_DEFINITION ( v/%/ v/%%/\ (oco# (r3( f1/;/\, (ol0 (v-/\/r-o~)0ol2o%ol0o=\okf1/;/r)0 ok) v/;/\r0, r) ocosr-0n.r0a@&r-0o#oron %m?=Found, at line &'~&:&'~&-&'~& "&'@&";, ) r-0or, ) -BUFFERDEFINITIONENDSHERE;
+'3
+%%
+%%Go
+%%
+%%Now remove any report lines that do not contain indirect references.
+ob
+z?m-0 (onf1/:/-oidroid r2 oco+osoco+ol3o+ %f= -startchr='~ -endchr='~ -endline='~ \\';\k, m)0
+m-0
+%%  
+%%Redefine macro 1 - now finds next indirect reference,
+%%This assumes the result is in buffer ( Q ):
+%d1=z?mf/Found, at line /-oidroidoszqono-om onf-"----------------------coms/"-r-5n.r0a$\&ono~ %iz='$\; %b=writeifchanged\; o-omor;
+:
 
-%%If -noinvalid qualifier was given then nobble those %x=Invalid jot command character; commands
-ol1(o= ob z1m-0(f/%x=Invalid jot command character/i/m, /r)0 z2m-0(f//i/m, /r)0 z3m-0(f//i/m, /r)0 oz, ) ok

@@ -85,10 +85,10 @@ gdbM1_Help:
 %%Macro to analyse the user-defined menu and create the necessary functions etc.
 %g#
 %%First define the colour tag.
-z-  %b=tagtype Menu    colour     7  5;  %%Mauve colour tag for static menu.
+z-  %b=tagtype   -colour=7:5  Menu;  %%Mauve colour tag for static menu.
 %%
 %%Analyze the menu options and set up colour tags, clickable regions and callbacks.
-z-m-0n.a@
+z-m-0n.a@&
 ( %%Line loop
   v/+/ %%It's a static menu item, this remains in the menu buffer, abstract function-name prefix to ( ! ) buffer.
   m,
@@ -122,10 +122,10 @@ z-m-0(r\,
   i|%%Set window size to allow 1 line for the console area one for the static window and 10 for the debugger/compiler monitors.|b
   i|%q$=window; f/screenHeight = /-oidol24o- f/screenWidth = /-oidol40o-ol40|b
 %%  i|%q$=window; f/screenHeight = /-oidol14o- f/screenWidth = /-oidol40o-ol40|b
-  i|%w;|b
-  i|%w-= -height=1 -menu;|b
-  i|%w@= -height=11 -width='~ -delim; %wl= -width='~+1 -delim;|b
-  i|%w= -height='~ -delim;|b
+  i|%w=new -clear;|b
+  i|%w-=new -height=1 -menu;|b
+  i|%w@=new -height=11 -width='~ -delim; %wl=new -width='~+1 -delim;|b
+  i|%w=new -height='~ -delim;|b
  )
   
 :
@@ -170,7 +170,8 @@ obz. ( oq/.=Files/\ oz ( %q=samesinceio; ol0, ol1 )
 %%
 (%q=samesinceio; %m=Compiling.;, %x=Error: File has been modified but not saved.; )
 %%If the user has defined a gdbCompile function then use that, otherwise make we it up as we go along.
-obo# (z' %q$=key gdbCompile;   %%The user-defined compile function exists - call it now.
+obo# (z' %q$=keys -key=gdbCompile;   %%The user-defined compile function exists - call it now.
+%%obo# (z' %q$=key gdbCompile;   %%The user-defined compile function exists - call it now.
   oz %h'=call gdbCompile;
 , %%No user-defined compile function - use the default.
   (oq/.=winNotLin/ ol0o=  %%Use gcc.
@@ -185,7 +186,8 @@ oz %m=Done Compile.;
 <<gdbM1_Run>>
 %%Simply runs the executable as a subprocess.
 %m=Running directly in a subprocess.;
-ob (z' %q$=key gdbRun;   %%The user-defined run function exists - call it now.
+ob (z' %q$=keys -key=gdbRun;   %%The user-defined run function exists - call it now.
+%%ob (z' %q$=key gdbRun;   %%The user-defined run function exists - call it now.
   oz %h'=call gdbRun;
 , %%No user-defined run function - use the default.
   (oq/.=winNotLin/ ol0o=  %%A linux executable.
@@ -200,46 +202,49 @@ okoz
 %%
 %%If user a has defined gdbDebug function then use that, otherwise use the default, below.
 %%
- ob(z' %q$=key gdbDebug;   %%The user-defined run function exists - call it now.
+  ob(z' %q$=keys -key=gdbDebug;   %%The user-defined run function exists - call it now.
+%%  ob(z' %q$=key gdbDebug;   %%The user-defined run function exists - call it now.
   %h'=call gdbDebug;
 , %%No user-defined run function - use the default.
   (oq/.=winNotLin/ ol0o=  %%Use gdb.
     ok %m=Running under gdb.;
-    %%If buffer ( L ) does not have an asynchronous gdb running then start one now.
-    zl %q$=buffer; (f/ InPipe = /, %el=&gdb; )
+    %%If buffer ( L ) does not have an interactive gdb running then start one now.
+    zl %q$=buffer; (f/ InPipe = /, %el= -interactive gdb; )
+%%    zl %q$=buffer; (f/ InPipe = /, %el=&gdb; )
     (o#oz %q$=buffer; f/ pathname = /-b-k-0mk0 r0(f-1"/"-, r-0) e0i/a.out/r-0i/file / %pl='$;
   , %%Use winedb in windowsland.
     ok %m=Running under winedb.;
-    %%If buffer ( L ) does not have an asynchronous winedbg running then start one now.
-    zl %q$=buffer; (f/ InPipe = /, %el=&winedbg; )
+    %%If buffer ( L ) does not have an interactive winedbg running then start one now.
+    zl %q$=buffer; (f/ InPipe = /, %el= -interactive winedbg; )
+%%    zl %q$=buffer; (f/ InPipe = /, %el=&winedbg; )
     (o#oz %q$=buffer; f/ pathname = /-b-k-0mk0 r0(f-1"/"-, r-0) e0i/a.out/r-0i/file / %pl='$; ) ) ) )
 zlm0 oz
 
 <<gdbM1_dbg_run>>
 %%Run executable under control of the debugger.
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
 (oq/.=winNotLin/ ol0o= ok %pl=run;, ok %pl=continue; )
 oz
 
 <<gdbM1_dbg_continue>>
 %%Continue from breakpoint.
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
 (oq/.=winNotLin/ ol0o= ok %pl=continue;, ok %pl=continue; )
 oz
 
 <<gdbM1_dbg_break>>
 %%Set breakpoint.
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
-ozon %pl=break '~;
+ozon %pl=break &'~;
 
 <<gdbM1_dbg_command>>
 %%Prompt string: Debugger command> 
 %%Relay user-specified command to debugger.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 oz %pl='$;
 
 <<LeftClick>>
@@ -270,7 +275,7 @@ oz %s=system 0;
 <<Reload>>
 %%Re-reads the current buffer.
 %m=Re-reading the source file.;
-obo#n.a$z$oo/%%i%c/ oz'$
+obo#n.a$& z$oo/%%i%c/ oz'$
 
 <<Abandon>>
 %a=Session abandoned.;

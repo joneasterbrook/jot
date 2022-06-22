@@ -27,8 +27,8 @@ ob
 %%Get pathname.
 (%q~=file; f/ Modify time/f1/(/-oid, osozok %x=This buffer is not a text-file image.; )
 %%
-%%Query current local time and calculate age in secconds.
-%q=time; oso- z$m-0k0 
+%%Query current local time and calculate age in seconds.
+%q=time; ol1000o/ oso- z$m-0k0 
 %%
 %%Extract years
 o#ol31536000 o/ (ol0o=ok, ol1o=oo/%d Year, /, oo/%d Years, /)r0 ol31536000 o%
@@ -41,7 +41,7 @@ o#ol60 o/ (ol0o=ok, ol1o=oo/%d Min, /, oo/%d Mins, /)r0 ol60 o%
 %%Extract seconds.
 (ol0o=ok, ol1o=oo/%d Sec /, oo/%d Secs /)
 %%Return to original buffer and display.
-okoz%m=Age: '$
+okoz%m=Age: &'$
 :
 
 '#

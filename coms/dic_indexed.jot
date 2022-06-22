@@ -43,7 +43,8 @@
 %%Change query word(s) to upper case.
 z$(q/a-z/c, r)0
 %%Read entry for word.
-zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
+zw %i@= -section='$ ${JOT_RESOURCES}/websters.txt;
+%%zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
 :
 
 %g#
@@ -56,9 +57,10 @@ zw %i@=${JOT_RESOURCES}/websters.txt -section='$;
 ( %q=file ${JOT_RESOURCES}/websters_index.txt;,
   %%No preexisting index - create one now.
   %m=Extracting index.
-  ol0ol0 n.a@ n.a* %s=verbose 0; %d$=INTRODUCTORY WORDS FROM GUTENBERG PROJECT; 
+  ol0ol0 n.a@& n.a*& %s=verbose 0; %d$=INTRODUCTORY WORDS FROM GUTENBERG PROJECT; 
   ( %%Bucket loop - read the dictionary in 100000-byte bucketfuls.
-    %i@=${JOT_RESOURCES}/websters.txt -hold -bytes=100000 -append;
+    %i@= -hold -bytes=100000 -append ${JOT_RESOURCES}/websters.txt;
+%%    %i@=${JOT_RESOURCES}/websters.txt -hold -bytes=100000 -append;
     ( %%Record loop - each line of the file is examined to see it it looks like a new word all upper-case characters starting in column 1.
       ( %%Valid-entry block - a series of tests can reject the current line as not being a valid entry.
         %%Is the line all upper-case characters starting in column 1?

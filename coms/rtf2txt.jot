@@ -21,7 +21,7 @@
 %%
 %%
 
-%g? 
+%g?
   Buffer usage:
     < - find '{' enclosing current character.
     > - find next '}' enclosing current character.

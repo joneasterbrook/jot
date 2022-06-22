@@ -20,7 +20,7 @@
 %%
 %%
 
-%g? 
+%g?
   Explores the tree below ${JOT_RESOURCES}/help
   All the files with the .hlp extention are assumed to be in jot help format.
   

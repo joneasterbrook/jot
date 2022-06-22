@@ -49,8 +49,8 @@ ob %q$=tags -here;
   %%Display resource name.
   z!m+3z$i/, res: /i'!
   %%If client name is set up then add that to header.
-  z!m+7 z. ( %h=jump Accounts; mf1/Name/ol0(f-1/	/ol1o-)0 %h=jump A_'!;r-0 (f1/	/o~)0ok r2n.(f1/	/, r0)r-a$+&z$j-i/,  for: /, )
-  zc%b=header '$;
+  z!m+7 z. ( %h=jump Accounts; mf1/Name/ol0(f-1/	/ol1o-)0 %h=jump A_&'!; r-0 (f1/	/o~)0ok r2n.(f1/	/, r0)r-a$+&z$j-i/,  for: /, )
+  zc %b=header '$;
 , %%No valid task-ID text tag - use current task-ID tag.
   ok z!m+7n. (q/0-9/r)0v/-/r(q/0-9/r)8r\ a$& 
 , %%No current task set. return to original context and exit.
@@ -69,7 +69,7 @@ z!m+7zc %h=jump '!;
 %%  Number of years in calendar.
 %%
 %%Define days for a Saturday-to-Saturday task week.
-n.a;z;i/ Su Mo Tu We Th Fr Sa/r-0
+n.a;& z;i/ Su Mo Tu We Th Fr Sa/r-0
 %%
 %%According to Gauss the way to find the day of the first of January of year A in the Gregorian calendar
 %%  (see http://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week) is:
@@ -84,11 +84,11 @@ o#ol3o*z;r-0n.ora@r0h@ r-0n.r3a@&r0h@ zch;b- %b=header 'c; z!m+9e0i'c zck
 %%Insert the right number of padding blanks at the start of the task week.
 zcol7o-o-ol-1o*ol31 (o#oo/ %2d/r-0ol1o-oso~os)0 r0bokok
 %%Define Months.
-n.a@z@i/JanFebMarAprMayJunJulAugSepOctNovDec/r-0(r3b)12
+n.a@& z@i/JanFebMarAprMayJunJulAugSepOctNovDec/r-0(r3b)12
 %%
 ( %%Year loop.
   %%
-  z@m-0 n.a;z;o#oo/%d/
+  z@m-0 n.a;& z;o#oo/%d/
   %%
   %% LeapYear = Mod4(Y)!=0 ? True : Mod100(Y)==0 ? False : Mod400(Y)!=0 ? False : True
   %%See http://en.wikipedia.org/wiki/Leap_year
@@ -109,7 +109,7 @@ n.a@z@i/JanFebMarAprMayJunJulAugSepOctNovDec/r-0(r3b)12
     %%Join with last week of previous month and split the month at changeover days.
     j-r-0 (r21b-i/ /i';m)0 b
     )12 
-  o~oso~os w)0 okok
+  o~oso~os  %w=refresh; )0 okok
 %%
 %%Copy the changeover dates.
 zcm-0m (n.r3a@&m-r21h@m2)0
@@ -133,18 +133,18 @@ z;m+1zcm-0f';r-0f1/  1 /?rr- z;m+3zcf'; m(f1';, m-f1';) (v/ /r)0ocon z;m+1zcf1';
 %%Get relevant task-status tag.
 z!m+8zc
 (o= %%The start and endpoint are on the same line.
-  oko#ocoso-osr-0orou %b=addtag '!; %b=addtag -text='$; %hc=new '$;? w
+  oko#ocoso-osr-0orou %b=addtag '!; %b=addtag -text='$; %hc=newjump '$;?  %w=refresh; 
 , %%Not on the same line - add colour tags to intermediate lines and the hashtable tag to the start point.
-  ocr-0(v/ /r)0oco-ou %b=addtag '!; %b=addtag -text='$; w
+  ocr-0(v/ /r)0oco-ou %b=addtag '!; %b=addtag -text='$;  %w=refresh; 
   %%Add colour and text tags to all intermediate lines.
-  (m-ono=\(v/ /r)0ol24oco-ou%b=addtag '!; %b=addtag -text='$; w)0
+  (m-ono=\(v/ /r)0ol24oco-ou%b=addtag '!; %b=addtag -text='$;  %w=refresh; )0
   %%At start of task add colour tag, hash entry and hashtable target tag.
-  okr-0o#ol24oso-osorou %b=addtag '!; %b=addtag -text='$; %hc=new '$; w)
+  okr-0o#ol24oso-osorou %b=addtag '!; %b=addtag -text='$; %hc=newjump '$;  %w=refresh; )
 
 <<IndexEmails>>
 %%Function to Index emails and add links.
 %%
-zm %h=create 10000 -delete;
+zm %h=create -delete 10000;
 %%Initialize to message no. 1
 zmol1m0
 ( %%Message loop
@@ -162,7 +162,7 @@ zmol1m0
   %%Get the mail ID:
   z;m-0(f/Message-ID: /r-m)0r12n.r0a$&
   %%Now tag the index and add the hash-table entry for the mail buffer ( M ).
-  zir0ocr-0ou %b=addtag -text=M_'$; wr0bzm %h=new M_'$; m-)0
+  zir0ocr-0ou %b=addtag -text=M_&'$;  %w=refresh; r0bzm %h=newjump M_&'$; m-)0
 okzim0e0m-0
 %%  
 %%Add tags to mail-thread lines.
@@ -174,7 +174,7 @@ z.ol-1
   %%Go to mail thread.
   %h=jump '$; (mv/MAILTHREAD:/\)0
   ( %%Message loop.
-    z.m v/</n.f1/>/-a$& ocr-0ou %b=addtag message; %b=addtag -text=M_'$;
+    z.m v/</n.f1/>/-a$& ocr-0ou %b=addtag message; %b=addtag -text=M_&'$;
     )0
   )0
 %%Identify all messages that have been indexed by *any* task for *any* resource and tag them yellow in the main mail index.
@@ -196,7 +196,7 @@ ozr-0r4f/ /(v/ /r)0n.r0a$&z;m-0h$bh$b-2r-0(ei/-/)0m2
 ( %%Are we currently in a mail thread?
   (obz.obo= n.a;&, z;obo=m-0v/From mail thread/z.m(v/</, ok%x=Last message in mail thread.;) )
   %%Yes - pick up mail indicated by mail thread.
-  okz.r-0n.f1/>/-a$&zm %h=jump M_'$; (rm)0n.(mf/From /r-)0a;&
+  okz.r-0n.f1/>/-a$&zm %h=jump M_&'$; (rm)0n.(mf/From /r-)0a;&
   %%Pick up task ID.
   z.on(m-v/TASK:/\)0r8n.r0a$&z!m+7e0h$me0z.ono-om
   %%Add message header.
@@ -216,7 +216,7 @@ ozr-0r4f/ /(v/ /r)0n.r0a$&z;m-0h$bh$b-2r-0(ei/-/)0m2
 ( %%Are we currently in a mail thread?
   (obz.obo= n.a;&, z;obo=m-0v/From mail thread/z.m-(v/</, ok%x=First message in mail thread.;) )
   %%Yes - pick up mail indicated by mail thread.
-  okz.r-0n.f1/>/-a$&zm %h=jump M_'$; (rm)0n.(mf/From /r-)0a;&
+  okz.r-0n.f1/>/-a$&zm %h=jump M_&'$; (rm)0n.(mf/From /r-)0a;&
   %%Pick up task ID.
   z.on(m-v/MAILTHREAD:/\)0r11n.r0a$&z!m+7e0h$me0z.ono-om
   %%Add message header.
@@ -241,16 +241,16 @@ z!m+7r-0((q/0-9/r)8v/-/r(q/0-9/r)8r\, %x=Error: No valid task has been selected.
 %%Check the message summary matches the index entry.
 z;m-0zir-0(f1';, %x=Error: Inconsistency in message header.;)
 %%Find the mail ID.
-%q$=tags -here; f/Type text from chr/f1/"/-v/M_</r2bf1/"/b- zm %h=jump M_'$;
+%q$=tags -here; f/Type text from chr/f1/"/-v/M_</r2bf1/"/b- zm %h=jump M_&'$;
 %%First unlock the resources.txt buffer.
 z. %b=readonly 0;
 %%Tag mail with current task ID and add tagged mail entry to resources-file image.
-z. %h=jump MT_'!; r0bi'$ r0ocr-0ou %b=addtag message; %b=addtag -text='$; zin.r-0a$&z. %b=addtag -text=Message '$; r0i/: /i';
+z. %h=jump MT_&'!; r0bi'$ r0ocr-0ou %b=addtag message; %b=addtag -text='$; zin.r-0a$&z. %b=addtag -text=Message &'$; r0i/: /i';
 z. %b=readonly;
 %%Now mark the message as read in the mail index.
 zir0ocr-0ou %b=addtag MailRead; z.
 %%After changing linenumbers of subsequent entries fix the hashtable.
-z. %h=fix; %h=jump MT_'!; m
+z. %h=fix; %h=jump MT_&'!; m
 
 <<ReReadEMail>>
 ( r-
@@ -258,7 +258,7 @@ z. %h=fix; %h=jump MT_'!; m
   %%Count messages to determine next message index.
   zm%q@=keys; m0onol3o-
   %%Remove old hashtable.
-  zmm-0n.m0r0a@z@n.a&mzmh@
+  zmm-0n.m0r0a@z@n.am& zmh@
   %%Read new mail file and prepend it to existing mail spool image.
   %i@='$; zmm-0h@b
 ,
@@ -267,20 +267,20 @@ z. %h=fix; %h=jump MT_'!; m
   %%Assign index no. 1 to last message in mail spool image.
   )
   
-%h=create 10000 -delete;
+%h=create -delete 10000;
 %%Identify each mail message and create a hash-table entry for it - keys are " 001 ", " 002 ", ...
-m0ol1 ((f-/From /r-m-)0 n.a$&z$r-0o#oo/ %03d /o~zm %h=new M_'$; m- )0 ok
+m0ol1 ((f-/From /r-m-)0 n.a$&z$r-0o#oo/ %03d /o~zm %h=newjump M_&'$; m- )0 ok
 %%Add messages to index (buffer I) starting at message no. 1
 ol1n.ai&
 ( %%Message loop - generate the the keys - 001, 002, ...
   zio#oo/ %03d /o~zm 
   %%Get the sender name.
-  %h=jump M_'i; on(f/From: /r-m)0r6n.(f1/ /2r0f-1/ /, r0)aI+&zii/ /(r, i/ /)15i/ /e0zm
+  %h=jump M_&'i; on(f/From: /r-m)0r6n.(f1/ /2r0f-1/ /, r0)aI+&zii/ /(r, i/ /)15i/ /e0zm
   %%Get the date.
   o#ono-om(f/Date: /r-m)0r6n.r0f-1/ /-aI+&zi(r26, r-21i/ /)zm
   %%Get the subject.
   ono-om(f/Subject: /r-m)0r9n.r0aI+&
-  ziwr0b)0
+  zi %w=refresh; r0b)0
 ok
   
 %%Go to first message in mail index.
@@ -296,9 +296,9 @@ zim0e0m-0
 %%This function adds specified text to the list of notes in the current task.
 %%
 %%Locate end of current notes list then add the new note.
-obz!m+7z.%h=jump N_'!; (mrr- %q;=tags -here;m3\z.)0 z. %b=readonly 0; i'$b %b=readonly 1;
+obz!m+7z.%h=jump N_&'!; (mrr- %q;=tags -here;m3\z.)0 z. %b=readonly 0; i'$b %b=readonly 1;
 %%Add revised notes to calendar.
-zc %h=jump '!; f1/ - /-2?r7e0 z. %h=jump N_'!; (mrr- %q;=tags -here;m3\z. r-0n.r0a$&zci/  /h$ z.)0
+zc %h=jump '!; f1/ - /-2?r7e0 z. %h=jump N_&'!; (mrr- %q;=tags -here;m3\z. r-0n.r0a$&zci/  /h$ z.)0
 oz
 
 <<LeftClick>>
@@ -311,7 +311,7 @@ z.ob( o=\ zcobo=\)\
   %%Buffer OK move to mouse-event point.
   okono-omor
   ob %q$=tags -here; 
-  ( f/Type text from chr/f1/"/2(q-/0-9/r-)8v-/-/r-(q-/0-9/r-)8 o#oz %h'=call SwitchView; z!m+7zc %h=jump '!; z. %h=jump Accounts; %h=jump A_'!; r-0
+  ( f/Type text from chr/f1/"/2(q-/0-9/r-)8v-/-/r-(q-/0-9/r-)8 o#oz %h'=call SwitchView; z!m+7zc %h=jump '!; z. %h=jump Accounts; %h=jump A_&'!; r-0
     %%Return to original buffer at mouse-click point.
     opozono-omor
 , %%Not in . or c buffers - exit without any action.
@@ -347,7 +347,7 @@ zc
 %g#
 obz'm0r0bh$b2
 (
-  (f-/<</r-m-)0 (z^m-0f'',)z' r2n.f1/>>/a$& r-0%h=new '$; 
+  (f-/<</r-m-)0 (z^m-0f'',)z' r2n.f1/>>/a$& r-0 %h=newjump '$; 
   %%Find the reference in the key-translation table.
   %%Fetch prompt string if defined.
   z'm(v/%%Prompt string:/f1/:/-n.r0a$&z$r-0i/"/r0i/ "/, n.a$&)

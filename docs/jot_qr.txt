@@ -95,8 +95,8 @@
 
 1.4 Numeric Keypad
 ------------------
-  For linux systems, these are helpfully mapped to either digits 0-9  etc.  or
-  the various cursor-control functions (depending on the the num-lock  state).
+  It is suggested these be helpfully mapped to either digits 0-9 etc.  or  the
+  various cursor-control functions (depending  on  the  the  num-lock  state).
   Hence, to work as described here, these must be  set  up  with  the  xmodmap
   command - see `X-windows setup`. 
   

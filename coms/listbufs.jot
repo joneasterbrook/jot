@@ -26,7 +26,7 @@
 > listbuffs[ -demo][ -status]{F2}
     By default, reports only data objects below buffers ( A to Z ) and ( ' )
     - -demo -- Starts by creating a demonstation tree below primary buffer.
-    - -all -- reports all hashrable types in addition to data objecs.
+    - -all -- reports all hashrtable types in addition to data objecs.
     - -system -- Lists all buffers except ( $ ) and ( @ ) - these are used  by
       the script and are, anyway, unlikely to be used  to  host  complex  data
       structures.
@@ -90,7 +90,7 @@ obz$m-0
 z@m-0m( %%Primary-buffer loop.
   z@ f/  buffer /s/Root buffer /oice0
   %%Speculatively descend and report any sub-buffer hierarchy.
-  o#n.a$z$oo/%c=/ oz %h'=call ListChildBufs; 
+  o#n.a$& z$oo/%c=/ oz %h'=call ListChildBufs; 
   )0
 %%
 %%Strip out all but data objects if -all not given.
@@ -111,7 +111,7 @@ ob %q$=buffer; f/ pathName = /e-0 f1/ = /-(v/(null)/\v/[/\ me4je8i/,/  z@r0i'$  
 %%
 %%Find any data objects.
 %q$=keys;
-%%If the buffer contains a hashtable with at least one DataObject, set up to descend - this can only be done with the keys report at the top of the stack.
+%%If the buffer contains a hashtable with at least one data object, set up to descend - this can only be done with the keys report at the top of the stack.
 ( f/ (DataObj) /
   %%If it's a floating buffer this is removed now, then copy the keys report to stack.
   m-0k f1/Keys for buffer /-e-0(v/~/okf1/ (Pathname /-e-0f1/):/e0i/|/, re0i/=/) m-0n.m0m-r0a~

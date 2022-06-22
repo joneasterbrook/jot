@@ -48,7 +48,7 @@ obr-0(v/~/%q~=env USER; mz$s'~i"/"r-0i"/home/", )oz
 %%First count entries and create hashtable
 m-0 ol0 (f/BEGIN:VEVENT/o~)0 %h=create '~;
 %%Add hash-table tag using start time.
-m-0 (f/BEGIN:VEVENT/f/DTSTART;TZID/-f1/:/-n.r0a$& f-/BEGIN:VEVENT/(mv/DESCRIPTION:/\ v/SUMMARY:/\ v/END:VEVENT/\)0 %h=new '$;)0
+m-0 (f/BEGIN:VEVENT/f/DTSTART;TZID/-f1/:/-n.r0a$& f-/BEGIN:VEVENT/(mv/DESCRIPTION:/\ v/SUMMARY:/\ v/END:VEVENT/\)0 %h=newjump '$;)0
    
 %%Sort the datestamp keys with current datestamp and identify today's events and next event.
 ob%q$=date; kn.f1"/"a!ef1//h!en.r2a!r-0i/20/h!f1/, /s/T/(f1/:/e)2

@@ -21,6 +21,8 @@
 %%
  
 %g?
+Linkdocs.jot
+------------
   Resolves local links in one or more documents. The documents must be in  the
   form supported by doc.jot with  references  in  the  form  of  text  strings
   enclosed in backticks - eg: 
@@ -99,12 +101,12 @@ oo/linkdocs history: Buffer %c, / r0oo/top line %d, / r0oo/line %d, / r0oo/chr %
   opozono-omor
   %%Find text tags - if one exists this is deemed to be a key for the local hashtable.
   %q$=tags -here; 
-  f/Type text from/f1/"/-e-0f1/"/e0 %h$$=jump '$; on(rm)0wono-omr0ocr-0ou ok
+  f/Type text from/f1/"/-e-0f1/"/e0 %h$$=jump '$; on(rm)0 %w=refresh; ono-omr0ocr-0ou ok
 , %%Clicked to untagged text - return to previous view.
   ( %%Check and pick up history-trail entry.
     z@k-v/linkdocs history/ok f1/, substring /-oid f-1/, chr /-oid  f-1/, line/-oid f-1/, top line /-oid  f-1/ Buffer /-oic k-?
     %%Restore original view.
-    oz osono-om wofo-ow or ou
+    oz osono-om  %w=refresh; ofo-ow or ou
   , %%Not a history-trail entry.
   oz )
 )
@@ -113,9 +115,9 @@ oo/linkdocs history: Buffer %c, / r0oo/top line %d, / r0oo/line %d, / r0oo/chr %
 z!m+2oicz$m-0f/$$/oo/%c/
 
 %g#
-( %h'=jump linkdocs_FollowLink;
+( %h'=testkey linkdocs_FollowLink;
 , %%Add the new function to the code repositary.
-  z'm0h$ f-/<<linkdocs_FollowLink>>/ r0 %h=new linkdocs_FollowLink;
+  z'm0h$ f-/<<linkdocs_FollowLink>>/ r0 %h=code linkdocs_FollowLink;
   %%Now bind it to the keycode for left-click.
   ( %q=windows; %r=WindowsNT_keys;, %q@=version; mf1/ chrome / %r=curses_keys_chrome;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$ )
   z@m-0 (z@f/{Button1Click}/ r-0r12e0z^m-0 (f'@r12e0, m-0i'@b-) i/%h'=call linkdocs_FollowLink;/)?
@@ -125,7 +127,8 @@ z!m+2oicz$m-0f/$$/oo/%c/
 
 %g#
 %%Set up the master hash table in first nominated buffer (indicated by $$ buffer) - 10000 entries should do.
-%h$$=create 10000 -destroy;
+%h$$=create -destroy 10000;
+n.a;&
 z!m+2
 ( %%Buffer loop - construction of master hashtable.
   oicoz m-0
@@ -134,9 +137,9 @@ z!m+2
       %%Change to upper-case and modify ( = ) and ( | ) characters.
       obz$r-0(q/a-z/c,r)0 r-0(f1/|/s/\VB/)0(f1/=/s/\EQ/)0 oz
       ( %%Does this target already exist in the master hash table?
-        %h$$=new '$;
+        %h$$=newjump '$;
       , %%Yes - construct a warning message.
-        obz;i/Duplicate heading /i'$i/ - ignored/boz)
+        obonz;i/Duplicate heading "/ i'$ r0oo/" at line %d/ o#r0oo/ of buffer %c - ignored./boz )
     m)0 %%Target loop ends.
   z!m2m- )0  %%Buffer loop ends.
 
@@ -146,14 +149,14 @@ z!m+2z;i/Unresolved references follow (no matching header line could be found fo
   z!oicoz m-0
   
   %%Define the colour tags.
-  %b=tagtype ValidRef colour 0 2;
-  %b=tagtype BadRef colour 0 1;
+  %b=tagtype -colour=white:green ValidRef;
+  %b=tagtype -colour=white:red BadRef;
   
   %%find first valid line
   (q/ |	/\m)0
   ( %%Reference loop.
     %%Find and pick up the next reference.
-    ((f1/`/(((v-/\/rf/`/)0, rr-?\)v/`http:/\)\rf/`/r)0 v/`/\(mq/ |	/\)0mm-)0 rn.f/`/a$&oconob 
+      ((f1/`/(((v-/\/rf/`/)0, rr-?\)v/`http:/\)\rf/`/r)0 v/`/\(mq/ 	|/\)0mm-)0 rn.f/`/a$&oconob 
     %%Tweak string to make a valid key.
     z$j-0r-0(f/  /e)0 r-0(q/a-z/c, r)0 r-0(f1/|/s/\VB/)0 r-0(f1/=/s/\EQ/)0
     ( %h$$=jump '$; %%This reference is OK - it exists in the master hash table.
@@ -182,7 +185,8 @@ z!m-0
   )
 
 %%If there are errors, display list, otherwise return to primary document.
-z;m-(v/Unresolved references follow /z!m+2oicoz, ) m-0
+z;m-0(mrm- %s=prompt There were detected errors - hit {Return} to continue.; %l; %w=refresh; g %s=prompt;, ) z!m+2oicoz m-0
+%%z;m-(v/Unresolved references follow /z!m+2oicoz, ) m-0
 %%
 %%Enable left-button clicks.
 %s=mousemask 0004;
@@ -194,7 +198,7 @@ z!m+2oic
 z#m-0(f/$$/f-1/%%/m, v/$$/o#oo/%c/)0 ok
   
 '#
-n.a@
+n.a@&
 
 %g1
 %%Emulates a mouse click for non-mouse systems.
@@ -207,13 +211,13 @@ n.a@
 ob %q~=system; f/mouse mask = /r0  (v-/   0/ %s=mousemask 4;, %s=mousemask 0; ) osozok
 :
 (mokob, oz)
-w
+ %w=refresh; 
 %m
-%m=These instructions will disapear after initial keyboard or mouse activity.
-%m===========================================================================
-%m=Any green-background text is a link (red-background text - broken links)
-%m=  - left-button-click on links to follow link,
-%m=  - left-button-click anywhere else to return to previous view.
-%m=  - If you\\'re lacking a mouse or  touchpad,  navigate  the  cursor  using  the
-%m=    cursor-control keys and simulate a left-button click with {Esc 1}
+%m=These notes will disapear after initial keyboard or mouse activity.
+%m====================================================================
+%m=\  Any green-background text is a link (red-background text are broken links)
+%m=\    - left-button-click on links to follow link,
+%m=\    - left-button-click anywhere else to return to previous view.
+%m=\  If you lack a mouse or  touchpad,  navigate  the  cursor  using  the
+%m=\  cursor-control keys and simulate a left-button click with {Esc 1}
 %m

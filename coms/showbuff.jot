@@ -24,7 +24,7 @@
 %%Initialize search at buffer % (ASCII code 37).
 ol37
 %%Initialize results buffer.
-z$n.a!
+z$n.a!& 
  
 %%Go.
 (o#oz (r-0n.r0a@& %q$=buffer; f/ pathname = /-r-b z!r0b o#oo/%c/i'$i/	/h@, ono-om)o~ol96o=\)0

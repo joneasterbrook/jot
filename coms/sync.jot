@@ -1,0 +1,376 @@
+%%Synchronizes local filesystem with a memory stick.
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+
+%g?
+  Buffer usage:
+    S - The Stick directories.
+    L - The Local directories.
+    C - The update commands  (a list of cp commands copying files between the filing systems).
+    D - Different - list of instance of files where the local and stick version have different datestamps.
+    T - Touch macro - when -touchstick is given this becomes series of commands to adjust the datestamps of the stick versions.
+    M - Missing files - this buffer lists files found to be missing from the stick or the local filing system.
+    . - Messages - lists files copied, warnigs, errors etc.
+    @ - Temp.
+    $ - Temp.
+    ~ - Temp  - data objects.
+:
+%%Init.
+%%
+%%Preserve args on stack, these will later be used to set the .=args and all other data objects.
+%h.=create 100;
+z$m-0r0i/ /n.r-0a~  %h=setdata -new .=args;          %%All of the original user-supplied cli args.
+ol0                 %h=setdata -new .=debug;         %% -debug arg was given.
+%d~=n;              %h=setdata -new .=verbose;       %% -verbose arg was given.
+ol0                 %h=setdata -new .=check;         %% -check arg was given - do not copy any files.
+ol0                 %h=setdata -new .=toStick;       %% -tostick arg was given - only copy files from main FS to the stick.
+ol0                 %h=setdata -new .=fromStick;     %% - fromstick was given - only copy from stick to main FS.
+ol0                 %h=setdata -new .=bothWays;      %%Neither -fromstick or -tostick was given therefore update in both directions.
+ol0                 %h=setdata -new .=byTagFile;     %% -bytagfile was given - only copy files more recent than the relevant tag file.
+ol0                 %h=setdata -new .=newLocal;      %% -newlocal was given - Create a new tree in the local filing system by copying from the stick.
+ol0                 %h=setdata -new .=newStick;      %% -newstick was given - Create a new tree in the stick by copying from local.
+ol0                 %h=setdata -new .=touchStick;    %% -touchstick was given - Identify targets in the stick and touch them to the local file's datestamps.
+%d~=;               %h=setdata -new .=setStick;      %% -setstick <stickPath> was given - tells it which device to use as a stick tree.
+( %q=windows; %q~=env USER; ki"C:/Users/", %q~=env HOME; k ) r0(v-"/", i"/") z.
+                    %h=setdata -new .=localPath;     %%The initial path for the local tree.
+%d~=;               %h=setdata -new .=stickPath;     %%The initial path stub for the stick.
+%%
+%%If the normal startup file has not yet been run, then do that now.
+( oq/'=DocLeftMargin/ ok,  %r=startup; )
+%%
+%%Now define the dirPaths.
+%g~
+elegoo
+elegoo/include
+Arduino
+archive
+archive/dolphins_new_regime
+archive/dolphins_old_regime
+archive/from_dropbox
+archive/slack
+archive/ttc
+archive/ttt
+archive/eye
+ed/source/backup
+ed/source
+ed/my_resources
+ed/my_resources/ide
+ed/my_resources/ide/ed
+ed/my_resources/ide/hello
+ed/my_resources/ide/tree
+ed/my_resources/test_get/another_dir1
+ed/my_resources/test_get/another_dir2
+ed/my_resources/test_get/dir with whitespace in name/
+ed/my_resources/help/
+ed/my_resources/help/unix
+ed/my_resources/help/cad
+ed/my_resources/help/demo
+ed/my_resources/help/demo/deeper
+ed/my_resources/help/gnu
+ed/my_resources/help/jot
+ed/my_resources/help/opus
+ed/my_resources/help/your_stuff
+ed/my_resources/help/notes/
+ed/my_resources/ide/projects
+ed/resources
+ed/resources/ide
+ed/resources/ide/projects
+ed/resources/ide/ed
+ed/resources/ide/hello
+ed/resources/ide/tree
+ed/resources/test_get
+ed/resources/test_get/another_dir1
+ed/resources/test_get/another_dir2
+ed/resources/help/demo
+ed/resources/help/demo/deeper
+ed/resources/test_get/dir with whitespace in name/
+ed/READMEs
+ed/docs
+ed/docs/backup
+ed/coms
+ed/coms/backup
+ed/samples
+ed/bin
+ed/bin/backup
+projects
+:
+%h=setdata -new .=dirPaths;
+
+%g@
+<<sync_help>>
+%g?=help words;
+  Simple help with sync
+  
+  The sync.jot script is a simple development database synchronization tool.
+  
+  It will synchronize the local filing system with a memory stick.  It  begins
+  by determining the date-time  of  the  last  sync  run.  This  timestamp  is
+  compared to all files in the target filing system (typically both the  local
+  filesystem and the memory stick).
+  
+  If a local file is found to be more recent than the last sync run  then  the
+  version  in  the  memory  stick  is  updated.  Simarlarly  a   more   recent
+  memory-stick versoon of a file causes the copy in the  local  filing  system
+  to be updated.
+  
+  Other options exist to help idetify  which  mempry  device  to  use  and  to
+  initialize new memory devices.
+  
+Valid usage:
+  (Simple form)
+$ jot -st=sync
+  (with parameters)
+$ jot -st="sync[ -tostick][ -fromstick][ -newstick][ -newlocal][ -bytagfile]"
+help words:
+z?m-0
+
+<<CheckFilingSystem>>
+%%Compare datestamps on stick with those on filing system then perform requested action on each file:
+%%Temporary jot file used to process directory listings obtained from ls -l --full-time
+%%
+%%a typical ls -l --full-time entry:
+%%-rwxr-xr-x 1 chronos chronos 66412 20160229092833 /home/chronos/user/ed/coms/backup/README_backup                                                                                          
+%%-rwxr-xr-x 1 chronos chronos 66412 20160220155054 /media/removable/SD Card/ed/coms/backup/README_backup 
+%%After sorting the local filesystem version appears immediately above the stick version as shown above.
+%%The output record has three fields:
+%%<localDateStamp>\t<stickDateStamp>\t<subPath>
+%%
+%%  %o=/tmp/ced_ls; 
+%%
+%%Insert tabs to be used as tabsort column delimiters.
+m-0(((f1/ /(v/ /r)0)5\k)0 e-0 f1" /"ei/	/f1'pi/	/ m)0
+%%
+%%  %%Sort, first by subpath-filenames then by initial path as a secondary sort parameter.
+%%  %b=tabsort 2 1
+%%  %o=/tmp/ced_ls1
+m0r0b m-0(r, k)
+%%
+%%Now merge the pairs of lines into copy commands as appropriate.
+(
+  %%First check that file exists in both places.
+  r0n.f-1/	/an& mr0v-'n\\
+  %%No - is it missing from stick or local FS?
+  (m-f1'sr-0, r-0f1/	/-) i/00000000000000	/ pm
+, %%Both versions exist, check datestamps and merge if they're different, otherwise delete.
+  %%Allow 1 second slack - USB-stick timestamps are rounded up to next second.
+  r-0n.oidratk- (oid o-ol2o/ol0o=kok, okf1/	/-htpm))0
+
+<<getRootPaths>>
+%%Routine to identify stick and set the 'stickPath' variable - this may have been manually set with the -setstick <name> qualifier.
+%%It also identifies the local root path.
+%%On completion sets the stickPath data object.
+%%
+(oq/.=setStick/ z~r-0r
+  ov/.=stickPath/
+, %%Not set by -setStick <path>, different flavours of linux mount the stick in different places.
+  %%
+  %%We need the usename for some of these - save it in the ( @ ) buffer.
+  ( %q=windows; 
+    %q@=env USER; k
+    %%Try a few likely mounts.
+    ( %q~=file t:/;, z.ok%q~=file h:/;, z.ok%q~=file g:/;, z.ok%q~=file f:/;, z.ok%q~=file e:/;, %x=Error: failed to find stick drive letter.; ) e5
+  , %%Linux - different distros use different places to hide the system-mounted stick.
+    %q@=env USER; k
+    ( %q=file /var/run/media/;
+      %q~=dir /var/run/media/&'@; e4mk2j-i"/" (r, z. %X=Error: No devices found in &'~;)
+    , %q=file /media/removable;
+      %q~=dir /media/removable; e4mk2j-i"/" (r, z. %X=Error: No devices found in &'~;)
+    , %d~=/cygdrive/; ) )
+  r0(v-"/", i"/") z. ov/.=stickPath/
+  %%Exit if stick path not found.
+  oq/.=stickPath/ ( %q=file '~;, %x=Error:No memory devices found in &'~; ) )
+
+:
+%h'=call AddNewFunctions;
+  
+%g#
+%%Process-args macro.
+oq/.=args/z~r-0n.r0a@& z@r-0
+( %%Arg-parsing loop.
+  (v/ /r)0
+  v/-help /s/ /ol1ov/.=help/,
+  v/-debug /s/ / ol1ov/.=debug/,
+  v/-verbose /s/ /ol1ov/.=verbose/,
+  v/-localpath /s/ /(v/ /r)0n.(f1/ /, r0(v-/ /r-)0)a~ov/.=localPath/,
+  v/-listdevs /s/ /ol1ov/.=listDevs/,
+  v/-setstick /s/ /ol1ov/.=setStick/,
+  v/-check /s/ /ol1ov/.=check/,
+  v/-newlocal /s/ /ol1ov/.=newLocal/,
+  v/-newstick /s/ /ol1ov/.=newStick/,
+  v/-touchStick /s/ /ol1ov/.=touchStick/,
+  v/-fromstick /s/ /ol1ov/.=fromStick/,
+  v/-bytagfile /s/ /ol1ov/.=byTagFile/,
+  v/-tostick /s/ /ol1ov/.=toStick/,
+  v/-setstick /s/ / (v/ /r)0n.(f1/ -/, r0)(v-/ /r-)0a~ ov/.=setStick/,
+  v/-noand /s/ /ol1ov/.=noand/,
+  v/-diff /s/ /ol1ov/.=diff/ )0
+%%
+( r-0(v/ /r)0 r\, %X=Error: Unrecognized arg(s) "&'~&"; )
+%%
+(oq/.=debug/o1 %w=clear; %w=new -height=10 -delim; %s=guardband 3; %s=verbose 13;, )
+  
+%%Sanity checks.
+%% -touch must be combined with -fromStick or -toStick.
+( oq/.=touch/o1 (oq/.=fromStick/ol1\ oq/.=toStick/o1\)\ %a=Error: -touch must be combined with either -fromstick or -tostick";, )
+
+( %%Set up checkFiles object.
+  z. ol0 (oq/.=check/o+, ) (oq/.=sync/o+, ) (oq/.=newLocal/o+, ) (oq/.=newStick/o+, ) (oq/.=toStick/o+, ) (oq/.=fromStick/o+, )
+  ol0o=okol1ov/.=bothWays/
+, ol1o<ok %a=Error: More than one of the following args was given -all -tostick -fromstick and -check.;
+, ol1o=ok  %%With no other args is an implicit synchronization.
+  )
+%%
+%h'=call getRootPaths;
+%%
+%%Main block.
+( oq/.=-newStick/o1
+  %%Check the stick for controlled directories, creating any that don't already exist.
+  %%Make a list of all directories that should be on the stick.
+  z.ok z.oq/.=dirPaths/z~m-0n.m0r0a@& z@okoq/.=stickPath/ m-0(rr-h~m)0 ok
+  %%Check/create each stick dir.
+  z@m-0 (n.r0a$& ( %q=dir '$;, %e=mkdir -p &'$;) m)0
+  %%
+, oq/.=newLocal/o1
+  %%
+, %%All other options require a directory list, prepare to perform filing-system comparison operation.
+  %%
+  %%In buffer ( S ) create a list of full stick paths.
+  n.as& n.a@& z@ oq/.=dirPaths/h~m-0ok oq/.=stickPath/ m-0(i'~m)0 ok
+  %%Enumerate all the path stubs with modification times.
+  z@m-0 ( %qs= -append dir -mtime &'@; z@m)0 ok
+  %%Transform to a simple list of pathnames with datestamps.
+  zsm0r0bm-0 (r\(mm-, x2)k, r-v/dir	-mtime /r11n.r0a$k, v"./"k, v"../"k, h$i"/"f1/	/ (v-"/" kx-2, r) m)0
+  %%
+  %%In buffer ( L ) create a list of full local paths.
+  n.al& n.a@& z@ oq/.=dirPaths/h~m-0ok oq/.=localPath/ m-0(i'~m)0 ok
+  %%Enumerate all the path stubs with modification times.
+  z@m-0 ( %ql= -append  dir -mtime '@; z@m)0
+  %%Transform to a simple list of pathnames with datestamps.
+  zlm0r0bm-0 (r\(mm-, x2)k, r-v/dir	-mtime /r11n.r0a$k, v"./"k, v"../"k, h$i"/"f1/	/ (v-"/" kx-2, r) m)0
+  %%
+
+  ( oq/.=byTagFile/o1
+    %%Copy the list of files and tag files to the command buffer ( C ) then remove any before the relevant sync time.
+    %%
+    %%First, the stick tree.
+    oq/.=stickPath/o#%q@=dir -mtime '~; (f/syncTimeTagFile/-r-0i'~mk0m-, )k-0r0bhsbok 
+    %b=tabsort 1;
+    m-0f"/syncTimeTagFile	"?k-0 m0r0b zch@
+    %%Now, the local tree.
+    oq/.=localPath/o#%q@=dir -mtime '~; (f/syncTimeTagFile/-r-0i'~mk0m-, )k-0r0bhlbok 
+    %b=tabsort 1;
+    m-0f"/syncTimeTagFile	"?k-0 m0r0b zch@
+    %%
+    %%Modify the raw list of files to be updated as appropriate.
+    zcm-0
+    %%
+    ( oq/.=bothWays/o1 oq/.=byTagFile/o1
+      %%It can happen that the same file will appear in the toStick and the fromStick lists  - when this happens prompt for confirmation.
+      %%This only matters when the duplicate files are to be transferd in both directions  when controlled by tag-file datestamps.
+      n.a@& z@hc oq/.=stickPath/ m-0(f'~-i/	/m)0 ok oq/.=localPath/ m-0(f'~-i/	/m)0 ok %b=tabsort 1;
+      %%Now remove any unduplicated file names.
+      m0r0bm-0 (r\k)0r-0 (rr- (f1/	/n.f1/	/-a$&m f1/	/ v'$m, m-k) )0
+      ( m-0m\, %%Duplicate paths exist.
+        %b=tabstops -1;
+        %m;
+        %m=----------------------- Important message follows ----------------------;
+        %m=\      The files listed here appear to have been modified in both the local and stick versions;
+        %m=\      Try again with either -fromStick or -toStick option.;
+        %x=\      Or, maybe, just delete one of these files and then try again.; ) )
+
+  , %%Update is controlled by file datestamps only.
+    %%Check the files list for files where the local and stick version have differing datestamps.
+    %%N.B. round up the local entry to match the stick datestamp - tabsort should put pairs of files together with the most recent first.
+    oq/.=localPath/zlm-0(f'~-i/	/m)0zchlbok oq/.=stickPath/zsm-0(f'~-i/	/m)0zchsok %b=tabsort 1 2;
+    %%
+    %%Detect and mark any missing versions of files.
+    m-0(r\k)0 (f/	/n.f1/	/-a$&mf1/	/
+    ( v'$, %%This file is unmatched.
+      %%copy the path we have then transform it to the path we lack.
+      m-na$h$2m- oq/.=localPath/(v'~f1/	/-2e0i/Stick/oq/.=stickPath/, f1/	/-2e0i/Local/oq/.=localPath/) i/ version missing./ r-0f1/	/-r-e-0i'~ok) m)0
+    %%
+    %%Check that each file-pair member in buffer ( D ) have the same datestamps, matching pairs are removed here.
+    m-0 (f1/	/n.f1/	/-a$& n.r0a@& mf1/	/(v'$(rf1/	/-v'@k-k, m?), m-n.mau+ ) mm-)0
+    %%
+    %%Forgive any instances where the stick version is exactly one second younger than the local version - these are assumed to be due to rounding errors in the filing system???
+    %%Begin by getting the numeric modify time.
+    m-0 ( (n.f1/	/2a$& z$ (f/	/e %q@=file '$; f/ Modify time = /f1/(/bzcr0i/	/i'@, zcr0i/	(0)/) m)2 )0 m0r0b
+    %%
+    oq/.=localPath/ m-0
+    %%Here's where we deal with rounding issues (makes the stick version appear 1 second younger than local version)
+    %%and daylight-saving timezones issues (makes the stick version apper one hour younger or older than the local version)
+    %%or some combination of both.
+    %%Where -touchstick was given - sync will touch the stick version using the local version as a reference file.
+    %%
+    ( %%The oldest version is the first of each pair - if the time difference looks like it's due to a rounding error or a time-zone shift ignore the pair.
+      ( f1/(/-oidmf1/(/-oid oq/.=localPath/r-0 (v'~ okos, ok)m o-
+        %%The top of stack now holds the local timestamp minus the stick timestamp.
+        ol1o=     m-2nmat+ %%The stick version is exactly 1 second younger - remove this pair.
+      , ol3600o=  m-2nmat+ %%The stick version is exactly 1 hour younger - remove this pair.
+      , ol-3600o= m-2nmat+ %%The stick version is exactly 1 hour older - remove this pair.
+      , ol-7200o= m-2nmat+ %%The stick version is exactly 2 hours older - remove this pair.
+      , m-2kf1/	/em )
+      okmm- )0 )
+
+  %%If -touchstick was given, the stick-versions are touched to correct their datestamps.
+  ( oq/.=touchStick/o1\, 
+    %%Begin by reordering to get the local pathnames the first of each pair.
+    ztm-0 oq/.=localPath/ (mm- (v'~i/Local:	/, i/Stick:	/)m)0 %b=tabsort 2 1;
+    %%Transform the list to "%e=touch --reference=<refPathName> <pathName>" commands.
+    m-0 (r\k)0r- (v/Local:	/s/%e=touch --reference "/f1/	/ef1/	/e0jv/Stick:	/s/" "/f1/	/ef1/	/e0i/";?/m2m-)0
+    %%Do it.
+    't )
+
+  %%Modify and run the command macros.
+  ( oq/.=check/o1
+    %m=See buffer ( C ) for a list of files that require copying.;
+    %%If not -check then update one or both of the directory trees.
+  , oq/.=fromStick/o1  %%Copy only to main FS.
+    oq/.=stickPath/ zcm-0 (v'~m, k)0 ok
+  , oq/.=toStick/o1  %%Copy only to stick.
+    oq/.=localPath/ zcm-0 (v'~m, k)0 ok
+  , oq/.=bothWays/o1
+  , %x=Error: Invalid update command - not one of -check, -tostick or -fromstick.; )
+  %%
+  %%Now transform the list of files to a series of %E commands.
+  ( zcm-0(r\k)0 m %%There are some files to be copied.
+    oq/.=localPath/ oq/.=stickPath/ m-0 ( (v'~, osv'~) i/%e=cp -p "/n.f1/	/a$&i/" "/z$r-0(v'~, osv'~)oss'~ zch$i/";?/ e0m2m-)0 okok
+    %%
+    %%Separate the missing-file instances these require user confirmation - otherwise it becomes impossible to remove files from the system.
+    m-0 (f/	Local version missing/e0nam+)0
+    m-0 (f/	Stick version missing/e0nam+)0
+    m-0 (f/	/e0)
+    %%Do the update now.
+    'c?, )
+  %%
+  %%After performing all file  updates it's safe to add new syncTimeTagFile to local and stick FS.
+  %q$=date;
+  ( ( oq/.=fromStick/o1\ oq/.=bothWays/o1\)\ 
+    oq/.=localPath/ %o='~&/syncTimeTagFile;, )
+  ( ( oq/.=toStick/o1\ oq/.=bothWays/o1\)\ 
+    oq/.=stickPath/ %o=&'~&/syncTimeTagFile;, )
+  %%
+  %%Update the messages buffer.
+  z.m-0b2i/The following files were found to be missing:/bhcb2
+  %%If there are missing files, remind user to manually run macro ( M ).
+  zmm-0 (r\, m0m-onm-0 %x=There are &'~& files missing - if you want the following operations then type 'm.; ), )
+:
+'#
+%%Exit displaying the messages.
+%a0='.;

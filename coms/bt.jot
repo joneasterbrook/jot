@@ -58,8 +58,8 @@ obz'm0 %h=jump AdjustedBacktrace; m- (f-"<<"r-)0 on r2n.r0r-2a$& z$r-0i"%e$=grep
 
 :
 z'm0h$
-m0 f-/<<AdjustedBacktrace>>/ %h=new AdjustedBacktrace;
-m0 f-/<<RawBacktrace>>/ %h=new RawBacktrace;
+m0 f-/<<AdjustedBacktrace>>/ %h=newjump AdjustedBacktrace;
+m0 f-/<<RawBacktrace>>/ %h=newjump RawBacktrace;
 %h=fix;
 %%
 z^m-0i/abt     %h'=call AdjustedBacktrace;/b

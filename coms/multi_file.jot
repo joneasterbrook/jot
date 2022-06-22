@@ -77,23 +77,24 @@ $ jot /dev/null -in="%r=multi_file;"
 %%Pick up buffer key and pathname
 z$r-0(v/ /e)0r0(v-/ /e-)0 z.oq/destBuf/ozm0on
 ( %%It may already exist in the text?
-  %h.=jump '$_InText;
+  %h.=jump '$&_InText;
 , %%No, read it now.
   %i= -fsection='$ -append;
   %%Read success - add a label  and make it the target of a conventional hash-table entry for the section.
-  m0b2ono-omr-0b- z.%q~=key '$; f/Section Pathname /s-/( /bf1/, Seek /s/ )/b-
+  m0b2ono-omr-0b- z.%q~=keys -key='$; f/Section Pathname /s-/( /bf1/, Seek /s/ )/b-
+%%  m0b2ono-omr-0b- z.%q~=key '$; f/Section Pathname /s-/( /bf1/, Seek /s/ )/b-
   z.oq/destBuf/oz i/------------------------------------------ /i'~i/  /h$r-0
   %%Replace SeekObj with HtabObj pointing at the start of the newly-read section.
-  %h.=add '$_InText;
+  %h.=addjump '$&_InText;
   %%get top of new section at top of view.
-  m*?w %h.=jump '$_InText; w
+  m*? %w=refresh;  %h.=jump '$&_InText;  %w=refresh; 
 , %%Read failure.
-  ok ( %h.=jump '$_InText; wm*w %h.=jump '$_InText; , oq/destBuf/oz %X=Error: Section '$ is not in the index.; ) )
+  ok ( %h.=jump '$&_InText;  %w=refresh; m* %w=refresh;  %h.=jump '$&_InText; , oq/destBuf/oz %X=Error: Section &'$& is not in the index.; ) )
 
 <<multi_search_section_names>>
 %%Function lists functions that match simply to specified string.
 z. %q@=keys; (f1'$m, k)0
-( m- on %m=There were '~ entries matching the string "'$";, %m=There were no entries matching the string "'$"; )
+( m- on %m=There were &'~& entries matching the string "&'$&";, %m=There were no entries matching the string "&'$&"; )
 
 <<multi_file_init>>
 %%Initialization macro.
@@ -124,7 +125,7 @@ obz$r-0
 , oz)
 %%
 %%Check for unrecognized qualifier keys.
-obz$r-0(v/ /e)0(r\, oz%x=Error: Unrecognized qualifier '$; ) oz
+obz$r-0(v/ /e)0(r\, oz %x=Error: Unrecognized qualifier &'$; ) oz
 %%
 %%Set default index-file name.
 ob(oq/index/, %d~=./multi_file_index; ov/index/ oq/index/) osoz
@@ -138,10 +139,10 @@ z.(oq/indextype/
   %%If user included -l then trim off that crap now.
   m-0(f1/	/r-0 (f/	/-e-0m)0, )
   %%Initialization.
-  z.m-0 n.a@
+  z.m-0 n.a@&
   %%
   %%Call the relevant indexing routine.
-  ( %h'=call multi_file_create_index_'~;, oq/indextype/ %x=Files of type "'~" are not currently supported; )
+  ( %h'=call multi_file_create_index_&'~;, oq/indextype/ %x=Files of type "&'~&" are not currently supported; )
   %%
   %%Now write the index file.
   z.oq/index/ z@ %o='~;
@@ -150,20 +151,21 @@ z.m-0k0
 %%
 %%
 %%Split -index=<arg> and read the index files.
-n.a@ n.a! n.a$z$i'~ okr-0 (f/,/e(v/ /e)0b)0 m-0
+n.a@& n.a!& n.a$& z$i'~ okr-0 (f/,/e(v/ /e)0b)0 m-0
 ( %%Index-file read loop.
-  ol0 %i@='$ -append; z$m)0
+  ol0 %i@= -append '$; z$m)0
+%%  ol0 %i@='$ -append; z$m)0
 %%
 ( %%File loop.
   %%Pick up file name and initialize byte counter.
-  z@n.a$z$i/Initial gumpf /i'@ z@n.r0a~& o#z.ov/thisFile/z@ m ol0
+  z@n.a$& z$i/Initial gumpf /i'@ z@n.r0a~& o#z.ov/thisFile/z@ m ol0
   %%Section loop - enter section names in arrears in order to calculate the byte counts.
   ( o#oidoso- 
     ( %h.=setfsect '$;
     , %%setfsect failed - the most likely explaination is that the same module-name is used in two files - uniquify using index-file line no.
-      on %h.=setfsect '$__'~;
+      on %h.=setfsect '$&__&'~;
     , %%This should never happen.
-      oq/thisFile/ %m!=Failed to add section '$ from file '~ ; z@ )
+      oq/thisFile/ %m!=Failed to add section &'$& from file &'~& ; z@ )
     rn.r0a$&m o+ )0 okokok
   %%
   (mr\)0r-
@@ -171,7 +173,7 @@ n.a@ n.a! n.a$z$i'~ okr-0 (f/,/e(v/ /e)0b)0 m-0
 %%
 okok
 %%Check for error messages.
-z!m-0 (mm0m-onm-0 %x=Oh dear! there were '~ errors while building the hashtable - try again with a bigger hashtable;, oz)
+z!m-0 (mm0m-onm-0 %x=Oh dear! there were &'~& errors while building the hashtable - try again with a bigger hashtable;, oz)
 %%
 
 <<multi_file_create_index_c>>
@@ -193,7 +195,7 @@ m-0(r0v-/.c/m,k)0 m-0
     (q/A-Za-z/f1/(/f1/;/\f-1/(/ (v-/ /r-)0n.r-f-1/ /-(v/*/r,)a$&oso#z@oo/%d	/h$bzc, )o+m )0
   %%
   %%Add the total byte count.
-  z@oo/%d	**End**/b2w z.m 
+  z@oo/%d	**End**/b2 %w=refresh;  z.m 
   )0
 
 <<multi_file_create_index_perl>>
@@ -210,7 +212,7 @@ m-0(r0v-/.pl/m,k)0 m-0
     (v/sub /r4(v/ /r)0n.(f1/{/(v-/ /r-)0, f1/ /, r0)a$&oso#z@oo/%d	/h$bzc, )o+m )0
   %%
   %%Add the total byte count.
-  z@oo/%d	**End**/b2w z.m 
+  z@oo/%d	**End**/b2 %w=refresh;  z.m 
   )0
 
 :

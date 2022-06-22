@@ -71,21 +71,21 @@ osozok
   %h=destroy;
   %m=Rebuilding index.
   %%Create a hashtable of roughly the right size.
-  oconol0m-0 (f/{/o~)0 ol2o* %h=create '~ -adjust; ono-omor )
+  oconol0m-0 (f/{/o~)0 ol2o* %h=create -destroy '~; ono-omor )
 %%
 oconob
 %%Plod back to the start of the function and check/register it's name.
 r-0((q/A-Za-z/\m-)0 (q/A-Za-z0-9_ /r)0v/:/m-)0
 ( %%If the function is already registered then skip remainder of indexation.
-  on %h=new FunctionStart_'~;\, on %m=Adding FunctionStart_'~; p
+  on %h=newjump FunctionStart_&'~;\, on %m=Adding FunctionStart_&'~; p
   %%
   %%Clear the text stack. 
   n.a$& z$b- o#oz
   ( %%Main loop.
     %%If a '{' Add entries to stack.
-    (v/{/oconz$r0bi/blockStart_/r-roo/%d/i/_/r-roo/%d/o#oz)?
+    (v/{/oconz$r0bi/blockStart_/ r-roo/%d/i/_/r-roo/%d/o#oz)?
     %%If a '}' make the key using the start-point on the stack then add the entry.
-    (v/}/o#oz %h=new '$; z$ (m- (m-m, %m=end of code section.; ), o#ozon %m=Surplus end brace ( } ) at line '~; pm) o#oz)?
+    (v/}/o#oz %h=newjump '$; z$ (m- (m-m, %m=end of code section.; ), o#ozon %m=Surplus end brace ( } ) at line &'~; pm) o#oz)?
     %%If a comment skip to end.
     (v"/*" f"*/"-, v"//"r0)?
     %%If a string then skip to end.
@@ -93,22 +93,24 @@ r-0((q/A-Za-z/\m-)0 (q/A-Za-z0-9_ /r)0v/:/m-)0
     %%Similar for a character.
     (v/'/\, r(v/\/r2, r) v/'/)
     %%If end of file or a new-function start is detected, terminate current function.
-    (r, mq/A-Za-z/\, (q/A-Za-z0-9_ /r)0v/:/r)
+    (r, mq/A-Za-z/\, (q/A-Za-z0-9_ /r)0q/:;/r)
     )0
      
   %%Add key for last line.
-  m-on %h=new FunctionEnd_'~;
+  m-on %h=newjump FunctionEnd_&'~;
   %%Now construct the reverse index using the list of keys in $ buffer.
   z$m-0mo#ozn.a;& 
   ( %%Reverse-index loop.
-    %h=jump '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=new '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
+    %h=jump '$; oconn.a@&z@i/blockEnd_/ r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=newjump '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
   %%Check for unmatched block-starts.
-  (z;m-0rr- (f/blockStart_/s/ '{' at line no. /f/_/s/ chr /m)0m-0 %x=Error the listed curly braces could not be matched;, ) o#oz )
+  (z;m-0rr- (f/blockStart_/ s/ '{' at line no. /f/_/s/ chr /m)0m-0 %x=Error the listed curly braces could not be matched;, ) o#oz )
   
 %%Restore original focus.
 ozono-omor
 :
-ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=add '#; oz
+
+ob z'm0bh#b f-/<<CSetupHashtables>>/r2n.f1/>>/a#& r0 %h=code '#; oz
+%%  ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=code '#; oz
 
 %g1
 %%Searching back, match next valid '}' with it's start-point '{' from hashtable.
@@ -120,7 +122,6 @@ ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=add '#; oz
   obocon n.a$&z$oo/blockEnd_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at an end point search back for next one.
   ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-oidoo/	%05d/f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
-%%  ocon %q$=keys; k2(f/ blockEnd_/k)0 m-0(f1/line no./-i/	/f1/chr no./- i/	/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries after current line then all those before start of current code block.
   m0m- (f1/	/-\k-, oido<k-)0 f-/ functionStart_/k-0
   %%Search back for block-end point by matching line numbers and chr positions in blockStart entries.
@@ -143,7 +144,6 @@ ob z'm0bh#b (m-v/<</\)0 r2n.f1/>>/a#& r0 %h=add '#; oz
   obocon n.a$&z$oo/blockStart_%d/ r0oo/_%d/ o#oz %h=jump '$; ok
 , %%Not at a start point search for next one.
   ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-oidoo/	%05d/ f1/chr no./-oidoo/	%03d/m)0 %b=tabsort 1 2; m0r0b
-%%  ocon %q$=keys; k2(f/ blockStart_/k)0 m-0(f1/line no./-i/	/ f1/chr no./-i/	/m)0 %b=tabsort 1 2; m0r0b
   %%First delete all entries before current line then all those after end of current code block.
   m-0 m-0(f1/	/-\k, oido>k)0 (f/ functionEnd_/k0r0b,)
   %%Search for next block-start point by matching line numbers and chr positions in blockEnd entries.
@@ -212,7 +212,7 @@ m-0
 obz$m-0i-/ /
 %%
 %% -tag sets up some colour tags.
-(f1/ -tag/ ozoconobm-0 %b=tagtype comment colour 6 0;o#oz '# ozono-omor, )
+(f1/ -tag/ ozoconobm-0 %b=tagtype -colour=6:0 comment;o#oz '# ozono-omor, )
 %% -all qualifier indexes all functions as c.jot runs.
 (f1/ -all/ ozoconobm-0 (f/{/v-/$/r2)0 '2)0
 oz

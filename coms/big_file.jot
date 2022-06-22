@@ -22,57 +22,7 @@
 %%
 
 %g?
-  Usage:
-    First create an index file with grep -b
-$ grep -b <suitableGrepFilter> LargeFilePathName > LargeFilePathName_index.txt
-    Now start the editor with big_file.jot
-$ jot -in="%r=big_file -file=LargeFilePathName;"
-  
-  Command-line args:
-    -file=<pathName> - Mandatory pathname to big file, index file must be <PathName>_index
-    -all - Reads all sections at the start of day.
-    -size=<n> - Optional, defaults to 100,000 - aproximate size of hashtable
-    -grep=<grepCommandString> - Optional, grep commands required to extract the index file.
-        If -grep=... is specified, a new index file is created using grep.
-    -trim=<jotCommandString> - Optional, jot commands required to trim the index file.
-    -vlogindex - Defines grep and trim commands and uses these to generate an
-        index for the verilog file specified by the -file=... modifier.
-    -cdlindex - Defines grep and trim commands and uses these to generate an
-        index for the cdl file specified by the -file=... modifier.
-                
-  In the jot session:
-    - If either -grep or -cdlindex is specified, then the session begins by creating a new index file.
-    - The session begins with a blank window, sections can be pulled into view using Macro 7 e.g:
-> sectionName1{Esc 7}
-> sectionName2{Esc 7}
-  ...
-    - To search, using grep, for some other string in the file use Macro 8 e.g the net MyNet in a cdl file:
-> MyNet{Esc 8}
-
-   
-  Buffers used:
-    . - Normally but not necessarily the destination for sections as they are read.
-        Also holds the main hashtable.
-    7 - macro 7, launches a query.
-    8 - macro 8, launches a net-name grep and loads matching subcircuits.
-    9 - macro 9,  write the file back to disc.
-    $ - temporary, used for args, setup and queries.
-    @ - temporary, used in macro 9 to store hash key index
-    * - temporary, used by macro 9 to seek offsets of InText sections.
-    # - temporary, used by macro 9 to store names of InText sections.
-    + - temporary, used by macro 9 to store seek offsets for InText sections.
-    " - temporary, used by macro 9 for progress monitor.
-    
-  Data objects:
-     - destBuf       - Destination buffer - the current buffer when the script was started.
-     - pathName      - From -file= qualifier, pathname of large file.
-     - index         - From -index= qualifier, pathname of index file.
-     - fileSize      - Total size of original file.
-     - grep_cmds     - From -grep= qualifier, grep commands used to create the index.
-     - trim          - From -trim= qualifier, jot commands used to trim the index.
-     - progress      - Progress-monitor data.
-     - fileDatestamp - The datestamp of the main file when the index was created (as read from the index file).
-     - all           - Boolean, TRUE when -all qualifier was given.
+abc
 :
 
 %%Define the big_file functions now.
@@ -81,20 +31,20 @@ $ jot -in="%r=big_file -file=LargeFilePathName;"
 %%Function to launch a query.
 %%
 %%Pick up buffer key and pathname
-z$r-0(v/ /e)0r0(v-/ /e-)0 z.oq/destBuf/ozm0on
+z$r-0(v/ /e)0r0(v-/ /e-)0 oq/.=destBuf/ozm0r0bon
 ( %%It may already exist in the text?
-  %h.=jump '$_InText;
+  %h.=jump '$&_InText; m- %w=refresh;
 , %%No, read it now.
-  oq/pathName/ 
-  %i='~ -section='$ -append;
+  oq/.=pathName/ 
+  %i= -section='$ -append '~;
   %%Read success - add a label  and make it the target of a conventional hash-table entry for the section.
-  ono-omr-0b-i/------------------------------------------ /h$r-0
+  ono-omb-i/------------------------------------------ /h$m
   %%Replace SeekObj with HtabObj pointing at the start of the newly-read section.
-  %h.=add '$_InText;
-  %%get top of new section at top of view.
-  m*?w %h.=jump '$_InText; w
+  %h.=addjump '$&_InText;
+  %w=refresh;  %%get top of new section at top of view.
+  m*? %w=refresh; %h.=jump '$&_InText; m- %w=refresh;
 , %%Read failure.
-  ok ( %h.=jump '$_InText; wm*w %h.=jump '$_InText; , oq/destBuf/oz %X=Error: Section '$ is not in the index.; ) )
+  ok ( %h.=jump '$&_InText;  %w=refresh;m* %w=refresh; %h.=jump '$&_InText; , oq/.=destBuf/oz %X=Error: Section &'$& is not in the index.; ) )
 
 
 <<big_file_grepQuery>>
@@ -104,11 +54,11 @@ z$r-0(v/ /e)0r0(v-/ /e-)0 z.oq/destBuf/ozm0on
 ( %h'=call big_file_verifyMainFile;, %x=Suggest you re-index the file and try again.; )
 %%
 %%Use grep to search.
-z.oq/pathName/ %m=grepping file '~ for '$;
-n.a#z#i/%e@=grep -b "/i'$ r0i/" '/ z.oq/pathName/z#i'~oki/'/ '#
+oq/.=pathName/ %m=grepping file &'~& for &'$;
+n.a#&z#i/%e@=grep -b "/i'$ r0i/" / oq/.=pathName/z#i'~ok '#
 %m=grep complete.
 %%Merge with sections using tabsort.
-(oidoo/	%15ld/m)0 z.oq/destBuf/oz %q#=keys; k2 (f/ Seek /-oidoo/	%15ld/)0 z@h# %b=tabsort 1;
+(oidoo/	%17ld/m)0 oq/.=destBuf/oz %q#=keys; (f1/ Seek /-oidoo/	%17ld/m, k)0 z@h# %b=tabsort 1;
 %%Purge unwanted sections.
 m0r0bn. (f-'$f-/ Seek 	/ma#m-n.)0 m-0a# m-0(r4(v/ /r)0e-0f1/ Seek 	/e0m)0
 %%
@@ -117,49 +67,54 @@ m0r0bn. (f-'$f-/ Seek 	/ma#m-n.)0 m-0a# m-0(r4(v/ /r)0e-0f1/ Seek 	/e0m)0
 m-0 (pn.f1/,/a$& %h'=call big_file_simpleQuery;  z@m2m-)0
 %s=verbose 3;
 %%Report no. of sections:
-onol1o- %m=Read '~ sections.
+onol1o- %m=Read &'~& sections.
 %%Now return to big-file buffer.
-z.oq/destBuf/oz
+oq/.=destBuf/oz
 
 <<big_file_writeModifiedFile>>
-%%Macro 9 - write the file back to disc.
+%%Write the file back to disc.
 %%
 %%Check the datestamp matches that preserved in the index file.
 %%
 %%Arrange the sections we've read into ascending offset-order.
 %%
 %%Get the InText keys into buffer *, the section keys to buffer @.
-z.n.a* %q@=keys; 
+z.n.a*& %q@=keys; 
 ( %%InText sections loop.
   %%Pick up the name of the next InText section.
-  z@f/Rec:------------------------------/r-0r4(v/ /r)0n.f1/_InText,/a*+&m
-  %%Find the seek and limit parameters for this block.
-  z. %q$=key '*; kf1/ Seek /-oid  f1/, Bytes /-oidos z* r0oo/	 Seek %15ld/r0 oo/ Bytes %15ld/ b )0
+  z@f/_InText, (JumpObj) buf /r-0r4(v/ /r)0n.f1/_InText,/a*+&m
+  %%Find the seek and bytes parameters for this block.
+  (z. %q$=keys -key='*;, z. %q$=keys -key='*&_InText;)  k2f1/ Seek /-oid  f1/, Bytes /-oidos z* r0oo/	 Seek %15ld/r0 oo/ Bytes %15ld/ b )0
+%%  z. %q$=key '*; k2f1/ Seek /-oid  f1/, Bytes /-oidos z* r0oo/	 Seek %15ld/r0 oo/ Bytes %15ld/ b )0
 z* %b=tabsort 1; (r\k,)
 %%  
+%%Bring back the index file - this has the true sizes of each section (whereas the sections hashtable has the sizes corrected for Bill's folly).
+oq/.=index/ %i@='~;
+%%
 %%Now for ( # ) a list of InText sections in order of appearance  in text.
-z*m-0n.m0r0a#&z#m-0 (f1/	/e0 z. %q$=key '#_InText; kf1/, line no./-oid z#r0oo/	%15ld/ m)0 %b=tabsort 1; (r\k)0 m0r0b
+z*m-0n.m0r0a#&z#m-0 (f1/	/e0 z. %q$=keys -key='#&_InText; k2f1/, line no./-oid z#r0oo/	%15ld/ m)0 %b=tabsort 1; (r\k)0 m0r0b
+%%z*m-0n.m0r0a#&z#m-0 (f1/	/e0 z. %q$=key '#&_InText; k2f1/, line no./-oid z#r0oo/	%15ld/ m)0 %b=tabsort 1; (r\k)0 m0r0b
 %%
 %%Now move the original big file to <name>_orig
-z.oq/pathName/ %d$=%e=mv ;z$r0i'~r0i/ /i'~i/_orig;/ok '$
+oq/.=pathName/ %d$=%e=mv -f ;z$r0i'~r0i/ /i'~i/_orig;/ok '$
 %%
-%%OK to start copying up to the next section in 1000000 byte blocks, when we get to a section in the text substitute the section with text from buffer.
+%%OK to start copying up to the next section in <bucketsize> blocks, when we get to a section in the text substitute the section with text from buffer.
 %%
 %%
 %%Initialize for copying.
 %%Set initial seek-point to 0.
 ol0 
 %%Reset InText index.
-z.oq/pathName/ z*m-0  
+oq/.=pathName/ z*m-0  
 %%Open the original version of the file.
-%i+='~_orig -hold -seek=0 -bytes=0;
+%i+= -hold -seek=0 -bytes=0 '~&_orig;
 %%
 %%Set up progress monitor.
-n.a"z" %w"= -popup -height=2 -width=-5;
-z.ol0ov/progress/
+n.a"&z" %w"=new -popup=-5 -height=2 -width=5;
+ol0ov/.=progress/
 %%
 %%Initialize bucket buffer.
-n.a+
+n.a+&
 %%
 %%Suppress normal I/O messages.
 %s=verbose 0;
@@ -168,11 +123,11 @@ n.a+
   %%Identify next in-text section and it's start point.
   z*r-0n.f1/	 Seek/-oid oso-
   %%Copy blocks up to the start of InText section on completion the only item on the stack is the start offset of the next InText section.
-  (ol1000000o> z.oq/pathName/o# %i+='~_orig -hold -block=1000000; %o='~ -append; m-0k0e0 ol1000000o-
+  (oq/.=bucketsize/o> oq/.=pathName/o# oq/.=bucketsize/ %i+= -hold -block='~ '~&_orig; %o= -append '~; m-0k0e0 oq/.=bucketsize/o-
     %%Update progress monitor.
-    z.w oq/progress/ol1000000o+o#ov/progress/ ol100o*oq/fileSize/o/ z"oo/%2d%%/ )0
+    z. %w=refresh; oq/.=progress/oq/.=bucketsize/o+o#ov/.=progress/ ol100o*oq/.=fileSize/o/ z"oo/%2d%%/ )0
   %%Write remaining bytes.
-  ( ol0o=\ z.oq/pathName/ %i+='~_orig -hold -block='~; z.oq/pathName/ z+ %o='~ -append; , ) z+m-0k0
+  ( ol0o=\ oq/.=pathName/os %i+= -hold -block='~ '~&_orig; oq/.=pathName/ z+ %o= -append '~; , ) z+m-0k0
   %%
   %%Abstract InText section to $ buffer then write.
   %%Pick up InText section key.
@@ -180,28 +135,107 @@ n.a+
   %%
   %m=Writing InText section '$;
   %%Abstract to $ and write, we need to know what the next InText section name is - that's where the sorted InText table in the ( # ) buffer comes in.
-  z. %h.=jump '$_InText; mob z#m-0 ((f'$r-\ f1'$-v/	/)\m)0 (mn.f1/	/a$& ozn. %h.=jump '$_InText;, ozn.m0) a$& oq/pathName/ z$ %o='~ -append;  
+  z. %h.=jump '$&_InText; ob z#m-0 ((f'$r-\ f1'$-v/	/)\m)0 (mn.f1/	/a$& ozn. %h.=jump '$&_InText;m-2, ozn.m0r0) a$& oq/.=pathName/ z$ %o= -append '~;  
   %%
-  %%Seek to the start of the next section.
-  z*r-0n.f1/	/a$& z.%q$=key '$; kf1/ Seek /-oid f1/, Bytes /-oid o+o# z.oq/pathName/ %i+='~_orig -hold -seek='~ -bytes=0;
+  %%Set up for next block.
+  z*r-0n.f1/	/a$& z@m-0(f'$r0v-'$\m)0 mf1/:/-oido# oq/.=pathName/ os %i+= -hold -seek='~ -bytes=0 '~&_orig;
   %%
   %%Update progress monitor.
-  z.w oq/progress/ol1000000o+o#ov/progress/ ol100o*oq/fileSize/o/ z"oo/%2d%%/
+  z. %w=refresh; oq/.=progress/oq/.=bucketsize/o+o#ov/.=progress/ ol100o*oq/.=fileSize/o/ z"oo/%2d%%/
   %%Index to next InText section, if no more then copy remainder of file N.B. The only item on the stack should be the current seek point.
   z*mr
   )0
 %%Write out all remaining blocks to end of file.
-( z.w oq/pathName/o# %i+='~_orig -hold -block=1000000; %o='~ -append; k? 
-  z.w oq/progress/ol1000000o+o#ov/progress/ ol100o*oq/fileSize/o/ z"oo/%2d%%/ )0
+( z. %w=refresh; oq/.=pathName/o# oq/.=bucketsize/ %i+= -hold -block='~ '~&_orig; %o= -append '~; k? 
+  z. %w=refresh; oq/.=progress/oq/.=bucketsize/o+o#ov/.=progress/ ol100o*oq/.=fileSize/o/ z"oo/%2d%%/ )0
 %%
 %%Restore normal verbosity.
 %s=verbose 3;
 %%Restore windows.
 %q~=window; f/screenHeight = /- oidol4o-z.osok
-%%%w; %w '~; %w 0; w
 %h'=call WindowOne;
 %%Return to sections of file.
-oq/destBuf/oz
+oq/.=destBuf/oz
+
+<<big_file_writeModifiedFile_dd>>
+%%Write the file back to disc using dd.
+%%This was written in the hope and expectation of a significant performance improvement for writing big files
+%%It turns out that dd actually takes about twice the time of the jot-IO version.
+%%
+%%Check the datestamp matches that preserved in the index file.
+%%
+%%Arrange the sections we've read into ascending offset-order.
+%%
+%%Get the InText keys into buffer *, the section keys to buffer @.
+z.n.a*& %q@=keys; 
+( %%InText sections loop.
+  %%Pick up the name of the next InText section.
+  z@f/_InText, (JumpObj) buf /r-0r4(v/ /r)0n.f1/_InText,/a*+&m
+  %%Find the seek and limit parameters for this block.
+  z. %q$=keys -key='*; k2f1/ Seek /-oid  f1/, Bytes /-oidos z* r0oo/	 Seek %15ld/r0 oo/ Bytes %15ld/ b )0
+%%  z. %q$=key '*; k2f1/ Seek /-oid  f1/, Bytes /-oidos z* r0oo/	 Seek %15ld/r0 oo/ Bytes %15ld/ b )0
+z* %b=tabsort 1; (r\k,)
+%%  
+%%Bring back the index file this has the true sizes of each section (whereas the sections hashtable has the sizes corrected for Bill's folly).
+oq/.=index/ %i@='~;
+%%
+%%Now for ( # ) a list of InText sections in order of appearance  in text.
+z*m-0n.m0r0a#&z#m-0 (f1/	/e0 z. %q$=keys -key='#&_InText; k2f1/, line no./-oid z#r0oo/	%15ld/ m)0 %b=tabsort 1; (r\k)0 m0r0b
+%%z*m-0n.m0r0a#&z#m-0 (f1/	/e0 z. %q$=key '#&_InText; k2f1/, line no./-oid z#r0oo/	%15ld/ m)0 %b=tabsort 1; (r\k)0 m0r0b
+%%
+%%Now move the original big file to <name>_orig
+oq/.=pathName/ %d$=%e=mv -f ;z$r0i'~r0i/ /i'~i/_orig;/ok '$
+%%
+%%OK to start copying up to the next section in <bucketsize> blocks, when we get to a section in the text substitute the section with text from buffer.
+%%
+%%
+%%Initialize for copying.
+%%Set initial seek-point to 0.
+ol0 
+%%  %%Reset InText index.
+%%  oq/.=pathName/ z*m-0  
+z*m-0
+%%
+%%Set up progress monitor.
+n.a"&z" %w"=new -popup -height=2 -width=-5;
+ol0ov/.=progress/
+%%
+%%Suppress normal I/O messages.
+%s=verbose 0;
+%%
+( %%Block/section-copy loop.
+  %%Identify next in-text section and it's start point.
+  z*r-0n.f1/	 Seek/-oidoso- ol0
+  ( o=ok  %%First in-text section is at start of file - no need to bother dd with this.
+  , %%Copy initial block with dd.
+    n.a$&z$ oo/%%e=\dd iflag=count_bytes,skip_bytes skip=0 count=%d/ oq/.=pathName/o# r0oo/ if=%s_orig/r0oo/ of=%s;/ '$
+    , %x=Error: Something went wrong while attempting to copy initial block.;  )
+  %%
+  %%Abstract InText section to $ buffer then write.
+  %%Pick up InText section key.
+  z*r-0n.f1/	/a$& 
+  %%
+  %m=Writing InText section &'$;
+  %%Abstract to $ and write, we need to know what the next InText section name is - that's where the sorted InText table in the ( # ) buffer comes in.
+  z. %h.=jump '$&_InText; ob z#m-0 ((f'$r-\ f1'$-v/	/)\m)0 (mn.f1/	/a$& ozn. %h.=jump '$&_InText; m-2, ozn.m0r0) a$& oq/.=pathName/ z$ %o= -append '~;  
+  %%Set up for next block.
+%%  z*r-0n.f1/	/a$& z@m-0(f'$r0v-'$\m)0 mf1/:/-oido# oq/.=pathName/ os %i+= -hold -seek='~ -bytes=0 '~&_orig;
+  z*r-0n.f1/	/a$& z@m-0(f'$r0v-'$\m)0 mf1/:/-oid
+  %%Update progress monitor.
+  z. %w=refresh; oq/.=progress/oq/.=bucketsize/o+o#ov/.=progress/ ol100o*oq/.=fileSize/o/ z"oo/%2d%%/
+  %%Index to next InText section, if no more then copy remainder of file N.B. The only item on the stack should be the current seek point.
+  z*mr
+  )0
+%%Written initial sections and all InText with their intermediate sections - now write out all remaining sections to end of file.
+z. %w=refresh; n.a$&z$ oo/%%e=\dd iflag=skip_bytes skip=%d/ oq/.=pathName/o#r0oo/ if=%s_orig/r0oo/ >> %s/ '$
+%%
+%%Restore normal verbosity.
+%s=verbose 3;
+%%Restore windows.
+%q~=window; f/screenHeight = /- oidol4o-z.osok
+%h'=call WindowOne;
+%%Return to sections of file.
+oq/.=destBuf/oz
 
 <<big_file_init>>
 %%Initialization macro.
@@ -211,108 +245,118 @@ obo#z$r0i/ /(r-0f/-size=/s/ /n.(f1/ /, r0)a~, ol100000) o#ol20o+
 ( %h.=create '~;, %x=Disaster: failed to create the hashtable.; ) osoz
 %%
 %%Declare various data objects:
-%h.=data tableSize; ov/tableSize/
+%h.=data tableSize; ov/.=tableSize/
 %h.=data destBuf;       %%Destination buffer - the current buffer when the script was started.
-o#ov/destBuf/
+o#ov/.=destBuf/
 %h.=data pathName;      %%From -file= qualifier, pathname of large file.
 %h.=data index;         %%From -index= qualifier, pathname of index file.
 %h.=data fileSize;      %%Total size of original file.
 %h.=data grep_cmds;     %%From -grep= qualifier, grep commands used to create the index.
-%h.=data trim;          %%From -trim= qualifier, jot commands used to trim the index.
+%h.=data trim;          %%From -trim=<jotCommands> qualifier, jot commands used to trim the index.
+%h.=data bucketsize;    %%From -bucketsize=n qualifier, sets bucket size for bulk reads.
 %h.=data progress;      %%Progress-monitor data.
 %h.=data fileDatestamp; %%Datestamp of main file.
 %h.=data all;           %%If TRUE then read all sections at the outset.
 %%
 %%Pick up mandatory -file=<pathName> arg and check the file exists.
-obz$r-0i/ /r- (f/ -file=/s/ /n.((f1/ /(v/ /r)0v/-/\r)0 v/ /, v/-/(v-/ /r-)0, r0)(v-/ /r-)0 a~ osozov/pathName/, %X=Error: No -file=<pathname> arg - cannot continue.;)
-( oq/pathName/ o# %q=file '~; ok, %m=Error: file '~ not found.; )
+obz$r-0i/ /r- (f/ -file=/s/ /n.((f1/ /(v/ /r)0v/-/\r)0 v/ /, v/-/(v-/ /r-)0, r0)(v-/ /r-)0 a~ osozov/.=pathName/, %X=Error: No -file=<pathname> arg - cannot continue.;)
+%%Escape any whitespace in pathname then check it exists.
+( oq/.=pathName/ z~r-0(f1/ /i/\/r)0 o#z. %q=file '~; ok, %m=Error: file &'~& not found.; )
 %%
 %%Set all data object if -all is given.
 obz$(f/ -all /s/ /ol1, ol0) ov/.=all/ oz
 %%
 %%Pick up name of index file or default to <bigFileName>_index
-obz$r-0(f/ -index=/s/ /n.(f1/ /, r0)a~osoz ov/index/, oz)
+obz$r-0(f/ -index=/s/ /n.(f1/ /, r0)a~osoz ov/.=index/, oz)
 %%
 %%Pick up optional -grep=<grepCommandString> arg.
-obz$(r-0f/ -grep=/s/ /n.(f1/ /, r0)a~ osozov/grep_cmds/, oz)
+obz$(r-0f/ -grep=/s/ /n.(f1/ /, r0)a~ osozov/.=grep_cmds/, oz)
 %%
 %%Pick up optional -trim=<jotCommandString> arg.
-obz$(r-0f/ -trim=/s/ /n.(f1/ /, r0)a~ osozov/trim/, oz)
+obz$(r-0f/ -trim=/s/ /n.(f1/ /, r0)a~ osozov/.=trim/, oz)
 %%
 %%Pick up the optional -cdlindex qualifier.
 obz$(r-0f/ -cdlindex/s/ / 
-  %d~="\.SUBCKT "; z.ov/grep_cmds/
-  %d~=(f/:/-2n.f1/.SUBCKT /-(v/ /r)0a%(f1/ /e0,)m)0; z.ov/trim/, oz)
+  %d~="\.SUBCKT "; ov/.=grep_cmds/
+  %d~=(f/:/-2n.f1/.SUBCKT /-(v/ /r)0a%(f1/ /e0,)m)0; ov/.=trim/, oz)
 %%Pick up the optional -vlogindex qualifier.
 obz$(r-0f/ -vlogindex/s/ / 
-  %d~="^ *module "; z.ov/grep_cmds/
-  %d~=(r-0f1/module /e7(v-/ /e-)0(v/ /e)0f1/(/e0(v-/ /e-)0m)0; z.ov/trim/, oz)     %%No trimming required.
+  %d~="^ *module "; ov/.=grep_cmds/
+  %d~=(r-0f1/module /e7(v-/ /e-)0(v/ /e)0f1/(/e0(v-/ /e-)0m)0; ov/.=trim/, oz)     %%No trimming required.
+%%
+%%Pick up the bucketsize arg, default it to 1,000,000 Bytes.
+obz$(r-0f/ -bucketsize=/s/ /n.oids/ /, ol1000000os)oz osozov/.=bucketsize/
 %%
 %%Check for unrecognized qualifier keys.
-obz$r-0(v/ /e)0(r\, oz%x=Error: Unrecognized qualifier '$; ) oz
+obz$r-0(v/ /e)0(r\, oz%x=Error: Unrecognized qualifier &'$; ) oz
 %%
 %%Set default index-file name.
-ob(oq/index/ok, oq/pathName/ z~n.r0a$&z$r0i/_index/n.r-0a~ osokosozov/index/)oz
+ob(oq/.=index/ok, oq/.=pathName/ z~n.r0a$&z$okr0i/_index/n.r-0a~ ov/.=index/)oz
 %%
 %%Set the total size.
-oboq/pathName/ %q@=file '~; f/ size = /-b oidosozov/fileSize/
+oboq/.=pathName/ %q@=file '~; f/ size = /-b oidosozov/.=fileSize/
 %%
-%%If -grep is set then re-make the index file.
-z.
-ob( oq/grep_cmds/ %% -grep=<cmds> was given - rebuild the index now.
-  oq/index/os oq/pathName/os %d$=%e=grep -bn ; z$r0i'~ok i/ '/i'~ok i/' > '/ i'~ i/';/ '$
+%%If data object /.=grep_cmds/ is defined then re-make the index file.
+ob( oq/.=grep_cmds/ %% -grep=<cmds> was given - rebuild the index now.
+  oq/.=index/os oq/.=pathName/os %d$=%e=grep -bn ; z$r0i'~ok i/ /i'~ok i/ > / i'~ i/;/ '$
   %%Add datestamp check.
-  z.oq/index/ %i@='~; 
-  z.oq/pathName/ %q$=file '~; f/ Modify time = /re-0m-k-0mk0 z@h$b
+  oq/.=index/ %i@='~; oq/.=pathName/ %q$=file '~; f/ Modify time = /re-0m-k-0mk0 z@h$b
   %%If -trim was given, trim the index now.
-  ( z.oq/trim/ z@ '~ ok, ) %o; ok
+  ( oq/.=trim/ z@ '~ ok, ) %o; ok
 , ) oz
 %%
 %%If the index file does not exist, exit now.
-oboq/index/ o# (%q=file '~; ok, %x=Error: Index file "'~" does not exist.;)oz
+oboq/.=index/ o# (%q=file '~; ok, %x=Error: Index file "&'~&" does not exist.;)oz
 %%
 %%Read the index file
-ob ol0 oq/index/ %i@='~;
-(v/Modify time = /n.r0a~&, %d~=Index file did not specify a datestamp.;) mz.ov/fileDatestamp/ 
+ob ol0 oq/.=index/ %i@='~;
+%%If it's a windows generated index being red in lunix, then chop off the '\r' line terminations.
+r0r-oic (ol13o= (r0e-m)0, ) m-0ok
+(v/Modify time = /n.r0a~&, %d~=Index file did not specify a datestamp.;) mov/.=fileDatestamp/ 
 %%
 %%Read all sections if -all was given.
 oboq/.=all/ ol1
 ( o=  %%Yes - read all the sections first.
   %%Read the complete file, copy to main buffer and set the pathname.
-  okoq/pathName/ %i.='~ -append;
+  okoq/.=pathName/ %i.= -append '~;
   %%Section loop - add a jump obj for each index-file entry.
-  (z@oidf/:/-2n.r0a$& z.ono-om %h=add '$_InText; z@m)0 z.
+  (z@oidf/:/-2n.r0a$& z.ono-om %h=addjump '$&_InText; z@m)0 z.
 , %%No -all was not given - set up for section-by-section interactive reading.
   %%
-  %%Clear ( $ )in preparation for index-build operation.
-  %d$=Initial_gumph;
+  %%For files written in windowsland, although the byte offsets to the sections are correct, the calculated byte counts for each section include the carriage-return characters.
+  %%This is only a problem when running big_file.jot also in windowsland, the OS helpfully deducts, not one, but two bytes from the oveall byte count.
+  %%We also need to avoid blank lines which might look like a "CRLF" termination, so we take the first entry from the index file.
   %%
-  %%Build the hashtable.
-  z@m-0(v/Modify time = /m,)
-  (o#f1/:/-oidoso-  (%h.=setsect '$;, %d!=1; ( %h.=setsect '$__'!;\ z!r-0oido~oo/%d/z@ )0 ) o+ f1/:/-n.r0a$& m)0
+  %%The following line detects windows reading a windows-generated file.
+  %%Read the last two bytes of the first file and look for '\r' before the '\n'.
+  oq/.=pathName/ m=3f1/:/-oid ol2o- %i$= -seek='~ -bytes=2 '~; z@m-0(v/Modify time = /m,)
+  z$m(r %%The line was "\r\n" terminated and we're reading it in linuxland.
+    %%Allow for "\r\n" line terminations.
+    %d$=Initial_gumph; z@f1/:/2ol0
+    ( (%h.=setsect '$;, %d!=1; ( %h.=setsect '$&__&'!;\ z!r-0oido~oo/%d/z@ )0 ) okok r-f-1/:/-oido# rn.r0a$& r-0oidmoidoso- roidoso-oso-)0 ok ok
+  , %%Only need to allow for \n terminations.
+    %d$=Initial_gumph; z@
+    (o#f1/:/-oidoso-  (%h.=setsect '$;, %d!=1; ( %h.=setsect '$&__&'!;\ z!r-0oido~oo/%d/z@ )0 ) o+ f1/:/-n.r0a$& m)0 ok )
   %%
   %%Add the last entry, this requires the total size of the file in order to calculate the section bytecount.
-  z.oq/fileSize/oso- (%h.=setsect '$;, %d!=1; ( %h.=setsect '$__'!;\ z!r-0oido~oo/%d/z@ )0 ) okokok
-  %%  okokoz
+  oq/.=fileSize/oso- (%h.=setsect '$;, %d!=1; ( %h.=setsect '$&__&'!;\ z!r-0oido~oo/%d/z@ )0 ) okokok
   %%
-  %%Check for error messages.
-  m-0 (m %x=Error: there were some errors while building the hashtable from the index file;, )
   )
-%%
+oz
 
 <<big_file_verifyMainFile>>
 %%Check the main-file datestamp against the index file.
 ob z.
-( oq/fileDatestamp/z~v/Index file did not specify a datestamp./z.ok %m=Warning - this index file has no datestamp-check data.;
+( oq/.=fileDatestamp/z~v/.=index file did not specify a datestamp./z.ok %m=Warning - this index file has no datestamp-check data.;
 , %%File-check data exists - do the check.
-  z.oq/pathName/ %q#=file '~; f/ Modify time = /r
-  (v'~ok, os %m=The file datestamp does not match the date-check value logged in the index file:;  n.r0a$& oz %m=  Current '$; %m= Original '~; oz x3\) )
+  oq/.=pathName/ %q#=file '~; f/ Modify time = /r
+  (v'~ok, os %m=The file datestamp does not match the date-check value logged in the index file:;  n.r0a$& oz %m=  Current &'$; %m= Original &'~; oz x3\) )
 oz
 :
 obz^m0
-i/^[bq         %d$=##" Big-file section name >  " -hereEndsThePercentCommand; %h'=call big_file_simpleQuery; %h'=call WindowAlignTop;/b
-i/^[bg         %d$=##" Big-file search string >  " -hereEndsThePercentCommand; %h'=call big_file_grepQuery; %h'=call WindowAlignTop;/b
-i/^[bw         %h'=call big_file_writeModifiedFile;/b
+i/^[bq        %d$=##" Big-file section name >  "; %h'=call big_file_simpleQuery; %h'=call WindowAlignTop;/b
+i/^[bg        %d$=##" Big-file search string >  "; %h'=call big_file_grepQuery; %h'=call WindowAlignTop;/b
+i/^[bw        %h'=call big_file_writeModifiedFile;/
 oz
 %h'=call AddNewFunctions;
 

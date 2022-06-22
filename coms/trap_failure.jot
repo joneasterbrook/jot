@@ -41,7 +41,8 @@ ob (oq/'=trap_failure_buffer_key/ok, %h'=data trap_failure_buffer_key; ) o#ov/'=
 (oq/'=trap_failure_command/ok, z' %h'=data trap_failure_command; ) z$r-0n.(f/ -init=/, r0)a~& ov/'=trap_failure_command/
 %%
 %%Reset the command counter, pick up the command, return to the buffer and run the command.
-m-0k0 oq/'=trap_failure_init/i'~ok i/%s=commandcounter 0; / oq/'=trap_failure_command/i'~ok r-0(f/ -hereEndsThePercentCommand/s/ /e-)0 
+m-0k0 oq/'=trap_failure_init/i'~ok i/%s=commandcounter 0; / oq/'=trap_failure_command/i'~ok 
+%%m-0k0 oq/'=trap_failure_init/i'~ok i/%s=commandcounter 0; / oq/'=trap_failure_command/i'~ok r-0(f/ -hereEndsThePercentCommand/s/ /e-)0 
 oz ( '$ %x=Error: The command did not fail.;, )
 %%
 %%Pick up the command count at the point of failure.
@@ -49,7 +50,8 @@ oz ( '$ %x=Error: The command did not fail.;, )
 %% %q$=system; f/ Command counter = /-oid p ol115o-
 %%
 %%Set the command counter, pick up the command, return to the buffer and run the command.
-m-0k0 i/%s=commandstring / oq/'=trap_failure_init/i'~ok r0oo/ %%s=commandcounter %d; / oq/'=trap_failure_command/ i'~ r-0(f/ -hereEndsThePercentCommand/s/ /e-)0i/ -hereEndsThePercentCommand;/ 
+m-0k0 i/%s=commandstring / oq/'=trap_failure_init/i'~ok r0oo/ %%s=commandcounter %d; / oq/'=trap_failure_command/ i'~ 
+%%m-0k0 i/%s=commandstring / oq/'=trap_failure_init/i'~ok r0oo/ %%s=commandcounter %d; / oq/'=trap_failure_command/ i'~ r-0(f/ -hereEndsThePercentCommand/s/ /e-)0i/ -hereEndsThePercentCommand;/ 
 oq/'=trap_failure_buffer_key/ oz '$ 
 
 

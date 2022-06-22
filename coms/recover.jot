@@ -21,30 +21,41 @@
 %%
 %%
 
-%g? 
+%g?
   Usage:
-    Restart the editor with -init=%r=recover
+    Restart the editor with -startup=recover
     It picks up the journal file using the pathname of the primary file - <primaryPathName>.jnl/history.txt
     A copy of the primary file and any modified secondaries is in the same directory.
     
   For simple cases the following procedure should be sufficient:
-    jot <originalPrimaryFile> -init="%r=recover"
-  then
-    jot <originalPrimaryFile> -init="%r=./recover_now.jot -asConsole"
-  It may be necessary to edit the ./recover_now.jot script - especially if the original failure was due 
-  to operator error, then you will need to remove the faulty commands from the script before running it. 
+    jot <originalPrimaryFile> -startup=recover
+  This generates then runs a ./recover_now.jot script, if something goes wrong you might be able to 
+  fix it by editing the recover_now script and then running it thusly:
+    jot <originalPrimaryFile> -init="%r= -asConsole ./recover_now.jot"
+    
+  Valid arguments:
+    - -norun - exits without running the recover_now.jot script.
     
   Buffers, original contents of these are held in the ^ buffer while this script extracts the next command.:
-    j - The history.txt file
-    c - the current key code or escape sequence from history
-    t - the hotkey/escape sequence translation from the ^ buffer.
-    o - the recovery script.
-    p - the journal-directory path.
-    n - the Ctrl+C command count.
+    J - The history.txt file
+    C - the current key code or escape sequence from history
+    T - the hotkey/escape sequence translation from the ^ buffer.
+    O - the recovery script.
+    P - the journal-directory path.
+    N - the Ctrl+C command count.
+  
+  Testing:
+      - check g0 terminated with ':'
+      - check g0 terminated with {Ctrl+C}
+      - check g3 terminated by giving it 3 lines.
+      - check g10 terminated with ':' after 3 lines
+      - check (r, m, m-0)0 interrupted by {Ctrl+C}
+      - check debugger exited with {Ctr+C} - "t (r)0"
 :
 
 %%One comfort definition for debugging.
-obz^m-0bi/q       %s=trace 0;/boz
+obz^m-0bi/^[q         %s=trace 0;/boz
+%w=new -height=9 -delim;
 
 %g#
 %%Main recovery macro.
@@ -57,7 +68,7 @@ ob %q~=system; f/Buffers:/m
 %%Pick up pathName for primary.
 %q~=buffer; f/pathName = / (r0f-1"/"-, f-1" "-)n.r0ap&zpr0i".jnl/"
 %%Read the history file.
-z. (%ij='p/history.txt;, %x=Cannot open history file 'p/history.txt - giving up now; )
+z. (%ij='p&/history.txt;, %x=Cannot open history file &'p&/history.txt - giving up now; )
 %%Add a dummy keycode for simple typed-in commands.
 z^m0r0b-i/        /
 %%Clear out the output buffer.
@@ -74,12 +85,12 @@ zjf/%%Recovery pathname: /-oidrn.orac& zcr-0i/%i=/r0i/; %b=pathname /zjf1/, Orig
 %%Add instruction to disable I/O.
 i"%s=recoverymode 1"b
 %%Check that we're being run as -startup=recover.
-ob%q$=system; (f/ Startup script = /-v/recover/r0v-//oz, oz %x=Error: recovery must be run as a -startup=recover;)
+ob%q$=system; (f/ Startup script = /-v/recover/oz, oz %x=Error: recover.jot must be run as a -startup=recover;)
 %%Check that current screen size is sufficient for emulating any size in the original session.
 ol0 ol0 zjm-0 (f/%%Recovery terminal size: /- oid(o>, okf-1/ /oid) osroid(o>, okf-1/ /oid) os)0
 %%Check that the xterm height is sufficient - *very* important if there are any PageUp or PageDown operations in the session.
-os %q$=window; f/ screenHeight = /-oid (o>\, %X=Original max screen height was '~ - you should adjust your xterm to that height at least.;, )
-osmf1/ screenWidth = /-oid (o>\, %X=Original max screen width was '~ - you should adjust your xterm to that width at least.;, )
+os %q$=window; f/ screenHeight = /-oid (o>\, %X=Original max screen height was &'~& - you should adjust your xterm to at least that height.;, )
+osmf1/ screenWidth = /-oid (o>\, %X=Original max screen width was &'~& - you should adjust your xterm to that width at least.;, )
 %%Set the initial term dimensions.
 zjm-0f/%%Recovery terminal size:/- oid oid oszooo/%%L=%d /r0oo/%d;/r0b
 %%Deal with any detected invalid commands and escape sequences now.
@@ -110,9 +121,8 @@ zoi"obz^m-0i/^[<<DEL>>    i`## `e-(e-, j-)/b   i/^[<<INS>>    i`## `e-/b  i/^[<<
     %%Comment out failed reads.
     zcv/%%Read file failed/ i.//.zom-r-0i.//.m, 
     %%Nobble the %s=commandstring lines, the actual string is going to appear in the next line anyway.
-    zc 
-    %%Remove command-file calls.
-    f1/%%Running script /,
+    %%Skip past command-file calls.
+    zcf1/%%Running script /,
     %%Suppress <Esc I> - we don't need screen-enter mode and it just make life too confusing.
     zc(v/I       /\v/i       /\)\ zoi/%%InsertMode suppressed/b, 
     %%
@@ -123,21 +133,23 @@ zoi"obz^m-0i/^[<<DEL>>    i`## `e-(e-, j-)/b   i/^[<<INS>>    i`## `e-/b  i/^[<<
     %%  - "t (r)0 {Return}*10 {Ctrl+c} oco?" - typing Ctrl+c to the debugger prompt should exit the loop at exactly the right point.
     %%  - "G0{Return} a{Return} ... {Ctrl+c}" - G exits at the correct point with no commands leaking into the G stream.
     %%  
-    %% <<INT n>> %%Each of the three identifiable flavours needs specific handling.
-    zcv/<<INT /
-    ( zjm(v/%%G-command terminated/m-, m-?\)
-      n.mac&m zci/:/bi/%%Original G command terminated by {Ctrl+c}/bi/m-/r0bzohc
-    , zcv/<<INT 0>>/ %%Interrupt while sitting in the command-read loop of an interactive or debugger session.
-      zom-i/%s=tracedefault -40; %s=trace 0; %x=Interrupt in original session.;/bm
-    , %%Else - interruping a long loop/macro/script, if followed by a %%Debugger off line then ignore this.
-      %%Otherwise place the commandcounter setting before the launching command.
-      zj(v/%%Debugger off/ zoi/%s=trace 0; %x=Original session was interrupted here.;/b, 
-        zcr7oid f1/>> /-oid ol0oso- zoomoo/%%s=commandcounter %d;  / bmi/%s=tracedefault -40; %s=trace 0; %x=Original session was interrupted here.;/bn.ac), ),
+    zcv/<<INT /  %% <<INT n>> %%Each of the following identifiable flavours needs specific handling.
+      %%If terminating a g/%g then substitute a  ( : ) terminator.
+      (zj (v/%%G-command terminated/ %%Simple case of G command - everything's in the right order.
+        zci/:/bi/%%  /zohcb
+      , %%The G command was, maybe, terminated with {Ctrl+c} at the end of a line of input - the <<INT line overtakes the last line of input.
+        zjmv/%%G-command terminated/ m-n.mac-&m-r0n.m2ac+&zcm-2i/:/bi/%%  /zohc)
+    , %%It's not any sort og G command.
+      zjm-zcr5oid oidol-1oso- zoomo~ oo/%%s=commandcounter %lld;/ bm0m-),
+%%      zjm-zcr5oid oidol-1oso- zoom oo/%%s=commandcounter %lld;  / m0m-),
     %% %%Debugger on/off events.
     %%N.B. it is possible that the T command was not on the previous line - e.g: op t - then the query line appears next.
-    zcv/%%Debugger / f1/ /(v/ on / r4oid zoo#ol0oso-omi/%s=tracedefault +40;/bom zj(r\m)0r-, v/ off/zoi/%s=trace 0;/b), 
+    %%Debugger session is either
+      %%   terminated by {Ctrl+C}                  - indicated by an <<INT ...>>  immediately before the "%%Debugger off" line.
+      %%   terminated by %s=trace 0, {Esc q} etc.  - a %s=trace ... line immediately before the "%%Debugger off" line.
+      %%   terminated by the end of the session    - no "%%Debugger off" line.
     %%Keep going if we're looking at a secondhand history file (i.e. the session has been restored and crashed again).
-    v/%%Recovery session pid / zoi'cb zjf/%%Startup Sequence ends,/m, 
+    zcv/%%Recovery session pid / zoi'cb zjf/%%Startup Sequence ends,/m, 
     %%Prevent session-termination commands passing through.
     zc (v/%a/\ v/%c/\)\i/%%  /zohcb,
     %%Anything else passes straight through.
@@ -145,8 +157,8 @@ zoi"obz^m-0i/^[<<DEL>>    i`## `e-(e-, j-)/b   i/^[<<INS>>    i`## `e-/b  i/^[<<
   )0
 
 %%Now post-hoc tweaking of the %% %s=commandstring lines.
-%%These might be wrapped up in a longer string of commands so, rather than attempting to comment these out, convert to a harmless message.
-zom-0 (f/%s=commandstring/ i/%M=/m(f1//m, ))0
+%%  %%These might be wrapped up in a longer string of commands so, rather than attempting to comment these out, convert to a harmless message.
+%%  zom-0 (f/%s=commandstring/ i/%M=/m(f1//m, ))0
   
 :
 '#
@@ -157,12 +169,18 @@ i/%s=recoverymode 0/b
 %b=pathname ./recover_now.jot
 %o
   
+%%If -norun was given, then exit now.
+%q$=system; f/ Startup script = /(f1/ -norun/%a0=;, )
+%%
 %%Final tidy up before recovery.
-%q~=system; f/Buffers:/ (z~mf1/  buffer /- (v/$/, oic n.a$z$oo/n.a%c/ '$))0
-z.n.a$
+%q~=system; f/Buffers:/ (z~mf1/  buffer /- (v/$/, oic n.a$& z$oo/n.a%c/ '$))0
+z.n.a$& 
 o@
 %%Clear out all buffers before restarting.
 %r=freeall
+%%
+%%Clear off any debugging windows.
+%w=clear;
 
 %%Do it.
-%r=recover_now.jot -asConsole;
+%r= -asConsole ./recover_now.jot;

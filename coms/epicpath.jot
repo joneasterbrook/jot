@@ -48,7 +48,7 @@
 %%obz$m-0f/%%/-e-0m-k-0 (m2 k0,)m-0(v/ /e)0r0(v-/ /e-)0l0
 obz$m-0(v/ /e)0r0(v-/ /e-)0r-0
 %%If it's a buffer-spec argument then pick up path from cursor.
-(r2\r-0i-/z/na!'!n.a!ocn.r0a$h$r-0orz$r-0, je0r-0)
+(r2\r-0i-/z/na!'!n.a!& ocn.r0a$h$r-0orz$r-0, je0r-0)
 %%Separate the args.
 ((v/ /e)0(v/(R)/e3, v/(F)/e3, )(v/ /e)0f1/ /b)0 
 %%Return to buffer holding report

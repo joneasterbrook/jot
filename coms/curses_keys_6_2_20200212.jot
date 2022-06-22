@@ -1,0 +1,380 @@
+%%Defines mapping of hot-key functions onto escape sequences.
+
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%%Ensure that the function names start in column 12 or after:
+%%Code  <<functionName>>        {Description}
+%%Code xxxxxxxx indicates that the key is pre-assigned by the system or otherwise unavailable.
+%%Code ???????? indicates that the key requiresre-mapping with xmodmap or sonething.
+%% The function <<Null>> is a placeholder.
+%% Entries marked as system shortcuts were found to be so on a Fedora-27 linux
+
+%%Mapped for ncurses 6.0.20150808 - 01/01/17
+
+%g@
+
+--Mouse events
+^[M0001                          {Button1Up}
+^[M0002                          {Button1Down}
+^[M0004                          {Button1Click}
+^[M0008                          {Button1DoubleClick}
+^[M0040                          {Button2Up}
+^[M0080                          {Button2Down}
+^[M0100                          {Button2Click}
+^[M0200                          {Button2DoubleClick}
+^[M1000                          {Button3Up}
+^[M2000                          {Button3Down}
+^[M4000                          {Button3Click}
+^[M8000                          {Button3DoubleClick}
+
+--
+--For function keys etc., some of these numbers are defined in /usr/include/ncurses.h
+--Some combinations of modifiers and function keys seem to work beyond { Shift+Alt+F3 }
+--Also, ncurses.h says nothing about modified mid or numeric-keypad keys.
+--Most keyboards don't have delete-line, insert-line, ... keys so it all seems to work
+--and if it works don't fix it. If it doesn't work then the user has to remap the dodgy
+--keys using define_keymap.jot
+--
+--Top-row function keys.
+^[X0109                          {F1}
+^[X010A                          {F2}
+^[X010B                          {F3}
+^[X010C                          {F4}
+^[X010D                          {F5}
+^[X010E                          {F6}
+^[X010F                          {F7}
+^[X0110                          {F8}
+^[X0111                          {F9}
+^[X0112                          {F10}
+^[X0113                          {F11}
+^[X0114                          {F12}
+^[X0115                          {Shift+F1}
+^[X0116                          {Shift+F2}
+^[X0117                          {Shift+F3}
+^[X0118                          {Shift+F4}
+^[X0119                          {Shift+F5}
+^[X011A                          {Shift+F6}
+^[X011B                          {Shift+F7}
+^[X011C                          {Shift+F8}
+^[X011D                          {Shift+F9}
+^[X011E                          {Shift+F10}
+^[X011F                          {Shift+F11}
+^[X0120                          {Shift+F12}
+^[X0121                          {Ctrl+F1}
+^[X0122                          {Ctrl+F2}     
+^[X0123                          {Ctrl+F3}
+^[X0124                          {Ctrl+F4}
+^[X0125                          {Ctrl+F5}
+^[X0126                          {Ctrl+F6}
+^[X0127                          {Ctrl+F7}
+^[X0128                          {Ctrl+F8}
+^[X0129                          {Ctrl+F9}
+^[X012A                          {Ctrl+F10}
+^[X012B                          {Ctrl+F11}
+^[X012C                          {Ctrl+F12}
+xxxxxxxx                         {Alt+F1}        System shortcut.
+xxxxxxxx                         {Alt+F2}        System shortcut.
+xxxxxxxx                         {Alt+F3}        System shortcut.
+^[X013C                          {Alt+F4}
+^[X013D                          {Alt+F5}
+^[X013E                          {Alt+F6}
+^[X013F                          {Alt+F7}
+^[X0140                          {Alt+F8}
+^[X0141                          {Alt+F9}
+^[X0142                          {Alt+F10}
+^[X0143                          {Alt+F11}
+^[X0144                          {Alt+F12}
+^[X0145                          {Shift+Alt+F1}
+^[X0146                          {Shift+Alt+F2}
+^[[25;2~                         {Shift+Alt+F3}
+^[[26;2~                         {Shift+Alt+F4}
+^[[15;4~                         {Shift+Alt+F5}
+^[[17;4~                         {Shift+Alt+F6}
+^[[18;4~                         {Shift+Alt+F7}
+^[[19;4~                         {Shift+Alt+F8}
+^[[20;4~                         {Shift+Alt+F9}
+^[[21;4~                         {Shift+Alt+F10}
+^[[23;4~                         {Shift+Alt+F11}
+^[[24;4~                         {Shift+Alt+F12}
+^[X012D                          {Ctrl+Shift+F1}
+^[X012E                          {Ctrl+Shift+F2}
+^[X012F                          {Ctrl+Shift+F3}
+^[X0130                          {Ctrl+Shift+F4}
+^[X0131                          {Ctrl+Shift+F5}
+^[X0132                          {Ctrl+Shift+F6}
+^[X0133                          {Ctrl+Shift+F7}
+^[X0134                          {Ctrl+Shift+F8}
+^[X0135                          {Ctrl+Shift+F9}
+^[X0136                          {Ctrl+Shift+F10}
+^[X0137                          {Ctrl+Shift+F11}
+^[X0138                          {Ctrl+Shift+F12}
+xxxxxxxx                         {Ctrl+Alt+F1}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F2}     System shortcut.     
+xxxxxxxx                         {Ctrl+Alt+F3}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F4}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F5}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F6}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F7}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F8}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F9}     System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F10}    System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F11}    System shortcut.
+xxxxxxxx                         {Ctrl+Alt+F12}    System shortcut.
+^[[1;8P                          {Ctrl+Shift+Alt+F1}
+^[[1;8Q                          {Ctrl+Shift+Alt+F2}
+^[[1;8R                          {Ctrl+Shift+Alt+F3}
+^[[1;8S                          {Ctrl+Shift+Alt+F4}
+^[[15;8~                         {Ctrl+Shift+Alt+F5}
+^[[17;8~                         {Ctrl+Shift+Alt+F6}
+^[[18;8~                         {Ctrl+Shift+Alt+F7}
+^[[19;8~                         {Ctrl+Shift+Alt+F8}
+^[[20;8~                         {Ctrl+Shift+Alt+F9}
+^[[21;8~                         {Ctrl+Shift+Alt+F10}
+^[[23;8~                         {Ctrl+Shift+Alt+F11}
+^[[24;8~                         {Ctrl+Shift+Alt+F12}
+
+-- Cursor keys.
+^[X0103                          {UpArrow}
+^[X0102                          {DownArrow}
+^[X0104                          {LeftArrow}
+^[X0105                          {RightArrow}
+^[X0151                          {Shift+UpArrow}
+^[X0150                          {Shift+DownArrow}
+^[X0189                          {Shift+LeftArrow}
+^[X0192                          {Shift+RightArrow}
+^[X0237                          {Ctrl+UpArrow}
+^[X020E                          {Ctrl+DownArrow}
+^[X0222                          {Ctrl+LeftArrow}
+^[X0231                          {Ctrl+RightArrow}
+^[X0235                          {Alt+UpArrow}
+^[X020C                          {Alt+DownArrow}
+^[X0220                          {Alt+LeftArrow}
+^[X022F                          {Alt+RightArrow}
+^[X0238                          {Ctrl+Shift+UpArrow}
+^[X020F                          {Ctrl+Shift+DownArrow}
+^[X0223                          {Ctrl+Shift+LeftArrow}
+^[X0232                          {Ctrl+Shift+RightArrow}
+^[X0239                          {Ctrl+Alt+UpArrow}
+^[X0210                          {Ctrl+Alt+DownArrow}
+^[X0224                          {Ctrl+Alt+LeftArrow}
+^[X0233                          {Ctrl+Alt+RightArrow}
+^[X0236                          {Shift+Alt+UpArrow}
+^[X020D                          {Shift+Alt+DownArrow}
+^[X0221                          {Shift+Alt+LeftArrow}
+^[X0230                          {Shift+Alt+RightArrow}
+^[[1;8A                          {Ctrl+Shift+Alt+UpArrow}
+^[[1;8B                          {Ctrl+Shift+Alt+DownArrow}
+^[[1;8D                          {Ctrl+Shift+Alt+LeftArrow}
+^[[1;8C                          {Ctrl+Shift+Alt+RightArrow}
+
+--Mid keypad.
+^[X014B                          {Insert}
+^[X0106                          {Home}
+^[X014A                          {Delete}
+^[X0168                          {End}
+^[X0153                          {PageUp}
+^[X0152                          {PageDown}
+^[[29~                           {Menu}
+xxxxxxxx                         {Shift+Insert}               System-shortcut - Insert
+^[X0187                          {Shift+Home}
+^[X017F                          {Shift+Delete}
+^[X0182                          {Shift+End}
+xxxxxxxx                         {Shift+PageUp}               System-shortcut X-Scroll-up
+xxxxxxxx                         {Shift+PageDown}             System-shortcut X-Scroll-down
+^[[29;2~                         {Shift+Menu}                 System-shortcut X-Scroll-down
+^[X021D                          {Ctrl+Insert}
+^[X0218                          {Ctrl+Home}
+^[X0208                          {Ctrl+Delete}
+^[X0213                          {Ctrl+End}
+^[X022C                          {Ctrl+PageUp}
+^[X0227                          {Ctrl+PageDown}
+^[[29;5~                         {Ctrl+Menu}
+^[X021B                          {Alt+Insert}
+^[X0216                          {Alt+Home}
+^[X0206                          {Alt+Delete}
+^[X0211                          {Alt+End}
+^[X022A                          {Alt+PageUp}
+^[X0225                          {Alt+PageDown}
+^[[29;3~                         {Alt+Menu}
+xxxxxxxx                         {Ctrl+Shift+Insert}          System-shortcut X-insert
+^[X0219                          {Ctrl+Shift+Home}
+^[X0209                          {Ctrl+Shift+Delete}
+^[X0214                          {Ctrl+Shift+End}
+xxxxxxxx                         {Ctrl+Shift+PageUp}          System-shortcut X-Scroll-up
+xxxxxxxx                         {Ctrl+Shift+PageDown}        System-shortcut X-Scroll-down
+^[[29;6~                         {Ctrl+Shift+Menu}            System-shortcut X-Scroll-down
+^[X021F                          {Ctrl+Alt+Insert}
+^[X021A                          {Ctrl+Alt+Home}
+xxxxxxxx                         {Ctrl+Alt+Delete}            System shortcut in both linux and windows.
+^[X0215                          {Ctrl+Alt+End}
+^[X022E                          {Ctrl+Alt+PageUp}
+^[X0229                          {Ctrl+Alt+PageDown}
+^[[29;7~                         {Ctrl+Alt+Menu}
+xxxxxxxx                         {Shift+Alt+Insert}           System-shortcut X-insert
+^[X0217                          {Shift+Alt+Home}
+^[X0207                          {Shift+Alt+Delete}
+^[X0212                          {Shift+Alt+End}
+xxxxxxxx                         {Shift+Alt+PageUp}           System-shortcut X-Scroll-up
+xxxxxxxx                         {Shift+Alt+PageDown}         System-shortcut X-Scroll-down
+^[[29;4~                         {Shift+Alt+Menu}             System-shortcut X-Scroll-down
+xxxxxxxx                         {Ctrl+Shift+Alt+Insert}      System-shortcut X-insert
+^[[1;8H                          {Ctrl+Shift+Alt+Home}
+^[[3;8~                          {Ctrl+Shift+Alt+Delete}
+^[[1;8F                          {Ctrl+Shift+Alt+End}
+xxxxxxxx                         {Ctrl+Shift+Alt+PageUp}      System-shortcut X-Scroll-up
+xxxxxxxx                         {Ctrl+Shift+Alt+PageDown}    System-shortcut X-Scroll-down
+^[[29;8~                         {Ctrl+Shift+Alt+Menu}        System-shortcut X-Scroll-down
+
+--Numeric keypad.
+^[Oo                             {KP_Divide}
+^[Oj                             {KP_Multiply}
+^[Om                             {KP_Subtract}
+^[Oq                             {KP_1}
+^[Or                             {KP_2}
+^[Os                             {KP_3}
+^[Ot                             {KP_4}
+^[Ou                             {KP_5}
+^[Ov                             {KP_6}      
+^[Ow                             {KP_7}
+^[Ox                             {KP_8}
+^[Oy                             {KP_9}
+^[Op                             {KP_0}
+^[Ok                             {KP_Add}
+^[X0157                          {KP_Enter}
+^[On                             {KP_Decimal}
+^[O2o                            {Shift+KP_Divide}
+xxxxxxxx                         {Shift+KP_Multiply}
+xxxxxxxx                         {Shift+KP_Subtract}
+^[O2q                            {Shift+KP_1}
+^[O2r                            {Shift+KP_2}
+^[O2s                            {Shift+KP_3}
+^[O2t                            {Shift+KP_4}
+^[O2u                            {Shift+KP_5}
+^[O2v                            {Shift+KP_6}
+^[O2w                            {Shift+KP_7}
+^[O2x                            {Shift+KP_8}
+^[O2y                            {Shift+KP_9}
+^[O2p                            {Shift+KP_0}
+xxxxxxxx                         {Shift+KP_Add}
+^[O2M                            {Shift+KP_Enter}
+^[O2n                            {Shift+KP_Decimal}
+^[O5o                            {Ctrl+KP_Divide}
+^[O5j                            {Ctrl+KP_Multiply}
+^[O5m                            {Ctrl+KP_Subtract}
+^[O5q                            {Ctrl+KP_1}
+^[O5r                            {Ctrl+KP_2}
+^[O5s                            {Ctrl+KP_3}
+^[O5t                            {Ctrl+KP_4}
+^[O5u                            {Ctrl+KP_5}
+^[O5v                            {Ctrl+KP_6} 
+^[O5w                            {Ctrl+KP_7}
+^[O5x                            {Ctrl+KP_8}
+^[O5y                            {Ctrl+KP_9}
+^[O5p                            {Ctrl+KP_0}
+^[O5k                            {Ctrl+KP_Add}
+^[O5M                            {Ctrl+KP_Enter}
+^[O5n                            {Ctrl+KP_Decimal}
+^[O3o                            {Alt+KP_Divide}
+^[O3j                            {Alt+KP_Multiply}
+^[O3m                            {Alt+KP_Subtract}
+^[O3q                            {Alt+KP_1}
+^[O3r                            {Alt+KP_2}
+^[O3s                            {Alt+KP_3}
+^[O3t                            {Alt+KP_4}
+^[O3u                            {Alt+KP_5}
+^[O3v                            {Alt+KP_6}
+^[O3w                            {Alt+KP_7}
+^[O3x                            {Alt+KP_8}
+^[O3y                            {Alt+KP_9}
+^[O3p                            {Alt+KP_0}
+^[O3k                            {Alt+KP_Add}
+^[O3M                            {Alt+KP_Enter}
+^[O3n                            {Alt+KP_Decimal}
+^[O6o                            {Ctrl+Shift+KP_Divide}
+^[O6j                            {Ctrl+Shift+KP_Multiply}
+xxxxxxxx                         {Ctrl+Shift+KP_Subtract}
+^[O6q                            {Ctrl+Shift+KP_1}
+^[O6r                            {Ctrl+Shift+KP_2}
+^[O6s                            {Ctrl+Shift+KP_3}
+^[O6t                            {Ctrl+Shift+KP_4}
+^[O6u                            {Ctrl+Shift+KP_5}
+^[O6v                            {Ctrl+Shift+KP_6}
+^[O6w                            {Ctrl+Shift+KP_7}
+^[O6x                            {Ctrl+Shift+KP_8}
+^[O6y                            {Ctrl+Shift+KP_9}
+^[O6p                            {Ctrl+Shift+KP_0}
+xxxxxxxx                         {Ctrl+Shift+KP_Add}
+^[O6M                            {Ctrl+Shift+KP_Enter}
+^[O6n                            {Ctrl+Shift+KP_Decimal}
+xxxxxxxx                         {Ctrl+Alt+KP_Divide}
+xxxxxxxx                         {Ctrl+Alt+KP_Multiply}
+xxxxxxxx                         {Ctrl+Alt+KP_Subtract}
+^[O7q                            {Ctrl+Alt+KP_1}
+^[O7r                            {Ctrl+Alt+KP_2}
+^[O7s                            {Ctrl+Alt+KP_3}
+^[O7t                            {Ctrl+Alt+KP_4}
+^[O7u                            {Ctrl+Alt+KP_5}
+^[O7v                            {Ctrl+Alt+KP_6}
+^[O7w                            {Ctrl+Alt+KP_7}
+^[O7x                            {Ctrl+Alt+KP_8}
+^[O7y                            {Ctrl+Alt+KP_9}
+^[O7p                            {Ctrl+Alt+KP_0}
+xxxxxxxx                         {Ctrl+Alt+KP_Add}
+^[O7M                            {Ctrl+Alt+KP_Enter}
+^[O7n                            {Ctrl+Alt+KP_Decimal}
+^[O4o                            {Shift+Alt+KP_Divide}
+^[O4j                            {Shift+Alt+KP_Multiply}
+xxxxxxxx                         {Shift+Alt+KP_Subtract}
+^[O4q                            {Shift+Alt+KP_1}
+^[O4r                            {Shift+Alt+KP_2}
+^[O4s                            {Shift+Alt+KP_3}
+^[O4t                            {Shift+Alt+KP_4}
+^[O4u                            {Shift+Alt+KP_5}
+^[O4v                            {Shift+Alt+KP_6}
+^[O4w                            {Shift+Alt+KP_7}
+^[O4x                            {Shift+Alt+KP_8}
+^[O4y                            {Shift+Alt+KP_9}
+^[O4p                            {Shift+Alt+KP_0}
+xxxxxxxx                         {Shift+Alt+KP_Add}
+^[O4M                            {Shift+Alt+KP_Enter}
+^[O4n                            {Shift+Alt+KP_Decimal}
+^[O8o                            {Ctrl+Shift+Alt+KP_Divide}
+^[O8j                            {Ctrl+Shift+Alt+KP_Multiply}
+xxxxxxxx                         {Ctrl+Shift+Alt+KP_Subtract}
+^[O8q                            {Ctrl+Shift+Alt+KP_1}
+^[O8r                            {Ctrl+Shift+Alt+KP_2}
+^[O8s                            {Ctrl+Shift+Alt+KP_3}
+^[O8t                            {Ctrl+Shift+Alt+KP_4}
+^[O8u                            {Ctrl+Shift+Alt+KP_5}
+^[O8v                            {Ctrl+Shift+Alt+KP_6}
+^[O8w                            {Ctrl+Shift+Alt+KP_7}
+^[O8x                            {Ctrl+Shift+Alt+KP_8}
+^[O8y                            {Ctrl+Shift+Alt+KP_9}
+^[O8p                            {Ctrl+Shift+Alt+KP_0}
+xxxxxxxx                         {Ctrl+Shift+Alt+KP_Add}
+^[O8M                            {Ctrl+Shift+Alt+KP_Enter}
+^[O8n                            {Ctrl+Shift+Alt+KP_Decimal}
+         
+--xterm size adjust.
+^[X019A                          {SizeAdj}
+
+:

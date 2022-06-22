@@ -35,13 +35,13 @@ Buffer usage:
 z@onm-0oidosr oidosom
 ( %%Message loop.
   f1/: error: / %%gcc error message.
-    r-0f1/:/-oidoso- osv/:/r(oid, ol1) osozosm0omw orr- obz@poz wol-3owol3ow %x=gcc error;, 
+    r-0f1/:/-oidoso- osv/:/r(oid, ol1) osozosm0om %w=refresh;  orr- obz@poz %w=refresh;ol-3owol3ow %x=gcc error;, 
   f1/: error / %%cl error message.
-    r-0f1/(/-oidoso- osozm0omw obz@poz wol-3owol3ow %x=cl error;, 
+    r-0f1/(/-oidoso- osozm0om %w=refresh;  obz@poz  %w=refresh; ol-3owol3ow %x=cl error;, 
   f1/: warning: / %%gcc warning message.
-    r-0f1/:/-oidoso- osv/:/roid osozosm0omw orr- obz@poz wol-3owol3ow %x=gcc warning;, 
+    r-0f1/:/-oidoso- osv/:/roid osozosm0om %w=refresh;  orr- obz@poz  %w=refresh; ol-3owol3ow %x=gcc warning;, 
   f1/: warning / %%cl warning message.
-    r-0f1/(/-oidoso- osozm0omw obz@poz wol-3owol3ow %x=cl warning;, 
+    r-0f1/(/-oidoso- osozm0om %w=refresh;  obz@poz  %w=refresh; ol-3owol3ow %x=cl warning;, 
   m)0
 %x=No more Errors or Warnings;
 :
@@ -52,13 +52,13 @@ z@onm-0oidosr oidosom
 z@onm-0oidosr oidosom m-2
 ( %%Message loop.
   f1/: error: / %%gcc error message.
-    r-0f1/:/-oidoso- osv/:/roid osozosm0omw orr- obz@poz wol3owol-3ow %x=gcc error;, 
+    r-0f1/:/-oidoso- osv/:/roid osozosm0om %w=refresh;  orr- obz@poz  %w=refresh; ol3owol-3ow %x=gcc error;, 
   f1/: error / %%cl error message.
-    r-0f1/(/-oidoso- osozm0omw obz@poz wol3owol-3ow %x=cl error;, 
+    r-0f1/(/-oidoso- osozm0om %w=refresh;  obz@poz  %w=refresh; ol3owol-3ow %x=cl error;, 
   f1/: warning: / %%gcc warning message.
-    r-0f1/:/-oidoso- osv/:/roid osozosm0omw orr- obz@poz wol3owol-3ow %x=gcc warning;, 
+    r-0f1/:/-oidoso- osv/:/roid osozosm0om %w=refresh;  orr- obz@poz  %w=refresh; ol3owol-3ow %x=gcc warning;, 
   f1/: warning / %%cl warning message.
-    r-0f1/(/-oidoso- osozm0omw obz@poz wol3owol-3ow %x=cl warning;, 
+    r-0f1/(/-oidoso- osozm0om %w=refresh;  obz@poz  %w=refresh; ol3owol-3ow %x=cl warning;, 
   m-)0
 %x=No more Errors or Warnings;
 :

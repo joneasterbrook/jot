@@ -22,7 +22,7 @@
 %%
 %%
 %t2
-%w
+%w=clear;
 
 %%First check consistancy of .ls - .els within a header level block.
 m-0n.m0r0a!h!z!m-0(f/.ls/r0i-/ /)0m-0(f/.els/r0i-/ /)0m-0
@@ -76,6 +76,5 @@ m-0(v/./i-/%/m,m)0
 
 m0e0h!
 
-%w 20
-%w 0
-%t
+%w=new -height=20 -delim;
+%%t

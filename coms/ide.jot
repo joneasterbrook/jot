@@ -26,11 +26,8 @@
   compiler and launch then interact with the relevant debugger and, er ... um,
   that's about it.
   
-  For simple single-source-file projects, the souce  file  should  be  in  the
-  primary buffer ( . ), for multi-file projects tha  source  must  be  indexed
-  with ctags and it is the tags file that must be in the primary  buffer.  For
-  multi-file projects use tags_indexjot to manage  the  source  files,  it  is
-  essential that tags_index.jot be run *after* ide.jot.
+  Tha source must be indexed with ctags and the tags file that must be in  the
+  primary buffer ( . ).
   
   Currently supported debuggers are gdb and winedb.
   
@@ -42,11 +39,16 @@
     - .=testArgs    - The arguments to be presented to the programme in windows, linux and debuggers.
   
 Buffers used/defined:
-  - L - the logfile for interactive programmes and debuggers.
+  - L - the logfile for interactive debuggers (typically gdb and winedb).
   - - the menu buffer.
   - $ Temporary and parameter passing.
-  - @ Temporary, used in setup and also in mouse-click handler.
+  - @  Used  as  teporary  storage  in  setup,  then  holds   responses   from
+    non-interactive processes (e.g. compilers).
   - ! Temporary, used in setup and also in mouse-click handler.
+  
+Valid options:
+  - -dbg -- Sets a smaller default window to give a larger console area for debugging. 
+  - -nomouse -- Disables mouse actions
   
 Requirements:
   - window must be wide enough to display drop-down menu and vertically split screen.
@@ -63,23 +65,37 @@ Functions and escape sequences defined:
 
 %%Set up hashtable, data objects etc.
 %h.=create 100;
-%h=data .=winNotLin;     ol0                   ov/.=winNotLin/      %% (winNotLin==1) indicates compile with cl, run with wineconsole/winedbg
-%h=data .=term;          ol0                   ov/.=term/           %% (term==1) indicates target is run in a separate xterm/wineconsole
+z$m-0n.r0a~& %h=setdata -new .=Args;
+r0i/ /r-0i/ /
+r-0(f/ -dbg /    s/ /ol1, ol0) %h=setdata -new .=dbgOpt;
+r-0(f/ -nomouse /s/ /ol1, ol0) %h=setdata -new .=nomouseOpt;
 %%
 %%The following compile options default as below but may be redefined by your personal startup script.
 %%first pick up the default source path from buffer ( . )
 z.%q~=buffer; f/ pathname = /-b-k-0mk0z.
-%h=data .=linCompile;    %d~=cd ~/ \; make lin;   ov/.=linCompile/     %%Compiles source file for linux.
-%h=data .=winCompile;    %d~=cd ~/ \; make win;   ov/.=winCompile/     %%Compiles source file for windows.
-%h=data .=linExePath;    %d~=~/bin/a.out;         ov/.=linExePath/     %%Executable pathname - linux.
-%h=data .=winExePath;    %d~=~/bin/exe.exe;       ov/.=winExePath/     %%Executable pathname - windows.
-%h=data .=testArgs;      %d~=;                    ov/.=testArgs/       %%Args to run the executable for testing.
+ol0                      %h=setdata -new .=winNotLin;      %% (winNotLin==1) indicates compile with cl, run with wineconsole/winedbg
+ol0                      %h=setdata -new .=term;           %% (term==1) indicates target is run in a separate xterm/wineconsole
+%d~=cd ~/ \; make lin;   %h=setdata -new .=linCompile;     %%Compiles source file for linux.
+%d~=cd ~/ \; make win;   %h=setdata -new .=winCompile;     %%Compiles source file for windows.
+%d~=~/bin/a.out;         %h=setdata -new .=linExePath;     %%Executable pathname - linux.
+%d~=~/bin/exe.exe;       %h=setdata -new .=winExePath;     %%Executable pathname - windows.
+%d~=;                    %h=setdata -new .=files;          %%File images.
+%d~=;                    %h=setdata -new .=testArgs;       %%Args to run the executable for testing.
+
+%%  %h=data .=winNotLin;     ol0                   ov/.=winNotLin/      %% (winNotLin==1) indicates compile with cl, run with wineconsole/winedbg
+%%  %h=data .=term;          ol0                   ov/.=term/           %% (term==1) indicates target is run in a separate xterm/wineconsole
+%%  %h=data .=linCompile;    %d~=cd ~/ \; make lin;   ov/.=linCompile/     %%Compiles source file for linux.
+%%  %h=data .=winCompile;    %d~=cd ~/ \; make win;   ov/.=winCompile/     %%Compiles source file for windows.
+%%  %h=data .=linExePath;    %d~=~/bin/a.out;         ov/.=linExePath/     %%Executable pathname - linux.
+%%  %h=data .=winExePath;    %d~=~/bin/exe.exe;       ov/.=winExePath/     %%Executable pathname - windows.
+%%  %h=data .=files;         %d~=;                    ov/.=files/          %%File images.
+%%  %h=data .=testArgs;      %d~=;                    ov/.=testArgs/       %%Args to run the executable for testing.
 
 %g-
 +ideM1_ "File"  "Save"  "Compile"  "Run"  "dbg_start"  "dbg_run"  "dbg_continue" "dbg_quit"  "dbg_break"  "dbg_command"
   
 ideM1_File:
--  "Reload"  "Abandon"  "Save"  "LinuxLand"  "WindowsLand"
+-  "Edit"  "Reload"  "Abandon"  "Save"  "LinuxLand"  "WindowsLand"
  
 ideM1_Options:
 -  "wine" "term"
@@ -93,10 +109,10 @@ ideM1_Help:
 %%Macro to analyse the user-defined menu and create the necessary functions etc.
 %g#
 %%First define the colour tag.
-z-  %b=tagtype Menu    colour     7  5;  %%Mauve colour tag for static menu.
+z-  %b=tagtype -colour=7:5 Menu;  %%Mauve colour tag for static menu.
 %%
 %%Analyze the menu options and set up colour tags, clickable regions and callbacks.
-z-m-0n.a@
+z-m-0n.a@&
 ( %%Line loop
   v/+/ %%It's a static menu item, this remains in the menu buffer, abstract function-name prefix to ( ! ) buffer.
   m,
@@ -122,18 +138,17 @@ z-m-0(v/+/m,k )0
 %%Set up a function to define the static menu if required.
 z-m-0(r\, 
   %%There are some static menu items.
-  z-n.f1/ /a!e
+  z@
   z@m0bi|<<ideWindows>>|b
   i|z-m-0k0|b
-  (i|i/|i'-i|/r-0( f/"/eoco#n.f1/"/a$&eocoso-osr-0orou %b=addtag Menu;   %b=addtag -text='!'$; )0|b z-m z@i|r0b|)0
+  (i|i/|i'-i|/r-0rn.f1/ /a! ( f/"/eoco#n.f1/"/a$&eocoso-osr-0orou %b=addtag Menu; %b=addtag -text='!&'$; )0|b z-m z@i|r0b|)0
   z@m0b-i|z-m0r0i/ /|b
   i|%%Set window size to allow 1 line for the console area one for the static window and 10 for the debugger/compiler monitors.|b
-  i|%q$=window; f/screenHeight = /-oidol13o- f/screenWidth = /-oidol40o-ol40|b
-  i|%w;|b
-  i|%w-= -height=1 -menu;|b
-  i|%w@= -height=11 -width='~ -delim; %wl= -width='~+1 -delim;|b
-  i|%w= -height='~ -delim;|b
- )
+  i|%q$=window; f/screenHeight = /-oidol13o- ol40|b
+  i|%w=clear;|b
+  i|%w-=new -height=1;|b
+  i|o# %w@=new -height=11 -width='~ -delim; %wl=new -width='~+1 -delim; |b
+  ( oq/.=dbgOpt/ol1o= ok i|ol10o- %w=new -height='~ -delim;|b, ok i|%w=new -height='~ -delim;|b ) )
   
 :
 '#
@@ -141,13 +156,19 @@ z-m-0(r\,
 %%Define mouse-click function for code repository.
 %g$
 <<on_key_function>>
-%%Called after every user command - currently only maintains the delimiter bar.
+%%Called after every user command (a {Return}, mouse-click, escape sequence or a function key etc.).
+%s=system 1;
 %%
-ob zlm0 ozob
-( %q=samesinceio;  %%The text is either unmodified or has been saved.
-  %q$=buffer; f/ pathName = /-b oz %b=footer '$   [Unmodified];
-, %%The text has been modified.
-  %q$=buffer; f/ pathName = /-b oz %b=footer '$   [Modified]; )
+ob zlm0r0 ol46 
+( o= 
+  ( z. %q=samesinceio;  %%The text is either unmodified or has been saved.
+    %q$=buffer; f/ pathName = /-b oz %b=footer '$&   [Unmodified];
+  , %%The text has been modified.
+    %q$=buffer; f/ pathName = /-b oz %b=footer '$&   [Modified]; )
+, %%In something other than the primary ( . ) buffer.
+  oz )
+%s=system 0;
+
 
 <<ideM1_Save>>
 %%Menu-driven replacementfor %O command.
@@ -180,7 +201,8 @@ obz. ( oq/.=Files/\ o#oz ( %q=samesinceio; ol0, ol1 )
 <<ideM1_Run>>
 %%Simply runs the executable as a subprocess.
 %m=Running directly in a subprocess.;
-ob (z' %q$=key ideRun;   %%The user-defined run function exists - call it now.
+ob (z' %q$=keys -key=ideRun;   %%The user-defined run function exists - call it now.
+%%ob (z' %q$=key ideRun;   %%The user-defined run function exists - call it now.
   oz %h'=call ideRun;
 , %%No user-defined run function - use the default.
   (oq/.=winNotLin/ ol0o=  %%A linux executable.
@@ -195,46 +217,49 @@ okoz
 %%
 %%If user a has defined ideDebug function then use that, otherwise use the default, below.
 %%
- ob(z' %q$=key ideDebug;   %%The user-defined run function exists - call it now.
+ ob(z' %q$=keys -key=ideDebug;   %%The user-defined run function exists - call it now.
+%% ob(z' %q$=key ideDebug;   %%The user-defined run function exists - call it now.
   %h'=call ideDebug;
 , %%No user-defined run function - use the default.
   (oq/.=winNotLin/ ol0o=  %%Use gdb.
     ok %m=Running under gdb.;
-    %%If buffer ( L ) does not have an asynchronous gdb running then start one now.
-    zl %q$=buffer; (f/ InPipe = /, %el=&gdb; )
+    %%If buffer ( L ) does not have an interactive gdb running then start one now.
+    zl %q$=buffer; (f/ InPipe = /, %el= -interactive gdb; )
+%%    zl %q$=buffer; (f/ InPipe = /, %el=&gdb; )
     (o#oz %q$=buffer; f/ pathname = /-b-k-0mk0 r0(f-1"/"-, r-0) e0i/a.out/r-0i/file / %pl='$;
   , %%Use winedb in windowsland.
     ok %m=Running under winedb.;
-    %%If buffer ( L ) does not have an asynchronous winedbg running then start one now.
-    zl %q$=buffer; (f/ InPipe = /, %el=&winedbg; )
+    %%If buffer ( L ) does not have an interactive winedbg running then start one now.
+    zl %q$=buffer; (f/ InPipe = /, %el= -interactive winedbg; )
+%%    zl %q$=buffer; (f/ InPipe = /, %el=&winedbg; )
     (o#oz %q$=buffer; f/ pathname = /-b-k-0mk0 r0(f-1"/"-, r-0) e0i/a.out/r-0i/file / %pl='$; ) ) ) )
 zlm0 oz
 
 <<ideM1_dbg_run>>
 %%Run executable under control of the debugger.
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
 (oq/.=winNotLin/ ol0o= ok %pl=run;, ok %pl=continue; )
 oz
 
 <<ideM1_dbg_continue>>
 %%Continue from breakpoint.
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
 (oq/.=winNotLin/ ol0o= ok %pl=continue;, ok %pl=continue; )
 oz
 
 <<ideM1_dbg_break>>
 %%Set breakpoint.
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
-ozon %pl=break '~;
+ozon %pl=break &'~;
 
 <<ideM1_dbg_command>>
 %%Prompt string: Debugger command> 
 %%Relay user-specified command to debugger.
 obzl %q$=buffer; (f/ InPipe = /, %x=No debugger session has been started - first you must press the start button; )
-%%If buffer ( L ) does not have an asynchronous gdb running then exit now.
+%%If buffer ( L ) does not have an interactive gdb running then exit now.
 oz %pl='$;
 
 <<LeftClick>>
@@ -245,27 +270,53 @@ oz %pl='$;
 %%In system mode, users default strings are unaffected, get and check the mouse-click coordinates.
 %s=system 1; obopobos
 %%
-( z-obo=
+(z-obo=
   %%It's the menu buffer alright, move to mouse-event point.
   okokono-omor %q!=tags -here; 
   %%Pick up the function name from the text tag.
   ( f/Type text from chr /f1/ = "/-b(f1/<</-b, )(f1/>>/, f1/"/)b-
   %%Clear all but static menu bars from menu buffer.
   z-m-0 (v/+/\k, m)0
-  %%If the function takes a parameter, prompt and pick up value.
-  %h'=jump '!; m ( f1/%%Prompt string: /-n.r0a$& %s=prompt '$; z$m-0k0g1k- %s=prompt > ;, )
-  %%Call the function.
+%%  %%If the function takes a parameter, prompt and pick up value.
+%%  %h'=jump '!; m ( f1/%%Prompt string: /-n.r0a$& %s=prompt '$; z$m-0k0g1k- %s=prompt > ;, )
+  %%Load the file.
   %s=system 0; oz (%h'=call '!;)? ob %s=system 1; )
-, %%Event was not on a valid clickable menu point - restore menu to original state.
-  (ok)4 z-m-0(v/+/\k, m)0 )
+, %%Event was not on a valid clickable menu point - change focus and restore menu to original state.
+  %%It's the menu buffer alright, move to mouse-event point.
+  okozono-omor z-m-0(v/+/\k, m)0 )
   
 oz %s=system 0;
 
 %%Functions for the "ideM1_File" menu bar.
+<<Edit>>
+%%Called either from the "File"->"Edit" submenu or by {Esc i e} - reads the file specified file named at rhe current focus.
+( obol46o= %%We're in the index file, 
+  ok
+, %%Assumed to be on a function name in some source file.
+  ok
+  %%Pick up the key.
+  (q-/a-zA-Z0-9_/r-)0 n.(q/a-zA-Z0-9_/r)0a!& %h.=jump '!; )
+%%Pick up the file's pathname.
+r-0f1/	/-n.f1/	/a$&
+%%If the file is not already in memory read it now.
+( %h=testkey .=files|&'$;, %d~=; %h=data .-files; %h=create 1000 .=files; %i~='$; z. %h=setdata -new .=files|&'$; )
+%%(Re)open the file and go to the specified place.
+%h=getdata .=files|&'$; z.r-0f1/	/-2(q/0-9/oidz~m-om, rn.f1"/"a$& z$r-0(q/*()/i/\/r, r)0 z~m-0 %f= -rex '$; )
+%%push the line to the top of the screen.
+z~ %w=refresh; %d$=3; %h'=call WindowAlignTop;
+
+%%  %%Read the file and go to the function head.
+%%  r-0f/	/-n. f/	/a!&r2 n.(f1"/"a$& r0r-oic ozm-0 (f'$, %i='!; obz$r-0(q/()[]*./i/\/r, r)0oz %f= -rex '$; )?
+%%  %%Read the file.
+%%  r-0f/	/-n. f/	/a!&r2 n.(f1"/"a$& r0r-oic ozm-0 (f'$, %i='!; obz$r-0(q/()[]*./i/\/r, r)0oz %f= -rex '$; )?
+%%  %%Find the requested definition using either the string or line number from the ctags file.
+%%  obz.r-0f/	/-2(v"/^"r2n.f1|$/;"|a$& z$(f1/\/(v/\\/r2, e))0 o#oz (f'$r-\r0v-'$\)0ok, q/0-9/oid osozono-om)
+%%  %w=refresh; %h'=call WindowAlignTop;
+
 <<Reload>>
 %%Re-reads the current buffer.
 %m=Re-reading the source file.;
-obo#n.a$z$oo/%%i%c/ oz'$
+obo#n.a$& z$oo/%%i%c/ oz'$
 
 <<Abandon>>
 %a=Session abandoned.;
@@ -292,19 +343,20 @@ z@m-0h$
 {Button1Click}%h'=call LeftClick;
 {Button1Down}%d$=##; %h'=call LeftDown;
 {Button1Up}%d$=##; %h'=call LeftUp;
-wg          ob %h'=call ideWindows; oz
+^[iw        ob %h'=call ideWindows; oz
+^[ie        %h'=call Edit;
 :
 z^m-0h$b
 
 %h'=call AddNewFunctions;
 
 %%Enable left-button clicks.
-%s=mousemask 0004;
+( oq/.=nomouseOpt/ol1o=ok, ok %s=mousemask 0004; )
 
 %h'=call ideWindows;
 
-%%The on_key routine.
-%s=on_key %h\\'=call on_key_function\;;
+%%The on_key action.
+%s=on_key %h'=call on_key_function;
 
 %%The top of stack is still pointing back to buffer ( s ), remove that now and replace with buffer ( . ).
 z.ok? n.a@&

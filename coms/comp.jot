@@ -22,9 +22,15 @@
 
 %g?
 Usage:
-> comp [<key>][ -backup][ -nosplit]
+> comp [<key>][ -Backup [<backupSelector>]][ -Nosplit| -Horiz]
   Compares the contents of current buffer with some other (reference) buffer or file.
-  By default, the screen is split into two equal-width slices (see -nosplit).
+    - <key> is a single-character buffer key, identifying the reference buffer.
+    - It compares the contents of the current buffer with that of the nominated buffer. 
+    - If the -backup qualifier is given, then the selected [or latest] backup version is loaded read into buffer ( ; ) .
+    - if the -nosplit qualifier is given the screen configuration is left unchanged.
+    - if the -horizontal qualifier is given then the screen is split horizontally.
+    - By default, the screen is split into two equal-width slices.
+    
   The script defines the following macros:
     - Macro 4 - compares lines working back towards the start of the buffer.
     - Macro 5 - compares lines working forwards towards the end of the buffer.
@@ -34,15 +40,11 @@ Usage:
       comparison  function  -  typically  these  commands  will  be  used   to
       re-syncronize the two buffers.
   
-  - <key> is a single-character buffer key, identifying the reference buffer.
-  - The -backup[=<name>] takes the nominated backup file as a reference
-    this file is first read into buffer ( ! ).
-  - The -nosplit option requests that the screen is not split into two slices.
+  Usage examples:
 > comp <key>{f2}  -- Compares current buffer with the nominated buffer.
 or
 > comp{f2}  -- Compares current buffer  with the current version of the file, 
                the current buffer must be a file image with it's pathname set.
-or
 > comp -backup[ date/time stamp>]{f2}  -- Compares current buffer with the 
                latest/[or specified] backup version of the file.
   
@@ -96,7 +98,7 @@ z$(rr-
   %%First set up the comparison macro in ( $ ).
   z$ oq/'=ReferenceBuffer/o#oo/v'%c/ r0oo/r0v-'%c/
   %%If cursor is at the end of a line then skip to the next line in both buffers.
-  oq/'=ReferenceBuffer/ozw(rr-, moq/'=PrimaryBuffer/ozmoq/'=ReferenceBuffer/oz)
+  oq/'=ReferenceBuffer/oz %w=refresh; (rr-, moq/'=PrimaryBuffer/ozmoq/'=ReferenceBuffer/oz)
   %%
   %%Test each line.
   oq/'=PrimaryBuffer/oz ('$ (moq/'=ReferenceBuffer/ozm, ?\) oq/'=PrimaryBuffer/oz)0
@@ -109,13 +111,13 @@ z$(rr-
   oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/
   ( %%Buffer loop - pass 1: ReferenceBuffer, pass 2: PrimaryBuffer - remove colour tag from any previously-highlighted lines.
     o#ozonos %q$=tags; 
-    (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag colour CurrentLine;)?)0
+    (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso# ozoso~?(ou %b=remove_tag -colour CurrentLine;)?)0
     %%Apply new colour tag unless we're at the last line.
     ozono-om (mm- oxou %b=addtag CurrentLine;, )
     %%Leaving the cursor at the end of the line indicates that the next pass should start at the next line.
     r0)2?
   %%Now refresh the display.
-  oq/'=PrimaryBuffer/ozw )
+  oq/'=PrimaryBuffer/oz %w=refresh;  )
 :
 
 %g4
@@ -141,13 +143,13 @@ z$(rr-
   oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/
   ( %%Buffer loop - pass 1: ReferenceBuffer, pass 2: PrimaryBuffer - remove colour tag from any previously-highlighted lines.
     o#ozonos %q$=tags; 
-    (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag colour CurrentLine;)?)0
+    (z$mf/active colour is CurrentLine/f-1/ At rec/-oid oso#ozosono-om z$f1/, chr /-oidoso#ozosorz$f1/ to /-oidoso#ozoso~?(ou %b=remove_tag -colour CurrentLine;)?)0
     %%Apply new colour tag unless we're at the first line.
     ozono-om (m-m oxou %b=addtag CurrentLine;, )
     %%Leaving the cursor at the end of the line indicates that the next pass should start at the next line.
     r0)2?
   %%Now refresh the display.
-  oq/'=PrimaryBuffer/ozw )
+  oq/'=PrimaryBuffer/oz %w=refresh;  )
 :
 
 %g6
@@ -169,18 +171,18 @@ obz$m-0(v/ /r)0
 ( r(r\, v-/ /r-)  %%A single-character value given - assumed to be a buffer key, alphas must be upper case.
   r- (q/a-z/cr-, ) oic
 , %%No buffer key - check for -backup qualifier.
-  o#ozm-0z$ ol33os r-0f/-backup/  %%Process the -backup qualifier later.
+  o#ozm-0z$ ol33os r-0f/-backup/  r2(q/a-zA-Z/e)0 %%Process the -backup qualifier later.
   %%Obtain a list of backup versions.
-  o#ozos %q!=buffer; f/pathname = /-br0(f-1./.e, r-0)b- %q@=dir '!/backup;
+  o#ozos %q!=buffer; f/pathname = /-br0(f-1./.e, r-0)b- %q@=dir '!&/backup;
   %%Extract only backups of current buffer.
   z!mz@ m(v'!m,k)0
   ( %%Was backup version specified?
     z$r-0f/-backup/-v/=/rb(f1/ -/b-,)r0(v-/ /e-)0 %%Yes - take specified version.
     z@m-0m(f1'$m, k)0 
     %%Check that the specified version exists.
-    m-0(m, okoz %x=Version of '@ matching '$ does not exist.;)
+    m-0(m, okoz %x=Version of &'@& matching &'$& does not exist.;)
     %%Check uniqueness of backup-version specification
-    (mm-0okoz %x=More than one valid backup version for '@ matches '$ (see buffer ( @ ) for a full list);, m-)
+    (mm-0okoz %x=More than one valid backup version for &'@& matches &'$& (see buffer ( @ ) for a full list);, m-)
     %%Pick up the only matching version.
     m-0e4i/%i!=/ji./.r0i/;/ '@ o#ozm-0
   , %%No backup version specified - use the most recent version.
@@ -189,26 +191,34 @@ obz$m-0(v/ /r)0
   o#oz %i!; os )
   
 %%Set up the two data objects if necessary.
-o# (z' %q@=key PrimaryBuffer; m, z' %h=data PrimaryBuffer; %h=data ReferenceBuffer; ) oz
+o# (z' %q@=keys -key=PrimaryBuffer; m, z' %h=data PrimaryBuffer; %h=data ReferenceBuffer; ) oz
+%%o# (z' %q@=key PrimaryBuffer; m, z' %h=data PrimaryBuffer; %h=data ReferenceBuffer; ) oz
 %%Assign values - the keys of the buffers for comparison.
 ov/'=ReferenceBuffer/  ov/'=PrimaryBuffer/
 %%Check uniqueness of Reference and Current buffers.
 (oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/ o=ok %x=Refrerence and comparison buffers are the same,;, ok)
 %%  
-%%Check for -nosplit qualifier
-( z$m-0f/-nosplit/ %%Don't split the screen.
+%%Check for -nosplit or -horizontal qualifiers
+( z$m-0i/ /r-0f/ -n/re(q/a-zA-Z/e)0 %%Don't split the screen.
   ok
-, %%Set up the split screen.
-  %%Define the highlight colour pair if not yet defined.
+, %%Split-screen (either horizontal or vertical split) - define the highlight colour pair if not yet defined.
   oq/'=PrimaryBuffer/ oq/'=ReferenceBuffer/
   %%Pass 1 checks and defines colour pair for ReferenceBuffer, Pass 2 for PrimaryBuffer.
-  (o#oz%q@=buffer; f/TagType = Name  CurrentLine,/ok, oz %b=tagtype CurrentLine colour 4 7; )2
-  %q$=window; f/ screenWidth = /-oidol3o-ol2o/ m-f1/ screenHeight = /-oidol4o-
-  %%Set up left screen.
-  m-0k0 i/%w;/b i/%w= /r0oo/-height=%d/r0 o#oo/ -width=%d -delim;/r0b
-  %%Set up right screen.
-  oq/'=ReferenceBuffer/oo/%%w%c= /r0oo/-width=%d+3 -delim;/
-  '$, )
+  (o#oz%q@=buffer; f/TagType = Name  CurrentLine,/ok, oz %b=tagtype -colour=4:7 CurrentLine; )2
+  (obz$ r-0f1/ -h/re(q/a-zA-Z/e)0  %%Horizontally split screen.
+    %q$=window; f/ screenHeight = /-oidol4o-ol2o/
+    %%Set up top window.
+    m-0k0 i/%w=clear;/b i/%w=new /r0o#oo/-height=%d -delim;/r0b
+    %%Set up bottom window.
+    oq/'=ReferenceBuffer/oo/%%w%c=new / r0oo/ -height=%d -delim;/
+    '$
+  , %%Set up the vertically split screen.
+    %q$=window; f/ screenWidth = /-oidol3o-ol2o/ m-f1/ screenHeight = /-oidol4o-
+    %%Set up left slice.
+    m-0k0 i/%w=clear;/b i/%w=new /r0oo/-height=%d/r0 o#oo/ -width=%d -delim;/r0b
+    %%Set up right slice.
+    oq/'=ReferenceBuffer/oo/%%w%c=new /r0oo/-width=%d+3 -delim;/
+    '$, ) )
 
 :
 '#

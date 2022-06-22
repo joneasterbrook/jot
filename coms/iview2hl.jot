@@ -49,8 +49,7 @@ m((v/ /r)0r\m)0 r-0n.r0a$h$(mr\)0 r-0n.r0a@h@ m-0
 (mr\)0 (v/ /r)0(q/0-9/e)0(v/ /e)0 m-0
 %%Make basic corrections to punctuation.
 (f/ ,/r(v-/ /e-)0)0 m\m-0
-(f/ ./r2(v/ /\r, r-(v-/ /e-)0r, ))0 m\m-0
-w
+(f/ ./r2(v/ /\r, r-(v-/ /e-)0r, ))0 m\m-0 %w=refresh; 
 
 %%Assuming that the first non-blank line is a heading - find heading depth. 
 (mr\)0 r-0n.(v/ /r)0a$h$ m-0
@@ -58,8 +57,7 @@ w
 (v'$s/ /e-m,m)0 m\m-0
 %%Now dis-indent text.
 m2(mr\)0 r-0n.(v/ /r)0a$h$r-0
-(v'$s/  /m,m)0 m\m-0
-w
+(v'$s/  /m,m)0 m\m-0 %w=refresh; 
 
 %%Tidy up special characters. 
 %%Hyphans
@@ -83,7 +81,7 @@ m\m-0
 ((v/{{{/\m)0 b-i/}}}/m2)0 m\m-0
 :
 '$
-w
+%w=refresh; 
 
 %%Set 2nd-level headers where a paragraph is indented back from its first line. 
 %g$
@@ -104,7 +102,7 @@ w
 m\m-0
 :
 '$
-w
+%w=refresh; 
 
 %%Some documents (esp. synopsys) have lines begining with "- - "
 %%These cause the paragraph formatter to screw up.

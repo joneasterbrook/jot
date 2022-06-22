@@ -30,7 +30,7 @@
     - $ - Temporary.
 :
 
-%g# 
+%g#
 %%Take a copy of the buffer.
 ocon m-0n.m0a@& ono-omor z@
  
@@ -38,7 +38,7 @@ ocon m-0n.m0a@& ono-omor z@
 (obz$r-0i/ /r-f/ -size=/-
   (oidosv/x/roidos, %x=Error Dimensions must be <width>x<height>; )
 , %%No -size given use screen dimensions.
-  w %q$=window; 
+   %w=refresh;  %q$=window; 
   f/screenWidth = /-oidos f/currently buffer ( /f1/ ), /-oid 
   (f1/Height includes an end delimiter./ol1o-, )os ) 
 oz

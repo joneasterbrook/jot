@@ -77,7 +77,7 @@ i/\begin{document}/b
 ((mm-(f/to/lf//)0f1//-q/	 /\)0(q/	 /e)0v-//s/\begin{memo}{/
 (mq/	 /(q/	 /e)0j-i/ \\ /)0m-r0i/}/
   na_
-  ,n.a_obz_i/\begin{memo}{}/boz)
+  ,n.a_& obz_i/\begin{memo}{}/boz)
 m0b-i/\end{memo}/m-0
 :
 '$
@@ -114,4 +114,4 @@ m-0f/\begin{/mh_
 
 %%And ensure that \end{document} is the last \end.
 m0b-i/\end{document}/m-0
-w
+ %w=refresh; 

@@ -21,7 +21,7 @@
 %%
 %%
 
-%g?= 
+%g?=
   Extracts info page and displays it as a jot help entry.
   
 Usage:
@@ -36,17 +36,17 @@ Buffers used or changed:
 
 %g#
 %%Pick up info document, if it's been gzipped then unzip.
-( %q=file /usr/share/info/'$.info;
+( %q=file /usr/share/info/&'$&.info;
   %%Info entry exists - read it now.
-  %i@=/usr/share/info/'$.info;
-, %q=file=/usr/share/info/'$.info.gz;
+  %i@=/usr/share/info/&'$&.info;
+, %q=file=/usr/share/info/&'$&.info.gz;
   %%It's been gzipped.
   z$r-0i"%e@=gunzip /usr/share/info/"r0i".info.gz --stdout;" '$
-, %x=Error: Can not find info entry for '$ in /usr/share/info; )
+, %x=Error: Can not find info entry for &'$& in /usr/share/info; )
   
 %%Locate sections (marked by US chr. - that's 31, or 1F in hex)'
 %%Set up search string and process first section.
-n.a;z;ol31oo/%c/z@ f'; (mq/0-9/\)0 na!h!2 m-2i/{{{ /m2
+n.a;& z;ol31oo/%c/z@ f'; (mq/0-9/\)0 na!h!2 m-2i/{{{ /m2
 ( %%Section loop.
   f'; (mq/0-9/\)0 na!h!2 m-2i/}}}/bi/{{{ /m2 )0
 %%Add final end-fold mark.
@@ -56,7 +56,7 @@ b-i/}}}/
 %%Create top fold at end of help repository.
 z:m0i/{{{ /i'!bh@i/}}}/ f-'!
 %%Now show the new top-level help page.
-n.a$ %h'=call Help;
+n.a$& %h'=call Help;
 
   
 :

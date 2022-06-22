@@ -67,11 +67,11 @@ ok
 %%Remove %l from '* macro.
 obz*m0(v/%l/e2,)oz
 %%Initialize '? buffer for list of unknown page tags etc.
-n.a?
+n.a?&
 
-%g# 
+%g#
 %%%%  %m=Pick up variables and instanciate them
-%%%%  m-0 n.a!
+%%%%  m-0 n.a!&
 %%%%  ( f/<VariableDef `/- %%Variable loop
 %%%%    %%Pick up value.
 %%%%    n.f1/'/a$h$
@@ -86,8 +86,8 @@ n.a?
 %%%%    ( obz!m-0f'.f1/~/-n.r0a$h$oz f-/<Variable /-m-(f1/<String /f1/'>/h$,) ,) m)0
 
 %m=Format table definitions./
-m-0n.a!
-obn.a]z]i/50/oz
+m-0n.a!&
+obn.a]& z]i/50/oz
 ( %%Extract and reformat each complete table loop.
   f/<Tbl / n.(f/> # end of Tbl/-r)0 ma@obz@
   %%Format each table marking the table size and heading para.
@@ -96,7 +96,7 @@ obn.a]z]i/50/oz
   m-0 (f/<TblTitle /ee-0i/*/f/<String `/-e-0i/  /f/'>/e0, )m-0
   m-0
   ( %%Cell loop
-    f/<Cell /n.'2a$z$m-0 n.a_
+    f/<Cell /n.'2a$z$m-0 n.a_&
     ( %%Cell line loop.
       f/<String `/-n.f1/'>/a_+k 
       %%If a new paragraph then add a break. 
@@ -121,7 +121,7 @@ obn.a]z]i/50/oz
   m-0 ((v/ /r)0 q/<>/k, m)0
   
   %%Reform tables - First mark left-boundaries of each cell with tabs.
-  n.a$ m-0(v/ /i/	/m, m)0
+  n.a$& m-0(v/ /i/	/m, m)0
   %%Merge cells in a row - first find out how many to a row.
   m-0f/*TblNumColumns /-ol0oido-k
   ( %%Row loop.
@@ -149,7 +149,7 @@ obn.a]z]i/50/oz
        
   %%add new table to list of tables.
   z!h@oz)0
-obn.a]z]i/78/oz
+obn.a]& z]i/78/oz
 
 %m=Mark (and protect) table instanciations.
 m-0 (f/<ATbl /ei/<String `**/f1/>/s/ '>/)0
@@ -313,7 +313,7 @@ m-0 (f/**code /k)0
 %M=Final tidy up. 
 %%Change file name.
 m0r0(v-/.mif/s/.doc/,)
-(m-v/**/e0 m-0w,)
+(m-v/**/e0 m-0 %w=refresh; ,)
 
 :
 '#

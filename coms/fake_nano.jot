@@ -1,0 +1,1349 @@
+%%Defines the hot-keys, functions and function mappings for nano-like operation.
+%%
+  
+%%    Copyright (C) 2017-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%
+  
+%%Initialization - pick up args, setup data objects etc.
+%h.=create 100;
+%%
+%d~=; %h=setdata -new .=SearchString;
+%d~=; %h=setdata -new .=ReplaceString;
+%d~=; %h=setdata -new .=pathNames;                                %%A list of pathname for files read into the multibuffer ring.
+ol1   %h=setdata -new .=currentPathName;                          %%The line number of the currently-selected pathName in .=pathNames list.
+%d~=; %h=setdata -new .=bufferRing; %h=create 100 .=bufferRing;   %%The buffer ring holds all multibuffers.
+ol0   %h=setdata -new .=CutMode;                                  %%Allows cutting part lines.
+ol0   %h=setdata -new .=Debug;                                    %%Enlarges the console area.
+ol0   %h=setdata -new .=Test;                                     %%Prevents automatic starting of the nano_KeyboardScanner
+ol0   %h=setdata -new .=MouseMode;                                %%Enables mouse-driven activity.
+ol0   %h=setdata -new .=NoHelp;                                   %%Suppresses the help/menu bars.
+ol0   %h=setdata -new .=MultiBuffers;                             %%New files are read into separate buffers.
+%%
+z$m-0n.r0a~& %h=setdata -new .=Args;
+r-0i/ /r0i/ /
+%%
+r-0 (f/ -debug /s/ /ol1, ol0) %h=setdata .=Debug;
+%%
+r-0 ( f/ -test /s/ / ol1, ol0) %h=setdata .=Test;
+%%
+r-0 ( f/ --mouse /s/ / ol1, ol0 ) %h=setdata .=MouseMode;
+%%
+r-0 ( f/ --nohelp /s/ / ol1, ol0 )  %h=setdata .=NoHelp;
+%%
+r-0( ( f/ -F /\ f/ --multibuffer /\), ol1s/ / %h=setdata .=MultiBuffers; )
+%%
+%%All remaining args are assumed to be pathnames of files to be read into the buffer ring.
+r-0n.r0a~z~r-0 (f/  /e)0r-0(v/ /e, ) ( (f1/ /v-/\/r)0err-b)0 z. %h=setdata .=pathNames;
+%%
+%%.=Reverse - a macro which defines the correct colour pair for reverse video.
+r-0( f/ -white / s/  / %d~=%b=tagtype -colour=white:black Highlight;, %d~=%b=tagtype -colour=black:white Highlight; ) %h=setdata -new .=Reverse;
+%%
+%%Pick up terminal dimensions.
+%q$=window; f/ screenHeight = /-oid f/ screenWidth = /-oid %h=setdata -new .=ScreenWidth;  %h=setdata -new .=ScreenHeight; 
+%%
+( z'm-0m, %r=startup; )z.
+%%Pick up the cursor keys for the key-map later.
+ob z@m-0n.m0a! oz
+  
+%%
+%g~=Help info ends;
+  This script may be run as either a startup script or from %R as a command file.
+  Typical usage:
+$ jot <file> -st=fake_nano
+  or
+$ jot <file> -in==%r=fake_nano
+  or
+$ jot <file> -st="fake_nano [ -<ption1>][ -<otion2> ... ]]"
+  or
+$ jot <file> -in="%r=fake_nano [ -<ption1>][ -<otion2> ... ]]"
+  
+  Valid options:
+    - -debug              -- Reduces the eindow size in order to display more console messages, help commmand gives status report.
+    - -test               -- Stops it starting the fake_nano command scanner when run by a test script.
+    - -white              -- Tells it you're working with a white-background screen.
+    - -m or --mouse       -- Enables mouse-driven activity.
+    - -x or --nohelp      -- Turns off help/menu bars.
+    - -F or --multibuffer -- Causes new files to be read into separate buffers.
+    
+Buffer usage:
+  - ( . ) the primary buffer.
+  - ( * ) the window header.
+  - ( & ) the window footer.
+  - ( # ) temp macro - used at setup time and also in removing colour tags.
+  - ( $ ) temp - used for passing parameters and assembling command strings.
+  - ( @ ) temp - used in removing colour tags.
+  
+Command-line args:
+  
+  A leading hash ( #  )  indicates  this  feature  is  not  yet  supported  by
+  fake_nano.jot
+  
+    -debug
+              This sets up the windows with a 20-line console area, useful only for debugging this script.
+  
+From help screen for nano 2.5.3  
+  {Ctrl+G}    {F1}           Display this help text
+  {Ctrl+X}    {F2}           Close the current file buffer / Exit from nano
+  {Ctrl+O}    {F3}           Write the current file to disk
+  {Ctrl+R}    {F5}           Insert another file into the current one/new multi buffer/new multi buffer
+                             
+  {Ctrl+Y}    {F7}           Go one screenful up
+  {Ctrl+V}    {F8}           Go one screenful down
+  {Esc \}     {Esc |}        Go to the first line of the file
+  {Esc /}     {Esc ?}        Go to the last line of the file
+  {Ctrl+B}    {Left}         Go back one character
+  {Ctrl+F}    {Right}        Go forward one character
+  {Esc Space}                Go back one word
+  {Ctrl+Space}               Go forward one word
+  {Ctrl+LeftArrow}           Go back one word
+  {Ctrl+RightArrow}          Go forward one word
+  {Ctrl+A}    {Home}         Go to beginning of current line
+  {Ctrl+E}    {End}          Go to end of current line
+  {Ctrl+P}    {Up}           Go to previous line
+  {Ctrl+N}    {Down}         Go to next line
+  {Esc (}     {Esc 9}        Go to beginning of paragraph; then of previous paragraph
+  {Esc (}     {Esc 0}        Go just beyond end of paragraph; then of next paragraph
+  {Ctrl+_}    {Esc G}        Go to line and column number
+  
+  {Ctrl+W}    {F6}           Search for a string or a regular expression
+  {Esc W}     {F16}          Repeat the last search
+  {Ctrl+\}    {Esc R}        Replace a string or a regular expression
+  
+  {Esc A}                    Set/Unset mark mode starting from the cursor position
+  {Ctrl+K}    {F9}           Cut the current line and store it in the cutbuffer
+  {Ctrl+U}    {F10}          Uncut from the cutbuffer into the current line
+  {Ctrl+Shift+6}             Copy the current line and store it in the cutbuffer
+  {Esc T}                    Cut from the cursor position to the end of the file
+  {Esc K}                    Cut to end enable/disable
+                             
+  {Ctrl+J}    {F4}           Justify the current paragraph
+#  {Ctrl+T}    {F12}          Invoke the spell checker, if available
+                             Invoke the linter, if available
+                             Invoke formatter, if available
+                             
+  {Ctrl+C}    {F11}          Display the position of the cursor
+                             
+                             
+  {Esc ]}                   Go to the matching bracket
+                             
+  {Esc }}                   Indent the current line
+  {Esc {}                   Unindent the current line
+                             
+#  {Esc U}                   Undo the last operation
+#  {Esc E}                   Redo the last undone operation
+                             
+                             
+  {Esc -}    {Esc _}        Scroll up one line without scrolling the cursor
+  {Esc +}    {Esc =}        Scroll down one line without scrolling the cursor
+                             
+  {Esc <}    {Esc ,}        Switch to the previous file buffer
+  {Esc >}    {Esc .}        Switch to the next file buffer
+                             
+#  {Esc V}                   Insert the next keystroke verbatim
+  {Ctrl+I}    {Tab}          Insert a tab at the cursor position
+  {Ctrl+M}    {Enter}        Insert a newline at the cursor position
+                             
+#  {Ctrl+D}    {Del}          Delete the character under the cursor
+#  {Ctrl+H}    {Bsp}          Delete the character to the left of the cursor
+                             
+  {Esc J}                   Justify the entire file
+#  {Esc D}                   Count the number of words, lines, and characters
+#  {Ctrl+L}                   Refresh (redraw) the current screen
+  {Ctrl+Z}                    Suspend the editor (if suspension is enabled)
+                              
+                              Save file without prompting
+                              
+                              
+#  {Esc X}                    Help mode enable/disable
+#  {Esc C}                    Constant cursor position display enable/disable
+#  {Esc O}                    Use of one more line for editing enable/disable
+#  {Esc S}                    Smooth scrolling enable/disable
+#  {Esc $}                    Soft wrapping of overlong lines enable/disable
+#  {Esc P}                    Whitespace display enable/disable
+#  {Esc Y}                    Color syntax highlighting enable/disable
+                              
+#  {Esc H}                    Smart home key enable/disable
+#  {Esc I}                    Auto indent enable/disable
+#  {Esc L}                    Hard wrapping of overlong lines enable/disable
+#  {Esc Q}                    Conversion of typed tabs to spaces enable/disable
+                              
+#  {Esc B}                    Backup files enable/disable
+#  {Esc F}                    Reading file into separate buffer enable/disable
+  {Esc M}                    Mouse support enable/disable
+#  {Esc N}                    No conversion from DOS/Mac format enable/disable
+#  {Esc Z}                    Suspension enable/disable
+  
+CLI qualifiers.
+  (From the man page for nano 2.5.3)
+  Note, these are applied to the fake_nano script not to the jot session e.g the nano qualifiers -x -F and -m (in nano):
+$ nano <filePathName> -x -F -m
+  in fake nano:
+$ jot <filePathName> -st="fake_nano -x -F -m"
+        - debug (not in real nano), in fake_nano the window size is reduced in order to see more console lines.
+  
+#       -A, --smarthome
+#              Make  the  Home  key  smarter.  When Home is pressed anywhere but at the very beginning of non-
+#              whitespace characters on a line, the cursor will jump to that  beginning  (either  forwards  or
+#              backwards).   If  the cursor is already at that position, it will jump to the true beginning of
+#              the line.
+#  
+#       -B, --backup
+#              When saving a file, back up the previous version of it, using  the  current  filename  suffixed
+#              with a tilde (~).
+#  
+#       -C directory, --backupdir=directory
+#              Make  and keep not just one backup file, but make and keep a uniquely numbered one every time a
+#              file is saved -- when backups are enabled (-B).  The uniquely numbered files are stored in  the
+#              specified directory.
+#  
+#       -D, --boldtext
+#              For  the  interface, use bold instead of reverse video.  This will be overridden by setting the
+#              options titlecolor, statuscolor, keycolor, functioncolor, numbercolor, and/or selectedcolor  in
+#              your nanorc file.  See nanorc(5).
+#  
+#       -E, --tabstospaces
+#              Convert typed tabs to spaces.
+#  
+#       -F, --multibuffer
+#              Read a file into a new buffer by default.
+#  
+#       -G, --locking
+#              Use vim-style file locking when editing files.
+#  
+#       -H, --historylog
+#              Save the last hundred search strings and replacement strings and executed commands, so they can
+#              be easily reused in later sessions.
+#  
+#       -I, --ignorercfiles
+#              Don't look at the system's nanorc nor at the user's nanorc.
+#  
+#       -J number, --guidestripe=number
+#              Draw a vertical stripe at the given column, to help judge the width of the text.  (The color of
+#              the stripe can be changed with set stripecolor in your nanorc file.)
+#  
+#       -K, --rawsequences
+#              Interpret escape sequences directly (instead of asking ncurses to translate them).  If you need
+#              this option to get your keyboard to work properly, please report a bug.  Using this option dis-
+#              ables nano's mouse support.
+#  
+#       -L, --nonewlines
+#              Don't  automatically  add  a newline when a text does not end with one.  (This can cause you to
+#              save non-POSIX text files.)
+#  
+#       -M, --trimblanks
+#              Snip trailing whitespace from the wrapped line when automatic hard-wrapping occurs or when text
+#              is justified.
+#  
+#       -N, --noconvert
+#              Disable automatic conversion of files from DOS/Mac format.
+#  
+#       -O, --bookstyle
+#              When  justifying,  treat  any  line that starts with whitespace as the beginning of a paragraph
+#              (unless auto-indenting is on).
+#  
+#       -P, --positionlog
+#              For the 200 most recent files, log the last position of the cursor, and place it at that  posi-
+#              tion again upon reopening such a file.
+#  
+#       -Q "regex", --quotestr="regex"
+#              Set  the  regular  expression  for  matching  the quoting part of a line.  The default value is
+#              "^([ \t]*([!#%:;>|}]|//))+".  (Note that \t stands for an actual Tab.)  This makes it  possible
+#              to  rejustify blocks of quoted text when composing email, and to rewrap blocks of line comments
+#              when writing source code.
+#  
+#       -R, --restricted
+#              Restricted mode: don't read or write to any file not  specified  on  the  command  line.   This
+#              means:  don't  read or write history files; don't allow suspending; don't allow spell checking;
+#              don't allow a file to be appended to, prepended to, or saved  under  a  different  name  if  it
+#              already  has one; and don't make backup files.  Restricted mode can also be activated by invok-
+#              ing nano with any name beginning with 'r' (e.g. "rnano").
+#  
+#       -S, --softwrap
+#              Display over multiple screen rows lines that exceed the screen's width.   (You  can  make  this
+#              soft-wrapping  occur  at  whitespace  instead  of  rudely  at  the screen's edge, by using also
+#              --atblanks.)  (The old short option, -$, is deprecated.)
+#  
+#       -T number, --tabsize=number
+#              Set the size (width) of a tab to number columns.  The value of number must be greater  than  0.
+#              The default value is 8.
+#  
+#       -U, --quickblank
+#              Make status-bar messages disappear after 1 keystroke instead of after 20.  Note that options -c
+#              (--constantshow) and -_ (--minibar) override this.
+#  
+#       -V, --version
+#              Show the current version number and exit.
+#  
+#       -W, --wordbounds
+#              Detect word boundaries differently by treating punctuation characters as part of a word.
+#  
+#       -X "characters", --wordchars="characters"
+#              Specify which other characters (besides the normal alphanumeric ones) should be  considered  as
+#              part of a word.  When using this option, you probably want to omit -W (--wordbounds).
+#  
+#       -Y name, --syntax=name
+#              Specify  the  name  of the syntax highlighting to use from among the ones defined in the nanorc
+#              files.
+#  
+#       -Z, --zap
+#              Let an unmodified Backspace or Delete erase the marked region (instead of a  single  character,
+#              and without affecting the cutbuffer).
+#  
+#       -a, --atblanks
+#              When  doing  soft  line wrapping, wrap lines at whitespace instead of always at the edge of the
+#              screen.
+#  
+#       -b, --breaklonglines
+#              Automatically hard-wrap the current line when it becomes overlong.  (This option is  the  oppo-
+#              site of -w (--nowrap) -- the last one given takes effect.)
+#  
+#       -c, --constantshow
+#              Constantly  show  the  cursor  position  on the status bar.  Note that this overrides option -U
+#              (--quickblank).
+#  
+#       -d, --rebinddelete
+#              Interpret the Delete and Backspace keys differently so that  both  Backspace  and  Delete  work
+#              properly.   You  should  only  use  this  option when on your system either Backspace acts like
+#              Delete or Delete acts like Backspace.
+#  
+#       -e, --emptyline
+#              Do not use the line below the title bar, leaving it entirely blank.
+#  
+#       -f file, --rcfile=file
+#              Read only this file for setting nano's options, instead of reading both the system-wide and the
+#              user's nanorc files.
+#  
+#       -g, --showcursor
+#              Make  the  cursor  visible  in the file browser (putting it on the highlighted item) and in the
+#              help viewer.  Useful for braille users and people with poor vision.
+#  
+#       -h, --help
+#              Show a summary of the available command-line options and exit.
+#  
+#       -i, --autoindent
+#              Automatically indent a newly created line to the same number of tabs and/or spaces as the  pre-
+#              vious line (or as the next line if the previous line is the beginning of a paragraph).
+#  
+#       -j, --jumpyscrolling
+#              Scroll the buffer contents per half-screen instead of per line.
+#  
+#       -k, --cutfromcursor
+#              Make  the  'Cut  Text' command (normally ^K) cut from the current cursor position to the end of
+#              the line, instead of cutting the entire line.
+#  
+#       -l, --linenumbers
+#              Display line numbers to the left of the text area.  (Any line with an anchor additionally  gets
+#              a mark in the margin.)
+#  
+       -m, --mouse
+              Enable  mouse support, if available for your system.  When enabled, mouse clicks can be used to
+              place the cursor, set the mark (with a double click), and execute shortcuts.   The  mouse  will
+              work  in  the  X  Window  System,  and  on  the console when gpm is running.  Text can still be
+              selected through dragging by holding down the Shift key.
+#  
+#       -n, --noread
+#              Treat any name given on the command line as a new file.  This allows nano  to  write  to  named
+#              pipes:  it  will  start with a blank buffer, and will write to the pipe when the user saves the
+#              "file".  This way nano can be used as an editor in combination with for  instance  gpg  without
+#              having to write sensitive data to disk first.
+#  
+#       -o directory, --operatingdir=directory
+#              Set the operating directory.  This makes nano set up something similar to a chroot.
+#  
+#       -p, --preserve
+#              Preserve the XON and XOFF sequences (^Q and ^S) so they will be caught by the terminal.
+#  
+#       -q, --indicator
+#              Display  a  "scrollbar" on the righthand side of the edit window.  It shows the position of the
+#              viewport in the buffer and how much of the buffer is covered by the viewport.
+#  
+#       -r number, --fill=number
+#              Set the target width for justifying and automatic hard-wrapping at this number of columns.   If
+#              the  value  is  0 or less, wrapping will occur at the width of the screen minus number columns,
+#              allowing the wrap point to vary along with the width of the screen if the  screen  is  resized.
+#              The default value is -8.
+#  
+#       -s "program [argument ...]", --speller="program [argument ...]"
+#              Use  this  command to perform spell checking and correcting, instead of using the built-in cor-
+#              rector that calls hunspell(1) or spell(1).
+#  
+#       -t, --saveonexit
+#              Save a changed buffer without prompting (when exiting with ^X).  (The  old  form  of  the  long
+#              option, --tempfile, is deprecated.)
+#  
+#       -u, --unix
+#              Save a file by default in Unix format.  This overrides nano's default behavior of saving a file
+#              in the format that it had.  (This option has no effect when you also use --noconvert.)
+#  
+#       -v, --view
+#              Just view the file and disallow editing: read-only mode.  This mode allows  the  user  to  open
+#              also other files for viewing, unless --restricted is given too.
+#  
+#       -w, --nowrap
+#              Do not automatically hard-wrap the current line when it becomes overlong.  This is the default.
+#              (This option is the opposite of -b (--breaklonglines) -- the last one given takes effect.)
+#  
+       -x, --nohelp
+              Don't show the two help lines at the bottom of the screen.
+#  
+#       -y, --afterends
+#              Make Ctrl+Right and Ctrl+Delete stop at word ends instead of beginnings.
+#  
+#       -z, --suspendable
+#              Allow the user to suspend the editor (with ^Z by default).
+#  
+#       -%, --stateflags
+#              Use the top-right corner of the screen for showing some state flags: I when  auto-indenting,  M
+#              when  the mark is on, L when hard-wrapping (breaking long lines), R when recording a macro, and
+#              S when soft-wrapping.  When the buffer is modified, a star (*) is shown after the  filename  in
+#              the center of the title bar.
+#  
+#       -_, --minibar
+#              Suppress  the  title bar and instead show information about the current buffer at the bottom of
+#              the screen, in the space for the status bar.  In this "minibar" the file name is shown  on  the
+#              left,  followed by an asterisk if the buffer has been modified.  On the right are displayed the
+#              current line and column number, the code of the character under the cursor (in Unicode  format:
+#              U+xxxx),  the  same flags as are shown by --stateflags, and a percentage that expresses how far
+#              the cursor is into the file (linewise).  When a file is loaded or saved, and also when  switch-
+#              ing  between buffers, the number of lines in the buffer is displayed after the file name.  This
+#              number is cleared upon the next keystroke, or replaced with an [i/n] counter when multiple buf-
+#              fers  are  open.   The  line plus column numbers and the character code are displayed only when
+#              --constantshow is used, and can be toggled on and off with M-C.  The state flags are  displayed
+#              only when --stateflags is used.
+#  
+#       -!, --magic
+#              When  neither  the  file's name nor its first line give a clue, try using libmagic to determine
+#              the applicable syntax.
+Help info ends:
+%h=setdata -new .=Help;
+%%
+
+%%Now the new functions, these are appended to buffer ( ' ).
+%g@=Nano functions end here;
+<<nano_MoveChrRight>>
+%%  {RightArrow} or {Ctrl+F}           One character forwards
+(r, m) y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveChrLeft>>
+%%  {LeftArrow} or {Ctrl+B}           One character backwards
+(r-, m-r0) y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveUpInColumn>> 
+%%  {UpArrow}  {Ctrl+P}          Move up in volumn.
+y-
+%h'=call nano_postMovement;
+  
+<<nano_MoveDownInColumn>> 
+%%  {DownArrow} {Ctrl+N}          Move down in volumn.
+y
+%h'=call nano_postMovement;
+  
+<<nano_MoveWordLeft>>
+%%  {Ctrl+LeftArrow}   One word backward
+(q-/0-9a-zA-Z/\(r-, m-r0))0(q-/0-9a-zA-Z/(r-, m-r0))0 y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveWordRight>>
+%%  {Ctrl+RightArrow}  One word forward
+(q/0-9a-zA-Z/(r, m))0(q/0-9a-zA-Z/\(r, m))0 y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveLineStart>>
+%%  {Ctrl+A}  {Home}   To start of line
+r-0 y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveLineEnd>>
+%%  {Ctrl+E}  {End}    To end of line
+r0 y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveParaStart>>
+%%  {Esc 9} {Esc (}    Go to start of paragraph.
+%%N.B. nano paragraphs are unindented.
+m-(r\m-)0(m-r)0m y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveParaEnd>>
+%%  {Esc 0} {Esc )}    Go to line following end of paragraph.
+%%N.B. nano paragraphs are unindented.
+(mr)0y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveBlockUp>>
+%%  {Ctrl+UpArrow}     To previous block start.
+%%First skip to start of current block separator, then find start of next block.
+m- ((v/ /r)0 r\m-)0r-?  ((v/ /r)0rm-)0 m  %w=refresh; %h'=call WindowAlignCent; y0
+%h'=call nano_postMovement;
+  
+<<nano_MoveBlockDown>>
+%%  {Ctrl+DownArrow}   To next block start.
+%%First skip to end of current block separator, then find start of next block.
+r-0 ((v/ /r)0 rm)0r-?  ((v/ /r)0r\m)0r-0  %w=refresh; %h'=call WindowAlignCent; y0
+%h'=call nano_postMovement;
+  
+<<nano_MovePageUp>>
+%%  {Ctrl+Y} {F7}  {PageUp}       One page up
+m-* %w=refresh; %h'=call WindowAlignCent; y0
+%h'=call nano_postMovement;
+  
+<<nano_MovePageDown>>
+%%  {Ctrl+V}  {F6}  {PageDown}    One page down
+m* %w=refresh; %h'=call WindowAlignCent; y0
+%h'=call nano_postMovement;
+  
+<<nano_postMovement>>
+%%Called by any function that's likely to move the cursor.
+
+<<nano_IndentLine>>
+%% {Esc }}          Indent current line by adding a leading tab.
+ocr-0i/	/ory0
+  
+<<nano_UnIndentLine>>
+%% {Esc {}          Unindent current line by removing all leading whitespace..
+ocr-0(q/	 /e)0or?y0
+  
+<<nano_ScrollUp>>
+%%  {Esc -}     Scroll screen down on line.
+%%Note jot and nano disagree on the meaning of scrolling up and down
+%h'=call ViewDown;
+  
+<<nano_ScrollDown>>
+%%  {Esc -}     Scroll screen down on line.
+%%Note jot and nano disagree on the meaning of scrolling up and down
+%h'=call ViewUp;
+  
+<<nano_MoveToStart>>
+%%  {Esc \} {Esc |}           To top of buffer
+m-0 y0  
+  
+<<nano_MoveToEnd>>
+%%  {Esc /}            To end of buffer
+m0 y0
+  
+<<nano_MoveToLineNo>>
+%%  {Esc G}            Go to specified line
+%s=prompt Enter line number, column number: ;
+%h'=call nano_PromptUserString;
+%%Check reply.
+((v/ /r)0 r, %m=  [ Cancelled  ]; x2) (q/0-9 /r)0 (r\, %m=  [Invalid line or column number ]; )
+%%Pick up the number(s).
+r-0oidos (v/ /r)0 (rr-oid, ol0)os oz
+%%Move to specified line and column.
+os ono-om or
+%%Tidy up.
+n.a$& 
+  
+<<nano_SearchAndReplace>>
+%%  {Esc R}            Start a replacing session
+%%
+%%Save current position.
+ocon
+%%Define the search-string prompt.
+oq/.=SearchString/ obosz~r-0 (rr-z$ %d$=Search [ &'~& ]: ;, z$ok %s=prompt Search: ; ) oz
+%%Have we now got a search string?
+( %h'=call nano_PromptUserString;
+  %d~='$; ov/.=SearchString/
+, %%User did not specify a search string - use most recently specified or exit if first search.
+  ( oq/.=SearchString/ obosz~rr-0osoz, osozok %x=  [ Cancelled ];) %d$='~; )
+%w=refresh;
+%%Define the replace-string prompt.
+%%Have we now got a Replace string?
+%s=prompt Replace : ; %h'=call nano_PromptUserString;? %d~='$; ov/.=ReplaceString/
+%%Do the search.
+oq/.=SearchString/ %d$='~;
+( %%
+  f'$ 
+  %w=refresh;
+  %m= Y Yes          N No          A All        ^C Cancel;
+  %s=prompt Replace this instance? ; og
+  ( %%Reply block - 89 and 121 are ASCII codes for ( Y ) and ( y ), 78 and 110 are ( N ) and ( n ), 65 and 97 are ( A ) and ( a ).
+    (ol89o=\ ol121o=\)\   %%User replies Yes.
+    okokok oq/.=ReplaceString/ s'~oko~
+  , (ol78o=\ ol110o=\)\  %%User replies No.
+    okokok
+  , (ol65o=\ ol97o=\)\  %%User replies All.
+    okol1oq/.=ReplaceString/ s'~ m-0(f'$oso~oss'~)0 ok
+    %m=.                                    [ Replaced &'~& occurences ];
+    %%Restore original position.
+    ono-om or
+  , ok s'~,%m=Try again.; ) )0
+  
+<<nano_SearchForward>>
+%%  {Ctrl+W}           Start forward search
+%%  {F6}               Start forward search
+%%Define the correct prompt.
+ob oq/.=SearchString/ %d$='~; z$r-0 (rr-i/ [/r0i/] / ,) %s=prompt Search&'$&: ; oz
+%%Have we now got a search string?
+(t %h'=call nano_PromptUserString;
+  %d~='$; ov/.=SearchString/
+, %%User did not specify a search string - use most recently specified or exit if first search.
+  ( oq/.=SearchString/ obosz~rr-0osoz, osozok %x=  [ Cancelled ];) %d$='~; )
+%%Do the search.
+( ocon f'$  okok
+  , %%The search was unsuccessful - message depends on initial state.
+    m-0f'$
+    %%Is this is the original start point?
+    ( ono=\okok\, okoco= %m=   [ This is the only occurrence ];, %m=  [ Search Wrapped ]; ) ) 
+  
+<<nano_NextForward>>
+%%  {Esc W}            Find next occurrence forward
+oq/.=SearchString/ %d$='~; 
+%%Do the search.
+( ocon f'$  okok
+  , %%The search was unsuccessful - message depends on initial state.
+    m-0f'$
+    %%Is this is the original start point?
+    ( ono=\okok\, okoco= %m=   [ This is the only occurrence ];, %m=  [ Search Wrapped ]; ) ) 
+  
+<<nano_SearchBack>>
+%%  {Ctrl+Q}           Start backward search
+%%  {F5}               Start backward search
+%%Define the correct prompt.
+oq/.=SearchString/ obosz~r-0 (rr-z$ %d$=Search [ &'~& ]: ;, z$ok %s=prompt Search: ; ) oz
+%%Have we now got a search string?
+( %h'=call nano_PromptUserString;
+  %d~='$; ov/.=SearchString/
+, %%User did not specify a search string - use most recently specified or exit if first search.
+  ( oq/.=SearchString/ obosz~rr-0osoz, osozok %x=  [ Cancelled ];) %d$='~; )
+%%Do the search.
+( ocon f-'$  okok
+  , %%The search was unsuccessful - message depends on initial state.
+    m0f-'$
+    %%Is this is the original start point?
+    ( ono=\okok\, okoco= %m=   [ This is the only occurrence ];, %m=  [ Search Wrapped ]; ) ) 
+  
+<<nano_NextBack>>
+%%  {Esc Q}            Find next occurrence backward
+oq/.=SearchString/ %d$='~; 
+%%Do the search.
+( ocon f-'$  okok
+  , %%The search was unsuccessful - message depends on initial state.
+    m0f-'$
+    %%Is this is the original start point?
+    ( ono=\okok\, okoco= %m=   [ This is the only occurrence ];, %m=  [ Search Wrapped ]; ) ) 
+  
+<<nano_Save>>
+%%  {Ctrl+S}           Save current file
+%o;
+  
+<<nano_InsertFile>>
+%%  {Ctrl+R}           Insert a file into buffer.
+%%If multibuffer is enabled, then the new file goes into a new buffer.
+( oq/.=MultiBuffers/ol1o=ok  %%Yes - read the new file into a multibuffer.
+  %s=prompt File to insert into new buffer [from ./] ; o# %h'=call nano_PromptUserString; 
+  %%Read the file to stack and add it to the multi-buffer ring.
+  z.okok %i~='$; z$o# %h=setdata -new .=bufferRing|&'$; 
+  %%Make this stack entry a multi-buffer object.
+  oq/.=currentPathName/o~o#ov/.=currentPathName/ 
+  %%Add the new pathname to the pathNames list.
+  oq/.=pathNames/z~osono-omb-h$ z.okz~ 
+  %%Add the mark data objects.
+  %h=create 10; ol0%h=setdata -new MarkFirstLine; ol0%h=setdata -new MarkFirstChr; y0
+, %%No - insert it into the current file.
+  ok %s=prompt File to insert [from ./] : ; %h'=call nano_PromptUserString; 
+  ob %i$='$; (m0(r, m-)on osozh$ %d$=[ Read &'~& lines ];, %d$=[ Cancelled ]; ) %h'=call nano_ConsoleMessage; )
+  
+<<nano_ZoomPrev>>
+%%  {Esc <} or {Esc ,}            Switch to preceding buffer
+oq/.=pathNames/z~oq/.=currentPathName/ol1o-ono-(om, m0)onov/.=currentPathName/n.r0a$&z.okok %h=getdata .=bufferRing|&'$; z~y0
+  
+<<nano_ZoomNext>>
+%%  {Esc >} or {Esc .}            Switch to succeeding buffer
+oq/.=pathNames/z~oq/.=currentPathName/o~ono-(om, m-0)onov/.=currentPathName/n.r0a$&z.okok %h=getdata .=bufferRing|&'$; z~y0
+  
+<<nano_Exit>>
+%%  {Ctrl+X}           Close buffer, if last buffer exit from nano
+%%If we're in the help buffer ( ? ) return to current user buffer.
+%%If file is modified prompt for saving.
+%%
+obolc? (o=  %%We're in the help buffer ( ? ) - return to current buffer.
+  ozx0, ok)
+%%
+( %q=samesinceio; 
+, %%The buffer has been modified. 
+  ( %d$=Y Yes          N No          ^C Cancal; obz$f1/N /boz %h'=call nano_SetFooter;
+    %s=prompt Save modified buffer? ; %h'=call nano_PromptUserChr;
+    %%Fyi 3 is ASCII code for {Ctrl+c}.
+    (olcYo=\ olcyo=\)\ok(%o;, %m=Write failed; x0), (olcNo=\ olcno=\)\ok, ol3o=okx0, %m=Try again.; x-) )
+%%Now exit the file or, maybe, the entire session.
+( oq/.=pathNames/z~ oq/.=currentPathName/ono-om (k, m-0mm-), %a;) r-0n.r0a$& z.okok %h=getdata .=bufferRing|&'$; z~
+  
+<<nano_Mark>>
+%%  {Esc A}  {Ctrl+Shift+6}  Mark mode on/off
+%%
+oq/MarkFirstLine/ ol0 
+( o=  %%Mark mode is not set in this buffer - set it now.
+  %%First the message.
+  ok %d$=[ Mark Set ]; %h'=call nano_ConsoleMessage;
+  %%Set up the colour-tag type.
+  ob %q$=buffer; (f/MarkModeTag/oz, oz %b=tagtype -colour=yellow:green MarkModeTag; )
+  on ov/MarkFirstLine/
+  oc ov/MarkFirstChr/
+, %%Mark mode is set.
+  ok %d$=[ Mark Unset ]; %h'=call nano_ConsoleMessage;
+  ol0 ov/MarkFirstLine/ )
+
+<<nano_Copy>>
+%%  {Ctrl+Shift+6}     Copy current line into cutbuffer
+( oq/MarkFirstLine/ ob o=  %%Mark is set in this buffer.
+  %%Abstract.
+  n. oq/MarkFirstLine/ono-om oq/MarkFirstChr/or
+  %h'=call nano_RemoveMarkTags;
+, %%No valid mark is set.
+   )
+ol0ov/MarkFirstLine/ a_& y0
+
+<<nano_Cut>>
+%%  {Ctrl+K} {F9}      Cut current line/marked area to cutbuffer
+( oq/MarkFirstLine/ ol0o=\  %%Mark is set in this buffer.
+  %%Abstract.
+  n. ono-om oq/MarkFirstChr/or a_
+  %%The tags may have been pushed somewhere - remove them now.
+  %h'=call nano_RemoveMarkTags;
+, %%No valid mark is set.
+  ( oq/.=CutMode/ol0o=  %%Cut all of the line.
+    r-0n.ma_
+  , %%Cut from current cursor position to end of line.
+    n.r0 ) )
+ol0ov/MarkFirstLine/ a_y0
+
+<<nano_RemoveMarkTags>>  
+%%Removes any mark-mode tags then adds new ones
+%%
+%%Initial preparation of the tags report.
+ob %q#=tags; (f1/active colour is MarkModeTag/m, k)0 
+( m-0f//\  %% No tags to be removed return now.
+  oz
+, %%There are tags to be removed - transform this report into a tag-removal macro.
+  ozobocon z#m0r0boo/m=%d/r0(ol0o=ok, oo/r%d/) m-0
+  ( %%Tag-repot transformation loop.
+    z#r-0 
+    %%Make this line of the tags report int a line of the remove-tags macro.
+    f1/At rec /-oidr-0oo/m=%d / f1/, chr /-oidr-0f1/ /(ol0o=ok, oo/r%d /) f1/ to /-oidf-1/, chr /-oido-o~r-0f1/ /oo/ ol%dou %%b=remove_tag -colour MarkModeTag;   %%%%/ m)0
+  %%Now remove the tags.
+  m-0oz '# )
+
+<<nano_SetMarkTags>>
+%%Apply new mark tags.
+%%
+oc
+( oq/MarkFirstLine/ ono>                      %%We're marking lines backwards.
+  %%First move to mark point and calculate no of lines.
+  ono-o#omol0oso-
+  %%This loop marks from mark-point up to line following the current line.
+  oq/MarkFirstChr/or (ocol0oso-ou %b=addtag MarkModeTag; o~m-)0 okm-
+  %%Mark from current character to end of top line of marked region.
+  oroxoco-ou %b=addtag MarkModeTag;
+, ono<                                        %%We're marking lines forwards.
+  %%First move to start point and calculate no of lines.
+  ono-o#om
+  %%This loop marks to end of required no. of lines.
+  oq/MarkFirstChr/or (oxoco-ou %b=addtag MarkModeTag; o~m)0 okm
+  %%On last line - mark from start to current chr.
+  o#ou %b=addtag MarkModeTag; or
+, okoq/MarkFirstChr/ o<                       %%We're marking backwards in the first line.
+  o- (ol0o=ok, ou %b=addtag MarkModeTag; )
+,                                             %%We're marking forwards in the first line.
+  oq/MarkFirstChr/oso- (ol0o=ok, ou %b=addtag MarkModeTag; ), )
+
+<<nano_ToggleCutMode>>
+%%  {Esc k}            Enable/disable cut to end of line.
+%%
+%%Allows cutting part lines.
+%%
+( oq/.=CutMode/ol0o=  %%Currently unset.
+  ok ol1ov/.=CutMode/
+  %d$=[ Cut to end enabled ]; %h'=call nano_ConsoleMessage;
+, %%Currently set.
+  ok ol0ov/.=CutMode/
+  %d$=[ Cut to end disabled ]; %h'=call nano_ConsoleMessage; )
+
+<<nano_Paste>>
+%%  {Ctrl+U}           Paste contents of cutbuffer
+h_
+  
+<<nano_CutToEnd>>
+%%  {Esc T}            Cut until end of buffer
+n.m0(rr0, )a_
+  
+<<nano_WordComplete>>
+%%  {Ctrl+]}           Complete current word
+%m=nano_WordComplete;
+  
+<<nano_Comment>>
+%%  {Esc 3}            Comment/uncomment line/region
+%m=nano_Comment;
+  
+<<nano_Undo>>
+%%  {Esc U}            Undo last action
+%m=nano_Undo;
+  
+<<nano_Redo>>
+%%  {Esc E}            Redo last undone action
+%m=nano_Redo;
+  
+<<nano_DeleteChrBack>>
+%%  {Ctrl+H}           Delete character before cursor      
+%m=nano_DeleteChrBack;
+  
+<<nano_DeleteChrForwards>>
+%%  {Ctrl+D}           Delete character under cursor
+ey0
+  
+<<nano_DeleteWordBack>>
+%%  {Esc Bsp}          Delete word to the left
+e-y0
+  
+<<nano_DeleteWordForwards>>
+%%  {Ctrl+Del}         Delete word to the right
+%m=nano_DeleteWordForwards;
+  
+<<nano_DeleteLine>>
+%%  {Esc Del}          Delete current line
+%m=nano_DeleteLine;
+  
+<<nano_ExecuteCmd>>
+%%  {Ctrl+T}           Execute some command
+%m=nano_ExecuteCmd;
+  
+<<nano_JustifyPara>>
+%%  {Ctrl+J}           Justify paragraph or region
+%%If the current group of lines begin with non-blanks, they are concatinated with line breaks
+%%at word boundaries and multiple whitespace is condended to a single blank.
+%%
+%%  The definition of paragraphs in nano appears to  that they are regions of unindented text
+%%  bounded by blank lines or indented lines.
+%%
+( %%If the current line is unindented, join it up with neighbouring unindented lines.
+  (v/ /r\)\  %%Current line begins with a nonblank chr.
+  %%Concatinate the lines - if the previous line begins with whitespace, start to that line.
+  (m- (v/ /, r\)\)0 (r\m, ) (m (v/ /, r\)\ j-i/ /)0
+  %%Strip out tabs and multiple blanks.
+  m-r-0(v/ /r)0(f1/	/s/ /)0 r-0(v/ /r)0(f1/  /e)0
+  %%Break at start of last complete word before right margin of the screen.
+  r-0 ( oq/.=ScreenWidth/ol7o-or (f-1/ /\r-)0 rb )0
+  r-0y0
+, %%Nah - this line is not in a nano paragraph.
+ )
+  
+<<nano_JustifyAll>>
+%%  {Esc J}            Justify all paragraphs in buffer
+m-0 ( ((v/ /\r)\ (m, x0) )0 %h'=call nano_JustifyPara; m)0
+  
+<<nano_SyntaxCheck>>
+%%  {Esc B}            Run a syntax check
+%m=nano_SyntaxCheck;
+  
+<<nano_Formatter>>
+%%  {Esc F}            Run a formatter/fixer/arranger
+%m=nano_Formatter;
+  
+<<nano_RecordAction>>
+%%  {Esc :}            Start/stop recording of macro
+%m=nano_RecordAction;
+  
+<<nano_ReplayMacro>>
+%%  {Esc ;}            Replay macro
+%m=nano_ReplayMacro;
+  
+<<nano_MatchBracket>>
+%%  {Esc ]}            Go to complementary bracket
+%h'=call MatchAny;
+  
+<<nano_ReportCursor>>
+%%  {Ctrl+C}           Report cursor position
+%d$;
+%%Note current position in buffer.
+oconob 
+%%
+%%Line number section.
+z$oso#oo/[ line %d/r0 osozm0onobz$osoo"/%d"r0 ozo#ol100o*ono/obz$osoo/ (%d%%), /r0 ozono-om
+%%
+%%Column number section.
+obz$oso#ol1o+oo/ col %d/r0 osozr0ocobz$osol1o+oo"/%d"r0 ozo#ol100o*oc(o/, okol0)obz$osoo/ (%d%%), /r0 ozr-0or
+%%
+%%Character-count section - first the current chr no.
+ocon ol0 (o~r-, m-r0)0ol1o- osono-omosor oboso#z$oo/ char %d/r0 osoz
+%%Now the total chrs.
+ocon m-0ol0 (o~r, m)0ol1o- osono-omosor obz$oso#oo"/%d"r0 osoz
+%%Now the percentage of total characters.
+osol100o*oso/ obz$osoo/ (%d%%) ]/ oz
+%h'=call nano_ConsoleMessage;
+  
+<<nano_ReportSize>>
+%%  {Esc D}            Report line/word/character count
+%m=nano_ReportSize;
+  
+<<nano_Help>>
+%%  {F1}  {Ctrl+G}     Display help text and (when -debug is enabled) internal status data.
+obolc? (o=  %%We're alreadiy in the help buffer ( ? ) - return to current buffer.
+  okoz
+, %%We're in a live buffer.
+  oq/.=Debug/ol1
+  ( o=ok   %%Add fake_nano status.
+    %q?=stack;
+    m0bi/fake_nano status follows:/b
+    oq/.=Args/                oo/  Args               "%s"/b
+    oq/.=SearchString/        oo/  SearchString       "%s"/b
+    oq/.=ReplaceString/       oo/  ReplaceString      "%s"/b
+    oq/.=ScreenHeight/        oo/  ScreenHeight        %d/b
+    oq/.=ScreenWidth/         oo/  ScreenWidth         %d/b
+    oq/.=Debug/               oo/  Debug               %d/b
+    oq/.=CutMode/             oo/  CutMode             %d/b
+    oq/.=MouseMode/           oo/  MouseMode           %d/b
+    oq/.=pathNames/z~m-0n.m0r0a$&z$ok m0onm-0oo/  bufferRing contains %d items / b-oq/.=currentPathName/oo/(currently at item %d):/m 
+    ( %%Report this buffer's mark status.
+      %h=getdata .=bufferRing|&'$&|MarkFirstLine; 
+      %%A nonzero MarkFirstLine indicates that this buffer is marked.
+      ( ol0o=okr0i/  No mark set./, %h=getdata .=bufferRing|&'$&|MarkFirstChr; r0osoo/  mark from line %d/ r0oo/, Chr %d/)
+      r-0i/    / m)0
+    %%Finalize status report.
+    z?h$bi/Status report ends/b3
+  , ok   %%Not in debug mode - so just the basic help info.
+    z?m-0k0e0 )
+  %%Now the help text.
+  oq/.=Help/h~ okm-0y0 )
+  
+<<nano_Indent>>
+%%  {Ctrl+k}           Indent marked region (Tab)
+%m=nano_Indent;
+  
+<<nano_Unindent>>
+%%  {Ctrl+K}           Unindent marked region (Shift+Tab)
+%m=nano_Unindent;
+  
+<<nano_LineNumbers>>
+%%  {Esc N}            Turn line numbers on/off
+%m=nano_LineNumbers;
+  
+<<nano_ShowWhitespace>>
+%%  {Esc P}            Turn visible whitespace on/off
+%m=nano_ShowWhitespace;
+  
+<<nano_Verbatim>>
+%%  {Esc V}            Enter next keystroke verbatim
+%m=nano_Verbatim;
+  
+<<nano_Refresh>>
+%%  {Ctrl+L}           Refresh the screen
+%m=nano_Refresh;
+  
+<<nano_debuggerExit>>
+%%Exits debugger in fake_nano ({Esc q}/{Esc q} being dedicated to backwards searches).
+%s=trace 0;
+  
+<<nano_debuggerSkipBlock>>
+%%Debugger skips to end of current block.
+%s=traceskip 1;
+  
+<<nano_ToggleMouseMode>>
+%%Toggles mouse-support mode.
+( oq/.=MouseMode/ol1o=  %%Mouse mode is currently enabled - disable it now.
+  okol0ov/.=MouseMode/ %s=mousemask 0;
+  %d$=[ Mouse support disabled ]; %h'=call nano_ConsoleMessage;
+, %%Mouse mode is currently disabled - enable it now.
+  ol1ov/.=MouseMode/ %s=mousemask 0004;
+  %d$=[ Mouse support enabled ]; %h'=call nano_ConsoleMessage; )
+
+<<nano_LeftClick>>
+%%A left-button click mouse event.
+%%
+%%Pick up the mouse-cursor position.
+obop 
+( ol38o= %%Click was in the ( & ) buffer - that's the footer-menu.
+  %%First find the string.
+  ozono-omor (f-1/ /-, r-0)
+  %%Check it against the valid strings.
+  ( v/^G /    oz %h'=call nano_Help;?               %%Get Help
+  , v/^X /    oz %h'=call nano_Exit;?               %%Exit
+  , v/^O /    oz %h'=call nano_SaveAs;?             %%Write Out
+  , v/^R /    oz %h'=call nano_InsertFile;?         %%Read File
+  , v/^W /    oz %h'=call nano_SearchForward;?      %%Where Is      
+  , v/^K /    oz %h'=call nano_Cut;?                %%Cut Text      
+  , v/^J /    oz %h'=call nano_JustifyPara;?        %%Justify       
+  , v/^C /    oz %h'=call nano_ReportCursor;?       %%Cur Pos       
+  , v/^Y /    oz %h'=call nano_PageUp;?             %%Prev Page     
+  , v/M-\ /   oz %h'=call nano_GoToFirstLine;?      %%First Line   
+  , v/M-W /   oz %h'=call nano_NextForward;?        %%WhereIs Next 
+  , v/^^ /    oz %h'=call nano_Mark;?               %%Mark Text     
+  , v/M-} /   oz %h'=call nano_Indent;?             %%Indent Text  
+  , v/M-U /   oz %h'=call nano_Undo;?               %%Undo         
+  , v/^B /    oz %h'=call nano_Back;?               %%Back
+  , v/^\ /    oz %h'=call nano_SearchAndReplace;?   %%Replace       
+  , v/^U /    oz %h'=call nano_Paste;?              %%Uncut Text    
+  , v/^T /    oz %h'=call nano_Spell;?              %%To Spell      
+  , v/^_ /    oz %h'=call nano_GoToLine;?           %%Go To Line    
+  , v/^V /    oz %h'=call nano_Page_Down;?          %%Next Page     
+  , v/M- /    oz %h'=call nano_GoToLastLine;?       %%Last Line    
+  , v/M-] /   oz %h'=call nano_GoToBracket;?        %%To Bracket   
+  , v/M-^ /   oz %h'=call nano_Copy;?               %%Copy Text    
+  , v/M-{ /   oz %h'=call nano_UnIndent;?           %%Unindent Text
+  , v/M-E /   oz %h'=call nano_Redo;?               %%Redo         
+  , v/^F /    oz %h'=call nano_Forwards;?           %%Forward
+  , v/<< /    oz %h'=call nano_ScrollMenuBack;?     %%Scroll up to the previous section of help menu.
+  , v/>> /    oz %h'=call nano_ScrollMenuForward;?  %%Scroll down to the next section of help menu.
+, )
+, (ol46o=\ ol126o=\)\  %%The click was in the main text buffer - go to that position.
+  opozono-omor ok
+, %%Click was somewhere else - to preserve sanity - ignore it.
+  okokokoz )
+  
+<<nano_ScrollMenuBack>>
+%%Scrolls the help menu up to the previous section.
+obz&m-2? %w=refresh; oz
+  
+<<nano_ScrollMenuForward>>
+%%Scrolls the help menu down to the next section.
+obz&(m3, m0m-) %w=refresh; m-oz
+  
+<<nano_SetHeader>>
+%%Defines the buffer ( * ) to be displayed as a window header.
+%%
+%q*=version; kf1/ v/re-0i/    fake_nano    / f1/, /e0
+z~%q$=buffer; f/pathname = /-b z*r0 i/                    /i'$ ocoq/.=ScreenWidth/o- (ol0o<  (i/ /o~)0, )ok
+z~( %q=samesinceio; z*, z*r0e-13i/ Modified  / ) b
+%%Set up and deploy the colour tag.
+z~%q$=buffer; (f/ TagType = Name    Highlight,/z*, oq/.=Reverse/ m-0k0e0h~okz*'$ ) m-0oxou %b=addtag Highlight;
+m-0 z~
+
+<<nano_SetFooter>>
+%%Defines the buffer ( & ) to be displayed as a window footer.
+%%
+%%Buffer ( $ ) specifies the content if empty, a default is used.
+%%
+%%Set the buffer, if ( $ ) is empty use default strings.
+z$ 
+( (r\m\)\  %%Using the menu string specified in the ( $ ) buffer.
+  z&m-0k0e0h$
+, %%No menu specified - use the default.
+  oq/.=NoHelp/ol1o=okz&  %%Default menu was suppressed by -x 
+, %%Set the menu.
+  okz&m-0k0e0
+  i"^G Get Help      ^O Write Out     ^W Where Is      ^K Cut Text        ^J Justify       ^C Cur Pos       ^Y Prev Page     "
+  i"M-\ First Line   M-W WhereIs Next ^^ Mark Text     M-} Indent Text    M-U Undo         ^B Back"b
+  i"^X Exit          ^R Read File     ^\ Replace       ^U Uncut Text      ^T To Spell      ^_ Go To Line    ^V Next Page     "
+  i"M-/ Last Line    M-] To Bracket   M-^ Copy Text    M-{ Unindent Text  M-E Redo         ^F Forward"b, )
+%%Now break lines at screen-width point buffer ( $ ) collects the lines.
+z&m-0n.a$& (oq/.=ScreenWidth/ ol6o-r-0 n.or f-1/  /-(v-/ /e-)0 ba$+ m, m-)0 
+%%Add  scroll-up/down buttons.
+m-0h$m-0 i/    / (mi/>>  / m2m-i/<<  /)0 i/     /
+%%
+%%Set up colour tag.
+z& %q$=buffer; (f/ TagType = Name    Highlight,/, oq/.=Reverse/ m-0k0e0h~okz&'$ ) z&
+%%Highlight the keycodes.
+m-0 ( f/^/ocf1/ /oco-ou  %b=addtag Highlight; n.r2a$& %b=addtag -text='$; )0  
+m-0 ( f/m-/ocf1/ /oco-ou %b=addtag Highlight; n.r2a$& %b=addtag -text='$; )0  
+m-0 (f/<</ %b=addtag Highlight; )0 m-0 (f/>>/ %b=addtag Highlight; )0
+m-0 z~ %w=refresh;
+
+<<nano_SetupWindow>>
+%%Defines the various elements of the nano display window.
+%%
+%w=clear; %l
+%%Header.
+z*m-0m0(m-on %w*=new -height='~;?, )
+%%Main window - get height of the header and footer buffers - if debugging expand the console area.
+z*m0m-?on z&m-0(mol2 o+, ) oq/.=ScreenHeight/ (oq/.=Debug/ol1o=okol20, okol5) o-oso- %w=new -height='~;
+%%Footer.
+z&m-0m0(m- %w&=new -height=2;?, )m-0
+%%
+z~ %w=refresh;
+
+<<nano_ConsoleMessage>>
+%%Message is in buffer ( $ ) - displays the message in the centre of the console line.
+ob oq/.=ScreenWidth/ z$r0oc oso-ol2o/ z$r-0(i/ /o~)0ok oz
+%m='$;
+
+<<nano_PromptUserString>>
+%%Prompts user for a string value using prompt string defined in the calling function, returns value in ( $ ), fails on a null reply.
+%%
+%w=refresh;
+ob z$ %s=commandmode 0; %s=verbose 3; g  %s=verbose 0; %s=commandmode 2; k- (roz, oz\)
+%s=prompt;
+%m=;
+  
+<<nano_PromptUserChr>>
+%%Prompts user for a character value using prompt string in buffer ( $ ), returns value at top of stack.
+%s=verbose 3; og  %s=verbose 0;
+  
+<<nano_lineBreak>>
+%%  {Return} - Breaks current line at current character.
+b
+
+<<nano_eraseBack>>
+%%  {Rubout}  - erases character before current character or joins line with previous.
+(e-, j-, j)
+
+<<nano_SaveAs>>
+%%  {Ctrl+O}           Offer to write file ("Save as")
+%%
+ob %d$=File Name to Write: ; %q@=buffer; f/ pathName = /-b-k-0mk0m-0 
+%h'=call nano_PromptUrerForString;
+oz ( %o='@;, %m=Something went wrong while writing to "&'@"; )
+
+<<nano_PromptUrerForString>>
+%%Prompts then reads back a string from the user.
+%%The prompt string is in buffer ( $ ), the reply string is in buffer ( @ ), initially set to the default reply.
+%%
+z@r0 %s=verbose 2; %l
+( %%Character loop - prompt then read one character.
+  %w=refresh; %s=prompt &'$&'@;
+  ( og
+    olx0A o=   %%  {Return} reply complete - exit now.
+    ok x2
+  , olx7F o=   %%  {Backspace} erase last character.
+    ok e-? %l;
+  , ol32  o>   %%   Any printable ASCII character - append to ( @ ).
+    r0oo/%c/
+  , %m=Invalid input; ) )0
+%s=verbose 0;
+%s=prompt;
+
+<<nano_resetNanoMode>>
+%% {Ctrl+C} handler - simply resets everything.
+%s=console 20;
+%s=verbose 3;
+%s=commandmode 0;
+%%Return to current buffer.
+o@ oq/.=pathNames/z~oq/.=currentPathName/ono-omonov/.=currentPathName/n.r0a$&z.okok %h=getdata .=bufferRing|&'$; z~
+%l; %w=refresh;
+%h'=call nano_SetHeader;
+%d$=; %h'=call nano_SetFooter;
+%h'=call nano_SetupWindow;
+%m=Returning to jot mode - type {Esc i} to return to nano mode.;
+x3
+
+<<nano_KeyboardScanner>>
+%%  {Esc i} Called in jot mode, enters nano insert mode
+%%
+%s=console 20;
+%s=commandmode 2;
+%s=verbose 3;
+%%Return to current buffer.
+o@ oq/.=pathNames/z~oq/.=currentPathName/ono-omonov/.=currentPathName/n.r0a$&z.okok %h=getdata .=bufferRing|&'$; z~y0
+%l; %w=refresh;
+%h'=call nano_SetHeader;
+%d$=; %h'=call nano_SetFooter;
+%h'=call nano_SetupWindow;
+%%Set up the initial message.
+ocon m0(r, m-)ono-onosomosor %d$=[ Read &'~& lines ]; %h'=call nano_ConsoleMessage;
+( %%Main nano command loop
+  ( (obolc~o= okoq/MarkFirstLine/ ol0o=\)\ok, ok %%Mark mode is on in this buffer - add highlight to text.
+    %%First strip out any preexisting tags.
+    %h'=call nano_RemoveMarkTags;
+    %h'=call nano_SetMarkTags; )
+  ob %d$=;  %%Initialization of escape-sequence buffer.
+  ( %%Part-command loop - some nano command sequences are more than one character, this loop checks and assembles the complete command string.
+    %w=refresh; (og, t ) z$r0oo/%02X /
+    ( %h^=testkey -type '$;
+      ( ol4o=ok %%Yes it's a call object.
+        oz %h^=call -oneline '$;?
+      , ol1o=ok  %%It's a data object, that means it's part of a multi-byte sequence - read the next byte.
+        x-3
+      , %m=Unknown data-type found while processing a nano escape sequence "&'$&"; )
+    , %%There was no hashtable entry for this control sequence - {Esc i} was excluded because x3 failed to return properly..
+      v-/1B 69 /  %% {Esc i} - Exit to jot sanity.
+      %s=commandmode 0;
+      %s=verbose 3;
+      %s=on_int;
+      %s=console 20;
+      %w=refresh;
+      %m=Returning to jot command mode.;
+      oz x0
+    , z$r0ocol3o=ok r-0oixol31o>  %%Yes it's a simple ascii character and not part of an escape sequence, insert it into the buffer.
+      oo/%c/e0ozi'$
+    , %%Invalid command - report it.
+      okz~ %m=Error: Unrecognized nano sequence "&'$&"; %d$=; ) )? )0
+
+Nano functions end here:
+%h'=call AddNewFunctions;
+  
+%%Define keycodes
+%g$=Nano keycodes end;
+^[i                    %h'=call nano_KeyboardScanner;         %%  {Esc i}            This is the last of the normal jot hotkeys and also marks the start of the fake_nano hot keys.
+0A                     %h'=call nano_lineBreak;               %%  {Return}           Simply breaks the line at the current-character position.
+7F                     %h'=call nano_eraseBack;               %%  {Rubout}           Erases the character to the left of the current or joins line with predecessor.
+1B 31                  %h'=call nano_debuggerExit;            %%  {Esc q}            Exit the debugger.
+1B 32                  %h'=call nano_debuggerSkipBlock;       %%  {Esc 2}            Skip to the end of the current block.
+13                     %h'=call nano_Save;                    %%  {Ctrl+S}           Save current file
+0F                     %h'=call nano_SaveAs;                  %%  {Ctrl+O}           Offer to write file ("Save as")
+12                     %h'=call nano_InsertFile;              %%  {Ctrl+R}           Insert a file into current one
+18                     %h'=call nano_Exit;                    %%  {Ctrl+X}           Close buffer, if last buffer exit from nano
+1B 36                  %h'=call nano_Copy;                    %%  {Ctrl+Shift+6}     Copy current line/marked text into cutbuffer
+1D                     %h'=call nano_WordComplete;            %%  {Ctrl+]}           Complete current word
+1B 33                  %h'=call nano_Comment;                 %%  {Esc 3}            Comment/uncomment line/region
+1B 75                  %h'=call nano_Undo;                    %%  {Esc u}            Undo last action
+1B 65                  %h'=call nano_Redo;                    %%  {Esc e}            Redo last undone action
+11                     %h'=call nano_SearchBack;              %%  {Ctrl+Q}           Start backward search
+17                     %h'=call nano_SearchForward;           %%  {Ctrl+W}           Start forward search
+{F6                    %h'=call nano_SearchForward;           %%  {Ctrl+}            Start forward search
+1B 71                  %h'=call nano_NextBack;                %%  {Esc q}            Find next occurrence backward
+1B 77                  %h'=call nano_NextForward;             %%  {Esc w}            Find next occurrence forward
+1B 72                  %h'=call nano_SearchAndReplace;        %%  {Esc r}            Start a replacing session
+08                     %h'=call nano_DeleteChrBack;           %%  {Ctrl+H}           Delete character before cursor      
+04                     %h'=call nano_DeleteChrForwards;       %%  {Ctrl+D}           Delete character under cursor
+1B Bsp                 %h'=call nano_DeleteWordBack;          %%  {Esc }            Delete word to the left
+1B Del                 %h'=call nano_DeleteWordForwards;      %%  {Ctrl+}            Delete word to the right
+1B Del                 %h'=call nano_DeleteLine;              %%  {Ctrl+}            Delete current line
+14                     %h'=call nano_ExecuteCmd;              %%  {Ctrl+T}           Execute some command
+1B 6A                  %h'=call nano_JustifyAll;              %%  {Esc j}            Justify entire buffer
+1B 62                  %h'=call nano_SyntaxCheck;             %%  {Esc b}            Run a syntax check
+1B 66                  %h'=call nano_Formatter;               %%  {Esc f}            Run a formatter/fixer/arranger
+1B 3A                  %h'=call nano_RecordAction;            %%  {Esc :}            Start/stop recording of macro
+1B 3B                  %h'=call nano_ReplayMacro;             %%  {Esc ;}            Replay macro
+02                     %h'=call nano_MoveChrLeft;             %%  {Ctrl+B}           One character backward
+06                     %h'=call nano_MoveChrRight;            %%  {Ctrl+F}           One character forward
+01                     %h'=call nano_MoveLineStart;           %%  {Ctrl+A}           To start of line
+05                     %h'=call nano_MoveLineEnd;             %%  {Ctrl+E}           To end of line
+10                     %h'=call nano_MoveUpInColumn;          %%  {Ctrl+P}           Go up
+0E                     %h'=call nano_MoveDownInColumn;        %%  {Ctrl+N}           Go down
+19                     %h'=call nano_MovePageUp;              %%  {Ctrl+Y}           One page up
+16                     %h'=call nano_MovePageDown;            %%  {Ctrl+V}           One page down
+1B 5C                  %h'=call nano_MoveToStart;             %%  {Esc \}            To top of buffer
+1B 2F                  %h'=call nano_MoveToEnd;               %%  {Esc /}            To end of buffer
+1B 67                  %h'=call nano_MoveToLineNo;            %%  {Esc g}            Go to specified line
+1B 5D                  %h'=call nano_MatchBracket;            %%  {Esc ]}            Go to complementary bracket
+1B 3C                  %h'=call nano_ZoomPrev;                %%  {Esc <}            Switch to preceding buffer
+1B 3E                  %h'=call nano_ZoomNext;                %%  {Esc >}            Switch to succeeding buffer
+1B 2C                  %h'=call nano_ZoomPrev;                %%  {Esc ,}            Switch to preceding buffer
+1B 2E                  %h'=call nano_ZoomNext;                %%  {Esc .}            Switch to succeeding buffer
+03                     %h'=call nano_ReportCursor;            %%  {Ctrl+C}           Report cursor position
+1B 64                  %h'=call nano_ReportSize;              %%  {Esc d}            Report line/word/character count
+07                     %h'=call nano_Help;                    %%  {Ctrl+G}           Display help text
+07                     %h'=call nano_Help;                    %%  {F1}               Display help text
+1B 61                  %h'=call nano_Mark;                    %%  {Esc a}            Turn the mark on/off
+1E                     %h'=call nano_Mark;                    %%  {Ctrl+Shift+6}     Turn the mark on/off
+1B 6E                  %h'=call nano_LineNumbers;             %%  {Esc n}            Turn line numbers on/off
+1B 70                  %h'=call nano_ShowWhitespace;          %%  {Esc p}            Turn visible whitespace on/off
+1B 76                  %h'=call nano_Verbatim;                %%  {Esc v}            Enter next keystroke verbatim
+0C                     %h'=call nano_Refresh;                 %%  {Ctrl+L}           Refresh the screen
+00                     %h'=call nano_MoveWordRight;           %%  {Ctrl+Space}       Go forward one word
+1B 20                  %h'=call nano_MoveWordLeft;            %%  {Esc Space}        Go back one word
+1B 28                  %h'=call nano_MoveParaStart;           %%  {Esc 9}            Go to start of paragraph.
+1B 39                  %h'=call nano_MoveParaStart;           %%  {Esc (}            Go to start of paragraph.
+1B 20                  %h'=call nano_MoveParaEnd;             %%  {Esc 0}            Go past end of paragraph.
+1B 29                  %h'=call nano_MoveParaEnd;             %%  {Esc (}            Go past end of paragraph.
+1B 74                  %h'=call nano_CutToEnd;                %%  {Esc t}            Cut until end of buffer
+0B                     %h'=call nano_Cut;                     %%  {Ctrl+k}           Cut all of current line
+15                     %h'=call nano_Paste;                   %%  {Ctrl+U}           Paste above current line.
+1B 6B                  %h'=call nano_ToggleCutMode;           %%  {Esc k}            Enable/disable cut to end of line.
+1B 6D                  %h'=call nano_ToggleMouseMode;         %%  {Esc m}            Enable/disable mouse events.
+1B 4D 30 30 30 34      %h'=call nano_LeftClick;               %%  {Esc M 0 0 0 4}    Left-button click.
+1B 4B                  %h'=call nano_JustifyPara;             %%  {Esc J}            Justify paragraph or region
+1B 7D                  %h'=call nano_IndentLine;              %%  {Esc }}            Indent line by prefixing a tab
+1B 7B                  %h'=call nano_UnIndentLine;            %%  {Esc {}            Unindent line removing all leading whitespace.
+1B 2D                  %h'=call nano_ScrollUp;                %%  {Esc -}            Scroll screen up.
+1B 5F                  %h'=call nano_ScrollUp;                %%  {Esc _}            Scroll screen up.
+1B 2B                  %h'=call nano_ScrollDown;              %%  {Esc +}            Scroll screen down.
+1B 3D                  %h'=call nano_ScrollDown;              %%  {Esc =}            Scroll screen down.
+Nano keycodes end:
+%%
+%%#  {Ctrl+K14   {F9}           Cut the current line and store it in the cutbuffer
+%%#  {Ctrl+U}    {F10}          Uncut from the cutbuffer into the current line
+%%#  {Ctrl+Shift+6}             Copy the current line and store it in the cutbuffer
+%%#  {Esc T}                   Cut from the cursor position to the end of the file
+%%#  {Esc K}                    Cut to end enable/disable
+%%Removed because striking {Return} key sends {CR}{LF}
+%%0A                     %h'=call nano_JustifyPara;           %%  {Ctrl+J} (that's {LF})     Justify paragraph or region
+%%Now add the new symbolic keycodes to the keycode translation buffer ( ^ ) for AddNewFunctions to translate to actual keycodes.
+z^m0h$b
+%%  %%Remove exit-debugger hotkey to avoid conflicts with nano {Esc q} 
+%%  z^m-0 f/^[q         /k
+%%Remove original insert-mode keycodes - in test_all.jot, these may have bee removed by a previous test.
+z^m-0(f/^[in/k)2?
+
+%g#
+%%Initialization macro.
+%%
+%%Set up multi buffers if required.
+z.
+%%  ( %h=testkey .=MultiBuffers;
+%%    %%Create the index buffer to hold the access commsnds and a hashtable for the multibuffers and set up it's hashtable.
+%%    %d~=z.;  ov/.=MultiBuffers/        %h=create 100 .=MultiBuffers;
+%%    %%Initialize the buffer-count data object.
+%%    %h=data .=MultiBuffers|Count; ol0 ov/.=MultiBuffers|Count/
+%%  , )
+%%
+%%Set up mouse if required.
+(oq/.=MouseMode/ol1o=  %s=mousemask 0004;, %s=mousemask 0;) ok
+%%
+%%Now set up the nano key mappings hashtable - nano_KeyboardScanner must be the last entry for the normal jot keymap table.
+z^ %h=create 1000; m-0f/call nano_KeyboardScanner;/m
+%%Add all entries.
+( %%Ensure all part-completed command strings are registered.
+  r-0r3n.(r-0a$&v/ / (v/ /e)0b %h=code &'$; x, %h=data &'$;? r3n.)0
+  %%Index to next string and repeat.
+  m )0
+%%Copy the actions for all arrow keys and any others selected in the ( ! ) buffer - these were saved immediately after running the normal startup script.
+z^m0r0bon z!
+m-0 ( f/{F1}/s/%h'=call nano_Help;/, ) 
+m-0 ( f/{F6}/s/%h'=call nano_SearchForward;/, ) 
+m-0 ( f/{F9}/s/%h'=call nano_Cut;/, ) 
+m-0 ( f/{F10}/s/%h'=call nano_Paste;/, ) 
+m-0 ( f/{UpArrow}/s/%h'=call nano_MoveUpInColumn;/, ) 
+m-0 ( f/{Home}/s/%h'=call nano_MoveLineStart;/, ) 
+m-0 ( f/{End}/s/%h'=call nano_MoveLineEnd;/, ) 
+m-0 ( f/{DownArrow}/s/%h'=call nano_MoveDownInColumn;/, ) 
+m-0 ( f/{RightArrow}/s/%h'=call nano_MoveChrRight;/, ) 
+m-0 ( f/{LeftArrow}/s/%h'=call nano_MoveChrLeft;/, ) 
+m-0 ( f/{Ctrl+RightArrow}/s/%h'=call nano_MoveWordRight;/, ) 
+m-0 ( f/{Ctrl+LeftArrow}/s/%h'=call nano_MoveWordLeft;/, ) 
+m-0 ( f/{Ctrl+UpArrow}/s/%h'=call nano_MoveBlockUp;/, ) 
+m-0 ( f/{Ctrl+DownArrow}/s/%h'=call nano_MoveBlockDown;/, ) 
+m-0 ( f/{PageUp}/s/%h'=call nano_MovePageUp;/, ) 
+m-0 ( f/{PageDown}/s/%h'=call nano_MovePageDown;/, ) 
+m-0 ( f/{F7}/s/%h'=call nano_MovePageUp;/, ) 
+m-0 ( f/{F8}/s/%h'=call nano_MovePageDown;/, ) 
+m-0 ( f/{Esc UpArrow}/s/%h'=call nano_MovePageUp;/, )      %%For the benefit of me and my chromebook.
+m-0 ( f/{Esc DownArrow}/s/%h'=call nano_MovePageDown;/, )  %%For the benefit of me and my chromebook.
+m-0 (f1/%h'=call/m, k)0 m-0(f/^[/ol27oo/%lc/)0
+z^m0h!b
+%%
+%%Ensure all part-completed command strings are registered - this line is a direct copy of the above.
+z^ono-om ( ( (v/^/eoicolx40o-, oic) oo/%02X / v/  /\)0 r-0r3n. (r-0a$&v/ / (v/ /e)0b %h=code '$;? mx, %h=data '$;? r3n.)0 )0
+  
+%%Now read all files into the buffer ring.
+%%
+%%Now read each file into the buffer ring.
+oq/.=pathNames/z~m-0n.m0r0a$& 
+z$m-0 
+( %%Multibuffer loop.
+  %%First read the file and enter it into the the multibuffer ring.
+  %i~='$; z$ %h=setdata -new .=bufferRing|&'$;
+  %%Create the bulti-buffer's hashtable.
+  %h=create 10 .=bufferRing|&'$;
+  %%Now it's mark objects - initializing the mark line to 0 indicates no mark set.
+  ol0 %h=setdata -new .=bufferRing|&'$&|MarkFirstLine; ol0 %h=setdata -new .=bufferRing|&'$&|MarkFirstChr;
+  %%Index to the next pathname.
+  m )0 z.ok
+%%Set the first buffer in the ring to be current.
+ol1 ov/.=currentPathName/ oq/.=pathNames/z~m=1n.r0a$&z.ok %h=getdata .=bufferRing|&'$;  z~r-0 y0
+%%In debug mode allow the console to expand into the window area, set verbosity to normal and turn off {Ctrl+C} event handler.
+oq/.=Debug/ol1o= %s=console 20; %s=verbose 3; %s=on_int;, )
+%%oq/.=Debug/ol1o= %s=console 20; %s=verbose 3; %s=on_int %h'=call nano_resetNanoMode;, )
+
+:
+'#
+  
+( oq/.=Test/ol1o=ok, ok%h'=call nano_KeyboardScanner; )
+

@@ -24,7 +24,7 @@
 %%   ./jot_dev t.t -in="%r=pic; zqi/                                                                          ./b-naaha40m+10r20"
 
 %%Read the relevant keyboard map file.
-n.a@n.a;
+n.a@& n.a;&
   
 %%Set up keycodes.
 %g$

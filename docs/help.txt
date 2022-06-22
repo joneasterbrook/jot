@@ -726,32 +726,11 @@ F[-][range][<delim><string><delim>|'<key>][rpts]
 
 2.39 %W - Window.
 -----------------
-  %W[n[key]] - Window = Set up next n lines as a screen window.
-  
-    - If no parameters  follow  this  command  then  all  screen  windows  are
-      cleared.
-    
-    - n - Specifies the number of screen lines to allocate to the next window.
-      These are allocated sequentially starting from the top line.
-    
-    - The optional <key> parameter specifies which buffer is to be  associated
-      with the screen window, if this parameter is not given then the  current
-      buffer is displayed in the window.
-  
-  There is a 3-line guardband at the top and bottom of each window, the effect
-  of this guardband is to ensure that the next three lines above and below the
-  current line are visible. For windows of six, or less,  lines  there  is  no
-  guardbanding.
-  
-  The standard setup defines windows as follows: 
- %w
- %w 35
- %w 0
-
-  If there are less than 37 lines in your xterm (that's 35 for the  main  view
-  and one each for the separator and the console - it is recommended  to  have
-  at least two lines for the  console),  then  the  window  will  not  display
-  correctly.
+  %W[<key>]=clear    - clears all window setups.
+  %W[<key>]=refresh  - refreshes (i.e. erases and redraws) the screen.
+  %W[<key>]=new|modify=<winNo> [ -height=<height>][ -width=<width>[+<guard>]]]]
+                               [ -popup[=<xOffset>[,<yOffset>]]][ -delim]
+                               [ -delete][ -insert=<winNo>][ -freeze=[0|1]]
 
 2.40 %~ - Control Character
 ---------------------------

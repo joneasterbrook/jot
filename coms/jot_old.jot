@@ -76,7 +76,7 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
       %%If a '(' Add entries to stack.
       v/(/oconz$r0bi/blockStart_/r-roo/%d/i/_/r-roo/%d/o#ozr,
       %%If a ')' make the key using the start-point on the stack then add the entry.
-      v/)/o#oz %h=new '$; z$m-? o#ozr(q/0-9/r)0,
+      v/)/o#oz %h=newjump '$; z$m-? o#ozr(q/0-9/r)0,
       %%Skip remainder of line for all percent commands.
       v/%/ (v/%%/r0, v/%e/r0, r2f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
       %%Simple commands (some have numeric argument).
@@ -107,13 +107,13 @@ obz$m-0(f/-noinvalid/ol1, ol0)osoz
     )0
  
   %%Now construct the reverse index using the list of keys in $ buffer.
-  z$m-0mo#ozn.a;& (%h=find '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=new '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
+  z$m-0mo#ozn.a;& (%h=find '$; oconn.a@&z@i/blockEnd_/r-roo/%d/i/_/r-roo/%d/ z$f1/_/-2oidosr-0f1/_/-oidos o#oz osono-omosor %h=newjump '@; z$mrr-o#oz, z;i'$bz$mro#oz)0
   (z;m-0rr- (f/BlockStart_/s/ '{' at line no. /f/_/s/ chr no. /m)0m-0 %x=Error the following curly braces could not be matched;, ) o#oz
   
   %%Resume original focus.
   oz ono-om or )
 :
-ob z'm0bh$b (m-v/<</\)0 r2n.f1/>>/a$& m %h=add '$; oz
+ob z'm0bh$b (m-v/<</\)0 r2n.f1/>>/a$& m %h=addjump '$; oz
 
 %g4
 %%Searching back, match next valid ')' with it's start-point '(' from hashtable.

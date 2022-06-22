@@ -55,7 +55,7 @@ z~n.r0(f-1./.-, r-0)b-i"backup" z$ o# %q!=file '~;\ %x=No backup subdirectory;, 
 %%if -a then pick up datestamp and comment from last entry in comment file. 
 z$(v/-a/
   %% -a - Use last-entered datestamp and comment.
-  n.a!z!i/%e~=tail -1 / i'~r-r(f-1./.-, r-0)e0 i"README_backup" '!
+  n.a!&z!i/%e~=tail -1 / i'~r-r(f-1./.-, r-0)e0 i"README_backup" '!
   f/	/n.f-1/_/2a! e-0 rn.r0a$
   %%Add last datestamp to this filename.
   z$okz~r0h!

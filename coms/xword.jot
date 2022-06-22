@@ -40,7 +40,7 @@
 	    4 - used in  construction of database and for argument passing.
 :
 
-%g4 
+%g4
 %%xword query macro.
 %%
 %%Check and extract arguments
@@ -49,13 +49,13 @@ q/0-9/\ %x=Bad xword query syntax: first item must be word length.;, (q/0-9/r)0b
  
 ( %%Arg checking loop. 
   q/0-9/\ %x=Bad xword query syntax: first element of <c>=<l> must be digits.;, (q/0-9/r)0
-  v/=/\ %x=Bad xword query syntax: separator in <c>=<l> must be '='.;, r
+  v/=/\ %x=Bad xword query syntax: separator in <c>=<l> must be &'=&'.;, r
   (q/a-zA-Z?/r)0 rr- v/ /\ %x=Bad xword query syntax: second query element in <c>=<l> an alpha character.;, b (v/ /r)0
   rr-
   )0
  
 %%Find correct wordlength block copy it to working copy in buffer #.
-z$m-0i/##/z@m-0 (v/##/, %x=Word lookup-table is broken, try restarting xword;) (f'$m, z$e-0oz %x=Invalid word length '$; ) n.(rm)0a#&
+z$m-0i/##/z@m-0 (v/##/, %x=Word lookup-table is broken, try restarting xword;) (f'$m, z$e-0oz %x=Invalid word length &'$; ) n.(rm)0a#&
   
 %%For each query item remove more entries from working copy.
 %%
@@ -73,8 +73,8 @@ z$m-0i/##/z@m-0 (v/##/, %x=Word lookup-table is broken, try restarting xword;) (
   )0                               %%Query-item loop ends.
   
 %%Report words.
-ok z#n.a$ (z#m-0rr- (n.ra$+m)0 z$rb)0 z$m0m-onm-0
-%x=Found '~ words/phrases matching your query.
+ok z#n.a$& (z#m-0rr- (n.ra$+m)0 z$rb)0 z$m0m-onm-0
+%x=Found &'~& words/phrases matching your query.
 :
 
 ob
@@ -125,51 +125,51 @@ okok
 m-0(((q/a-z/r, q/A-Z/c)0re-)0 m)0
 %%Trim and tidy.
 m-0(rm, k)0
-w
+ %w=refresh; 
 %m=Sorting
 %b=sort
 %m=Purging duplicate entries.
 m-0 (r\k)0r0 (n.r-0a_&m (r0v-'_k)0)0
 %%
 %m=Sorting by length.
-n.a$
+n.a$&
 %%Delete any entries over 30 characters.
 m-0(r31k,m)0
 
 %%Form transposed word lists sorted by word length.
 m-0n.m0r0a#
-z#m-0n.a$(r30na$+, m)0 z@i/##30/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r29na$+, m)0 z@i/##29/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r28na$+, m)0 z@i/##28/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r27na$+, m)0 z@i/##27/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r26na$+, m)0 z@i/##26/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r25na$+, m)0 z@i/##25/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r24na$+, m)0 z@i/##24/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r23na$+, m)0 z@i/##23/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r22na$+, m)0 z@i/##22/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r21na$+, m)0 z@i/##21/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r20na$+, m)0 z@i/##20/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r19na$+, m)0 z@i/##19/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r18na$+, m)0 z@i/##18/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r17na$+, m)0 z@i/##17/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r16na$+, m)0 z@i/##16/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r15na$+, m)0 z@i/##15/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r14na$+, m)0 z@i/##14/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r13na$+, m)0 z@i/##13/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r12na$+, m)0 z@i/##12/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r11na$+, m)0 z@i/##11/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r10na$+, m)0 z@i/##10/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r9na$+,  m)0 z@i/##9/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r8na$+,  m)0 z@i/##8/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r7na$+,  m)0 z@i/##7/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r6na$+,  m)0 z@i/##6/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r5na$+,  m)0 z@i/##5/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r4na$+,  m)0 z@i/##4/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r3na$+,  m)0 z@i/##3/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
-z#m-0n.a$(r2na$+,  m)0 z@i/##2/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r30na$+, m)0 z@i/##30/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r29na$+, m)0 z@i/##29/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r28na$+, m)0 z@i/##28/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r27na$+, m)0 z@i/##27/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r26na$+, m)0 z@i/##26/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r25na$+, m)0 z@i/##25/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r24na$+, m)0 z@i/##24/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r23na$+, m)0 z@i/##23/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r22na$+, m)0 z@i/##22/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r21na$+, m)0 z@i/##21/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r20na$+, m)0 z@i/##20/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r19na$+, m)0 z@i/##19/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r18na$+, m)0 z@i/##18/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r17na$+, m)0 z@i/##17/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r16na$+, m)0 z@i/##16/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r15na$+, m)0 z@i/##15/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r14na$+, m)0 z@i/##14/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r13na$+, m)0 z@i/##13/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r12na$+, m)0 z@i/##12/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r11na$+, m)0 z@i/##11/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r10na$+, m)0 z@i/##10/b (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r9na$+,  m)0 z@i/##9/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r8na$+,  m)0 z@i/##8/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r7na$+,  m)0 z@i/##7/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r6na$+,  m)0 z@i/##6/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r5na$+,  m)0 z@i/##5/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r4na$+,  m)0 z@i/##4/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r3na$+,  m)0 z@i/##3/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
+z#m-0n.a$& (r2na$+,  m)0 z@i/##2/b  (z$m-0rr- (n.ra@+m)0 z@r0b)0 z@b
 
 %%Prompt for save? 
-n.a$ %s=prompt Save the xword database file? y|[n] ; z$gz$
+n.a$& %s=prompt Save the xword database file? y|[n] ; z$gz$
 (m-v/y/ z@ %o=${JOT_RESOURCES}/xword_db.txt; oz, oz )
 %s=prompt > ;
   

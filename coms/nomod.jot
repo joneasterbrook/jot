@@ -46,7 +46,7 @@ m-0 (f/ {Alt+/s/ {^[4 /)0
 z*m-0k0 %h=create 1000; z@
 %%
 %%First copy all unmodified keycodes to buffer ( * ) entering them into the hash table.
-m-0 (f/ -- {/-f1/+/, n.f1/}/a$& r-0n.r12a*+&z*r0b- %h=add '$;z@m)0
+m-0 (f/ -- {/-f1/+/, n.f1/}/a$& r-0n.r12a*+&z*r0b- %h=addjump '$; z@m)0
 %%
 %%Now we modify the key description as before but change the keycodes to the unmodified keycode with the new prefix.
 m-0 (f/ {Ctrl+Shift+Alt+/s/ {^[7 /n.f1/}/a$& %h*=jump '$; z@ r-0e12 i/^[7/i'*)0

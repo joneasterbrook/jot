@@ -1,0 +1,449 @@
+%%Compiles nominated editor module then links.
+%%
+%%    Copyright (C) 2014-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+
+%g?
+Valid usage:
+ced [-backup <backupFileName>][ -newversion [<versionString>]][ -oldversion <versionString>][ -notest]]
+   -localpath <localPath>  - Specifies local path for cases where this cannot be determined automatically (e.g. running under wine).
+   -backup <fileName>  - compiles specified jot.c from backup area, must be of the form jot.c_<dateStamp>
+   -suffix <string>    - compiles jot_<suffix>.c from source area.
+   -newversion [v<n.n.n>] - Sets the newly-compiled executable to identify itself with the specified version number.
+   -newtree - creates a new release tree with the versionID as specified by the -newversion qualifier.
+   -oldversion <version> - Copies a version from the release tree to a temporary dir and compiles.
+   -lin - For compilation and test of linux version.
+   -win - For compilation of 32-bit windows version.
+   -win64 - For 64-bit windows compiler & libraries.
+   -debug - enables debugging database generation for windows, also for debugging this script.
+   -noexit - prevents it closing the jot session as it finishes.
+   -notest - skips test after compile.
+   -dynamic - dynamic linking of ncurses.
+   -preproc - preprocessor output is sent to jot.lis.
+   -strip - strip out all symbols from linux executable.
+  
+Examples:
+    ced                                          - simple recompile jotfor linux and windows, executables are named jot_dev[.exe].
+    ced -backup jot.c_130828_1805                - compiles ~/ed/source/backup/jot.c_130828_1805, executables are named jot_130828_1805
+    ced -newversion                              - creates the next version up from current top version, populates it and compiles the sources..
+    ced -newversion v1.99 -newtree               - creates v1.99 release subdir, populates it and compiles the sources.
+    ced -oldversion v1.1                         - makes executables from the source in v1.1
+  
+  
+  - source/jot.c is the jot source file,
+  - source/jot.lis is thmessages from the latest compilation of the source.
+  - wine contains libraries etc. used in wine sessions.
+  - wine/lib - the gcc library.
+  - libgw32c-0.4 - minimal LibGcc
+  - 'Program Files (x86)' - either copies of, or symboic links to,  a  genuine
+    windows installation.
+  - wbin - does not need to be in this tree but, wherever it is,  it  must  be
+    on your search path.
+    
+For the Visual-C compiler to work, you will need the following on your search paths:
+  - On the executable search path:
+     cl.exe  - I have ".../Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"
+  
+  - On the include path:
+     ".../Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/include" 
+     ".../Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/ucrt" 
+     ".../Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um" 
+     ".../Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/shared" 
+     .../libgw32c-0.4/include 
+  
+  - On the lib path:
+     .../libgcc.lib 
+     .../libgw32c.a 
+     ".../Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64/Ole32.Lib" 
+     .../libgcc.lib 
+     .../libgw32c-0.4/lib/libgw32c.a 
+     .../Ole32.Lib  -- I have ".../Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64/Ole32.Lib" 
+     ".../Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/ucrt/x64" 
+     ".../Program Files (x86)/Windows Kits/10/Lib/10.0.19041.0/um/x64" 
+     ".../Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/lib/x64" 
+     ".../Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64" 
+                                                                                                        
+:
+
+%%Init.
+%%
+%%Preserve args on stack, these will later be used to set the .=args data object.
+z$m-0r0i/ /n.r-0a~
+%%
+%%If the normal startup file has not yet been run, then do it now.
+( oq/'=DocLeftMargin/ ok,  %r=startup; )
+%w=clear; %w=new -height=10 -delim;
+%%
+%%Set up the data objscts - if the actual value cannot yet be determined set to either an empty string or 0 to define it's type.
+%h.=create 100;
+z.
+%h=setdata -new .=args;
+%d~=;                 %h=setdata -new .=nextVersion;    
+%d~=;                 %h=setdata -new .=versionString;  
+ol0                   %h=setdata -new .=debug;          
+%d~=;                 %h=setdata -new .=linDebug;          
+%d~=;                 %h=setdata -new .=winDebug;          
+ol0                   %h=setdata -new .=noExit;          
+%d~=;                 %h=setdata -new .=system;         
+%d~=n;                %h=setdata -new .=verbose;        
+%d~=;                 %h=setdata -new .=sourceSuffix;      
+%d~=;                 %h=setdata -new .=versionDir;     
+%d~=;                 %h=setdata -new .=newVersion;     
+ol0                   %h=setdata -new .=newTree;     
+%d~=;                 %h=setdata -new .=oldVersion;     
+%d~=;                 %h=setdata -new .=backup;   
+%d~=_dev;             %h=setdata -new .=exeSuffix;      
+%d~=;                 %h=setdata -new .=strip;          
+ol0                   %h=setdata -new .=dynamic;        
+%d~=;                 %h=setdata -new .=dynamicString;  
+%d~=;                 %h=setdata -new .=preproc;        
+%d~=;                 %h=setdata -new .=version;        
+ol0                   %h=setdata -new .=notest;         
+ol0                   %h=setdata -new .=win;            
+ol0                   %h=setdata -new .=win64;          
+%d~=;                 %h=setdata -new .=noand;          
+ol0                   %h=setdata -new .=lin;            
+ol0                   %h=setdata -new .=nochrome;       
+ol0                   %h=setdata -new .=chrome;         
+%e~=uname \-m; z.     %h=setdata -new .=uname;          
+( %q=windows; %q~=env USERNAME; k (%q=file z:/;  i"Z:/home/", i"C:/Users/"), %q~=env HOME; k ) r0(v-"/", i"/")z.
+                      %h=setdata -new .=localPath;      
+%d~='.=localPath; z~(%q=windows; %q=file Z:;, r-0i"Z:", ) z.      %%If we're running under wine then some local pathnames need the Z:/ devicenme prefix.
+                      %h=setdata -new wineLocal;
+%%
+%%Now define the dirPaths.
+%g~
+elegoo
+elegoo/include
+Arduino
+archive
+archive/dolphins_new_regime
+archive/dolphins_old_regime
+archive/from_dropbox
+archive/slack
+archive/ttc
+archive/ttt
+archive/eye
+ed/source/backup
+ed/source
+ed/my_resources
+ed/my_resources/ide
+ed/my_resources/ide/ed
+ed/my_resources/ide/hello
+ed/my_resources/ide/tree
+ed/my_resources/test_get/another_dir1
+ed/my_resources/test_get/another_dir2
+ed/my_resources/test_get/dir with whitespace in name/
+ed/my_resources/help/
+ed/my_resources/help/unix
+ed/my_resources/help/cad
+ed/my_resources/help/demo
+ed/my_resources/help/demo/deeper
+ed/my_resources/help/gnu
+ed/my_resources/help/jot
+ed/my_resources/help/opus
+ed/my_resources/help/your_stuff
+ed/my_resources/help/notes/
+ed/my_resources/ide/projects
+ed/resources
+ed/resources/ide
+ed/resources/ide/projects
+ed/resources/ide/ed
+ed/resources/ide/hello
+ed/resources/ide/tree
+ed/resources/test_get
+ed/resources/test_get/another_dir1
+ed/resources/test_get/another_dir2
+ed/resources/help/demo
+ed/resources/help/demo/deeper
+ed/my_resources/help/your_stuff
+ed/resources/test_get/dir with whitespace in name/
+ed/READMEs
+ed/docs
+ed/docs/backup
+ed/coms
+ed/coms/backup
+ed/samples
+ed/bin
+ed/bin/backup
+projects
+:
+%h.=setdata -new dirPaths;
+
+%g@
+<<ced_help>>
+  %%Simple help with ced
+  %m=By default ced compiles and tests the source file ed/source/jot.c;
+  %m=  Under linux it will normally compile both for linux and windows using wine;
+  %m=  Under ChromeOS it will compile only for ChromeOS;
+  %m=Options follow:;
+  %m=  -debug - for debugging this script and, if -win is given, compiles to give window debug database;
+  %m=  -noexit - stops the session closing as it finishes.
+  %m=  -localpath <path> - specifies the root path for the local tree - normally assumed to be .../<userName>/
+  %m=  -verbose - turns on verbose mode for remainder of session;
+  %m=  -listdevs - lists storage devices currently plugged in;
+  %m=  -setstick - defines which storage device for remainder of session (only neccessary if more than one);
+  %m=  -check - reports which files need resynchronization;
+  %m=  -new - creates missing directories in filing system and  memory stick;
+  %m=  -touch - does not copy files but adjusts datestamp master/slave determined by combining it with -fromstick or -tostick.;
+  %m=  -sync - updates files on either the stick or the filing system;
+  %m=  -fromstick - updates files on the normal filing system;
+  %m=  -tostick - updates obsolete files on the memory stick;
+  %m=  -backup <backupTag> - compiles source file from the backup area.;
+  %m=           ced -backup 20140101_1234 - to select ed/source/backup/jot.c_20140101_1234;
+  %m=  -notest - suppresses normal post-compilation testing;
+  %m=  -dynamic - dynamic linking of ncurses;
+  %m=  -preproc - preprocessor output to log file.;
+  %m=  -strip - strip out debugging and backtrace symbols from linux executable.;
+  %m=  -win - For 32-bit windows cross compilation;
+  %m=  -win64 - For 64-bit windows cross-compilation.;
+  %m=  -noand - suppresses android cross-compilation (only under linux);
+  %m=  -lin - For linux compilation;
+  %m=  -nochrome - suppresses chrome compilation (only under ChromeoS);
+  %m=  -oldversion - compiles an old releaseed version of jot.c;
+  %m=  -newversion [<vn.m>] - the new executable identifies itself with the specified version number.
+  %m=  -newtree - creates a new version ed/releases/vn.m
+  %m=  -diff <subPath> - calls diff for the local and stick version of the specified subpath.;
+
+:
+%h'=call AddNewFunctions;
+  
+%g#
+%%
+%%Determine the next version.
+%q$=dir '.=localPath&ed/release/jot; r-0(v/v/r0v-"/"e-m, k)0 %b=sort; m0(f1/./-\r0i/.0.0/r-, f1/./-\r0i/.0/r-, )oido~oo/%d/ r-0n.r0a~ ov/.=nextVersion/ 
+%d~='.=nextVersion; ov/.=newVersion/
+  
+%%Process-args macro.
+oq/.=args/z~r-0n.r0a@&
+( %%Arg-parsing loop.
+  z@r-0(v/ /e)0
+  v/-help /s/ /        ol1ov/.=help/,
+  v/-debug /s/ /       ol1ov/.=debug/,
+  v/-noexit /s/ /      ol1ov/.=noExit/,
+  v/-verbose /s/ /     ol1ov/.=verbose/,
+  v/-listdevs /s/ /    ol1ov/.=listdevs/,
+  v/-notest /s/ /      ol1ov/.=notest/,
+  v/-win /s/ /         ol1ov/.=win/,
+  v/-win64 /s/ /       ol1ov/.=win64/,
+  v/-noand /s/ /       ol1ov/.=noand/,
+  v/-lin /s/ /         ol1ov/.=lin/,
+  v/-nochrome /s/ /    ol1ov/.=nochrome/,
+  v/-diff /s/ /        ol1ov/.=diff/,
+  v/-dynamic /s/ /     ol1ov/.=dynamic/,
+  v/-newtree /s/ /     ol1ov/.=newtree/,
+  v/-suffix / s/ /     e-n.(f1/ /, r0(v-/ /r-)0)a~z~r-0i/_/z. ov/.=sourceSuffix/,
+  v/-newversion / s/ / e-n.(f1/ /, r0(v-/ /r-)0)a~z. (z~r-0rz. ov/.=newVersion/, ),
+  v/-oldversion /s/ /  e-n.(f1/ /, r0(v-/ /r-)0)a~z. ov/.=oldVersion/,
+  v/-backup / s/ /     e-n.(f1/ /, r0(v-/ /r-)0)a~z. ov/.=backup/,
+  v/-preproc / s/ /    %d~= \-E ; ov/.=preproc/,
+  v/-strip / s/ /      %d~= \-Xlinker --strip-all ; ov/.=strip/)0
+%%
+( r-0(v/ /r)0 r\, z. %X=Error: Unrecognized arg(s) &'~; )
+
+( %%Main command block.
+  
+  %%Set up for -backup option.
+  ( oq/.=backup/z~r-0r\, %%A backup filename was specified.
+    ( %q=file '.=localPath&ed/source/backup/&'~;  %%Given backup name is good, the backup source file exists.
+      z~r-0f1/jot.c/-n.r0a$ %d~='$; ov/.=sourceSuffix/
+      ( %q=file '.=localPath&/ed/source/jot&'.=sourceSuffix&.c;, %%The backup copy does not exist - copy it now.
+        %e=cp  &'.=localPath&/ed/source/backup/jot.c&'.=sourceSuffix& &'.=localPath&/ed/source/jot&'.=sourceSuffix&.c;?
+        %e=chmod u+w '.=localPath&/ed/source/jot&'.=sourceSuffix&.c;? )
+    , %x=Error: An invalid backup filename was specified.; ) )
+    
+  %%Set up for -oldVersion option.
+  ( oq/.=oldVersion/z~r-0r\, z.ok %%An old version was specified set up the path for the original source file.
+    %d$='.=localPath&/ed/release/jot/&'.=oldVersion&/source/jot.c;
+    ( %q=file &'$;\ %x=Error: An invalid version filename was specified.;
+    , %%The source exists in that version.
+      %%Set up the suffix.
+      oq/.=oldVersion/z~r-0n.r0a@&z@r-0i/_/r-n.r0a~ ov/.=sourceSuffix/
+      %%Set the temp-source pathname.
+      %d@='.=localPath&/ed/source/jot_&'.=oldVersion&.c;
+      %%If the temp source file already exists, use that one.
+      ( %q=file '@;, %%It does not yet exist - copy the original.
+        %e=cp "&'$&" "&'@&";? ) ) )
+  
+  %%Check the suffix.
+  ( %q=file '.=localPath&ed/source/jot&'.=sourceSuffix&.c;, %x=Error: Bad suffix - the file &'.=localPath&ed/source/jot&'.=sourceSuffix&.c does not exist.; )
+  
+  %%Pick up system type.
+  ( %i~='.=localPath&ed/system; z.ov/.=system/,  %X=Error: No system file present in &'~; )
+  
+  %e=rm -f &'.=localPath&ed/source/jot.lis;
+
+  ( oq/.=win/ol0o=ok, ok
+    %%Cross-compile for windows in linux.
+    %%
+    %q$=date; ki/Compilation started: / %o='.=localPath&ed/source/jot.lis;
+    %%Set up version string
+    %d@=\\\'"jot for windows ;
+    %d@= -append '.=newVersion&, from &'.=localPath&ed/source/jot&'.=sourceSuffix&.c;
+    %q$=date; m %d@= -append , &'~& built &'$& ;
+    (%q=windows; %e$=uname -nsr;, %e$=uname -nspr;) z@ %d@= -append '$&"\';
+    %d~='@; ov/.=versionString/
+    z@r-0i/Version string=/r0b2 %o= -append &'.=localPath&ed/source/jot.lis;
+    %%
+    oq/.=debug/ (o1 %d~=/Zi ; ov/.=winDebug/, )
+    %%
+    %e=rm -f &'.=localPath&bin/jot&'.=exeSuffix&'.=sourceSuffix&.exe;
+    %e=rm -f &'.=localPath&bin/jot&'.=exeSuffix&'.=sourceSuffix&.pdb;
+    %e=rm -f &'.=localPath&bin/jot&'.=exeSuffix&'.=sourceSuffix&.ilk;
+    %%
+    %d@=Compiling &'.=localPath&source/jot&'.=sourceSuffix&.c for 32-bit windowsNT; %q@= -append date; kj-2i/ /r0b2 %o= -append '.=localPath&ed/source/jot.lis
+    %%
+    %%Now set up the 1-line wine compile command - this has been separated from the link command to avoid going over 1024 characters.
+    ( %q=windows;
+      %dc=%er=cl ;
+    , %%In linuxland use the wine compatibility layer.
+      %dc=%er=wine cl ; )
+    %dc= -append '.=wineLocal&ed/source/jot&'.=sourceSuffix&.c ;
+    %dc= -append /DVERSION_STRING=&'.=versionString& ;
+    %dc= -append '.=winDebug& ;
+    %dc= -append /D__value=_value ;
+    %dc= -append /D_DEBUG ;
+    %dc= -append /DVC ;
+    %dc= -append /DNoRegEx ;
+    %dc= -append /DnoX11 ;
+    %dc= -append /link ;
+    %dc= -append /STACK:100000000 ;
+    %dc= -append libgcc.lib ;
+    %dc= -append libgw32c.a ;
+    %dc= -append Ole32.Lib ;
+    %dc= -append /map:&'.=wineLocal&ed/source/jot.map ;
+    %dc= -append /out:&'.=wineLocal&bin/jot&'.=exeSuffix&'.=sourceSuffix&.exe 2>\&1 ;
+    %%Run the compiler.
+    'c? %o= -append '.=localPath&ed/source/jot.lis;
+    %%
+    %q@=date; kb2i/Done compile  / %o= -append '.=localPath&ed/source/jot.lis;
+    %%
+    %i.= -append '.=localPath&ed/source/jot.lis; m0b
+    %%Prepare the final report and exit if -noexit was not given.
+    %e@=ls -lrt &'.=localPath&ed/source/jot&'.=sourceSuffix&.c &'.=localPath&bin/jot&'.=exeSuffix&'.=sourceSuffix&.*;? z.m0bh@b
+    %%
+    oq/.=noExit/( o1, %a='.; ) )
+
+  ( oq/.=lin/ol0o=\ok
+    %%Compile for linux.
+    %%
+    %e=rm -f &'.=localPath&/bin/jot&'.=exeSuffix&'.=sourceSuffix;
+    %q$=date; ki/Compilation started: / %o='.=localPath&ed/source/jot.lis;
+    %%
+    %%Set up the version string
+    %d@=jot for linux &'.=newVersion;
+    %d@= -append , from &'.=localPath&ed/source/jot&'.=sourceSuffix&.c;
+    %q$=date; m %d@= -append , built &'$& From &'.=localPath&/source/jot&'.=sourceSuffix&.c &'~;
+    %e$=uname -nspr; z@ %d@= -append '$;
+    %d~='@; ov/.=versionString/
+    %%
+    oq/.=debug/ (o1 %d~=\-DJOT_DEBUG;ov/.=linDebug/, )
+
+    oq/.=system/z~r-0v/CHROME/z.ok
+    ( %m=Chromebook-linux compile.
+      %%
+      ( %d~= ;, %d~=/usr/lib/x86_64-linux-gnu/libncursesw.so ; ) ov/.=dynamicString/
+      %%
+      %%Set up the one-line compile command.
+      %dc=%er=cc &'.=preproc& -DCHROME -DnoX11 &'.=linDebug& -g -Wall &'.=localPath&/ed/source/jot&'.=sourceSuffix&.c ;
+      %dc= -append \ -D_FILE_OFFSET_BITS=64 -D VERSION_STRING='"&'.=versionString&"';
+      %dc= -append \ &'.=strip& -Xlinker -Map=&'.=localPath&/ed/jot.map \
+      %dc= -append \ /usr/lib/x86_64-linux-gnu/libncursesw.so -lgcc_s &'.=dynamicString&'.=strip;
+      %dc= -append \ -o &'.=localPath&/bin/jot&'.=exeSuffix&'.=sourceSuffix& 2>\\\&1\;?;
+      %%Do it.
+      'c
+      %o= -append '.=localPath&&ed/source/jot.lis;
+      %q$=date; ki/Compilation ends: / %o= -append '.=localPath&ed/source/jot.lis;
+      %i$='.=localPath&/ed/source/jot.lis; (f1/ warning: /m, f1/ error: /m, k)0 z.h$m-0
+      %e@=ls -lrt &'.=localPath&ed/source/jot&'.=sourceSuffix&.c &'.=localPath&bin/jot&'.=exeSuffix;? %o= -append &'.=localPath&ed/source/jot.lis; )
+
+  , v/PI/z.ok
+    ( %m=Raspberry-PI linux compile.
+      %%
+      ( %d~= ;, %d~=/usr/lib/x86_64-linux-gnu/libncursesw.so ; ) ov/.=dynamicString/
+      %%
+      %%Set up the one-line compile command.
+      %dc=%er=cc &'.=preproc& -DCHROME -DnoX11 &'.=linDebug& -g -Wall &'.=localPath&/ed/source/jot&'.=sourceSuffix&.c ;
+      %dc= -append \ -D_FILE_OFFSET_BITS=64 -D VERSION_STRING='"&'.=versionString&"';
+      %dc= -append \ &'.=strip& -Xlinker -Map=&'.=localPath&/ed/jot.map \
+      %dc= -append \ /usr/lib/x86_64-linux-gnu/libncursesw.so -lgcc_s &'.=dynamicString&'.=strip;
+      %dc= -append \ -o &'.=localPath&/bin/jot&'.=exeSuffix&'.=sourceSuffix& 2>\\\&1\;?;
+      %%Do it.
+      'c
+      %o= -append '.=localPath&&ed/source/jot.lis;
+      %q$=date; ki/Compilation ends: / %o= -append '.=localPath&ed/source/jot.lis;
+      %i$='.=localPath&/ed/source/jot.lis; (f1/ warning: /m, f1/ error: /m, k)0 z.h$m-0
+      %e@=ls -lrt &'.=localPath&ed/source/jot&'.=sourceSuffix&.c &'.=localPath&bin/jot&'.=exeSuffix;? %o= -append &'.=localPath&ed/source/jot.lis; )
+
+  , v/PC/z.ok
+    ( %m=PC-linux compile.
+      %%
+      %%Select appropriate libraries.
+      ( oq/.=dynamic/o1 %d~=\ -Xlinker -dy -lncursesw -lncurses -l:libncursesw.so -Xlinker -dy -ldl;, %d~=\ -Xlinker -dn -l:libncursesw.a -lncurses -Xlinker -dy -ldl ;) 
+      ov/.=dynamicString/
+      %%
+      %%Set up the one-line compile command.
+      %dc=%er=cc &'.=preproc& -DLINUX -DnoX11 &'.=linDebug& -g -Wall &'.=localPath&ed/source/jot&'.=sourceSuffix&.c ;
+      %dc= -append \ -D_FILE_OFFSET_BITS=64 -D VERSION_STRING='"&'.=versionString&"';
+      %dc= -append \ -Xlinker -Map=&'.=localPath&/ed/jot.map \
+      %dc= -append \ -lgcc_s &'.=dynamicString& &'.=strip;
+      %dc= -append \ -o &'.=localPath&/bin/jot&'.=exeSuffix&'.=sourceSuffix& 2>\\\&1\;?;
+      %%Do it.
+      'c
+      %o= -append '.=localPath&&ed/source/jot.lis;
+      %q$=date; ki/Compilation ends: / %o= -append '.=localPath&ed/source/jot.lis;
+      %i$='.=localPath&/ed/source/jot.lis; (f1/ warning: /m, f1/ error: /m, k)0 z.h$m-0
+      %e@=ls -lrt &'.=localPath&ed/source/jot&'.=sourceSuffix&.c &'.=localPath&bin/jot&'.=exeSuffix;? %o= -append &'.=localPath&ed/source/jot.lis; ) )
+
+  %e@=ls -lrt &'.=localPath&ed/source/jot&'.=sourceSuffix&.c &'.=localPath&bin/jot*;? m0
+  %%Linux post-compile test.
+  z.m-0k0b2h@b
+  ( oq/.=notest/o1, %%Testing has not been disabled by the -notest qualifier.
+    ( %e=jot&'.=exeSuffix&'.=sourceSuffix& ${JOT_RESOURCES}/t.t -in="%r=test\; (v/Successfully completed all basic tests/%a0\;, %a1\;)"
+      i/Passed tests/b
+    , i/***** Faild post-compilation regression test *****/b ) ) )
+  %%
+  %%In -newtree and -newversion were both given, create and populate a new version subtree.
+  ( oq/.=newTree/ol0, oq/.=newVersion/z~r-0r\, %%Yes -newtree and -newversion were both given.
+    ( %q=file '.=localPath&release/jot/&'.=newVersion; %x=Error: Subtree &'.=newVersion* already exists.;, )
+    %%Create the directories.
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/source;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/coms;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/docs;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/READMEs;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/bin;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/bin/lin;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/bin/win;
+    %e=mkdir '.=localPath&release/jot/&'.=newVersion&/bin/armv71;
+    %e=cp -pr '.=localPath&resources '.=localPath&release/jot/&'.=newVersion;
+    %e=cp '.=localPath&source/jot.c '.=localPath&release/jot/&'.=newVersion&source;
+    %e=cp '.=localPath&bin/jot '.=localPath&release/jot/&'.=newVersion&bin/lin/jot;
+    %e=cp '.=localPath&bin/jot.exe '.=localPath&release/jot/&'.=newVersion&bin/lin/;
+    %e=cp '.=localPath&READMEs/* '.=localPath&release/jot/&'.=newVersion&READMEs;
+    %e=cp '.=localPath&coms/*.jot '.=localPath&release/jot/&'.=newVersion&coms;
+    %e=cp '.=localPath&docs/*.txt '.=localPath&release/jot/&'.=newVersion&docs;
+    %e=cp '.=localPath&docs/*.html '.=localPath&release/jot/&'.=newVersion&docs;
+    %e=cp '.=localPath&bin/install.sh '.=localPath&release/jot/&'.=newVersion&bin;
+    %%
+    %e=chmod -R ugo-w'.=localPath&release/jot/&'.=newVersion; )
+  %%
+  %%
+  oq/.=noExit/( o1, %a='.; )
+:
+'#

@@ -66,7 +66,7 @@ m-0n.m0a@h@z@
 m-0(rm,k)0 %%m0j-
 
 %%Protect each pathname from the shell - this causes the scripts to fail every time on chromebooks.
-%q$=version; (mf1/chrome/z@, z@m-0(f/"/i/\/r)0 m-0(i/"/r0i/"/m)0 )
+%q$=version; (mf1/chrome/z@, z@m-0(f/"/i/\\/r)0 )
  
 %%Construct commands
 z!r-0(f1/-quick/s/ /
@@ -76,32 +76,30 @@ z!r-0(f1/-quick/s/ /
   %%
   %%Repeat the command only in batches of 1000 pathnames.
   z@m0((v/ /r)0r\m-)0 ( (m-r0i/ \/)1000 r-0b-z!m+1z@r0i'! i/ \/m- z!m+2z@r0i'!bm- )0 r-0(v'!, z!m-0z@i'!i/ \/b m0r0i/ \/bz!m+2z@i'!)
-, %%Repeat the command for each path, executed as a separate process - could take forever for a large list.
-  z@m-0 (rr-n.r0a$i/echo "" >> /h;b i/echo "--------------------------------------------------------------/h$i/ >> /h;bh!r-0 (f1/$1/ (s'$f1/$1/)0, r0i/ /i'$) r0i/ >> /h;b m)0
+, %%Non-quick mode - each line is presented as a new CLI command.
+  %%Repeat the command for each path, executed as a separate process - could take forever for a large list.
+  z@m-0 (rr-n.r0a$i/echo "" >> /h;b i/echo "--------------------------------------------------------------/h$i/" >> /h;b
+  h!r-0 (f1/$1/ (s'$f1/$1/)0, r0i/ "/i'$) r0i/" >> /h;b m)0
   m-0(f/--------------------------------------------------------------"/-e-i/  /)0
   )
   
-%%In linux/unix add the shebang line, in windows strip out the double quotes.
-m-0b-2 (%q=windows; , i"#!/bin/sh" )
+%%In linux/unix add the shebang line
+m-0b-2 (%q=linux; i"#!/bin/sh", )
 %%
 %%Change the first ">>" to ">"
 m-0f/>>/e
 %%
 %%Write the command file.
-z@(%q=windows; %b=pathname '\;.bat;, %b=pathname '\;.sh;) %o
+z$m-0k0e0 (%q=windows; i';i/.bat/, i';i/.sh/)z@ %b=pathname '$; %o;
 %%
 %%Change permissions to execute.
-(%q=windows; z$, z;r-0n.r0a$h$z$r-0i/%e=chmod u+x /r0i/.sh/ '$ )
+(%q=windows; z$, %e=chmod u+x &'$; )
 %%
 %%Run the script.
-r-0e0i/( %e@=/h; (%q=windows; i/.bat/, i/.sh/)i/; , )/ '$
+%d@=%e='$; '@?
 %%
 %%Read the results. 
-z$r-0e0i/%i@=/h; '$
-i/multi_do results for unix command:  /h!b2
-%%
-%%Tidy up. 
-%%z$m-0e0i/%e=\rm -f /h; i/ / h; (%q=windows; i/.bat/, i/.sh/) '$
+z$r0f-1/./e0 %i@='$; i/Multi_do results:    /h! m-0
 %%
 %%All done. 
 z@

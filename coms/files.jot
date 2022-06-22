@@ -23,7 +23,7 @@
 %%
 
 %%Initialize the report buffer.
-z$n.a@
+z$n.a@&
 %%Initialize search at buffer & (ASCII code 38).
 ol38
 %%Go for it.

@@ -58,11 +58,11 @@ m0f-/(Cell /-(v/ /r)0n.(q/ )/\r)0a@h@m0
   %%Note the position of the master.
   on
   %%Find the correct instance.
-  (f/(instance /-v'$\, r-rf1'$-rr-q/ )/\)0 w
+  (f/(instance /-v'$\, r-rf1'$-rr-q/ )/\)0  %w=refresh; 
   %%Check that we're still in the right cell.
   onf-/(Cell /-(v/ /r)0(v'@r-rf1'@-q/ )/, 
     %%Return to the last-located master and give up.
-    okono-om obz@r-0i/%X=Fatal:Can't find instance "/i'$i/" in definition of cell "/r0i/"./oz'@
+    okono-om obz@r-0i/%X=Fatal:Can\'t find instance "/i'$i/" in definition of cell "/r0i/"./oz'@
     )
   %%Go back to the instance and get the master name.
   ono-omok f/(cellRef /-(v/ /r)0n.(q/ )/\r)0a@h@

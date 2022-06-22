@@ -23,7 +23,9 @@
 
 %%
 %%Do translation, skipping any control characters.
-m-0 (n.a$ (oixrobosz$r0(ol32o<oki/^/, ol255o=oki/^/, oo/%c/) oz)0 r0i/	/h$ m)0
+m-0 (n.a$& (oixrobosz$r0(ol32o< ol32o+oo/^%c /, ol127o< oo/%c  /, oo/%2X /) oz)0 r0i/	#  /h$ m)0
+%%
+%%m-0 (n.a$& (oixrobosz$r0(ol32o<oki/^/, ol255o=oki/^/, oo/%c/) oz)0 r0i/	#  /h$ m)0
 %%
 %%Find rightmost tab.
 m-0

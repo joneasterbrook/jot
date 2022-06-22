@@ -60,7 +60,7 @@ obz$m-0(f/-not/oz %%With -not find non-duplicated lines.
     %%Search now.
     ((r\m)0r- on n.r0a$h$ (f'$ r-m, r0v-'$\ m)0 (mm-, obz@h$boz) ono-om m)0
     %%Report number in list and exit.
-    obz@(m-\ozono-omor, okokok %s=case '~; on %x=There were '~ unduplicated lines.; )
+    obz@(m-\ozono-omor, okokok %s=case '~; on %x=There were &'~& unduplicated lines.; )
     %%
     %m=No unduplicated lines were found.
   , %%No -list qualifier given, just stoop at next duplicated line.
@@ -76,7 +76,7 @@ obz$m-0(f/-not/oz %%With -not find non-duplicated lines.
     %%Search now.
     ((r\m)0r- on n.r0a$h$ (f'$ r-m, r0v-'$\ m)0 (mm-obz@h$boz, ) ono-om m)0
     %%Report number in list and exit.
-    obz@(m-\ozono-omor, okokok %s=case '~; on %x=There were '~ duplicated lines.; )
+    obz@(m-\ozono-omor, okokok %s=case '~; on %x=There were &'~& duplicated lines.; )
     %%
     %m=No duplicated lines were found.
   , %%No -list qualifier given, just stoop at next duplicated line.

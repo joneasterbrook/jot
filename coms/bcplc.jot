@@ -31,10 +31,8 @@
 %%
 %%Macro '!' traverses an expression.
 %d!=\\'*(q"-\"r,)((v/ /r)0\\'*(v/(/\\'#h_,v/\'/f1//-,v/"/(f/"/-v-/*"/rl)0,q"0-9a-zA-Z._"r(q""(r,m))0)(v/ /r)0(v/(/\\'#h_,)(q"+*/~|\!%#@<>=-"r(q""r,),v/OF/r2))0
-%w
+%w=new -clear -height=10 -delim;
 %T=2
-%w 10
-%w 0
 %%
 %%First check that case sensitivity is off.
 m-0i/Case sensitivity/v-/case SENSITIVITY/e-0

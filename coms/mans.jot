@@ -23,9 +23,8 @@
 %%
 %%
 %%
-%w
-%w 9
-%w 0
+%w=clear;
+%w=new -height=9 -delim;
 %t 2
 %%Chop out comments.
 m-0

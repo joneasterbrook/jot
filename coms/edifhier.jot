@@ -59,7 +59,7 @@ m0f-/(Cell /-(v/ /r)0n.(q/ )/\r)0a@h@m0
   %%Find the correct instance - allow any object if we're at the end of the path.
   obz$(mm-oz
     %%More path elements left - accept only instances.
-    (f/(instance /-v'$\, r-rf1'$-rr-q/ )/\)0 w
+    (f/(instance /-v'$\, r-rf1'$-rr-q/ )/\)0  %w=refresh; 
     %%Check that we're still in the right cell.
     onf-/(Cell /-(v/ /r)0(v'@r-rf1'@-q/ )/, 
       %%Return to the last-located master and give up.
@@ -69,14 +69,14 @@ m0f-/(Cell /-(v/ /r)0n.(q/ )/\r)0a@h@m0
     ono-omok f/(cellRef /-(v/ /r)0n.(q/ )/\r)0a@h@
   , oz
     %%Last path element - allow any old object (normally nets).
-    (f'$q-/ ("/\r, f1'$-rr-q/ )<[/\)0 w
+    (f'$q-/ ("/\r, f1'$-rr-q/ )<[/\)0  %w=refresh; 
     %%Check that we're still in the right cell.
     onf-/(Cell /-(v/ /r)0(v'@r-rf1'@-q/ )/, 
       %%Return to the last-located master and give up.
       okono-om obz@r-0i/%X=Fatal:Can not find object "/i'$i/" in definition of cell "/r0i/"./oz'@
       ) 
     %%Go back to the object.
-    ono-omok n.a@)
+    ono-omok n.a@&)
   %%
   %%Annotate the instance name with the master name then index to next instance.
   obz$r0i/	/h@moz

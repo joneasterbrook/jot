@@ -1,7 +1,6 @@
 %%This script bombards the editor with blocks of randomly-selected valid commands with randomly-selected valid arguments.
 %%
 %%Nobbled tests:
-%%  %F
    
 %%
 %%    Copyright (C) 2013-2018 Jon. Easterbrook
@@ -88,6 +87,7 @@ Script options:
     -pause                  - enters debugger on completion of each pass.
     -nowin                  - Suppresses window view.
     -crash                  - Insert a command that's guaranteed to crash it.
+    -debug                  - Insert commands to add various bits of debugging information to the logfile.
   
 Buffer usage: 
   A - list of scripts matching -allscripts=<pattern>
@@ -127,8 +127,6 @@ Buffer usage:
 
 %%Buffer c is a list of all possible valid commands.
 %gc
-oaol2o%ol1o=x<n_1_to_5>, 
-oaol2o%ol1o=x-<n_1_to_5>, 
 a<Key>
 a<Key>.
 a<Key>+
@@ -288,7 +286,8 @@ v'<Key>
 v-'<Key>
 v'~
 v-'~
-w
+oaol2o%ol1o=x<n_1_to_5>, 
+oaol2o%ol1o=x-<n_1_to_5>, 
 y
 y-
 y<n>
@@ -302,8 +301,8 @@ z<Key>
 %%%B=writeifchanged;
 %%%B=readonly 0;
 %%%B=writeifchanged 0;
-%B=pathname <pathName>;
-%B=header <string>;
+%B=pathname <fsPathname>;
+%B=header <percentString>;
 %B=header '<Key>;
 %B=header '~;
 %B=sameflag1;
@@ -313,55 +312,62 @@ z<Key>
 %B=tabstops <tabstops>;
 %B=tabcells <tabstops>;
 %B=unicode <0_or_1>;
-%b=tagtype <tagName> colourtag <colour> <colour>;
+%b=tagtype -colour=<colour>:<colour> <tagName>;
 ol<n_1_to_20> %b=addtag <tagName>;
 %b=addtag <tagName>;
 ol<n_1_to_20> %b=addtag <tagName>;
-%b=addtag -text=<string>;
-ol<n_1_to_20> %b=addtag -text=<string>;
-m-0 %b=tagtype allLines colour 3 5; (r10ol10ou %b=addtag allLines; m, m)0
-%%%b=remove_tag <tagType> <tagNameKeyOrText>;  %I've not worked out how to do this properly, besides clearing tags might cause many tag-related bugs to become invisible.
+%b=addtag -text=<percentString>;
+ol<n_1_to_20> %b=addtag -text=<percentString>;
+m-0 %b=tagtype -colour=3:5 allLines; (r10ol10ou %b=addtag allLines; m, m)0
 %%%C;
 %D<Key>=;
-%D<Key>=<string>;
+%D<Key>=<percentString>;
 %D<NewKey>='<NewKey>;
 %E=<shellCommand>;
 %E<Key>=<shellCommand>; m100?k0
 <1in1000>%EQ=jot ${JOT_RESOURCES}/t.t -tty -in="p0 %a;";
 %PQ=<childJotCommand>;
 %E~=<shellCommand>; m100?k0
-%%%F<Key>=<validSearchString>;   --Any %F can result in valgrind errors.
-%%%F<Key>='<Key>;
-%%%F<Key>='~;
-%%%F-<Key>=<validSearchString>;
-%%%F-<NewKey>='<NewKey>;
-%%%F-<Key>='~;
-%%%F=<validSearchString>;
-%%%F='<Key>;
-%%%F='~;
-%%%F-=<validSearchString>;
-%%%F-='<Key>;
-%%%F-='~;
+%f= -any <listOfStrings>;
+%f= -back -any <listOfStrings>;
+%f= -all <listOfStrings>;
+%f= -back -all <listOfStrings>;
+%f= -first <listOfStrings>;
+%f= -back -first <listOfStrings>;
+ocon %f= -startline='~ -startchr='~ -endline=<n> -endchr=<n> -any <listOfStrings>;
+ocon %f= -startline='~ -startchr='~ -endline=<n> -endchr=<n> -back -any <listOfStrings>;
+ocon %f= -startline='~ -startchr='~ -endline=<n> -endchr=<n> -all <listOfStrings>;
+ocon %f= -startline='~ -startchr='~ -endline=<n> -endchr=<n> -back -all <listOfStrings>;
+ocon %f= -startline='~ -startchr='~ -endline=<n> -endchr=<n> -first <listOfStrings>;
+ocon %f= -startline='~ -startchr='~ -endline=<n> -endchr=<n> -back -first <listOfStrings>;
+oco# %f= -startline='~ -endline='~ -any <listOfStrings>;
+oco# %f= -startline='~ -endline='~ -back -any <listOfStrings>;
+oco# %f= -startline='~ -endline='~ -all <listOfStrings>;
+oco# %f= -startline='~ -endline='~ -back -all <listOfStrings>;
+oco# %f= -startline='~ -endline='~ -first <listOfStrings>;
+oco# %f= -startline='~ -endline='~ -back -first <listOfStrings>;
+%%  %F= -rex <rexSearchString>;
+%%  %F= -rex -back <rexSearchString>;
 %G<Key>;(<break><record>)<n_lines><break>:
 %H=create <n>;
 %H<Key>=create <n>;
 %h=create 10;  %h=data <hashTableKey>; %d~=Top dummy; ov/<hashTableKey>/
 %h=create 10 <Key>=; %h=data <Key>=Top; %d~=Top dummy; ov/<Key>=Top/ %h=create 10 <Key>=Top; %h=data <Key>=Top|Mid; %d~=Mid dummy; ov/<Key>=Top|Mid/ %h=create 10 <Key>=Top|Mid; %h=data <Key>=Top|Mid|Bot; %d~=Bot dummy; ov/<Key>=Top|Mid|Bot/  
-obz$%b=unrestricted; ozm-0ol1o.m0onm-0 %h=create '~; ((v/ /r)0n.r3a$& %h=add '$; m, m)0
+obz$%b=unrestricted; ozm-0ol1o.m0onm-0 %h=create <n>; ((v/ /r)0n.r3a$& %h=addjump '$; m, m)0
 %H=jump <hashTableKey>;
 %H<Key>=jump <hashTableKey>;
 %H<NewKey>=jump '<NewKey>;
 %H<Key>=jump '~;
-%H=add <hashTableKey>;
-%H<Key>=add <hashTableKey>;
-%H=new <hashTableKey>;
-%H<Key>=new <hashTableKey>;
+%H=addjump <hashTableKey>;
+%H<Key>=addjump <hashTableKey>;
+%H=newjump <hashTableKey>;
+%H<Key>=newjump <hashTableKey>;
 %H=data <hashTableKey>;
 %H<Key>=data <hashTableKey>;
 %H=setsect <hashTableKey>;
 %H<Key>=setsect <hashTableKey>;
 %H=setfsect <hashTableKey>;
-%d~=<pathName>;ol<n>ol<n> %H=setfsect <hashTableKey>;
+%d~=<fsPathname>;ol<n>ol<n> %H=setfsect <hashTableKey>;
 %H<Key>=setfsect <hashTableKey>;
 %H=delete <hashTableKey>;
 %H<Key>=delete <hashTableKey>;
@@ -371,23 +377,23 @@ obz$%b=unrestricted; ozm-0ol1o.m0onm-0 %h=create '~; ((v/ /r)0n.r3a$& %h=add '$;
 <1in100>%H=destroy -all;
 %H<Key>=destroy;
 %H<Key>=destroy -all;
-z. %H=create 1000; %h=new one; %h=data two; %h=setsect three; m-0 (%h=add '$; on %h=data data_'$; oaoa %h=setsect seek_'$; m)0
+z. %H=create 1000; %h=new one; %h=data two; %h=setsect three; m-0 (%h=addjump '$; on %h=data data_&'$; oaoa %h=setsect seek_&'$; m)0
 %%%H'=call <validRoutineName>;
-%I<Key>=<pathName><PercentIArgs>;
-%I=<pathName><PercentIArgs>;
+%I<Key>=<PercentIArgs> <fsPathname>;
+%I=<PercentIArgs> <fsPathname>;
 %I<Key>=;
 %I=;
 %L=;
-%M=<string>;
+%M=<percentString>;
 %M='<Key>;
 %M='~;
-%O=<outputPathName>;
-%O=<outputPathName> -append;
+%O=<fsPathnameOut>;
+%O= -append <fsPathnameOut>;
 %Q<Key>=wd;
 %Q<Key>=heap;
 %Q<Key>=history;
 %Q<Key>=keys;
-%Q<Key>=key <hashTableKey>;
+%Q<Key>=keys -key=<hashTableKey>;
 %q<Key>=tags;
 %q<Key>=tags -here;
 %q<Key>=backtrace;
@@ -410,36 +416,35 @@ z. %H=create 1000; %h=new one; %h=data two; %h=setsect three; m-0 (%h=add '$; on
 %Q=dir .;
 %Q<Key>=file;
 %Q=file;
-%Q<Key>=file <validPathName>;
-%Q=file <validPathName>;
-%Q<Key>=file <invalidPathName>;
-%Q=file <invalidPathName>;
-%W;
-%W= -height=<windowHeight>;
-%W<NewKey>= -height=<windowHeight>;
-%W= -height=<windowHeight> -delim;
-%W<NewKey>= -height=<windowHeight> -delim;
-%W= -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>= -width=<sliceWidth>;
-%W<NewKey>= -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>= -width=<sliceWidth>;
-%W= -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>= -width=<sliceWidth>; %W<NewKey>= -width=<sliceWidth>;
-%W<NewKey>= -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>= -width=<sliceWidth>; %W<NewKey>= -width=<sliceWidth>;
-%W= -winno=<windowNo> -key=<NewKey>;
-%W= -winno=<windowNo> -height=<windowHeight>;
-%W= -winno=<windowNo> -height=<windowHeight> -delim;
-%W= -winno=<windowNo> -width=<sliceWidth> -delim;
-%W= -winno=<windowNo> -width=<sliceWidth>;
-%W= -winno=<windowNo> -delete;
-%W= -winno=<windowNo> -freeze=<0_or_1>;
-%W= -winno=<windowNo> -insert -height=<windowHeight>;
-%W= -winno=<windowNo> -insert -height=<windowHeight> -delim;
-%W= -winno=<windowNo> -insert -width=<sliceWidth>;
-%W= -winno=<windowNo> -insert -width=<sliceWidth> -delim;
+%Q<Key>=file <validFsPathname>;
+%Q=file <validFsPathname>;
+%Q<Key>=file <invalidFsPathname>;
+%Q=file <invalidFsPathname>;
+%W=clear;
+%W=new -height=<windowHeight>;
+%W<NewKey>=new -height=<windowHeight>;
+%W=new -height=<windowHeight> -delim;
+%W<NewKey>=new -height=<windowHeight> -delim;
+%W=new -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>=new -width=<sliceWidth>;
+%W<NewKey>=new -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>=new -width=<sliceWidth>;
+%W=new -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>=new -width=<sliceWidth>; %W<NewKey>=new -width=<sliceWidth>;
+%W<NewKey>=new -height=<windowHeight> -width=<sliceWidth>; %W<NewKey>=new -width=<sliceWidth>; %W<NewKey>=new -width=<sliceWidth>;
+%W=modify=<windowNo> -key=<NewKey>;
+%W=modify=<windowNo> -height=<windowHeight>;
+%W=modify=<windowNo> -height=<windowHeight> -delim;
+%W=modify=<windowNo> -width=<sliceWidth> -delim;
+%W=modify=<windowNo> -width=<sliceWidth>;
+%W=modify=<windowNo> -delete;
+%W=modify=<windowNo> -freeze=<0_or_1>;
+%W=modify=<windowNo> -insert -height=<windowHeight>;
+%W=modify=<windowNo> -insert -height=<windowHeight> -delim;
+%W=modify=<windowNo> -insert -width=<sliceWidth>;
+%W=modify=<windowNo> -insert -width=<sliceWidth> -delim;
 %%%R=;
 %R=<validCommandScript>;
 %R=<invalidCommandScript>;
 %b=sort;
 %b=tabsort;
-%s=case;
 %s=case 1;
 %s=case 0;
 %s=verbose <verbosity>;
@@ -453,12 +458,12 @@ z. %H=create 1000; %h=new one; %h=data two; %h=setsect three; m-0 (%h=add '$; on
 %s=system 0;
 %s=system 1;
 %s=guardband <windowHeight>
-%s=prompt <string>;
+%s=prompt <percentString>;
 %s=prompt;
 %s=on_key y0;
 %s=on_key;
 %U=;
-%%%X=<string>;
+%%%X=<percentString>;
 %~=;
 %~=<hexByte>;
   
@@ -482,25 +487,28 @@ m-0 (f/<sliceWidth>/oaol25o%ol5o+oo/%d/)0   %%sliceWidth in the range 5 to 30.
 m-0 (f/<WinSizeIncrement>/oaol10o%oo/%d/)0  %%Window size changes by +/-<WinSizeIncrement>
 m-0 (f/<0_or_1>/oaol2o%oo/%d/)0
 m-0 (f/<tabstops>/oaol3o% (ol0o=s/-1/, ol1o=s/ /e-, s/5 12 17 27 35/)ok)0
+%%For percentStrings first select how many substrings (1 - to 10).
+m-0 (f/<percentString>/ s/ /e-oaol5o%ol-1oso- (zsm0oaono%m-0om zoi's o~i/&/)0 ok)0 
 %%These define the allowable range of buffers by key.
 %%%d@=!"#$%&'()*+,-./0123456789:<=>?@BEGHJKLOQRUVWXYZ;
 %d@=UVWXYZ;
-m-0 (f/<Key>/ oaol5o%z@r-0orn.ra!&zo(s'!f1//)0)0          %%If there's more than one <Key> on a line they are all assigned the same key.
+m-0 (f/<Key>/ oaol5o%z@r-0orn.ra!&zo(s'!f1/<Key>/)0)0     %%If there's more than one <Key> on a line they are all assigned the same key.
 m-0 (f/<NewKey>/ oaol5o%z@r-0orn.ra!&zos'!)0              %%If There's more than one <NewKey> on a line they are each assigned a new randomly-assigned key, but could be the same.
+m-0 (f/<hashtablePathname>/ zpm0m-onm-0oaoso%omzos'p)0    %%Substitute a plausable hashtable path from ( P ) buffer.
 m-0 (f/<CommandModeBitMask>/oaol8o%oo/%x/)0
 m-0 (f/<delim>/zdr0oaoco%r-0orn.ra_& zor-0(f1/<delim>/s'_)0 )0
 m-0 (f/<validFormat>/zfoam0m-ono%m-0omn.r0a_& zor-0(f1/<validFormat>/s'_)0 )0
 m-0 (f/<invalidSearchString>/s/ZZZinvalidZZZ/)0
 m-0 (f/<validSearchString>/s/abc def ghi/)0
-m-0 (f/<string>/ oazsm0m-ono% m-0om zos's)0 
+m-0 (f/<rexSearchString>/s/abc.*ghi/)0
+m-0 (f/<string>/ oazsm0m-2ono%o~ m-0om zos's)0 
 m-0 (f/<shellCommand>/s/ls -l/)0
 m-0 (f/childJotCommand>/s/p0 %a;/)0
-m-0 (f/<outputPathName>/s@./x.lis@)0
+m-0 (f/<fsPathnameOut>/s@./x.lis@)0
 m-0 (f/<envName>/s/JOT_RESOURCES/)0
-%%  m-0 (f/<pathName>/s@/usr/include/stdio.h@)0
-m-0 (f/<pathName>/ (oaol5o% ol0o=s"/usr/include/stdio.h", ol1o=s"${JOT_RESOURCES}/UTF-8-demo.txt", ol2o=s"${JOT_RESOURCES}/Richard_III_Entire_Play.txt", ol3o=s"${JOT_RESOURCES}/Sample_UTF-8.txt") ok)0
-m-0 (f/<validPathName>/s@/usr/include/stdio.h@)0
-m-0 (f/<invalidPathName>/s@/usr/include/stdiozzz.h@)0
+m-0 (f/<fsPathname>/ (oaol5o% ol0o=s"/usr/include/stdio.h", ol1o=s"${JOT_RESOURCES}/UTF-8-demo.txt", ol2o=s"${JOT_RESOURCES}/Richard_III_Entire_Play.txt", ol3o=s"${JOT_RESOURCES}/Sample_UTF-8.txt", ol4o=s"${JOT_RESOURCES}/l99.t") ok)0
+m-0 (f/<validFsPathname>/s@/usr/include/stdio.h@)0
+m-0 (f/<invalidFsPathname>/s@/usr/include/stdiozzz.h@)0
 m-0 (f/<validPath>/s./usr/include.)0
 m-0 (f/<invalidPath>/s./usr/includezzz.)0
 m-0 (f/<validCommandScript>/s/curses_keys_xterm.jot/)0
@@ -512,7 +520,17 @@ m-0 (f/<break><record>/s/ /e-bi/This is the first and only record/)0
 m-0 (f/<break>/e7b)0
 m-0 (f/<tagName>/oaol4o% (ol0o=s/john/, ol1o=s/fred/, ol2o=s/jim/, ol3o=s/bill/) ok )0
 m-0 (f/<colour>/oaol7o% oo/%d/)0
-m-0 (f/<PercentIArgs>/s/ /e-oa 
+m-0 (f/<listOfStrings>/-rr-                           %%Adds a randomly selected selection of characters (%f search).
+  oaol19o%ol-20o+                                     %%Word counter in range -1 to -20.
+  (                                                   %%Word loop.
+    oaol9o%ol-10o+                                    %%word length counter in the range -1 to -10.
+    (oaol94o%ol32o+ oo/%c/o~rr-)0 ok                  %%ASCII characters in range 32 to 128.
+    o~i/	/rr-                                         %%Add separating tab character.
+    )0 ok                                             %%Word loop ends.
+  r0r- (f-1/;/ol0(v-/\/o~r-)0 ol2o% (o0i/\/, ) )0     %%Ensure there's an odd number of backslashes escaping any internal semicolons.
+  r-0f1/<listOfStrings>/s/ /(v/ /r)0(v/-/i/\/, )      %%Also make sure any leading hyphens ( - ) are escaped.
+  )0                                                  %%<listOfStrings> loop ends.
+ m-0 (f/<PercentIArgs>/s/ /e-oa 
   (o#ol1o&ol0o=,  oaol1000o% oo/ -section=<hashTableKey>/rr-)ok
   (o#ol2o&ol0o=,  oaol1000o% oo/ -seek=%d/rr-)ok
   (o#ol4o&ol0o=,  oaol1000o% oo/ -bytes=%d/rr-)ok
@@ -523,17 +541,46 @@ m-0 (f/<PercentIArgs>/s/ /e-oa
 m-0 (f/<hashTableKey>/ oaol9o% (ol0o=s/abc/, ol1o=s/def/, ol2o=s/ghi/, ol3o=s/jkl/, ol4o=s/mno/, ol5o=s/pqr/, ol6o=s/stu/, ol7o=s/vwxy/, ol8o=s/123/, ol9o=s/456/,) ok )0
 :
 
-%%Possible translation of valid strings.
+%%Possible translation of valid <string> and <percentString> - the first entry is not selected for <string> - only valid as a percent-command substring.
 %gs
+'<hashtablePathname>
 a
 abc
 fred
 1234567890
+'<NewKey>
 abcdefghijklmnopqrstuvwxyz
 :
-%%zsm0n.r0aa& bha10 bha50 bha500
-%%Temp fix
-zsm0n.r0aa& bha10 bha10 bha10
+%%One longish string (260 characters).
+zsm0n.r0aa& bha10
+
+%%Possible hashtable pathnames.
+%g@
+<key>=one
+<key>=two
+<key>=three
+<key>=four
+<key>=five
+<key>=six
+<key>=seven
+<key>=eight
+<key>=nine
+<key>=ten
+<key>=<initialSubpath>|one
+<key>=<initialSubpath>|two
+<key>=<initialSubpath>|three
+<key>=<initialSubpath>|four
+<key>=<initialSubpath>|five
+<key>=<initialSubpath>|six
+<key>=<initialSubpath>|seven
+<key>=<initialSubpath>|eight
+<key>=<initialSubpath>|nine
+<key>=<initialSubpath>|ten
+:
+%%Expand <key> to buffers U - Z
+zpm-0k0e0 ol85 (h@bm-0(f/<key>/o#oo/%c/)0 o~)6
+%%Expand initialSubpath to randomly selected valid subpath
+zpm-0 (m-0oaol9o%omf1/=/-n.r0a@& f/<initialSubpath>/s'@)0
 
 %gm
 %%Main command macro.
@@ -546,14 +593,13 @@ zsm0n.r0aa& bha10 bha10 bha10
 z$m-0i/ /r0i/ / %o=monkey_args.txt
 %%Update log
 %%( %f=file monkey_test.log;, %e=touch monkey_test.log; )
-%q@=date; kb2i/monkey tests started / r0i/, with args /h$ %o=monkey_test.log -append;
+%q@=date; kb2i/monkey tests started / r0i/, with args /h$ %o= -append monkey_test.log;
 
 ( %%Loop selects random command sequences and then runs them.
   z. %b=unrestricted;
   ( %i.=./l99.t;, %x=Error: Failed to open l99.t; )
   %%Rename the primary file.
   %b=pathname x.lis
-%%  ol0ov/'=BraceCount/
   %%Check for -script, -allscripts and -seed modifiers.
   ( z$m-0
     ( f/-allscripts=/-
@@ -561,14 +607,14 @@ z$m-0i/ /r0i/ / %o=monkey_args.txt
         %%Use all scripts matching the pattern.
         z$n.(f1/ /, r0)a@& z@r0(f-1./.-, r-0i"./")b- za %qa=dir '@;
         %%Select only those matching the pattern.
-        z@mzam (f1'@m, k)0 m-0(m z@m-za (i'@ m)0 m-0, z$b-f-/-allscripts=/-b %X=Found no scripts matching the string "'$";)
+        z@mzam (f1'@m, k)0 m-0(m z@m-za (i'@ m)0 m-0, z$b-f-/-allscripts=/-b %X=Found no scripts matching the string "&'$&";)
         %b=readonly; )
       (mr, %x=Completed all scripts.; )
       %%Read the script.
       %io='a;
     , r-0f/-script=/-
       %%Use specified  preexisting script.
-      b(f1/ /b-,) (%io='$; , %x=Failed to open file '$;)
+      b(f1/ /b-,) (%io='$; , %x=Failed to open file &'$;)
       %q~=buffer; f/pathname = /-b
       z$j- z.
     , %%Generate a new script.
@@ -580,9 +626,9 @@ z$m-0i/ /r0i/ / %o=monkey_args.txt
         %q~=date; m(q/0-9/r,e)0 r-0n.r2aor2e2hor-0oidz. )
       %s=case 0
       %%Convert to string in buffer o
-      z.n.aozo o#oo/%d/ 
+      z.n.ao& zo o#oo/%d/ 
       %%Set pathname of output file.
-      %b=pathname ./test'o.jot;
+      %b=pathname ./test&'o&.jot;
       %o;
       %%Seed the random-number generator.
       zor-0i/%%Random-number generator seeded with / %m='o; r0bi/%%CLI args: /z$m-0j0zoh$b O@r0b
@@ -590,7 +636,7 @@ z$m-0i/ /r0i/ / %o=monkey_args.txt
       %%Recover original args.
       %i$=./monkey_args.txt;?
       %%Populate buffer O with a randomly-selected sequence of valid commands.
-      z$m-0(f/-tests=/-oid, ol10000) ol0oso-z. (oazcm0m-ono% m-0om nao+& o~)0 (%s=trace 0;) zom-0't w
+      z$m-0(f/-tests=/-oid, ol10000) ol0oso-z. (oazcm0m-ono% m-0om nao+& o~)0 (%s=trace 0;) zom-0't %w=refresh; 
       %%Add any -tail= commands.
       z@%b=unrestricted; z$m-0(f/-tail=/-(q$!"^&*./$n.ra@&bf1/@/b-, bf1/ /b-)zoi/%%Commands from -tail arg./bi'$b, )
       %%Add usual test-script terminating commands.
@@ -603,19 +649,22 @@ z$m-0i/ /r0i/ / %o=monkey_args.txt
       %%Add some entries to the stack to make underflows less likely - it still might have the wrong type entries though.
       zom-0m3i/(ol123)50/b (f/  O@  /- i/  (ol123)50    /)0 )
     %%Don't touch old scripts.
-    ( z$r-0(f1/ -script=/\ f1/ -allscripts=/\) 
+    ( z$r-0(f1/ -script=/\ f1/ -allscripts=/\)
       %%If -label was given, label each line with it's line number;
       z$m-0(f/ -label /zo (v/:/m, onr0oo/          %%%%Line %d/m)0, )
       %%Add -head= command string if given.
       z$m-0(f/-head=/-(q$!"^&*./$n.ra@&bf1'@b-, bf1/ /)zoi/%%Commands from -head arg./bi'$b, )
       %%Add something to crash it if requested.
       (z$r-0f/ -crash/zom0m-3oaono%ono-om b-i"o@ol123 oo/%n/   %%Crash now.", )
+      %%Debuggery - this gets the initialization commands into the logfile.
+      z$m-0 (f/ -debug/ zom-0f/%%CLI args:/mi"%q$=system; f/Initialization commands =/z$ m-k-0bmbk0 %o= -append ./monkey_test.log;"b, )
+      %%Write the script now.
       zo%o;
     , )
     z. )
   zo %q~=buffer; f/pathName = /-b 
   %%Update logfile.
-  %q@=date; ki'~ i/ /j %o=monkey_test.log -append;
+  %q@=date; ki'~ i/ /j %o= -append monkey_test.log;
   %%Increment test counter
   znr-0oido~ %b=unrestricted; oo/%d/
   %%Protect monkey_test buffers from noodling.
@@ -627,62 +676,58 @@ z$m-0i/ /r0i/ / %o=monkey_args.txt
   zs %b=readonly;
   zn %b=readonly;
   zm %b=readonly;
-%%  %%Get invocation name.
-%%  %qi=system; (f/ Invocation name = /- b-k-0mk0, m-0k0i/jot/)
   %%Set trace mode.
   z$m-0 (f/-trace=/-(v/ /r)0b %s=trace '$; j-, %s=trace 0; )
   %%
   %%Prepare for blastoff.
   ( z$m-0f/-invoke=/- n.(rf1/ /, r0)ai&, %qi=system; (f/ Invocation name = /- b-k-0mk0, m-0k0i/jot/) )
-  ( z$m-0f/-nowin/ zom-0i/%w;/b, zom-0i/%w 9; %w 0;/b ) 
+  ( z$m-0f/-nowin/ zom-0i/%w=clear;/b, zom-0i/%w=new -height=9 -delim;/b ) 
   ( z$m-0f/-commandcounter=/-oid, ol0 ) zom-0oo/%%s=commandcounter %d;/r0b
   %%Launch now.
   ( z$m-0f/-subprocess/ 
-    ( m-0k0e0i/%e@=/i'ii/ l99.t -init="%r=/i'~i/ -asConsole\; %a";/ '$, z. %i.=l99.t; o#  %r='~ -asConsole;? '$)
+    ( m-0k0e0i/%e@=/i'ii/ l99.t -init="%r= -asConsole /i'~i/\; %a";/ '$, z. %i.=l99.t; o#  %r= -asConsole '~;? '$)
   , z$m-0f/-xterm/ 
-    ( m-0k0e0i/%e=\xterm -e /i'ii/ l99.t -st -init="%r=/i'~i/ -asConsole\;? %a";/ '$)
+    ( m-0k0e0i/%e=\xterm -e /i'ii/ l99.t -st -init="%r= -asConsole /i'~i/\;? %a";?/ '$)
   , z$m-0f/-gdb/
-    ( m-0k0e0i/%e@=\gdb -ex="set confirm off" -ex="r" -ex="bt" -ex="q" --args /i'ii/ l99.t -st -init="%r=/i'~i/ -asConsole\;? %a\;";/ '$)
-    n.(f/SIGSEGV/a$ %o=monkey_test.log -append;, )
+    ( m-0k0e0i/%e@=\gdb -ex="set confirm off" -ex="r" -ex="bt" -ex="q" --args /i'ii/ l99.t -st -init="%r= -asConsole /i'~i/\;? %a\;";?/ '$ )
+    f/starting program/-f1/.jot/-n.f-1/ /-a$& (%f= -any SIGSEGV	Negative record size; na$+ z$ %o= -append monkey_test.log;, )
   , z$m-0f/-winedbg/
-%w; %w 9; %w 0;
-    ( m-0k0e0i/%e@=echo "c" | \winedbg /i'ii/ l99.t -st -init="%r=/i'~i/\\ -asConsole\;\\ %a123\;" > mt.lis ;/ '$)
-    ( %o=monkey_test.log -append;, )
+    ( m-0k0e0i/%e@=echo "c" | \winedbg /i'ii/ l99.t -st -init="%r= -asConsole /i'~i/\;\\ %a123\;" > mt.lis ;/ '$)
+    ( %o= -append monkey_test.log;, )
   , z$m-0f/-wine / 
-    ( m-0k0e0i/( %e=\wineconsole /i'ii/ l99.t -st -init="%r=/i'~i/ -asConsole\; %a0\;";, m-0k0i"  *** Abnormal exit ***  " %o=monkey_test.log -append;, )/ '$ )
-%%    ( m-0k0e0i/%e@=\wineconsole /i'ii/ l99.t -init="%r=/i'~i/ -asConsole\; %a0\;";\/b i/ m-0k0bi"Abnormal exit" %o=monkey_test.log -append;/ '$, )
-  , z$m-0f/-winedbg / 
-    ( m-0k0e0i/%e@=echo "c" | \winedbg /i'ii/ l99.t -init="%r=/i'~i/ -asConsole\; %a0\;";\, m-0k0bi"Abnormal exit" %o=monkey_test.log -append;/ '$)
+    ( m-0k0e0i/( %e=\wineconsole /i'ii/ l99.t -st -init="%r= -asConsole /i'~i/\; %a0\;";, m-0k0i"  *** Abnormal exit ***  " %o= -append monkey_test.log;, )/ '$ )
   , z$m-0f/-valgrind/
-    m-0k0e0i/%e@=\valgrind --leak-check=full --track-origins=yes /i'ii/ l99.t -st -init="%r=/i'~i/ -asConsole\; %a\;" 2>&1;/
-      ( '$ r0(f/ERROR SUMMARY: 0 errors from 0 contexts/, m-0(v/==/m,k)0 %o=monkey_test.log -append;),
-        %q@=date; ki/ - Failed to launch valgrind subprocess. / %o=monkey_test.log -append; )
+%%    %d$=%e@=valgrind --leak-check=full --track-origins=yes &'i& l99.t -st -init="%r= -asConsole &'~&\\; %a\\;" 2>\\&1\;?;
+    m-0k0e0i/%e@=\valgrind --leak-check=full --track-origins=yes /i'ii/ l99.t -st -init="%r= -asConsole /i'~i/\; %a\;" 2>\&1;?/
+      ( '$? r0(f/ERROR SUMMARY:/i'~i/: /f1/ 0 errors from 0 contexts/, m-0(v/==/m,k)0 %o= -append monkey_test.log;),
+        %q@=date; ki/ - Failed to launch valgrind subprocess. / %o= -append monkey_test.log; )
   , %%Launch script in the current session.
-    z. %i.=l99.t; o#  %r='~ -asConsole;?
-    z^m-0i/q       %s=trace 0;/b
+    z. %i.=l99.t; o#  %r= -asConsole '~;?
+    z^m-0i/q           %s=trace 0;/b
     z$ %b=unrestricted;
     z@ %b=unrestricted;
     %%
     ( %%Check for any obvious signs of damage to monkey_test's internal data.
-      zcm-0v/a<Key>/ m=300m\
-      zdr-0v@\!%^&*_=:/$"@ m\
+      zcm-0v/a<Key>/ m=334m\
+      zdr-0v@!%^&*_=:/$"@ m\
       zfm-0v"/%c/" m+9m\
-      ztm-0v/%%Macro T - translate meta syntax of raw command extracted from buffer c./ m=44m\
+      ztm-0v/%%Macro T - translate meta syntax of raw command extracted from buffer c./ m=64m\
       zsm-0v/a/ m=8m\
       znm-0(q/0-9/r)0r\m\
-      zmm-0v/%%Main command macro./ m=146m\
+      zmm-0v/%%Main command macro./ m=150 m\
     , %%Oops . corruption of internal data.
       %x=Error: Internal data corruption.; ) )
   %%
+%w=clear; %w=new -height=20 -delim;
   %%Update log.
-  %q@=date; ki/ - completed / %o=monkey_test.log -append;
+  %q@=date; ki/ - completed / %o= -append monkey_test.log;
   %%Recover original args.
   %i$=./monkey_args.txt
   %%Exit now if -noloop, -script or -seed was given.
   z$((m-0f/-noloop /\m-0f/-script=/\m-0f/-seed=/\)\ %r=unlockall; %a=Completed one pass;, )
   m-0 (f/-pause /t, )  %%This T command should not be removed.
   %%If -allscripts check for end of list.
-  (z$r-0f1/-allscripts=/- (zamrr-m-, z$b(f1/ /, r0)b- za %x=Done all scripts matching '$;), )
+  (z$r-0f1/-allscripts=/- (zamrr-m-, z$b(f1/ /, r0)b- za %x=Done all scripts matching &'$;), )
   %%
   %%set up for next pass.
   %r=unlockall

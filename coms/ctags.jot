@@ -68,10 +68,10 @@ m0onol1000o+ %h=create '~;
 %%Now create the list of files in .=Files
 %h=data .=Files; %d~=;o# ov/.=Files/ z~%h=create 100; z. ok
 %%Set up the hashtable, duplicated keys are suffixed with "__n".
-m-0 (v/!/m, n.f1/	/a@& (%h=new '@;, ol0(o# %h=new '@__'~;\ o~)0 ok) m)0
+m-0 (v/!/m, n.f1/	/a@& (%h=newjump '@;, ol0(o# %h=newjump '@&__&'~;\ o~)0 ok) m)0
 %%
 %%Set up the ctags_stack.
-%h=data .=ctags_stack; n.a~ov/.=ctags_stack/
+%h=data .=ctags_stack; n.a~& ov/.=ctags_stack/
 %%
 
 %g7
@@ -89,9 +89,9 @@ z$ (r, oz(q-/A-Za-z0-9_/r-)0n.(q//r)0a$&)
 %%Add key to ctags stack.
 oq/.=ctags_stack/ z~m0r0bi'$ z.
 %%
-( %h=jump .='$;
+( %h=jump .=&'$;
 , %%Key not recognized return back up the stack.
-  oq/.=ctags_stack/z~(k-(rr-n.r0a$k)? z.ok %h=jump '$;, %x=Error: Section '$ not found in the tags-index file.; )
+  oq/.=ctags_stack/z~(k-(rr-n.r0a$k)? z.ok %h=jump '$;, %x=Error: Section &'$& not found in the tags-index file.; )
   )
 %%
 %%The hashtable key is now defined by ( $ ).
@@ -104,16 +104,17 @@ f1/	/-n.f1//a!&
   z!r-0i/.=Files|/ z~
 , %%No, read the file into a new sub-buffer.
   %i~='!; %b=writeifchanged;
-  z!r-0i/.=Files|/ %h=data '!; o#ov'! z~) osok
+%%  %h=data .=Files|&'!; o#ov'! z~) osok
+t  z!r-0i/.=Files|/ %h=data '!; o#ov'! z~) osok
 %%
 %%Find the requested definition using either the string or line number from the ctags file.
 z.r(v"/^"r2n.f1|$/;"|a$& z$(f1/\/(v/\\/r2, e))0 z~m-0 (f'$r-\r0v-'$\)0, q/0-9/oid osz~osono-om) 
 %%Now adjust the view to get the section start about 3/4 of the way up the screen.
-z~w %q$=window; f/currently buffer ( ~ ), /-oidosz~os ol3o*ol4o/ow
+z~ %w=refresh;  %q$=window; f/currently buffer ( ~ ), /-oidosz~os ol3o*ol4o/ow
 :
 
 %%The macro ( # ) and ( @ ), defined below are only activated if the -AtoZ qualifier is given.
-%%  Macro ( # ) assigns buffers to source files,
+%%  Macro ( # ) assigns source files to buffers,
 %%  Macro ( @ ) is a replacement for macro ( 7 )
 %g#
 %%
@@ -122,11 +123,12 @@ z~w %q$=window; f/currently buffer ( ~ ), /-oidosz~os ol3o*ol4o/ow
 %%First boil down the list of files.
 z.m-0 (v/!/m)0 n.m0a@& z@m-0 (f1/	/-e-0f1//e0m,k)0 %b=sort; m-0(n.r0a$&m (v'$r0v-'$k)0 mm-)0
 %%Check no. of files, if too many then assign buffers in macro ( 7 ).
-onol26(o<\ %%There are too many files.
-  ok %h=data .=Buffer_keys; ol65 ov/.=Buffer_keys/
+onol26
+( o<\ %%There are too many files - all files go to buffer ( A ).
+  ok %h.=data Buffer_keys; ol65 ov/.=Buffer_keys/
 , %%There are 26 or less files - assign buffers now.
   %%Assign buffers A ... Z - FYI 65 is ASCII 'A'.
-  ok m-0ol65 (o#oo/%c	/o~m)0 
+  ok m-0ol65 (o#oo/%c	/o~m)0
   %%Now modify the tags file image.
   z@m-0 (n.f1/	/a$r0i/	/ z.m-0 (f'@r0i/	KEY=/h$)0 z@m)0 ok) z.
 :
@@ -141,19 +143,19 @@ onol26(o<\ %%There are too many files.
 z$ (r, oz(q-/A-Za-z0-9_/r-)0n.(q//r)0a$&)
 %%
 %%Go to the relevant line of the ctags file.
-%h=jump .='$;
+%h=jump .=&'$;
 %%Pick up pathname and check against files registered in .=Files|...
 f1/	/-n.f1//a!& z!i/.=Files|/n.r0a$&
-( oq'! %%Yes, the file is already in memory, just pick up the buffer key and change context.
+( oq'! t%%Yes, the file is already in memory, just pick up the buffer key and change context.
   ozm-0
-, %%No, read the file into a new sub-buffer.
-  z.r0 oq/.=Buffer_keys/o#o~ov/.=Buffer_keys/o#oz %i='$; %b=writeifchanged;
+,t %%No, read the file into it's designated sub-buffer.
+  z. r0r-oicoz %i='$; %b=writeifchanged;
   %%Add the pathname to the files table, and set the value to the buffer key.
   %h=data '!; o#ov'! oz )
 %%Find the requested definition using either the string or line number from the ctags file.
 obz.r-0f/	/-2(v"/^"r2n.f1|$/;"|a$& z$(f1/\/(v/\\/r2, e))0 o#oz (f'$r-\r0v-'$\)0ok, q/0-9/oid osozono-om)
 %%Now adjust the view to get the section start about 3/4 of the way up the screen.
-obw %q$=window; f/currently buffer ( /f1/), /-oidosoz ol3o*ol4o/ow
+ob %w=refresh;  %q$=window; f/currently buffer ( /f1/), /-oidosoz ol3o*ol4o/ow
 
 :
 

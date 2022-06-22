@@ -46,7 +46,7 @@ z$m-0(f/ -break/s/ /
 %o=/tmp/print
 %%z$(f/%%/e-0(v/ /e)0, m-0e0)
 z$(v/ /e)0
-n.a@z@i"%e=Lp -l66 /tmp/print | lpr -P "i-'$ (r, v-/-P /e-3) 
+n.a@& z@i"%e=Lp -l66 /tmp/print | lpr -P "i-'$ (r, v-/-P /e-3) 
 '@
 %e=rm -f /tmp/print
 ozono-om

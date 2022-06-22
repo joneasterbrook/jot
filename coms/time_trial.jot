@@ -1,0 +1,1029 @@
+%%Gives simple tasks to a selection of editors, times their responsesd generates a report.
+  
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+
+%g?
+    Launches the editors with similar tasks and record the elapsed time for each.
+    
+    Valid args:
+      - -tasks <list of task sections (1, 2,  ... ) and subsections (a, b, ...)
+        the list entries may be separated by either commas or whitespace
+      - -logfile <name of log file> -- defaults to time_trial_linux|windowsNT.txt
+      - -append  -- appends logfile to a preexisting logfile of the same name.
+      - -viasvim -- indicates that the system has set up the vi command for vim.
+      - -small   -- Used for debugging this script - uses small_file.txt instead of big_file or fat_file
+      - -tiny    -- Used for debugging this script - uses tiny_file.txt instead of big_file or fat_file
+      - -quit    -- exits on completion of tasks.
+      
+    Buffers used:
+      - ( . ) The report file. image.
+      - ( $ ) initially holds args then hols the command string for each task command.
+      - ( ! ) Holds the tasks specified by the -tasks arg.
+      - ( # ) The main macro.
+      - ( C ) The command macro (nano tasks only).
+:
+
+%%Check and save the args.
+%%
+%h'=data viasvim; ol0ov/'=viasvim/
+%h'=data small; ol0ov/'=small/
+%h'=data tiny; ol0ov/'=tiny/
+%h'=data quit; ol0ov/'=quit/
+%h'=data append; ol0ov/'=append/
+%h'=data args;
+z$r-0i-/ /n.r0a~&i/ / ov/'=args/
+%%
+%%Define the report name or use the supplied name.
+z$m-0(f/-logfile /- s/ /n.(f1/ -/, r0)(v-/ /r-)0a@, ( %e@=uname -sn; f1/ /s/_/, )r-0i/time_trial_/r0i/.txt/) z.%b=pathname '@;
+%%
+%%Ensure that the task IDs are all whitespace separated with the subtasks on the second line.
+z$m-0(f/-tasks /- s/ /n.(f1/ -/, r0)a! n.a@z! r-0(f/  /e)0 r-0((v/ /r, i/ /)q/0-9/(q//r)0, q/a-zA-Z/n.r(v/ /r, i/ /)a@+)0 r0bh@(i/ /rr0i/ /, ) z!m=1 m=2i/ /, n.a!z!b)
+%%
+z$r-0(f1/ -small / ol1ov/'=small/s/ /, )
+%%
+z$r-0(f1/ -tiny / ol1ov/'=tiny/s/ /, )
+%%
+z$r-0(f1/ -quit / ol1ov/'=quit/s/ /, ) 
+%%
+z$r-0(f1/ -append / ol1ov/'=append/s/ /, ) 
+%%
+%%ViasVim arg.
+z$m-0(f/-viasvim /s/ /ol1ov/'=viasvim/, )
+%%
+z$r-0 ((v/ /r)0rz. %x=Error: Unrecognized argument &'$;, )z.
+
+%g@
+<<tt_reportHeading>>
+%%adds a few linebreaks and the report heading for the new section of the report.
+%%
+z.m-0k0e0b2i'$ b
+%o= -append; m-0k0
+  
+<<tt_reportTime>>
+%%Calculates the elapsed time and formats the report enty in hours:minutes:seconds.msec
+%%
+z.
+%%Calculate raw elapsed time in msec.
+( oso- 
+  %%msec
+  o#ol1000o% r0oo/%03d/
+  %%sec
+  r-0 ol1000o/(ol0o=i/00./, o#ol60o% oo/%02d./)
+  %%Minutes
+  r-0ol60o/(ol0o=i/   /, o#ol60o% oo/%02d:/)
+  %%Hours
+  r-0ol60o/(ol0o=i/   /, ol60o% oo/%02d:/)
+, %%Second timestamp is missing - assume the editor exited abnormally.
+  i/      Failed - the process ended abnormally./ )
+%%Name string.
+r-0i/  /i'$r0b-
+%o= -append; m-0k0 o@
+  
+:
+%h'=call AddNewFunctions;
+
+%g#=Main_macro;
+%%init.
+%q$=date; e0bmi/-------------------------------------------------------- Time trial started /r0z.h$ 
+oq/'=args/i/  Run with:/h~bok
+( %e$=uname -a;, %d$=Something went wrong in uname.;z$ ) z.i/  Machine: /h$
+(oq/'=append/ ol1o= %o= -append; ok, %o; ok)
+m-0k0e0
+o@ z.m-0k0e0 n.a$  n.a@
+%%
+%%  %q$=date; e0bmi/Time trial started /r0z.h$ 
+%%  oq/'=args/i/  Run with:/h~bok
+%%  %e$=uname -a; z.i/  Machine: /h$
+%%  %o;
+%%  m-0k0e0
+%%
+z!m=1( (r2r-2 f1/ 1 /\)\z.
+  %d$=Task  1 - Get the version no. of each editor.; %h'=call tt_reportHeading;
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    %eq=jot -st -tty -quiet -obey -in="%q=version\; %a0\;";
+    zqmz.i/  A - jot                          /i'qb- %o= -append; k
+    , )
+  ( %q=windows;, %%Skip these in windowsland; 
+    z!m=2( (r2r-2 f1/ B /\)\
+      %%Part B - vi/vim.
+      %eq=vim --version;
+      z.i/  B - vim                          /i'qb- %o= -append; k
+      , )
+    z!m=2( (r2r-2 f1/ C /\)\
+      %%Part C - emacs (interactive).
+      %eq=emacs --version;
+      z.i/  C - emacs (interactive)          /i'qb- %o= -append; k
+      , )
+    z!m=2( (r2r-2 f1/ D /\)\
+      %%Part D - emacs (headless).
+      %eq=emacs --version;
+      z.i/  D - emacs (headless)             /i'qb- %o= -append; k
+      , ) )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    z.i/  E - ecce                         (No version information available)./b- %o= -append; k
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+    %eq=nano --version;
+    z.i/  F - nano                        /i'qb- %o= -append; k
+    , )
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 2 /\)\z.
+  bi/Task  2 - Get the executable, it's size and details./pb- %o= -append; m-0k0
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    %%Delve past all the symbolic links to find the actual executable.
+    (%q=windows; %e$=which jot.exe; (f1.\.s./.)0, %ec=which jot;) ( %q%=file -nofollowlinks 'c; f/ link to = /-n.r0aczc )0
+    %qq=file 'c; f/ size = /-oid
+    z.oo/  A - jot                          %8d  /i'cb- %o= -append; k
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %%Delve past all the symbolic links to find the actual executable.
+    (%q=windows; %ec=which vim.exe; (f1.\.s./.)0, %ec=which vim;) ( %q%=file -nofollowlinks 'c; f/ link to = /-n.r0aczc )0
+    %qq=file 'c; f/ size = /-oid
+    z.oo/  B - vim                          %8d  /i'cb- %o= -append; k
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    %%Delve past all the symbolic links to find the actual executable.
+    (%q=windows; %ec=which emacs.exe; (f1.\.s./.)0, %ec=which emacs;) ( %q%=file -nofollowlinks 'c; f/ link to = /-n.r0aczc )0
+    %qq=file 'c; f/ size = /-oid
+    z.oo/  C - emacs (interactive)          %8d  /i'cb- %o= -append; k
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %%Delve past all the symbolic links to find the actual executable.
+    (%q=windows; %ec=which emacs.exe; (f1.\.s./.)0, %ec=which emacs;) ( %q%=file -nofollowlinks 'c; f/ link to = /-n.r0aczc )0
+    %qq=file 'c; f/ size = /-oid
+    z.oo/  D - emacs (headless)             %8d  /i'cb- %o= -append; k
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    %%Delve past all the symbolic links to find the actual executable.
+    ( (%q=windows; %ec=which ecce.exe; (f1.\.s./.)0, %ec=which ecce;) ( %q%=file -nofollowlinks 'c; f/ link to = /-n.r0aczc )0
+      %qq=file 'c; f/ size = /-oid
+      z.oo/  E - ecce                         %8d  /i'cb- %o= -append; k
+    ,
+      z. i/  E - ecce                         Not available on this host.  /b- %o= -append; k )
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+    %%Delve past all the symbolic links to find the actual executable.
+    (%q=windows; %ec=which nano.exe; (f1.\.s./.)0, %ec=which nano;) ( %q%=file -nofollowlinks 'c; f/ link to = /-n.r0aczc )0
+    %qq=file 'c; f/ size = /-oidb
+    z.oo/  F - nano                         %8d  /i'cb- %o= -append; k
+    , )
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 3 /\)\z.
+  bi/Task  3 - Fire up the editors and exit immediately./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+   ( %q=time;  %eq=jot tiny_file.txt -in="%a0=\;"; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime;
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .tiny_file.txt.swp;
+    ( %q=time; %e=vim tiny_file.txt -c:q; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime;
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs tiny_file.txt -kill;  %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime;
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "tiny_file.txt"); z@ %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime;
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce tiny_file.txt -command "%a"\;;?     %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime;
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;             %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                       %%Fire it up with the big file.
+%pq= -timeout=60 -waitfor=m-0f/[m\ Exit/;                  %%Wait for it to read the file.
+:
+    ( %q=windows;
+      z. i/  F - nano                         Skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+      , )
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 4 /\)\z.
+  bi/Task  4 - Fire up the editors, read the big file and exit./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%a0";     %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt -c:q;         %q=time;, )
+%%    ( %q=time; %e=vim  big_file.txt -c:q\;;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute \'(insert-file-contents "big_file.txt")\' -kill;? %q=time;, )
+%%    ( %q=time; %e=emacs -execute \'(insert-file-contents "big_file.txt")' -kill;? %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt"); z@ %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el;         %q=time;, )
+%%    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "%a"\;;?     %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;             %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                       %%Fire it up with the big file.
+%pq= -nocr -timeout=60 -waitfor=m-0f/[m\ Exit/ ^X;         %%Wait for it to read the file then exit the nano session.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  , )
+
+%%
+z!m=1( (r2r-2 f1/ 5 /\)\z.
+  bi/Task  5 - Fire up each editor, read the big file, search through all of the file and exit./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%s=case 1\; f/zzz/ %a0";     %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt -c/zzz/ +:q\;;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute \'(insert-file-contents "big_file.txt")' '(search-forward "zzz")' -kill;? %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(search-forward "zzz");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "f/zzz/"  -command "%a"\;;?    %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                                      %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                                                %%Fire it up with the big file.
+%pq= -nocr -timeout=60  -waitfor=m-0f/[m\ Exit/ ^W;                                 %%Wait for it to read the file then request a search {Ctrl+W}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Search:/ zzz&^M;                               %%Wait for it to read the file and start the search.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/zzz / ^X;                                    %%Wait for the search to report the found string then close the session with {Ctrl+X}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+  , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 6 /\)\z.
+  bi/Task  6 - Loading a file, move to the end and exit./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="m0 %a0"\;;     %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt  -c:$ +:q\;;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute \'(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -kill;? %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(goto-char (point-max));  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "m0" -command "%a"\;;?     %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;           %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                     %%Fire it up with the big file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&/;   %%Wait for it to read the file then go to end of buffer {Esc /}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/zzz/ ^X;          %%Wait for it to get to the end of the file then exit.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 7 /\)\z.
+  bi/Task  7 - Loading a file, move to the end, search backwards and exit./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%s=case 1\; m0 f-/aaa/ %a0"\;;? %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt  -c:$ +?aaa? +:q\;;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute \'(insert-file-contents "big_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill;? %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(goto-char (point-max))(search-backward "aaa");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el;? %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "m0f-/aaa/" -command "%a"\;;?     %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                 %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                           %%Fire it up with the big file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&/;         %%Wait for it to read the file then go to end of buffer {Esc /}.
+%pq=       -timeout=60   -waitfor=m-0f/ zzz / ^Q&aaa;          %%Wait for it to get to the end of the buffer then give it the simplebackwards-search command {Ctrl+Q}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/aaa/ ^X;                %%Wait for it to find the string and exit.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 8 /\)\z.
+  bi/Task  8 - Do a big-file search and replace - part 1 (the search string and the replace string are the same length)./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%s=case 1\; (f-/99/s/zz/)0 %a0"\;;? %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt  -c:%s/99/zz/g +:q!;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "zz")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(replace-string "99" "zz");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "(f/99/s/zz/)0" -command "%a"\;;?     %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                            %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                                      %%Fire it up with the big file.
+%pq= -nocr -timeout=60 -waitfor=m-0f/[m\ Exit/ ^[&R;                      %%Wait for it to load the file and issue the global search & replace command {Esc R}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Search\ (to\ replace):/ 99&^M;       %%Wait for the prompt then enter the search string {99}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Replace\ with:/ zz&^M;               %%Wait for the prompt for a replacement string and enter {zz}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/this\ instance?/ a;                  %%Wait for the "this instance" prompt and tell it all instances {a}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/[\ Replaced\ / ^X;                   %%Wait for the replaced-insances count then issue the exit-session commmand {Ctrl+X}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Save\ modified\ buffer/ n;           %%Wait for the "save modified buffer" query and tell it No {n}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 9 /\)\z.
+  bi/Task  9 - Do a big-file search and replace - part 2 (the replacement string is longer than the oroginal)./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%s=case 1\; (f-/99/s/abcdefghi/)0 %a0";     %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt  -c:%s/99/abcdefghi/g +:q!;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "abcdefghi")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(replace-string "99" "abcdefghi");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "(f/99/s/abcdefghi/)0" -command "%a"\;;?     %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                            %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                                      %%Fire it up with the big file.
+%pq= -nocr -timeout=60 -waitfor=m-0f/[m\ Exit/ ^[&R;                      %%Wait for it to load the file and issue the global search & replace command {Esc R}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Search\ (to\ replace):/ 99&^M;       %%Wait for the prompt then enter the search string {99}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Replace\ with:/ abcdefghi&^M;        %%Wait for the prompt for a replacement string and enter {abcdefghi}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/this\ instance?/ a;                  %%Wait for the "this instance" prompt and tell it all instances {a}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/[\ Replaced\ / ^X;                   %%Wait for the replaced-insances count then issue the exit-session commmand {Ctrl+X}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Save\ modified\ buffer/ n;           %%Wait for the "save modified buffer" query and tell it No {n}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 10 /\)\z.
+  bi/Task 10 - Do a big-file search and replace - part 3 (the replacement string is shorter than the original)./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%s=case 1\; (f-/99/s/z/)0 %a0";    %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt  -c:%s/99/z/g +:q!;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-string "99" "z")' -kill;? %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(replace-string "99" "z");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "(f/99/s/z/)0" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                              %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                                        %%Fire it up with the big file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&R;                      %%Wait for it to load the file and issue the global search & replace command {Esc R}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Search\ (to\ replace):/ 99&^M;       %%Wait for the prompt then enter the search string {99}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Replace\ with:/ z&^M;                %%Wait for the prompt for a replacement string and enter {z}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/this\ instance?/ a;                  %%Wait for the "this instance" prompt and tell it all instances {a}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/[\ Replaced\ / ^X;                   %%Wait for the replaced-insances count then issue the exit-session commmand {Ctrl+X}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Save\ modified\ buffer/ n;           %%Wait for the "save modified buffer" query and tell it No {n}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 11 /\)\z.
+  bi/Task 11 - Loading a big file and doing a global regex-search and replace./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="%s=case 1\; (%f= -rex [^a-zA-Z0-9]99[^a-zA-Z0-9]\; s/ zz /)0 %a0";     %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    ( %q=time; %e=vim  big_file.txt  -c":%s/[^a-zA-Z0-9]99[^a-zA-Z0-9]/ zz /g" +:q!\;;     %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "big_file.txt")' -execute '(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(replace-regexp "[^a-zA-Z0-9]99[^a-zA-Z0-9]" " zz ");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    z.i/  E - ecce                         Skipped - no regex search in ecce/b- %o= -append; k
+    , )
+  %%
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                             %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                                       %%Fire it up with the big file.
+%pq= -nocr -timeout=60  -waitfor=m-0f/[m\ Exit/ ^[&R;                      %%Wait for it to load the file then launch the global search & replace.
+%pq= -nocr -timeout=60  -waitfor=m-0f/Search\ (to\ replace)/ ^[&R;         %%Wait for it to display the search menu and request a regex search.
+%pq= -nocr -timeout=60  -waitfor=m-0f/[Regexp]/ .99.&^M;                   %%Wait for the regex search-string prompt then enter the search string.
+%pq= -nocr -timeout=60  -waitfor=m-0f/Replace\ with:/ zzzz&^M;             %%Wait for the replace-parameter prompt and set the replace string.
+%pq= -nocr -timeout=60  -waitfor=m-0f/this\ instance?/ a;                  %%Wait for the change-this-instance prompt then tell t all instancrs {a}
+%pq= -nocr -timeout=3600 -waitfor=m-0f/[\ Replaced\ / ^X;                  %%Wait for it to get to the end and exit.
+%pq= -nocr -timeout=60  -waitfor=m-0f/Save\ modified\ buffer/ n;           %%Wait for the confirmation prompt and say "no".
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 12 /\)\z.
+  bi/Task 12 - Loading, cutting and pasting all of a big file./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot big_file.txt -in="n.m0aaha %a0";     %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .big_file.txt.swp;
+    z.i/  B - vim                          Skipped - unable to set up CLI command./b
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "big_file.txt")' -execute '(kill-region 1 (point-max))' -execute '(yank)' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "big_file.txt")(kill-region 1 (point-max))(yank);  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;;     %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce big_file.txt -command "nm0aaha" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%%N.B: {Crtl+U} is undo not paste - should be {Ctrl+V}.
+%%
+%gc;
+%e=rm -f .big_file.txt.swp big_file.txt.save*;                           %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano big_file.txt;                                     %%Fire it up with the big file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/aaa/ ^[&t;                        %%Wait for it to load the file then cut to end of buffer.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[K/ ^[&u;                         %%Wait for it to clear the window then paste.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/\ aaa/ ^X;                        %%Wait for it to display the end and exit.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Save\ modified\ buffer/ N;        %%Wait for the confirmation prompt and say "no".
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 13 /\)\z.
+  bi/Task 13 - Loading a file with very long lines - a fat file./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot fat_file.txt -in="%a0"; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .fat_file.txt.swp;
+    ( %q=time; %e=vim fat_file.txt -c:q!\;; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "fat_file.txt")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "fat_file.txt");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce fat_file.txt -command "" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .fat_file.txt.swp fat_file.txt.save*;             %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano fat_file.txt;                       %%Fire it up with the fat file.
+%pq= -nocr -timeout=60 -waitfor=m-0f/[m\ Exit/ ^X;         %%Wait for it to read the file then exit the nano session.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 14 /\)\z.
+  bi/Task 14 - Loading a fat file and searching forwards./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot fat_file.txt -in="%s=case 1\; f/zzz/? %a0"; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .fat_file.txt.swp;
+    ( %q=time; %e=vim fat_file.txt -c/zzz/ +:q!\;; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "fat_file.txt")'  -execute '(search-forward "zzz")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "fat_file.txt")(search-forward "zzz");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce fat_file.txt -command "f/zzz/" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc
+%e=rm -f .fat_file.txt.swp fat_file.txt.save*;                                      %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano fat_file.txt;                                                %%Fire it up with the fat file.
+%pq= -nocr -timeout=60  -waitfor=m-0f/[m\ Exit/ ^W;                                 %%Wait for it to read the file then request a search {Ctrl+W}.
+%pq= -nocr -timeout=60 -waitfor=m-0f/Search:/ zzz&^M;                               %%Wait for it to read the file and start the search.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/zzz / ^X;                                    %%Wait for the search to report the found string then close the session with {Ctrl+X}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 15 /\)\z.
+  bi/Task 15 - Loading the fat file, moving to the end then searching back./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot fat_file.txt -in="%s=case 1\; m0f-/aaa/ %a0"; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .fat_file.txt.swp;
+    ( %q=time; %e=vim fat_file.txt -c:$ +?aaa? +:q!\;; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "fat_file.txt")' -execute '(goto-char (point-max))' -execute '(search-backward "aaa")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "fat_file.txt")(goto-char (point-max))(search-backward "aaa");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce fat_file.txt -command "m0f-/aaa/" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .fat_file.txt.swp fat_file.txt.save*;           %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano fat_file.txt;                     %%Fire it up with the fat file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&/;   %%Wait for it to read the file then go to end of buffer {Esc /}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/zzz/ ^X;          %%Wait for it to get to the end of the file then exit.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 16 /\)\z.
+  bi/Task 16 - Do a fat-file search and replace part 1 - (the search string and the replace string are the same length)./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot fat_file.txt -in="%s=case 1\; (f/99/s/zz/)0 %a0"; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .fat_file.txt.swp;
+    ( %q=time; %e=vim fat_file.txt -c:%s/99/zz/g +:q!\;; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "fat_file.txt")'  -execute '(replace-string "99" "zz")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "fat_file.txt")(replace-string "99" "zz");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce fat_file.txt -command "(f/99/s/zz/)0" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .fat_file.txt.swp fat_file.txt.save*;                 %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano fat_file.txt;                           %%Fire it up with the fat file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&/;         %%Wait for it to read the file then go to end of buffer {Esc /}.
+%pq=       -timeout=60   -waitfor=m-0f/ zzz / ^Q&aaa;          %%Wait for it to get to the end of the buffer then give it the simplebackwards-search command {Ctrl+Q}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/aaa/ ^X;                %%Wait for it to find the string and exit.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      z. i/  F - nano                         skipped - nano crashes in this test.  /b- %o= -append; k )
+%%      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+%%      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 17 /\)\z.
+  bi/Task 17 - Do a fat-file search and replace - part 2 (the replacement string is longer than the oroginal)./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot fat_file.txt -in="%s=case 1\; %f= -substitute=abcdefghi 99\; %a0"\;; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .fat_file.txt.swp;
+    ( %q=time; %e=vim fat_file.txt -c:%s/99/abcdefghi/g +:q!\;; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "fat_file.txt")'  -execute '(replace-string "99" "abcdefghi")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "fat_file.txt")(replace-string "99" "abcdefghi");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce fat_file.txt -command "(f/99/s/abcdefghi/)0" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .fat_file.txt.swp fat_file.txt.save*;                              %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano fat_file.txt;                                        %%Fire it up with the fat file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&R;                      %%Wait for it to load the file and issue the global search & replace command {Esc R}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Search\ (to\ replace):/ 99&^M;       %%Wait for the prompt then enter the search string {99}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Replace\ with:/ zz&^M;               %%Wait for the prompt for a replacement string and enter {zz}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/this\ instance?/ a;                  %%Wait for the "this instance" prompt and tell it all instances {a}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/[\ Replaced\ / ^X;                   %%Wait for the replaced-insances count then issue the exit-session commmand {Ctrl+X}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Save\ modified\ buffer/ n;           %%Wait for the "save modified buffer" query and tell it No {n}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      z. i/  F - nano                         skipped - nano crashes in this test.  /b- %o= -append; k )
+%%      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+%%      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%%
+z!m=1( (r2r-2 f1/ 18 /\)\z.
+  bi/Task 18 - Do a fat-file search and replace - part 3 (the replacement string is shorter than the original)./pb
+  z!m=2( (r2r-2 f1/ A /\)\
+    %%Part A - jot.
+    ( %q=time; %e=jot fat_file.txt -in="%s=case 1\; %f= -substitute=a 99\; %a0"\;; %q=time;, )
+    %d$=A - jot                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ B /\)\
+    %%Part B - vi/vim.
+    %e=rm -f .fat_file.txt.swp;
+    ( %q=time; %e=vim fat_file.txt -c:%s/99/a/g +:q!\;; %q=time;, )
+    %d$=B - vim                    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ C /\)\
+    %%Part C - emacs (interactive).
+    ( %q=time; %e=emacs -execute '(insert-file-contents "fat_file.txt")'  -execute '(replace-string "99" "a")' -kill; %q=time;, )
+    %d$=C - emacs (interactive)    ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ D /\)\
+    %%Part D - emacs (headless).
+    %d@=(insert-file-contents "fat_file.txt")(replace-string "99" "a");  z@(f/)(/rb)0 r0b %o=x.el; z.
+    ( %q=time; %e=emacs --script x.el\;; %q=time;, )
+    %d$=D - emacs (headless)       ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ E /\)\
+    %%Part E - ecce.
+    ( %q=time; %e=ecce fat_file.txt -command "(f/99/s/a/)0" -command "%a"\;;? %q=time;, )
+    %d$=E - ecce                   ; %h'=call tt_reportTime; 
+    , )
+  z!m=2( (r2r-2 f1/ F /\)\
+    %%Part F - nano.
+%gc;
+%e=rm -f .fat_file.txt.swp fat_file.txt.save*;                              %%If a previous session exited untidily, fix that now.
+%eq= -interactive nano fat_file.txt;                                        %%Fire it up with the fat file.
+%pq= -nocr -timeout=60   -waitfor=m-0f/[m\ Exit/ ^[&R;                      %%Wait for it to load the file and issue the global search & replace command {Esc R}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Search\ (to\ replace):/ 99&^M;       %%Wait for the prompt then enter the search string {99}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Replace\ with:/ abcdefghi&^M;        %%Wait for the prompt for a replacement string and enter {abcdefghi}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/this\ instance?/ a;                  %%Wait for the "this instance" prompt and tell it all instances {a}.
+%pq= -nocr -timeout=3600 -waitfor=m-0f/[\ Replaced\ / ^X;                   %%Wait for the replaced-insances count then issue the exit-session commmand {Ctrl+X}.
+%pq= -nocr -timeout=60   -waitfor=m-0f/Save\ modified\ buffer/ n;           %%Wait for the "save modified buffer" query and tell it No {n}.
+:
+    ( %q=windows;
+      z. i/  F - nano                         skipped - this script can not drive nano in windows.  /b- %o= -append; k
+    ,
+      z. i/  F - nano                         skipped - nano crashes in this test.  /b- %o= -append; k )
+%%      ( %q=time; 'c %q=time; z., )                                   %%Run the commands against the clock.
+%%      %d$=F - nano                   ; %h'=call tt_reportTime; )     %%Add the report entry.
+    , )
+  %%
+, )
+
+%q$=date; e0bmi/ Time trial ended normally /  %h'=call tt_reportHeading;
+  
+%%Now form the reports into a nice neat matrix.
+z. %i.; m-0
+%%Skip this stage if ony doing selected subtasks (a b c ... )
+z!m=2 ((v/ /r)0rz., z.
+  %%Shorten the failure messages.
+  m-0 (f/Failed - the process ended abnormally./s/Failed/)0
+  m-0 (f/Skipped /s/Skipped/e0)0
+  %%
+  %%First collect all the task headings.
+  z.m-0 (f/Fire up the editors and exit immediately/, m-0f/Task /)r-0 n.aa(v/Task /n.maa+&, m)0 zam-0i/Summary report:/b(i/    /m2m-)0b
+  %%
+  %%Pick up the editor names.
+  z.m-0 (f/Fire up the editors and exit immediately/, m-0f/Task /) (mr6n.r6aa+&)0 zar-0i/ /8 ((v/ /r)0i/          /r6)0 r0b z.
+  %%
+  %%Now pick up the timings.
+  z.m-0 (f/Fire up the editors and exit immediately/, m-0f/Task /)r-0 ( (v/Task /\m)0 n.r7f1/ /-aa+& (mrr0n.r-16aa+&)0 n.maa+&)0
+  %%All done - now plonk it in at the end of the report file and write the whole thing.
+  z.m0bha %o; )
+%%
+(oq/'=quit/ol1o=%a0= Completed all tasks;, )
+%%  %w=refresh;
+z.%a0='.;
+Main_macro:
+
+%%Modify the macro if -viasvim is set.
+oq/'=viasvim/ol1(o= z#m-0(f/vim/s/vi /)0 , )
+%%
+%%Modify the macro in windowsland.
+(%q=windows; z#m-0 (f"/dev/null"s"nul:")0 m-0(f/%e=emacs/(f1/"/i/\\\/r)0 r-0(f1/\\'/s/"/)0m)0, )
+%%
+%%If we're running under win there's a few things that don't work quite right - headless emacss returns a fail status no matter what and nano doesn't work at all.
+%h'=data Wine; %q$=env WINEDATADIR; (mv/ - <Undefined> - /ol0, ol1) ov/'=Wine/
+%%
+%%Modify headless-emacs launchers in wine to forgives all errors.
+(oq/'=Wine/ol1o=\, z#(f/%e=emacs/ f1/\;;/s/\;?;/)0 )
+%%  %q$=env WINEDATADIR; (mv/ - <Undefined> - /, z#m-0 (f/%e=emacs/ f1/\;;/s/\;?;/)0 )
+%%Modify the test file if -small is set:
+oq/'=small/ol1(o=z# m-0(f/big_file.txt/s/small_file.txt/)0 m-0(f/fat_file.txt/s/small_file.txt/)0, )
+%%Modify the test file if -tiny is set:
+oq/'=tiny/ol1(o=z# m-0(f/big_file.txt/s/tiny_file.txt/)0 m-0(f/fat_file.txt/s/tiny_file.txt/)0, )
+%%
+%%Go
+z.'#
+%%Display the results on exit.

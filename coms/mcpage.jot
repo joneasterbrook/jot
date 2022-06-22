@@ -22,7 +22,7 @@
 
 %%Revision history:
 
-%g? 
+%g?
   Transforms a linear list of pages (separated by EOP - CTRL+L characters) into a tabular form
    
   Buffer usage:

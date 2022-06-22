@@ -27,7 +27,14 @@
     # - Main macro.
     @ - destination buffer - holds converted text.
     
+  Usage:
+> %r=doc2txt <pathName>
+  e.g:  %r=doc2txt ${JOT_RESOURCES}/t.doc;
+> %r=doc2txt -list
+> %r=doc2txt -raw=<pathName>
+   
   Args:
+    - -list - The current file is a list of pathnames, each is checked using the linux file command and translated using the most appropriate script.
     - -raw=<pathName>  -- Picks up a previously-extracted text file instead of a MS-word document file.
     - if no args given, then the script only defines the function doc2doc_translate.
 
@@ -38,32 +45,22 @@
 %%Translates named MS-word file to plain text, the translated text is left in the ( @ ) buffer.
 %%Buffer ( $ ) is assumed to contain the pathname.
 z$m-0r0(v/ /e)0r0(v-/ /e-)0
-( r-0v/-raw=/  %% -raw <pathname> given.
+( r-0v/-raw=/  %% -raw=<pathname> given.
   e5 %i@='$;
 , %%No raw file given.
-  n.r0a!&z! i"%e@=java -jar ~/bin/tika-app-1.18.jar --text " '!
+  %%First locate the tika installation.
+  ( %q!=dir ${JOT_RESOURCES}; e4r0n. f/tika/r-0a@i./.mk0, %x=Error: Failed to locate a tika jarfile in ${JOT_RESOURCES}; )
+  %%Now construct the tika command line.
+  r-0i/%e=java -jar /r0i/ --text "/i'$r0i@" > /tmp/doc2txt.txt@ '!
   %%Set the pathname.
-  z$r0(v-/.doc/s/_doc.txt/, i/.txt/) z@%b=pathname '$; )
+  %i@=/tmp/doc2txt.txt; z$r0(v-/.doc/s/_doc.txt/, i/.txt/) z@%b=pathname '$; )
+%%tika inserts spurious linefeeds and carriage returns - get them out now.
+z$m-0k0 olxD oo"(r0v-/%c/e-mk)0" z@'$
 
-%%Identify documents with spurious linebreaks - if the extracted text has no instances of three consecutive nonblan line then assume it's full of sprurious linebreaks.
-m-0 ( ( ( (v/ /r)0rm)3\ m)0 m
-, %%Yes this document is appears to have spurious line breaks - fix them now.
-  %%First remoe *all* blank lines.
-  m-0((v/ /r)0rm, k)0
-  %%Now attempt to identify genuine paragraph breaks - deemed to be lines ending in a fullstop.
-  m-0 (r0(v-/ /r-)0(v-/./r0b, ) m)0
-  )
-    
-%%Identify headings - any line begining with a capitalized word is treated as a heading.
-%%Line begining with only the leading letter capitalized are deemed to be paragraphs.
-m-0 (q/A-Z/r (q//r-0i/0 /r-0b(f1/:/-b(v/ /e)0i/  /, ), r-0i/  /r0b)m, m)0
-%%Now redefine headings.
-%h'=call PurgeAllHeadings;
-%%Format the paragraphs.  
-m-0 %h'=call ReformatAll;?
+%%Add conversion details.
+%q!=date; m z@m-0i/  Extracted with tika: /i'!b3
 
 :
-
-%h'=call AddNewFunctions;
-obz$r-0(rr-oz %h'=call doc2txt_translate '$;, oz)
+ob z' (%q=keys -key=doc2txt_translate;, %h'=call AddNewFunctions; )oz
+ob z$m-0((v/ /r)0r\oz, oz %h'=call doc2txt_translate; )
 

@@ -27,21 +27,31 @@
 %%  $ - passes args from CLI then used in construction of some key functions and key codes resolution.
 %%
 
-%%Set up window.
-ob %w; %q$=window; f/screenHeight = /- oid ol1o- %w; %w= -height='~ -delim; (%q=windows; , %s=mousemask 0;)
+%%  %%Bodgy fix for old version of jot (specifically jot_3 source file.
+%%  ob %q?=version; ( mf1/jot_3/ z. %r=${JOT_HOME}/release/jot/v3.1.0/coms/startup.jot; %x=;, ) oz
+
+%%Copy args to stack.
+%d~='$;
+%%Set up window - if in -tty mode %w=clear; will fail.
+(%w=clear;\, %q$=window; f/screenHeight = /- oid ol1o- %w=clear; %w=new -height='~ -delim; (%q=windows; , %s=mousemask 0;) )
 %s=console 20;
   
-%%Preserve the original args for later use.
-z$m-0n.m0r0a~
 %%Read the relevant keyboard map file.
 %g#
 z^m-0
 ( %q=windows;
   %r=WindowsNT_keys;
-, %%Not windows, use term defined by the TERM env.
-  %q@=env TERM; m %r=curses_keys_'@;
-, %m=Error: No jot key-mapping file for TERM '@, using xterm instead.;
-  %r=curses_keys_xterm; )
+, %%Not windows, use term defined by the TERM env and curses version.
+  %q@=version; m
+  ( f1/ ncurses /-  
+    %%Use correct keymap for this version of curses.
+    e-0 (f1/./s/_/)0
+    %r=curses_keys_&'@;
+  , %%For all other versions of curses, use TERM-specific keymap.
+    %q@=env TERM; m %r=curses_keys_&'@;
+  , %%No keymap for that flavour of TERM - give up with generic xterm keymap.
+    %m=Error: No key-mapping file for TERM &'@&, using xterm instead.;
+    %r=curses_keys_xterm; ) )
 :
 '#
 
@@ -56,13 +66,15 @@ z^m-0
 %%must be in a line-1 comment of the form:
 %%Prompt string: <string>
 %%
-%g'
+%g'=Code_Repository;
 <<TermResize>>
 %l;
 
 <<Do>>
 %%Prompt string: Command file pathName> 
-%r='$
+obz$n.(f1/ /, r0)a@(v/ /e)0oz %r='@& &'$;
+%%obz$n.(f1/ /, r0)a@(v/ /e)0oz %r=\'@& &\'$;
+%%obz$n.(f1/ /, r0)a@(v/ /e)0oz %r='@ '$;
   
 <<Substitute>>
 %%Prompt string: Substitute string> 
@@ -98,30 +110,32 @@ obz$ %s=system 1; i/i`/r0i/ / ozi-/`/ %s=system 0; '$oxe-rou
 
 <<Overwrite>>
 %%Prompt string: Overwrite string> 
-obz$(rr-i/i`/'$, )oz oci//oco-(eo~)0ok
+%%If still in system mode this function will erase the remaining line.
+%s=system 0; obz$(rr-i/i`/'$, )oz oci//oco-(eo~)0ok
   
 <<OverwriteBack>>
 %%Prompt string: Overwrite string> 
-obz$(rr-i/i`/'$, )oz ocr0ocosr-0o#ori//r0osoco-osr-0or(e-o~)0ok
+%%If still in system mode this function will erase the remaining line.
+%s=system 0; obz$(rr-i/i`/'$, )oz ocr0ocosr-0o#ori//r0osoco-osr-0or(e-o~)0ok
   
-<<FindPrev>>
+<<FindBack>>
 %%Prompt string: Find string> 
 obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz 
-f-//
+f-//?
   
 <<SubsThenFindPv>>
 s-//f-//
   
-<<FindPrevInd>>
+<<FindBackInd>>
 f-'_
   
-<<FindPrevAgain>>
+<<FindBackAgain>>
 f-//
   
 <<FindNext>>
 %%Prompt string: Find string> 
 obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz 
-f//
+f//?
   
 <<SubsThenFindNx>>
 s//f//
@@ -154,12 +168,12 @@ obz%m0r0n.(r-(q-/a-zA-Z0-9._Ā-𠀹/\r-)0(q//r-)0,m-r0,)a$  o#ozh$(z$r o#ozr-,m 
 <<RestoreLineRight>>
 obz%m0r0n.(r-r-0, m-,) a$o#ozh$z$m0r0 (z$r-o#ozr-,m-r0o#ozm-r0)0oz
   
-<<FindExactNext>>
+<<FindExact>>
 %%Prompt string: Find-exact string> 
 obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz (v//r, ) ( (f//- q/_A-Za-z0-9Ā-𠀹/f-//)0 f-1// q-//r)0
 (v//, %m=Find-exact failed; x\)
   
-<<FindExactPrev>>
+<<FindExactBack>>
 %%Prompt string: Find-exact string> 
 obz$(rr- %s=system 1; i/f`/ %s=system 0; '$, )oz (v//(r-, m-r0), )( (f-//- q/_A-Za-z0-9Ā-𠀹/r-f-//)0 f-1// q-//r-)0 
 (v//, %X=Find-exact failed;)
@@ -189,7 +203,7 @@ oba_&
 n.
   
 <<PageUp>>
-(m*-w)?
+(m-* %w=refresh; )?
   
 <<Home>>
 m-0
@@ -198,63 +212,85 @@ m-0
 %s=system 1; ol0r-0(f1/}}}/\m-)0r-0 (f1/}}}/ol1o-m-,f1/{{{/\m-,o~m-)0 ok %s=system 0;
   
 <<PageDown>>
-(m*w)?
+(m* %w=refresh; )?
   
 <<WindowOne>>
 %%Prompt string: Console size > 
-%%Set window size to be 1 less than screen height.
-%%Pick up optional arg (console-area size - defaults to 1).
-obz$m-0(v/ /r)0 (q/0-9/oid, ol1) osoz
+%%Default window size is 1 less than total screen height.
+%%Pick up optional console-area size arg.
+oconobz$m-0(v/ /r)0 (q/0-9/oid, ol1) osoz
 %%Set the window size.
-obos %s=system 1; %q$=window; f/screenHeight = /- oid oso- %w; %w= -height='~ -delim; (%q=windows; , %s=mousemask 0;)
+obos %s=system 1; %q$=window; f/screenHeight = /- oid oso- %w=clear; %w=new -height='~ -delim; (%q=windows; , %s=mousemask 0;)
 %%Clear any colour tags.
-o#oz %q$=tags;
-( %%Colour-tag removal loop.
-  f/active colour is /-b- 
-  %%First calculate the substring length.
-  o#f-1/ to /-oidf-1/, chr /-oido-os
-  %%Now get the substring start point.
-  f-1/, chr /-oidos
-  %%Finally, the line no.
-  f-1/At rec /-oidos
-  %%Now remove the tag.
-  m oz ono-om or o~ou %b=remove_tag colour '$; z$m)0
-%s=system 0; oz
+(z$obo=, o#oz %q$=tags;
+  ( %%Colour-tag removal loop.
+    f/active colour is /-b- 
+    %%First calculate the substring length.
+    o#f-1/ to /-oidf-1/, chr /-oido-os
+    %%Now get the substring start point.
+    f-1/, chr /-oidos
+    %%Finally, the line no.
+    f-1/At rec /-oidos
+    %%Now remove the tag.
+    m oz ono-om or o~ou %b=remove_tag -colour '$; z$m)0 )
+%%Restore original cursor position.
+ozono-omor
+%s=verbose 3;
 %b=leftoffset 0;
+o@
+%s=system 0;
+
+<<WindowNine>>
+%%Replaces all windows with a nine-line debugging window.
+%w=clear; %w=new -height=9 -delim;
 
 <<WindowHorizSplit>>
 %%Adds a new window below size-adjusted existing windows.
 %%
-%%First calculate the size of each new window.
-%s=system 1; wob %q@=window; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenHeight = /-oidol1o- oso/
-%%Create each shrunk version of original windows.
-m-0f/  win:/m- %w; (z@mf1/  win:/f1/ ( /-oicz$m-0k0 oo/%%W%c=/r0 o#oo/ -height=%d -delim;/ '$ z@)0
+%s=system 1; ob
+%%Calculate the size of each new window.
+%%First get the terminal height, count the number of existing slices and calculate the new window width.
+%w=refresh; %q@=window; f/ screenHeight = /-oid ol1o-ol0m=4 (f1/ win:/ (f1/ Leftmost/o~m, m) )0 o~o/
+%%If there's a floating window, fix it now.
+m=4 ( f/ = currently buffer ( /-n.ra$&f-/ win:/-oid %w=modify='~ -key='$;, )
+%%
+%%Reduce the height of each the original windows to allow the new window to fit in.
+m=4 (o#f1/ win:/-oid (f1/ Leftmost/ %w=modify='~ -height='~;, ok) m)0 okokok
 %%Create a new floating window.
-%s=system 0; z$m-0k0 oo/%%W= -height=%d -delim;/ '$ oz
+%w=new -height='~ -delim; %w=refresh;
+%s=system 0; oz
 
 <<WindowVertSplit>>
 %%Adds a new slice to the right of size-adjusted existing windows.
 %%
-%%First calculate the size of each new slice.
-%s=system 1; wob %q@=window; f/ Console area /m-f1/  win:/-oidol2o+ f-/ screenWidth = /-oid oso/ m-f1/ screenHeight = /-oidol1o-
-%%Create proforma command.
-z$m-0k0 oo/= -height=%d/r0ol1o-oo/ -width=%d+1 -delim;/
-%%Initialize.
-z@m-0f/  win:/m- %w; 
-%%Create each shrunk version of original windows.
-(z@mf1/  win:/(f1/ ( /-oicz$r-0oo/%%W%c/, z$r-0i/%W/) '$ (f1/= /e-0 f1/-height=/s/ /, ) )0
-%%(z@mf1/  win:/(f1/ fixed on buffer  ( /-oicz$r-0oo/%%W%c/, z$r-0i/%W/) '$ (f1/= /e-0 f1/-height=/s/ /, ) )0
-%%Create a new floating window.
-z$r-0i/%W/ '$ oz %s=system 0;
+%s=system 1; ob
+%%Calculate the size of each new window.
+%%First get the terminal width.
+%w=refresh; ob %q@=window; f/ screenWidth = /-oid 
+%%Fix any floating windows.
+m=4 ( f/ = currently buffer ( /-n.ra$&f-/ win:/-oid %w=modify='~ -key='$;, )
+%%Locate the current buffer by checking the buffer keys - this window will be split.
+m=4os (f1/ win:/ f1/ ( /-oido=\ )0 r-0(f1/ win:/, m-) os
+%%
+%%If the current window was a slice then split it once more, otherwis split the current window int two slices.
+(f1/ slice / %%Current window is a slice, count members of this group and calculate new slice width.
+  onosr0 f-/ Leftmost/on(mf1/ Leftmost/\f1/ slice /)0ono~oso- o/
+  %%if more windows follow, insert the new slice, othrwise simply creates the new slice at the end of the window list.
+  osono-om (o#f1/ win:/-oid f1/ ( /-n.ra$& %w=modify='~ -width='~ -key='$; m)0  m(f1/ win:/-oid %w=new -insert='~ -width='~ -delim;, %w=new -width='~ -delim;)
+, %%A full-width window.
+  ol2o/o# r-0f1/ win:/-oid f1/ ( /-n.ra$& %w=modify='~ -width='~ -key='$; m(f1/ win:/-oid %w=new -insert='~ -width='~ -delim;, %w=new -width='~ -delim; )
+  )
+%s=system 0; oz
 
 <<WindowSave>>
 %%Prompt string: Optionally specify a window-configuration name> 
-%%Saves window configuration and temporarially returns to a simple single windo configuration.
+%%Saves window configuration and temporarially returns to a simple single window configuration.
 %%Original configuration is saved in the /'=WindowConfig/ data object.
 %%Default config name is "default".
 %s=system 1; 
 obz$(rr-i/WindowConfig_/, i/WindowConfig_default/) oz %s=system 0;
-ob %q~=window; (z' oq'$ok, %h'=data '$; ) ov'$ oz %h'=call WindowOne;
+ob %q~=window; (z' %h=testkey '$;, %h'=data '$; ) ov'$ oz %d$=; %h'=call WindowOne;
+%%ob %q~=window; (z' oq'$ok, %h'=data '$; ) ov'$ oz %h'=call WindowOne;
 %s=system 0;
 
 <<WindowRestore>>
@@ -262,11 +298,11 @@ ob %q~=window; (z' oq'$ok, %h'=data '$; ) ov'$ oz %h'=call WindowOne;
 %%Restores the window configuration previously saved by the WindowSave function.
 %s=system 1;
 obz$(rr-i/WindowConfig_/, i/WindowConfig_default/)
-(z' oq'$, %x=Error: no previously-saved window configuration '$.; )
-z$m-0k0e0i/%w=;/b z~m3
+(z' oq'$, %x=Error: no previously-saved window configuration named "&'$&".; )
+z$m-0k0e0i/%w=clear;/b z~m-0f/win:0/r-
 ( %%Window loop.
   f1/ win:/-
-    ( f1/ fixed on buffer  ( /- oicz$oo/%%w%C=/, f1/ currently buffer ( /-oic z$oo/(z%c, z.) w %w=/) z~ 
+    ( f1/ fixed on buffer  ( /- oicz$oo/%%w%C=new/, f1/ currently buffer ( /-oic z$oo/(z%c, z.) %%w=refresh; %%w=new/, f1/ currently blank  /z$i/%w=new /z~) z~ 
     %%Only include height if it's a non-sliced or the first slice.
     ( (f1/ column slice / f1/ Leftmost/\)\ r-0f1/ lines /(q-/0-9/r-)0oid z$r0oo/ -height=%d/, ) z~
     %%Add slice width.
@@ -286,11 +322,14 @@ osozok '$ %s=system 0;
 %%First find the current window.
 %s=system 1; ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
 %%Now move to the next window, or top window if already at last window and pick up the key.
-m (f1/ ( /, f-/  screenWidth = /m) r-0f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oico#
+m (f1/ ( /, f-/  screenWidth = /m) r-0f1/ win:/- f1/ ( /-oico#
+%%  m (f1/ ( /, f-/  screenWidth = /m) r-0f1/ win:/-oid %w=modify='~ -freeze=0; f1/ ( /-oico#
 %%If there are earlier windows showing that buffer then make sure they're frozen.
-(z@m- (f1'$\, r-0f1/ win:/-oid %w= -winno='~ -freeze=1;) )0
+(z@m- (f1'$\, r-0f1/ win:/-) )0
+%%If there's a floating window restore that now.
+z@m-0 (f/ currently buffer ( /-oic m-0k0 %w=refresh;  oz %w=refresh; , )
 %%Now switch to new buffer.
-%s=system 0; oz
+%s=system 0; oz %w=refresh; 
 
 <<WindowUp>>
 %%Changes focus to previous window or slice.
@@ -298,11 +337,14 @@ m (f1/ ( /, f-/  screenWidth = /m) r-0f1/ win:/-oid %w= -winno='~ -freeze=0; f1/
 %%First find the current window.
 %s=system 1; ob %q@=window; z$m-0k0 oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 
 %%Now move to the previous, or bottom window if already at first window and pick up the key.
-m- (f1/ ( /r-0, f/  Console area /m-) f1/ win:/-oid %w= -winno='~ -freeze=0; f1/ ( /-oic m-
+m- (f1/ ( /r-0, f/  Console area /m-) f1/ win:/- f1/ ( /-oic m-
+%%  m- (f1/ ( /r-0, f/  Console area /m-) f1/ win:/-oid %w=modify='~ -freeze=0; f1/ ( /-oic m-
 %%Freeze any earlier windows matching this buffer.
-(f1'$r-0f1/ win:/-oid %w= -winno='~ -freeze=1; m-, m-)0
+(f1'$r-0f1/ win:/- m-, m-)0
+%%If there's a floating window restore that now.
+z@m-0 (f/ currently buffer ( /-oic m-0k0 %w=refresh;  oz %w=refresh; , )
 %%Now switch to new buffer.
-%s=system 0; oz
+%s=system 0; oz %w=refresh; 
 
 <<WindowReassign>>
 %%Prompt string: Window no.(optional) and buffer > 
@@ -310,19 +352,20 @@ m- (f1/ ( /r-0, f/  Console area /m-) f1/ win:/-oid %w= -winno='~ -freeze=0; f1/
 %%First pick up the correct window number.
 ob z$(v/ /e)0(q/0-9/(q//r)0r-0oid(v/ /r)0, %x=Error: You must specify a window number followed by a buffer key, separated by whitespace.; )
 %%Changes the buffer assignment of current window.
-z$e-0oo/%%w= -winno=%d -key=/(v/ /e)0r0i/;/ '$ oz
+z$e-0oo/%%w=modify=%d -key=/(v/ /e)0r0i/;/ '$ oz
 
 <<WindowAlignTop>>
 %%Prompt string: Window no.> 
 %%Aligns current line with top of window in selected [or all] windows.
 %s=system 1; 
-ob %q@=window; z$r-0 (v/ /r)0 
-(r  %%A window number was specified - adjust only that one.
+%q@=window; z$r-0 (v/ /r)0 
+( r %%A window number was specified - adjust only that one.
   r-e-0i/win:/r0i/ /
   %%Get the buffer key for whatever is being displayed by that window.
-  %q@=window; f'$f1/ ( /-oicoz onofo-ow %%oz
+  z@f'$f1/ ( /- oicoz onofo-ow
 , %%No window number was specified - adjust all windows. 
-  z@m-0m2 (mf1/win:/-f1/ ( /-oicoz wonofo-ow z@)0 ) ozw
+  z@m-0m2 (z@mf1/win:/-f1/ ( /-oicoz  %w=refresh; onofo-ow)0
+  z@m-0f/currently buffer ( /-oicoz )
 %s=system 0;
 
 <<WindowAlignCent>>
@@ -336,7 +379,7 @@ ob %q@=window; z$r-0 (v/ /r)0
   %%Get the buffer key for whatever is being displayed by that window.
   z@f'$f1/ ( /-oicf1/), /-oidol2o/ osoz onoso-ofo-ow %% oz
 , %%No window number was specified - adjust all windows. 
-  z@m-0m2 (mf1/win:/-f1/ ( /- oicf1/), /-oidol2o/ osoz onoso-ofo-ow z@)0 ) ozw
+  z@m-0m2 (mf1/win:/-f1/ ( /- oicf1/), /-oidol2o/ osoz onoso-ofo-ow z@)0 ) oz %w=refresh; 
 %s=system 0;
 
 <<WindowAlignBot>>
@@ -350,43 +393,88 @@ ob %q@=window; z$r-0(v/ /r)0
   %%Get the buffer key for whatever is being displayed by that window.
   %q@=window; f'$f1/ ( /-oicf1/), /-oidosoz onoso-ofo-ow %%oz
 , %%No window number was specified - adjust all windows. 
-  z@m-0m2(mf1/win:/-f1/ ( /- oicf1/), /-oidosoz onoso-ofo-ow z@)0 ) ozw
+  z@m-0m2(mf1/win:/-f1/ ( /- oicf1/), /-oidosoz onoso-ofo-ow z@)0 ) oz %w=refresh; 
 %s=system 0;
 
 <<WindowStretch>>
 %%Prompt string: [Window no.]> 
 %%First pick up the given window number or find the window number of the current buffer.
-%s=system 1; ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
+%s=system 1;  %w=refresh;  ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
 %%Now set up the window-identification part of the window-change command.
-z$k?oo/%%w= -winno=%d/r0 
-%%ob %q@=window; z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oidz$k?oo/%%w= -winno=%d/r0 
+z$k?oo/%%w=modify=%d/r0 
 %%If it's a full-width window tweak the height, if a slice, tweak the width. 
 ( z@f1/Slice/\  %%It's a full-width window - get the original height and set the new height.
   (f1/ ), /-oidol1o+z$oo/ -height=%d;/ '$? )
 , %%It's a slice - get original width and tweak the width.
   (z@f-1/ ), /-rf1/), /-oidol1o+z$oo/ -width=%d;/ '$? ) )
+%%Refresh all windows.
+z@m=4(v/      win:/f/ ( /-oic oz %w=refresh; z@m)0 
+%%  %l; z@m=4(v/      win:/f/ ( /-oic ozwz@m)0 
 %s=system 0; oz
   
 <<WindowShrink>>
 %%Prompt string: [Window no.]> 
 %%First pick up the given window number or find the window number of the current buffer.
-%s=system 1; ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
+%s=system 1;  %w=refresh;  ob %q@=window; z$(v/ /r)0(q/0-9/oido#z@f/win:0/om, z$m-0k0 o#oo/ ( %c ),/z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oid) 
 %%Now set up the window-identification part of the window-change command.
-z$k?oo/%%w= -winno=%d/r0 
-%%ob %q@=window; z$m-0k0 o#oo/ ( %c ), /z@ (f'$ f1/, frozen/m)0 r-0f1/ win:/-oidz$k?oo/%%w= -winno=%d/r0 
+z$k?oo/%%w=modify=%d/r0 
 %%If it's a full-width window tweak the height, if a slice, tweak the width. 
 ( z@f1/Slice/\  %%It's a full-width window - get the original height and set the new height.
   (f1/ ), /-oidol1o-z$oo/ -height=%d;/ '$? )
 , %%It's a slice - get original width and tweak the width.
   (z@f-1/ ), /-rf1/), /-oidol1o-z$oo/ -width=%d;/ '$? ) )
-oz %s=system 0;
+%%Refresh all windows.
+z@m=4(v/      win:/f/ ( /-oic oz %w=refresh; z@m)0
+%%  %l; z@m=4(v/      win:/f/ ( /-oic ozwz@m)0
+%s=system 0; oz
+
+<<WindowWithLineNumbers>>
+%%Add a slice down the lefthand sid with line numbers of the current buffer.
+%%
+ob %q$=window; 
+( f/win:0  = fixed on buffer  ( * ), / %%Linenumbers slice is already set up - remove it.
+  oz
+  %s=on_key -after;
+  %h'=call WindowOne;
+, %%No it was not already set up - set up the line-number window now.
+  m-0 f/screenHeight = /- oid ol1o- 
+  %w=clear; %w*=new -height='~ -width=7;
+  f/ screenWidth = /-oidol8o- 
+  %w=new -width='~ -delim;
+  oz
+  %%Activate the LineNumberUpdate function as an on_key sequence.
+  %s=on_key -after %h\'=call LineNumberUpdate; )
+
+<<LineNumberUpdate>>
+%%The %S=on_key handler for the line-numbers display buffer.
+%%
+%s=system 1; obn.
+( a*  %%In any buffer other than ( * ).
+  %%Get the window height, if there isn't a linenumber window then exit now..
+  %q$=window; 
+  ( f/win:0  = fixed on buffer  ( * ), /- %%Found the linenumber slice.
+    oid
+  , %%The linenumber slice has gone walkabout - yet the callback is still set???
+    oz
+    %s=on_key -after; 
+    %h'=call WindowOne;
+    %m=The linenumer window has been removed.; x0 )
+  %%Get the line number at the top of the window.
+  oso#ozos %q$=buffer; f/ OldFirstLineNo = /-oid
+  %%If no colour pair set up for the linenumbers slice, do that now.
+  z*m-0k0 %q$=buffer; (f/  TagType = Name    LineCount, /, z* %b=tagtype -colour=white:blue LineCount; )
+  %%Set up the line numbers.
+  osol0oso- (o~oso#oo/%6d / %b=addtag LineCount; o~osb)0 okokoz
+, %%Abstracion failed, presumably because we're in the ( * ) buffer.
+  )
+%s=system 0;
 
 <<ViewSave>>
 %%Prompt string: Optionally specify a view name> 
 %%Default view name is "default".
 %s=system 1; obz$(rr-, i/default/ ) oz
 %%Save view.
-%h'=add ViewJump_'$; obofz' z$r-0i/View_FirstLine_/ z'(oq'$ok, %h'=data '$;) ov'$ oz
+%h'=addjump ViewJump_&'$; obofz' z$r-0i/View_FirstLine_/ z'(oq'$ok, %h'=data '$;) ov'$ oz
 %s=system 0;
   
 <<ViewRestore>>
@@ -394,9 +482,9 @@ oz %s=system 0;
 %%Default view name is "default".
 %s=system 1; obz$(rr-, i/default/) oz
 %%Restore view - if the original buffer was ( ~ ).then use z~ instead of oz and hope the correct floating buffer is at the top of the stack.
-(%h'=jump ViewJump_'$; obz$r-0i/View_FirstLine_/z' oq'$os(ol126o=okosz~os, oz), oz %x=Could not find a saved view for '$;)
+(%h'=jump ViewJump_&'$; obz$r-0i/View_FirstLine_/z' oq'$os(ol126o=okosz~os, oz), oz %x=Could not find a saved view for &'$;)
 %%Now adjust the view.
-wofo-ow
+ %w=refresh; ofo-ow
 %%An unfortunate consequence of using hashtables is that the line numbers can go wrong - this fixes it.
 oconm-0onol1o. o-om or %s=system 0;
 
@@ -407,7 +495,7 @@ oconm-0onol1o. o-om or %s=system 0;
 %%First check the arg - exit now if not given.
 obz$m-0(roz, oz%X=Error: no search string given for PopupSearch function.;)
 %%Initialization - clear the ( - ) buffer.
-%s=system 1; ob z.n.a- oz
+%s=system 1; ob z.n.a-& oz
 %%The original start point.
 ofocon
 %%
@@ -423,7 +511,7 @@ obz-m0onosoz
 ((f'$(q-/A-Za-z0-9_Ā-𠀹/r-)0n.(q//r)0a@& obz@r-0i/ /r0i// z-m-0(f'@oz, h@boz\) )0 mm-)0
 obz-m0onm-0osozol1o- 
 ( ol0o=ok %m=Found no matching words.;
-, %m=Found '~ matching words.;
+, %m=Found &'~& matching words.;
   %%Prepare and display the popup.
   %h'=call PopupRestore;
   %%Return to corresponding point in words list.
@@ -431,21 +519,21 @@ obz-m0onm-0osozol1o-
 %%Return to original current-character point on main text.
 ono-omor
 %%Restore view.
-w ofo-ow %s=system 0;
+ %w=refresh;  ofo-ow %s=system 0;
 
 <<PopupIncrementalSearch>>
 %%Prompt string: Popup search string> 
 %%Search up and down looking for likely matches to the given word, updating popup as characters are typed in.
 %%
 %%Initialization, clear the ( $ ) buffer -  used to hold search string.
-%s=system 1; obz$n.a-oz
+%s=system 1; obz$n.a-&oz
 %%Set prompt.
-%s=prompt Incremental search> '$;
+%s=prompt Incremental search> &'$;
 %%
   
 ( %%Search-character loop.
   %%Loop init - collect focus-point details, clear results buffer and prepare search string.
-  oconob z-m-0k0w z$m-0
+  oconob z-m-0k0 %w=refresh;  z$m-0
   %%If we have a non-empty search string, collect matching words and search back from current chr.
   ( r %%A non-empty search string - collect matching words.
     oz((f-'$(q/A-Za-z0-9_Ā-𠀹/r)0n.(q-/A-Za-z0-9_Ā-𠀹/r-)0a@& (q-/A-Za-z0-9_Ā-𠀹/r-)0(r-, m-r0) obz@r-0i/ /r0i/ / z-m-0(f'@oz, m-0h@boz\) )0 oc(m-mor, ok\) )0
@@ -456,10 +544,10 @@ w ofo-ow %s=system 0;
   , %%The search string was empty.
     oz )
   %%Set prompt, report match count, return to original point and display the popup, also disable mouse events until exit.
-  obz-m0 (m-onm-0, i/  /ol0) %s=prompt Currently '~ matching words> '$; %h'=call PopupRestore; %s=mousemask 0; z-m-0 ozono-omor w
+  obz-m0 (m-onm-0, i/  /ol0) %s=prompt Currently &'~& matching words> &'$; %h'=call PopupRestore; %s=mousemask 0; z-m-0 ozono-omor  %w=refresh; 
   %%
   %%Prompt and pick up next character.
-  obw og z$r0
+  ob %w=refresh;  og z$r0
   ( ol127 o= %%It's a rubout - remove last character from search string.
     okm-0r0 e-?
   , ol10 o= %%It's a {Return} - refocus, re-enable mouse events and exit.
@@ -471,7 +559,7 @@ w ofo-ow %s=system 0;
 
 <<PopupRestore>>
 %%Prepares the the popup window for display.
-%s=system 1; obz-m-0
+%s=system 1; obz-onm-0
 ( r  %%A new popup - top and tail all entries.
   m-0((v/ /e)0r0(v-/ /e-)0m)0 
   %%Set up data object - create it if necessary.
@@ -479,23 +567,23 @@ w ofo-ow %s=system 0;
 , %%Restore last-used popup.
   oq/'=PopupMenu/z~m-0n.m0r0a-z-ok )
 %%Add colour tag to each item - define the colour tag-type if necessary.
-m-0(oxou (%b=addtag SelectWord;, %b=tagtype SelectWord colour 7 4; %b=addtag SelectWord;) m)0
+m-0(oxou (%b=addtag SelectWord;, %b=tagtype -colour=white:blue SelectWord; %b=addtag SelectWord;) m)0
+%%m-0(oxou (%b=addtag SelectWord;, (%q=windows; %b=tagtype -colour=7:1 SelectWord;, %b=tagtype -colour=7:4 SelectWord;) %b=addtag SelectWord;) m)0
 %%If the popup window is not yet defined, do that here.
-%q~=window; ( f/ column popup (/, %w-= -height=20 -width=-20 -popup; ) z-ok
-%%  %%Report popup size - N.B. this line assumes a popup size of 20 lines, this must match the popup size above.
-%%  ol20on(o>ok %m=Displaying all of popup menu.;, onos %m=Displaying '~ lines of '~ in popup menu.;)
+%q~=window; f/Screen dump follows:/ ( f-/ column popup (/, oq/'=DocRightMargin/ %w-=new -height=20 -width=20 -popup='~; ) z-ok
+%%  %q~=window; f/Screen dump follows:/ ( f-/ column popup (/, %w-=new -height=20 -width=20 -popup=60; ) z-ok
 %%Enable mouse events (Button-1 click) and set up callback.
 %s=mousemask 0004;
 z^m-0(f/%h'=call FocusToMouse;/s/%h'=call PopupMouseSelect;/)0
-%%Return to original position.
-%s=system 0; oz
+%%Return to original position in menu and to original buffer.
+%s=system 0; z-ono-om oz
 
 <<PopupMouseSelect>>
 %%The mouse-event callback - coordinates identify the required spelling (45 is ASCII code for ( - ) BTW).
 %%Identify the popup word.
 %s=system 1; ob opol45o=okz-ono-omok n.r0a$ m-0k0
 %%Tidy up - disable mouse-clicks and destroy popup menu.
-%s=mousemask 0; w
+%s=mousemask 0;  %w=refresh; 
 %%Restore original mouseclick handler.
 z^m-0(f/%h'=call PopupMouseSelect;/s/%h'=call FocusToMouse;/)0
 %%Push selected word into command stream.
@@ -510,14 +598,14 @@ obz-m-0k0oz %s=mousemask 0; %l;
 %%Unfortunately, the usual M* command won't work for popups because it takes the height of the current window, not of the popup.
 %s=system 1; obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol1o- z-o-ono-om?
   %%Report current position in popup.
-  onm0m-onosono-omof %m=Displaying popup from line no. '~ ('~ lines in total).;, ok)
+  onm0m-onosono-omof %m=Displaying popup from line no. &'~& (&'~& lines in total).;, ok)
 %s=system 0; oz
 
 <<PopupPageDown>>
 %%Unfortunately, the usual M* command won't work for popups because it takes the height of the current window, not of the popup.
-%s=system 1; obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol2o*ol1o- z-o+ono-om?w
+%s=system 1; obz-of %q$=window; (f/ column popup (/f-1/( - ), /-oidol2o*ol1o- z-o+ono-om? %w=refresh; 
   %%Report current position in popup.
-  onm0m-onosono-omof %m=Displaying popup from line no. '~ ('~ lines in total).;, ok)
+  onm0m-onosono-omof %m=Displaying popup from line no. &'~& (&'~& lines in total).;, ok)
 %s=system 0; oz
 
 <<End>>
@@ -527,7 +615,7 @@ m0m-
 ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
   
 <<Up>>
-(m-)
+(m-?)
   
 <<StraightUp>>
 (y-)
@@ -543,11 +631,11 @@ ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
 , %%No window number was specified - adjust all windows. 
   %q$=window;
   z$m=3
-  (mf1/win:/-f1/ ( /-oic (f1/ popup /oz, ozol1ow) z$)0 ) ozw
+  (mf1/win:/-f1/ ( /-oic (f1/ popup /oz, ozol1ow) z$)0 ) oz %w=refresh; 
 %s=system 0;
   
 <<Down>>
-(m)
+(m?)
   
 <<StraightDown>>
 (y)
@@ -563,7 +651,7 @@ ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
 , %%No window number was specified - adjust all windows. 
   %q$=window;
   z$m=3
-  (mf1/win:/-f1/ ( /-oic (f1/ popup /oz, ozol-1ow) z$)0 ) ozw
+  (mf1/win:/-f1/ ( /-oic (f1/ popup /oz, ozol-1ow) z$)0 ) oz %w=refresh; 
 %s=system 0;
   
 <<Right>>
@@ -573,33 +661,87 @@ ol0r-0(f1/{{{/\m)0r-0 (f1/{{{/ol1o-m,f1/}}}/\m,o~m)0 ok
 (r-, m-r0)
   
 <<LineLeft>>
-(r-r-0, m-)
+(r-r-0, m-) %b=leftoffset 0;
   
-<<AnyMatch>>
-( v/(/ %h'=call ParenMatchRight;,
-  v/{/ %h'=call CurlyMatchRight;,
-  v/[/ %h'=call SquareMatchRight;,
-  v/</ %h'=call AngleMatchRight;,
-  v/)/ %h'=call ParenMatchLeft;,
-  v/}/ %h'=call CurlyMatchLeft;,
-  v/]/ %h'=call SquareMatchLeft;,
-  v/>/ %h'=call AngleMatchLeft;,
+<<MatchAny>>
+( v/(/ %h'=call MatchParenRight;,
+  v/{/ %h'=call MatchCurlyRight;,
+  v/[/ %h'=call MatchSquareRight;,
+  v/</ %h'=call MatchAngleRight;,
+  v/)/ %h'=call MatchParenLeft;,
+  v/}/ %h'=call MatchCurlyLeft;,
+  v/]/ %h'=call MatchSquareLeft;,
+  v/>/ %h'=call MatchAngleLeft;,
   %x=Try moving the cursor to any of (, [, {, <, >, }, ] or ) then try again.; )
+
+<<MatchParenLeft>>
+%%This is more complicated than ParenMatchRigt because we're trying to parse backwards.
+%%The solution adopted here is to copy the original text with all the troublesome lingistic features removed
+%%and then count brackets in this simplified text.
+%%
+%%First attempt to identify the coding language.
+%s=system 1; ocon m-0
+%%Just check the first few lines for a coding-language clue.
+(v"//"\ v"/*"\ v/%%/\ m)10?
+%%
+( (v"//"\v"/*"\)\ %%Assumed to be C.
+  ( ono-omor (v/(/\, (r-, (m-v"//")0(f1"//", r0))) ol0 ( (v.*/.f-./*., v/"/((r-, m-r0)f-1/"/v-/*/)0, v/'/f-1/'/, v/)/ol1o-, v/(/(o~, x3) )? (r-, (m-v"//")0(f1"//", r0) ) )0 okx2 )
+, v/%%/  %%Assumed to be jot script
+  %%Go back to the original line copy it to ( @ ) and strip out the troublesome stuff.
+  ono-omor ol0 (v/(/(r-, m-r0), )
+  ( %%ine loop - pick up and simplify each line.
+    oboc r-0n.r0a@& z@
+    ( %%Command character loop.
+      ( %%Command character block.
+        oc
+        %%Skip to terminating semicolon or remainder of line for percent commands.
+        v/%/ (v/%%/r0, r2f1/;/\r0, (oc(v-/\/r-)0oc f1/;/ro-ol2o%(ol0o=okx2, ok) f1/;/)0 ),
+%%        v/%/ (v/%%/r0, r2f1/;/\r0, (v-/\/rf1/;/)0 v-/\/r0, r),
+        %%Exit now if we find the function header.
+        v/<</ okokozok %m=Error: Function header encountered in MatchParenLeft; x4\,
+        %%Else clause.
+        v/,/r,
+        %%Simple commands (some have numeric argument).
+        q/bcegjkprtwxyBCEGJKPRTWXY?\/ r(q/-0-9-/r)0,
+        %% Commands with string argument.
+        q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra!&f1'!-, m?) (q/-0-9/r)0 ),
+        %%Commands with a buffer-key argument.
+        q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&/r)?, v/h/r2(q/0-9/r)0, r2),
+        %%Operand-stack commands.
+        q/oO/r(q/lL/r(q/-.0-9/r(q/.0-9/r)0, q/xX/(q/0-9a-fA-F/r)0, q/cC/r2), q/iI/r2, q/oOvVqQ/ rn.ra!&f1'!-, r),
+        %%Move command.
+        q/mM/r(q/=+*/r,)(q/-0-9/r)0,
+        %%Macro call.
+        v/'/r2,
+        %%Note.
+        q/nN/r(v/./r,) )
+      %%Replace with whitespace.
+      oc (o=, oco- (e-i-/ /o~)0 ) ok (v/ /r)0
+    , %%Step past anything that's left - should be only parenthesis.
+      okr )0
+    %%Now we're good to perform simplistic parenthesis counting.
+    r-0oros (v/)/ol1o-(r-, x2), v/(/\(r-, x2), o~ r-)0
+    %%Check the perenthesis count.
+    ol0o=\ osoz (m-, )r0)0 ok
+  %%Now go back to the same character in the original text.
+  ocosozr-0or
   
-<<ParenMatchLeft>>
-v/(/(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/(r-, m-r0),q/)/ol1o-(r-, r-r0),q/(/\(r-, m-r0),o~(r-, m-r0))0ok
-  
-<<CurlyMatchLeft>>
+, %%Assumed to be natural language.
+  ( ono-omor v/(/(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/(r-, m-r0),q/)/ol1o-(r-, r-r0),q/(/\(r-, m-r0),o~(r-, m-r0))0 okx )
+  )
+%s=system 0; 
+
+<<MatchCurlyLeft>>
 v/{/(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/(r-, m-r0),q/}/ol1o-(r-, r-r0),q/{/\(r-, m-r0),o~(r-, m-r0))0ok
   
-<<AngleMatchLeft>>
+<<MatchAngleLeft>>
 v/</(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/(r-, m-r0),q/>/ol1o-(r-, r-r0),q/</\(r-, m-r0),o~(r-, m-r0))0ok
   
-<<SquareMatchLeft>>
+<<MatchSquareLeft>>
 v/[/(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/(r-, m-r0),q/]/ol1o-(r-, r-r0),q/[/\(r-, m-r0),o~(r-, m-r0))0ok
   
 <<LineRight>>
-((r, m)r0)
+((r, m)r0) ( %q=inview; okokok, oso-osok %b=leftoffset '~;)
   
 <<ViewLeft>>
 %q=inview;? okoko~%b=leftoffset '~;
@@ -620,7 +762,8 @@ v/[/(r-,m-r0), ol0(v.*/.f-./*.,v/"/((r-, m-r0)f-1/"/v-/*/)0(r-, m-r0),v/'/f-1/'/
 ( %q=tabstops; 
   %%Tabstops have been set - find next table cell, first identify the table-separator character.
   %s=system 1; ob %q$=system; f/Table-entry separator = '0x/-oixm-0b-oo/%c/ oz %s=system 0;
-  (r?r-(f-1'$-, r-0)oc (f1'$, r0)oc o-ou)?
+  %%Move to next cell.
+  ( (v'$r, )(f-1'$-, r-0)oc (f1'$, r0)oc o-ou)?
 , %%No tabstops - just take standard definition of a word.
   (r, m)(q/a-zA-Z0-9Ā-𠀹/(q-//r-)0, (q//\r)0) oc (q//r)0 oco-ou) 
 ( %q=inview; okokok, oso-osok %b=leftoffset '~;)
@@ -655,19 +798,55 @@ ob%q-=history; m0m-kb-i'$b m-0mb-oo/In buffer %c/m0m-2
 %%Execute the jot command sequence in the string.
 '$
 
-<<ParenMatchRight>>
-%s=system 1; v/)/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/(/ol1o-(r, m),q/)/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0; 
+<<MatchParenRight>>
+%%First attempt to identify the coding language.
+%s=system 1; ocon m-0
+%%Just check the first few lines for a coding-language clue.
+(v"//"\ v/#/\ v/%%/\ m)10?
+( (v"//"\v/#/\)\ %%Assumed to be C.
+  ( ono-omor v/)/(r, m), ol0(v./*.f.*/., v"//"r0, v/"/(r, m)(f1/"/v-/*/r)0(r, m), v/'/f1/'/, v/(/ol1o-(r, m),v/)/\(r,m,okol-1?\), o~(r, m))0okx2 )
+, v/%%/  %%Assumed to be jot script
+  %%If initially at a ')' - move on by one character.
+  ono-omor ol0 ( v/)/(r, m), )
+  ( %%Command-character loop.
+    %%Skip blanks and line breaks.
+    ( (v/ /r)0 r\m, r-\)0
+    %%Count '(' and ')'.
+    v/(/ol1o-(r, m), v/)/(r(q/0-9/r)0, m)(o~, x2),
+    %%Skip to terminating semicolon or remainder of line for percent commands.
+    v/%/ (v/%%/m, r2f1/;/\r0, (oc(v-/\/r-)0oc f1/;/ro-ol2o%(ol0o=okx2, ok) f1/;/)0 ),
+    %%Else clause.
+    v/,/r,
+    %%Simple commands (some have numeric argument).
+    q/bcegjkprtwxyBCEGJKPRTWXY?\/ r(q/-0-9-/r)0,
+    %% Commands with string argument.
+    q/fiqsvFIQSV/(r(q/-0-9/r)0 (v/'/r2, n.ra!&f1'!-, m?) (q/-0-9/r)0 ),
+    %%Commands with a buffer-key argument.
+    q/ahuzAHUZ/(v/a/(r2q/+-./r)? (q/&/r)?, v/h/r2(q/0-9/r)0, r2),
+    %%Operand-stack commands.
+    q/oO/r(q/lL/r(q/-.0-9/r(q/.0-9/r)0, q/xX/(q/0-9a-fA-F/r)0, q/cC/r2), q/iI/r2, q/oOvVqQ/ rn.ra!&f1'!-, r),
+    %%Move command.
+    q/mM/r(q/=+*/r,)(q/-0-9/r)0,
+    %%Macro call.
+    v/'/r2,
+    %%Note.
+    q/nN/r(v/./r,) )0
+  okx
+, %%Assumed to be natural language.
+  ( ono-omor v/)/(r, m), ol0(v/(/ol1o-(r, m), v/)/\(r,m,okol-1?\), o~(r, m))0ok )
+  )
+%s=system 0; 
   
-<<CurlyMatchRight>>
+<<MatchCurlyRight>>
 %s=system 1; v/}/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/{/ol1o-(r, m),q/}/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0; 
   
-<<AngleMatchRight>>
+<<MatchAngleRight>>
 %s=system 1; v/>/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/</ol1o-(r, m),q/>/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0;
   
-<<SquareMatchRight>>
+<<MatchSquareRight>>
 %s=system 1; v/]/(r, m), ol0(v./*.f.*/.,v/"/(r, m)(f1/"/v-/*/r)0(r, m),v/'/f1/'/,q/[/ol1o-(r, m),q/]/\(r,m,okol-1?\),o~(r, m))0ok %s=system 0;
   
-<<MarkupMatchRight>>
+<<MatchMarkupRight>>
 %%The cursor must be initially positioned over the '<' of a markup block start and finds the corresponding block end.
 %%e.g. "<span", in this case it locates the matching "</span" tag.
 %%
@@ -677,13 +856,13 @@ ob%q-=history; m0m-kb-i'$b m-0mb-oo/In buffer %c/m0m-2
 %%Now search for possible block-end tag - updating the depth-search counters as appropriate.
 ol-1 
 ( %%Block-start/end loop.
-  %%Search forwards looking for the next block-start/end with this tagName.
+  %%Search forwards for the next block-start/end with this tagName.
   (( f/</ r(v"/"r, )v'$\)0 r-f1'$-q/A-Za-z0-9_/ r)0
   %%This is either a matching <tagName or a </tagName block delimiter, decrement the counter for another <tagName ... , incriment for </tagName ... 
   f-1/</v"</"\ ol1o-(r, m), o~ r)0ok
 %s=system 0;
   
-<<MarkupMatchLeft>>
+<<MatchMarkupLeft>>
 %%The cursor must be initially positioned over the '<' of a markup block end and finds the corresponding block start.
 %%e.g. "</span", in this case it locates the matching "<span" tag.
 %%
@@ -868,16 +1047,16 @@ mm-
 1
   
 <<AgainExhaustive>>
-%%Repeats the last command until it fails, report in total iterations.
+%%Repeats the last command until it fails, reporting total iterations.
 %%First pick up last command - to buffer ( * ).
 ob %q*=history; m0m-k0m-k-0oz 
 %%Set up counter, do repeats and report.
-ol0 ('*o~)0 %m=Completed '~ repeats of '*
+ol0 ('*o~)0 %m=Completed &'~& repeats; 
 
 <<DebuggerQuit>>
-%%This one is tricky, we can't use ( $ ) to carry the parameter since this might be in use by the debugged code, so we'll have to knife and fork it.
-%%This is tough luck for any users wanting to escape the debugger in screen-edit mode.
-%s=system 1; ob %d~=##; z~ (oid osz$okosozol1o+ %s=traceskip '~;, z$ok(ol126 o=okz~, oz) %s=trace 0; ) %s=system 0;
+%%With no value or a zero this simply bombs out of the debugger, when a numeric parameter is given it exits the specified number of blocks.
+ol0## (ol0o=ok%s=trace 0;, ol2o+ %s=traceskip '~; )
+%%  ob %d~=##; z~ (oid osz$okosozol1o+ %s=traceskip '~;, z$ok(ol126 o=okz~, oz) %s=trace 0; )
   
 <<FocusToMouse>>
 %%This needs to be at least two lines long, then it gets entered as a function call which can be redefined
@@ -920,7 +1099,7 @@ n.a$&
 n.a0&z0 oo/z%c/ i/%s=commandstring %r='+/
 %%Acquire search string.
 %%Add instructions to + buffer.
-n.a+z+i/Select one of these scripts with names matching "/i'$i/" then hit {KP_0}./
+n.a+&z+i/Select one of these scripts with names matching "/i'$i/" then hit {KP_0}./
 %%Get raw directory listing.
 %q~=dir ${JOT_HOME}/coms/;
 %%Add the raw directory listing.
@@ -941,7 +1120,7 @@ n.a0&z0 z0i"z+l0n.f1/ /a$&"r0 oo/z%c/ i"%s=commandstring %r='$"
 %%Acquire search string.
 %%%d$=mc;
 %%Add instructions to + buffer.
-n.a+z+i/These script's 1-line descriptions all match "/i'$i/" select one then hit {KP_0}./
+n.a+&z+i/These script's 1-line descriptions all match "/i'$i/" select one then hit {KP_0}./
 %%Get the first-line comments.
 %e~=\head -1 ${JOT_HOME}/coms/*.jot ./*.jot;
 %%Top and tail the report and append to + buffer.
@@ -955,6 +1134,24 @@ m-0(f/	/ei/ /o#oc (o> ocoso- (i/ /o~)0, ) ok m)0 ok
 %%Rewind and finish.
 z+m-0m %l; %s=system 0;
 
+<<CompareBufs>>
+%%Prompt string: Comparison buffer> 
+%%Compares current record of current buffer with that of nominated buffer.
+obz$m-0(rr\r-  %%The reference buffer is given set up new values for CompareBufs.
+  (q/a-z/cr-, )oic(oq/'=CompRefBuf/ oq/'=CompCurrBuf/, %h'=data CompRefBuf; %h'=data CompCurrBuf; ov/'=CompRefBuf/ ov/'=CompCurrBuf/)
+  %%Pick up buffer keys.
+  (oq/'=CompRefBuf/ oq/'=CompCurrBuf/, %x=Error: no predefined comparison buffers;)
+, %%Use previously-defined buffers.
+  ok
+  %%Pick up buffer keys.
+  (oq/'=CompRefBuf/ oq/'=CompCurrBuf/, %x=Error: no predefined comparison buffers;)
+  (z$r-0r2 %m=Applying "&'$&";
+    oso#oz'$ oso#oz'$ )
+  , %m=Restarting from next line of both buffers;
+    oso#ozm oso#ozm )
+%%Compare records until there's a failure.
+(oso#oz r(r-n.r0a$& oso#ozr-0(v'$r0v-'$, posozpozx3), oso#ozr-0(r\, posozpozx2)) moso#ozmos)0 
+
 <<FindWild>>
 %%Prompt string: Find-wild string> 
 %%finds next line containing substrings in correct order.
@@ -967,7 +1164,7 @@ f'@rr-oc (f1'@-\ mobz@m-0ozf'@rr-okoc, obz@(moz, oz\))0
 %%If successfully completed search select complete string.
 (v-'@ n.oco-ora$h$f-1'$, ) %s=system 0;
 
-<<FindWildPrev>>
+<<FindWildBack>>
 %%Prompt string: Find-wild string> 
 %%finds previous line containing substrings in correct order.
 %%Set up argument list if given - use last entry if it's null.
@@ -990,17 +1187,6 @@ f-'@-r-roc (f-1'@\ m-r0obz@m0ozf-'@-r-rokoc, obz@(m-oz, oz\))0
 %%If the previous loop completed at the end of the list of substrings then a match was found.
 obz@(m\oz, oz %x=Failed to find a line containing the specified set of substrings.; ) %s=system 0;
 
-<<FindLineUnPrev>>
-%%Prompt string: Find-in same line string> 
-%%Function finds previous line matching a set of substrings in the any order.
-%%
-%%Prepare args in @ buffer.
-%s=system 1; obz$ (r\z@, r-n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /b(v/ /e)0)0 r0b) m-0moz
-%%Go
-(f-'@ (obz@(m2m-oz, oz\)r-0 f1'@-)0 obz@(mm-0oz, oz\)m-)0 
-%%If the previous loop completed at the end of the list of substrings then a match was found.
-obz@(m\oz, oz %x=Failed to find a line containing the specified set of substrings.; ) %s=system 0;
-
 <<FindLineOrd>>
 %%Prompt string: Find-in same line string> 
 %%Function finds next line matching a sequence of substrings in the same order as given.
@@ -1013,7 +1199,7 @@ obz@(m\oz, oz %x=Failed to find a line containing the specified set of substring
 %%If the previous loop completed at the end of the list of substrings, a match was found - let's see.
 (obz@m\ ozoc o-ou, ozok) %s=system 0;
 
-<<FindLineOrdPrev>>
+<<FindLineOrdBack>>
 %%Prompt string: Find-in same line string> 
 %%Function finds previous line matching a sequence of substrings any order.
 %%
@@ -1047,14 +1233,15 @@ obz@(m\oz, oz %x=Failed to find a line containing the specified set of substring
 %%Completed search - reset search list and go back to the first item.
 v-'@r-rz@m-0o#oz (f-'@(q-/_A-Za-z0-9Ā-𠀹/r-?,rr-f1'@-q/_A-Za-z0-9Ā-𠀹/f-'@))0f-1'@ ok %s=system 0;
 
-<<findVertInit>>
+<<FindVertInit>>
 %%Initialization procedure for all vertical-find functions.
 %%If find-column string not set up then do it now.
-( oq/'=findVerticalSpecification/ok, %h'=data findVerticalSpecification; ) 
-%%Save/retrieve findVerticalSpecification.
-(obz$r-0r %d~='$; ov/'=findVerticalSpecification/, ) oz
+( oq/'=FindVerticalSpecification/ok, %h'=data FindVerticalSpecification; ) 
+%%Save/retrieve FindVerticalSpecification.
+(obz$r-0r %d~='$; ov/'=FindVerticalSpecification/, ) oz
 %%Setup colour tags - if not already done for this buffer.
-ob %q$=buffer; (f/TagType = Name     Vertical,/oz, oz %b=tagtype Vertical colour 0 3;)
+ob %q$=buffer; (f/TagType = Name     Vertical,/oz, oz %b=tagtype -colour=black:magenta Vertical; )
+%%ob %q$=buffer; (f/TagType = Name     Vertical,/oz, oz (%q=windows; %b=tagtype -colour=0:5 Vertical;, %b=tagtype -colour=0:5 Vertical;) )
 %%Clear any old tags.
 oconob %q$=tags;
 ( %%Colour-tag removal loop.
@@ -1062,11 +1249,11 @@ oconob %q$=tags;
   %%Pick up substring length, start point and line no.
   o#f-1/ to /-oidf-1/, chr /-oido-os f-1/, chr /-oidos f-1/At rec /-oidos
   %%Now remove the tag.
-  moz ono-om or o~ou %b=remove_tag colour Vertical; wz$m)0
+  moz ono-om or o~ou %b=remove_tag -colour Vertical;  %w=refresh; z$m)0
 %%Return cursor to original position.
 ozono-omor
 
-<<findVertVerifyColumn>>
+<<FindVertVerifyColumn>>
 %%Verifies column match.
 %%Calling function has set buffer ( @ ) to contain column specification
 %%and has done y0 to lock y into the correct column.
@@ -1075,7 +1262,7 @@ obz@
   %%Check for end of specification line.
   (rr-, ozx0)
   %%A ( * ) indicates a wild match - skip any number of characters in the column until we wind a match.
-  ( v/*/ ozon ( %h'=call findVertVerifyWild; okx0, o~ono-omy- x0\ ), )
+  ( v/*/ ozon ( %h'=call FindVertVerifyWild; okx0, o~ono-omy- x0\ ), )
   %% blanks are ignored.
   (v/ /r)0
   %% ( . ) is a single wild character.
@@ -1085,8 +1272,8 @@ obz@
   %%Verify all other characters.
   n.ra$&ozv'$y obz@, x0\)0
 
-<<findVertVerifyWild>>
-%%Verifies column wildcard match, called by findVertVerifyColumn and recursively by itself to synchronize and match the column pattern.
+<<FindVertVerifyWild>>
+%%Verifies column wildcard match, called by FindVertVerifyColumn and recursively by itself to synchronize and match the column pattern.
 ( %%Find the next-matching character in the column.
   obz@r (v/ /r)0 (v/\/r, ) (v/./ozy, n.ra$& oz (v'$\ y)0 (v'$, x0\) yobz@ )
   %%Verify the remainder of column normally.
@@ -1094,7 +1281,7 @@ obz@
     %%Check for end of specification line.
     (rr-, ozx0)
     %%A ( * ) indicates another wild match.
-    ( v/*/ ozon ( %h'=call findVertVerifyWild; okx0, o~ono-omy- x0\ ), )
+    ( v/*/ ozon ( %h'=call FindVertVerifyWild; okx0, o~ono-omy- x0\ ), )
     %% blanks are ignored.
     (v/ /r)0
     %% ( . ) is a single wild character.
@@ -1104,67 +1291,67 @@ obz@
     %%Verify all other characters.
     n.ra$&oz v'$yobz@, x0\)0 )0
 
-<<findVertNext>>
+<<FindVert>>
 %%Prompt string: Find vertical string:
 %%Finds specified string in any column.
 %%Initialize for search.
-%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+%h'=call FindVertInit; oboq/'=FindVerticalSpecification/ %d@='~; z@m-0 ozy0
 ( %%Initial match search loop.
   obz@r-0
   %%Find next initial match.
   (v/ /r)0v/./oz, (v/\/r, )n.ra$&r-0 oz (f'$y0, x0\)
   %%Verify the column and, if successful, add colour tags.
-  on %h'=call findVertVerifyColumn;\ o~ono-omy-(r, m) )0
-ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol2o+omy-(r, m)
+  on %h'=call FindVertVerifyColumn;\ o~ono-omy-(r, m) )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0  %w=refresh; ok ol2o+omy-(r, m)
 
-<<findVertPrev>>
+<<FindVertBack>>
 %%Prompt string: Find vertical string:
 %%Finds specified string in any column.
 %%Initialize for search.
-%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+%h'=call FindVertInit; oboq/'=FindVerticalSpecification/ %d@='~; z@m-0 ozy0
 ( %%Initial match search loop.
   obz@r-0
   %%Find next initial match.
   (v/ /r)0v/./oz, (v/\/r, )n.ra$&r- oz (f-'$y0, x2\)
   %%Verify the column and, if successful, add colour tags.
-  on %h'=call findVertVerifyColumn;\ ono-omyy-(r-, m-r0) )0
-ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol2o+omy-(r-, m-r0)
+  on %h'=call FindVertVerifyColumn;\ ono-omyy-(r-, m-r0) )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0  %w=refresh; ok ol2o+omy-(r-, m-r0)
 
-<<findColNext>>
+<<FindCol>>
 %%Prompt string: Find column string:
 %%Finds specified string in current column.
 %%Initialize for search.
-%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+%h'=call FindVertInit; oboq/'=FindVerticalSpecification/ %d@='~; z@m-0 ozy0
 ( %%Initial match search loop.
   yy-
   obz@r-0
   %%Find next initial match.
   (v/ /r)0v/./oz, n.ra$&r- oz(v'$\y)0
   %%Verify the column and, if successful, add colour tags.
-  on %h'=call findVertVerifyColumn;\ ono-omy )0
-ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol3o+omy-
+  on %h'=call FindVertVerifyColumn;\ ono-omy )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0  %w=refresh; ok ol3o+omy-
 
-<<findColPrev>>
+<<FindColBack>>
 %%Prompt string: Find column string:
 %%Finds specified string in current column.
 %%Initialize for search.
-%h'=call findVertInit; oboq/'=findVerticalSpecification/ %d@='~; z@m-0 ozy0
+%h'=call FindVertInit; oboq/'=FindVerticalSpecification/ %d@='~; z@m-0 ozy0
 ( %%Initial match search loop.
   y-y
   obz@r-0
   %%Find next initial match.
   (v/ /r)0v/./oz, n.ra$&r- oz(v'$\y-)0
   %%Verify the column and, if successful, add colour tags.
-  on %h'=call findVertVerifyColumn;\ ono-omy- )0
-ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0 wok ol3o+omy-
+  on %h'=call FindVertVerifyColumn;\ ono-omy- )0
+ono-o#o#o~omy- ( ol1ou %b=addtag Vertical; o~y )0  %w=refresh; ok ol3o+omy-
 
-<<findRectNext>>
+<<findRect>>
 %%Prompt string: Find rectangle buffer:
 %%Searches the current buffer for a rectangular area matching text in the nominated buffer.
 %h'=call findRectInit;
 %%
 %%Pick up specification
-oq/'=findVerticalSpecification/ z~m-0n.m0r0a@&osozok
+oq/'=FindVerticalSpecification/ z~m-0n.m0r0a@&osozok
 ( %%Rectangle-start loop - find next match to top-left character in specification.
   %%Find initial match and save start position.
   obz@m-0 (v/ /r)0v/./oz, (v/\/r, ) n.ra$&r- oz(f'$, x3\)y0 oconol0
@@ -1172,22 +1359,22 @@ oq/'=findVerticalSpecification/ z~m-0n.m0r0a@&osozok
     %%Check for a wild column ( * ).
     obz@ ( v/*/oz ( %h'=call findRectWildColumn; x4, x-4 ), oz)
     %%Verify this column.
-    on %h'=call findVertVerifyColumn;
+    on %h'=call FindVertVerifyColumn;
     %%Column match success - save LWM line no. and index to next column.
     oson(o<\, okon) oso~ono-omy- obz@(moz, ozx3) ry0
   , %%Column-verification failed, return to previous rectangle start and resume first-character search.
     o~ono-omy-(r, m) okokokx)0
   )0
 %%Match success, add colour tags.
-oso-o#omwol-1oso- oso#y-oco~oso- osr-0ory0 (oso~ os o#ou %b=addtag Vertical; y-)0 okok y(r, m)
+oso-o#om %w=refresh; ol-1oso- oso#y-oco~oso- osr-0ory0 (oso~ os o#ou %b=addtag Vertical; y-)0 okok y(r, m)
 
-<<findRectPrev>> 
+<<findRectBack>> 
 %%Prompt string: Find rectangle buffer:
 %%Searches back in the current buffer for a rectangular area matching text in the nominated buffer.
 %h'=call findRectInit;
 %%
 %%Pick up specification
-oq/'=findVerticalSpecification/ z~m-0n.m0r0a@&osozok
+oq/'=FindVerticalSpecification/ z~m-0n.m0r0a@&osozok
 ( %%Rectangle-start loop - find next match to top-left character in specification.
   %%Find initial match and save start position.
   obz@m-0 (v/ /r)0v/./oz, (v/\/r, ) n.ra$&r- oz(f-'$, x3\)y0 oconol0
@@ -1195,28 +1382,28 @@ oq/'=findVerticalSpecification/ z~m-0n.m0r0a@&osozok
     %%Check for a wild column ( * ).
     obz@ ( v/*/oz ( %h'=call findRectWildColumn; x4, x-4 ), oz)
     %%Verify this column.
-    on %h'=call findVertVerifyColumn;
+    on %h'=call FindVertVerifyColumn;
     %%Column match success - save LWM line no. and index to next column.
     oson(o<\, okon) oso~ono-omy- obz@(moz, ozx3) ry0
   , %%Column-verification failed, return to previous rectangle start and resume first-character search.
     okok ono-om or(r-, m-r0) okx)0
   )0
 %%Match success, add colour tags.
-oso-o#omwol-1oso- oso#y-oco~oso- osr-0ory0 (oso~ os o#ou %b=addtag Vertical; y-)0 okok y(r-, m-r0)
+oso-o#om %w=refresh; ol-1oso- oso#y-oco~oso- osr-0ory0 (oso~ os o#ou %b=addtag Vertical; y-)0 okok y(r-, m-r0)
 
 <<findRectInit>> 
 %%Initialize for rectangle search.
-%h'=call findVertInit; 
-%%findVertInit has only copied the buffer key into findVerticalSpecification, here we copy the actual specification.
-oboq/'=findVerticalSpecification/ 
+%h'=call FindVertInit; 
+%%FindVertInit has only copied the buffer key into FindVerticalSpecification, here we copy the actual specification.
+oboq/'=FindVerticalSpecification/ 
 %%Copy specified buffer, if buffer key is specified.
 ( z~m-0mz$ok %%A previously-defined specification seems to exist.
 , %%Assumed to be just a buffer key.
   oso#ozos %d$='~; 
   %%Copy the specification.
   z$(r\, %%A buffer key was specified, check and copy the spec.
-    r- (q/a-zA-Z0-9/, %x=Error: findRectNext parameter must be a buffer containing the rectangular search specification.; )
-    (q/a-z/cr-, )oicoz m-0n.m0r0a~& ov/'=findVerticalSpecification/ ) )
+    r- (q/a-zA-Z0-9/, %x=Error: findNext parameter must be a buffer containing the rectangular search specification.; )
+    (q/a-z/cr-, )oicoz m-0n.m0r0a~& ov/'=FindVerticalSpecification/ ) )
 
 <<findRectWildColumn>>
 %%Called recursively - finds next 1st-character match and verifies the column.
@@ -1227,7 +1414,7 @@ oboq/'=findVerticalSpecification/
     v/*/ %%Another wild column, if that fails then set focus to next first-character search-start point.
     oz ( %h'=call findRectWildColumn; okokx0, r-0rr obz@m-0osomoz x0\ )
   , %%A normal column.
-    ozon %h'=call findVertVerifyColumn; 
+    ozon %h'=call FindVertVerifyColumn; 
     %%Column match success - index to next column.
     o~ono-omy- obz@(m, ozokokx0) ozry0x-1
   , %%Column-verification failed, return to wild-column specification and resume wild-column search.
@@ -1236,7 +1423,7 @@ oboq/'=findVerticalSpecification/
 <<rotateDiagonal>>
 %%Rotates the current block of text around the leading diagonal.
 %%Init.
-n.a$ m0(rr0b, )
+n.a$& m0(rr0b, )
 ( %%Main loop - assembles one line of output.
   m-0 ol0
   %%Pick up a line of output.
@@ -1251,7 +1438,7 @@ m-0k0h$
 %%First find the longest line then pad out all other line ends to match.
 ol0m-0 (r0oc(o<okoc,)m)0 m-0(r0o#ocoso-ol-1o+ (o~i/ /)0 okm)0 ok
 %%Reverse each column.
-m-0 (n.a$ (n.ra$-)0 h$m)0
+m-0 (n.a$& (n.ra$-)0 h$m)0
 
 <<rotateHorizontal>>
 %%Reverses the order of the lines in current buffer.
@@ -1262,7 +1449,7 @@ m0on(r, ol1o-) r0bm-0
 %%Remove added linebreak.
 m0j-m-0
 
-<<FindSequencePrev>>
+<<FindSequenceBack>>
 %%Prompt string: Find-sequence string> 
 %%Finds previous instance of sequence of words in arg.
 %%Set up argument list if given - use last entry if it's null.
@@ -1285,33 +1472,58 @@ m0j-m-0
 %%Completed search - reset search list and go back to the first item.
 v-'@r-rz@m-0o#oz (f-'@(q-/_A-Za-z0-9Ā-𠀹/r-?,rr-f1'@-q/_A-Za-z0-9Ā-𠀹/f-'@))0f-1'@ ok, ok %s=system 0; 
 
-<<GeneralFindSetup>> 
-%%Set up argument list for a complex find in ( @ ) buffer if given, use previous entry if not and clears colour tags.
-obz$r-0 
-%%If GeneralFindSpec data object is not initialized then do that now.
-( oq/'=GeneralFindSpec/ok, %h'=data GeneralFindSpec; %d~=; ov/'=GeneralFindSpec/ )
+<<ProximityFindSetup>> 
+%s=system 1;
+%%Initialization.
+( oq/'=ProximityExpression/ok,    %h'=data ProximityExpression;    %d~=; ov/'=ProximityExpression/ )      %%The given expression.
+( oq/'=ProximityKeywords/ok,      %h'=data ProximityKeywords;      %d~=; ov/'=ProximityKeywords/ )        %%The simplified list of essential keywords, used for initial search.
+( oq/'=ProximityMultiplier/ok,    %h'=data ProximityMultiplier;    ol0   ov/'=ProximityMultiplier/ )      %%The optional count - defines no. of phrases, words  etc. in proximity section.
+( oq/'=ProximityBuf/ok,           %h'=data ProximityBuf;           ob    ov/'=ProximityBuf/ )             %%The buffer to be searched.
+( oq/'=ProximityRestartLine/ok,   %h'=data ProximityRestartLine;   on    ov/'=ProximityRestartLine/ )     %%The restart line for resumption of initial search.
+( oq/'=ProximityRestartChr/ok,    %h'=data ProximityRestartChr;    oc    ov/'=ProximityRestartChr/ )      %%The restart character no. for resumption of initial search.
+( oq/'=ProximityBraceCount/ok,    %h'=data ProximityBraceCount;    oc    ov/'=ProximityBraceCount/ )      %%Counts open-brace depth in extraction of ProximityKeywords.
 %%
-( r\z@ %%No args given - use previously-defined search specification.
-  oq/'=GeneralFindSpec/z~m-0n.m0r0a@&z@ok
-, %%Extract args to GeneralFindSpec data object and buffer ( @ ).
-  r-
-  %%Respect escaped blanks.
-  ( n.r0a@&z@ ((v/ /e)0(f1/ /v-/\/e-r)0 v/ /(v/ /e)0(v/|/r, b) )0 )0 
-  r0b
-  %%Save args in GeneralFindSpec data object.
-  m-0n.m0a~& ov/'=GeneralFindSpec/
- ) 
-%%Optimization of clause ordering - these complex searches should run faster if the first item has no alternatives.
-%%Also, if there is a choice of no-alternative clauses then it's probably best to have the longest one first.
+%%Set up argument list for proximity search, if none specified, use previous entry and clear colour tags.
+obz$r-0(v/ /r)0
+( rr- %%Args given - clean up the expression, save it and extract the simplified keywords list.
+  %%Pick up number if given or default to 0.
+  (v/ /e)0 (q/0-9/oide-0, ol0) ov/'=ProximityMultiplier/
+  %%If only the number was given, then stick with the original word list.
+  (v/ /r)0e-0rr-
+  %%Respect escaped blanks, if there's an unescaped blank that's not adjacent to s ( & ) or a ( | ) report an error.
+  (f1/ / (v-/\/e-r, (v/ /e)0 (q/|&/r(v/ /e)0, %x=Error: blanks are not valid separators in proximity expressions - use \& or | .;) ) )0 
+  %%Save args in ProximityExpression data object.
+  m-0n.r0a~& ov/'=ProximityExpression/
+  %%
+  %%Extract a list of essential terms - first simplify the expression one term to each line with no brackets or operators
+  z$r-0n.r0a@ ol100 ol0ov/'=ProximityBraceCount/ z@r-0(q/&|/eb, q/(/rb, q/)/br, r)0 m0r0bm-0
+  ( %%In the inversion-counting loop, the top of stack is the inversion count for the current brace - 100 for non-inversion or -101 for inversion.
+    %%The ( $ ) buffer is set to "!" if an inversion is pending, otherwise empty.
+    (v/ /e)0 ol100(o=, i/!/)
+    %%If there's an inversion save in ( $ ) - defer any action until the type of term has been determined.
+    v/!/ n.ra$ (v/ /r)0,  
+    %%If an open-brace then copy the current inversion status to the stack.
+    v/(/k? z$r-0o#(v/!/eo!, )z@ oq/'=ProximityBraceCount/ol1o-ov/'=ProximityBraceCount/,
+    %%If a close-brace 
+    v/)/k?ok z$r-0e0 ol100(o=, i/!/)z@ oq/'=ProximityBraceCount/o~?ov/'=ProximityBraceCount/,
+    %%Next term.
+    n.a$& m)0 
+  %%Brackets-nesting sanity check.
+  (oq/'=ProximityBraceCount/ol0o=okok, okok %x=Syntax: Parenthesis mismatch in proximity expression.; )
+  %%Remove all double inversions, strip out inverted terms and join up and save the simplified keywords list.
+  m0j- m-0(f/!!/e2m-0)0 m-0(v/!/k, m)0 m-0(ji/	/)0 m-0n.m0r0a~& ov/'=ProximityKeywords/
+%%  m0j- m-0(v/#/em, m)0 m-0(f/!!/e2m-0)0 m-0(v/!/k, m)0 m-0(ji/	/)0 m-0n.m0r0a~& ov/'=ProximityKeywords/
+  %%
+, %%No args given - use old search parameters.
+  oq/'=ProximityExpression/z~m-0n.r0a$&z$r-0ok )
 %%
-%%Initial search loop - find the longest no-alternative clause.
-z@m-0ol0 ( (v/!/m)0 r (f1/|/, (r0oco<okoc, ) ) m)0
-%%If there was one or more no-alternative clauses select the first one of maximum size.
-m-0 (ol0o=, ( (v/!/m)0 r r0oco=\m)0 r-0n.ma$m-0h$) ok
+%%If undefined, define colour-tag types now.
+ozob %q$=buffer; (f/TagType = Name    Substring,/\ oz %b=tagtype -colour=white:green Substring; %b=tagtype -colour=white:red UnitDelim;, oz )
+%%ozob %q$=buffer; (f/TagType = Name    Substring,/\ oz 
+%%  ( %q=windows; %b=tagtype -colour=7:2 Substring; %b=tagtype -colour=7:4 UnitDelim;, %b=tagtype -colour=7:2 Substring; %b=tagtype -colour=7:1 UnitDelim;), oz )
 %%
-z@m-0 ozoconob
 %%Clear any colour tags.
-%q$=tags;
+oconob %q$=tags;
 ( %%Colour-tag removal loop.
   f/active colour is /-b- 
   %%First calculate the substring length.
@@ -1321,368 +1533,485 @@ z@m-0 ozoconob
   %%Finally, the line no.
   f-1/At rec /-oidos
   %%Now remove the tag.
-  moz ono-om or o~ou %b=remove_tag colour '$; wz$m)0
+  moz ono-om or o~ou %b=remove_tag -colour '$;  %w=refresh; z$m)0
 ozono-omor
 
-<<GeneralFindNext>>
-%%Designed for use by FindParaNext/Prev etc. searches the current buffer for a match to the current line of the search specification.
+<<ProximityReport>>
+%%Reports on recently-completed proximity search.
 %%
-%%Assumes search string is in current line of buffer ( @ ) using buffer ( $ ) as temporary data.
+%%First check for the existence of a substring.
+oxol0 (o= okx0\, ok)
+%%Add the UnitDelim tag before the matching section - first tag the last non-blank text above.
+ob %q@=system; f/ %F aperture = /-oidosroidosozos  ono-om or (r-\m-r0)0 (rocr-0ou %b=addtag UnitDelim;, )  %w=refresh;
+%%Now highlight after the section.
+obz@r- f1/ - /- oidosroidosozos  ono-om or(r, m?) (r\m)0 (r- ocr0oco-ou %b=addtag UnitDelim;, )  %w=refresh; 
 %%
-%%Note current position, system-mode search/verify operations.
-oconob %s=system 1;
-%%
-( %%Success/failure inversion block - in the event of an inverted success, it returns back here to resume the search.
-  ( %%Fail block - exit to the end of this block to indicate a failure.
-    z@r-0(v/!/r, )
-    ( f1/|/\ %%No alternative substrings - use global search to speed things up.
-      ( v/#/ %%An exact match is required.
-        rn.r0a$& %s=system 0; o#oz ( (f'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
-      , %%Simple match required.
-        n.r0a$& o#oz %s=system 0; f'$ x3, x2)
-    , %%There are alternative substrings - plod through one record at a time trying each in turn.
-      r-0
-      ( %%Record loop.
-        ( %%Alternative-substring loop.
-          %%Pick up first/next search substring.
-          z@
-          %%Is it an exact-match search?
-          ( v/#/ %%An exact match is required.
-            rn.(f1/|/, r0)a$& %s=system 0; o#oz ( (f1'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
-          , %%Simple match required - use the speedier global search command not F1.
-            n.(f1/|/, r0)a$& o#oz %s=system 0; f1'$ x5, )
-          %%Current substring match failed in this line - try alternative substrings.
-          z@ (r, x4) (v-/|/, r-))0
-        )0
-      )
-    %%Match failure - possibly inverted by a ( ! ).
-    z@r-0 (v/!/ ozono-omorx3, o#oz (mx-3, okokokx4\) )
-    )
-  %%Match success - possibly inverted by a ( ! ).
-  ( z@r-0v/!/ ozokok x2\, ozokokx2)
-  )
+oboq/'=ProximityKeywords/ z~r-0osoz
+( %%Keyword loop - search in aperture for each key word.
+  obosz~ (rr-, osozok\)n.(f1/	/, r0)a$&r? z$r-0(v/#/rb, )osoz 
+  ( %f= -aperture -first '$;
+    ( %%Keyword instance loop.
+      obz$( (m-moz (q-/_A-Za-z0-9Ā-𠀹/\f'$-q//\v-'$ oxo~r-ou, rx3), oz)  %b=addtag Substring; (r, m) )
+      %f= -aperture -restart -first '$; )0, ) )0
+%%Leave the cursor at the restart point.
+oq/'=ProximityRestartLine/ono-omoq/'=ProximityRestartChr/or
+%%Clear  " $ " to allow repeated calls to proximity search functions.
+n.a$&
 
-<<GeneralFindPrev>>
-%%Designed for use by FindParaNext/Prev etc. searches the current buffer for a match to the current line of the search specification.
+<<ProximityFindNext>>
+%%Searches forwards from the current character position to end of buffer to find the next occurence of the minimum keywords.
 %%
-%%Assumes search string is in current line of buffer ( @ ) using buffer ( $ ) as temporary data.
-%%
-%%Note current position, system-mode search/verify operations.
-oconob %s=system 1;
-%%
-( %%Success/failure inversion block - in the event of an inverted success, it returns back here to resume the search.
-  ( %%Fail block - exit to the end of this block to indicate a failure.
-    z@r-0(v/!/r, )
-    ( f1/|/\ %%No alternative substrings - use global search to speed things up.
-      ( v/#/ %%An exact match is required.
-        rn.r0a$& %s=system 0; o#oz ( (f-'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
-      , %%Simple match required.
-        n.r0a$& o#oz %s=system 0; f-'$ x3, x2)
-    , %%There are alternative substrings - plod through one record at a time trying each in turn.
-      r-0
-      ( %%Record loop.
-        ( %%Alternative-substring loop.
-          %%Pick up first/next search substring.
-          z@
-          %%Is it an exact-match search?
-          ( v/#/ %%An exact match is required.
-            rn.(f1/|/, r0)a$& %s=system 0; o#oz ( (f-1'$- (q/_A-Za-z0-9Ā-𠀹/r, f-1'$?q-// r, v'$x6) )0, x2)
-          , %%Simple match required - use the speedier global search command not F1.
-            n.(f1/|/, r0)a$& o#oz %s=system 0; f-1'$ x5, )
-          %%Current substring match failed in this line - try alternative substrings.
-          z@ (r, x4) (v-/|/, r-))0
-        )0
-      )
-    %%Match failure - possibly inverted by a ( ! ).
-    z@r-0 (v/!/ ozono-omorx3, o#oz (m-r0x-3, okokokx4\) )
-    )
-  %%Match success - possibly inverted by a ( ! ).
-  ( z@r-0v/!/ ozokok x2\, ozokokx2)
-  )
+%%Initialization - reset both the keywords list and the full expression, set ProximityRestartChr for resumption of failed search.
+ob oq/'=ProximityExpression/z~r-0n.r0a@&z@r-0okoz
+%%Search each line for the list of essential keywords.
+oboq/'=ProximityKeywords/ z~r-0n.r0a$&z$okr-0(f/#/e)0oz ( %f= -first '$; x0, x0\)
 
-<<GeneralFindReport>>
-%%Checks status and reports on recently-completed FindParaNext/Prev FindChapNext/Prev
+<<ProximityFindBack>>
+%%Searches back from the current character position to start of buffer to find the previous occurence of the minimum keywords.
 %%
-%%Note the ( ! ) buffer dimensions and current position
-oconob
-( (o#oz %q$=buffer; f/TagType = Name    Substring,/\ o#oz %b=tagtype Substring colour 7 2; %b=tagtype UnitDelim colour 7 1;, o#oz) 
-  %%Now add the UnitDelim tags above and below the matching section - first tag the last non-blank text above.
-  (ocol0o>\m-r0ok)0 ok ocr-0 ou %b=addtag UnitDelim;? w
-  %%Now tag the next nonblank text below.
-  oso#ono-omos z!m0onoso#ozosol-1o+om (f1'!-, ) (rr-ocr0ocoso-o#ol0oso-or, m(r0ocol0o>\mok)0 ok r-0ox) ou %b=addtag UnitDelim;? w
-  %%Now add the Substring tags.
-  z@m-0
-  ( %%Substring loop.
-    (v/!/m)0 %%Exclude any negated substrings.
-    %%Setup for this substring.
-    z!m-0 oz ono-omor oconobol0 
-    %%If the substring exists in buffer ( ! ) then assume it's in range in the origial text.
-    (z! %h'=call GeneralFindNext; o~oso#ozos %h'=call GeneralFindNext;? %b=addtag Substring; )0 
-    %%Add substring-instance count for report.
-    z@r0oo/ (%d)  /
-    %%Index to next substring.
-    m2m-
-    )0
-  %%Finalize and issue report.
-  z!m0onz@m-0j0r0oo/in %d lines./%m=Found substrings: '@; ozono-omor
-, %%Search failed.
-  ozono-omor %x=Failed to locate a section containing the specified substrings.; )
+%%Initialization - reset both the keywords list and the full expression.
+ob oq/'=ProximityExpression/z~r-0n.r0a@&z@r-0okoz
+%%Search each line for the list of essential keywords.
+oboq/'=ProximityKeywords/ z~r-0n.r0a$&z$okr-0(f/#/e)0oz ( %f= -first -back -reverse '$; (r-, m-r0) x0, x0\)
 
-<<FindParaNext>>
-%%Prompt string: Find-in-paragraph substring list> 
-%%Finds next paragraph containing a set of substrings
+<<ProximityExpr>>
+%%Elements (words or braces) are delimited by AND " & " or OR " | " and optionally prefixed by the NOT " ! " operators.
 %%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindNext;
-  %%Search back for the start of the paragraph and set the note point. 
-  oq/'=DocBulletString/ r-0 ( ( (v/ /r)0 (v'~r-f1'~-okx3, ) (r\(m-, x3), ) r-\)0 ocm- ( (v/ /r)0 (rr-, mokok\) os(v'~ r-(f1'~-osoco=, mokok)okokx3, os) (oco=, mokok\) (m-, okokx3) )0 ) n.ocon
-  %%Search forward for the end of the paragraph, and abstract to ( ! ). 
-  oq/'=DocBulletString/ r-0 ( (v/ /r)0 (v'~r-f1'~- x2, ) (r\(m, x3), ) r-\)0 oc ( (m, okokm-r0x3) (v/ /r)0 (rr-, r-0okok\) os(v'~ okokm-r0x2, os) oc(o=, okokm-r0\) )0 a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
-%%Overall search success - this paragraph contains matches for all string specifications.
-ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, omm-)or
-
-<<FindParaPrev>>
-%%Prompt string: Find-in-paragraph substring list> 
-%%Finds next paragraph containing a set of substrings
+%%After picking up the first element to buffer ( $ ), it calls either the OR or the AND functions as appropriate.
 %%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindPrev;
-  %%Search back for the start of the paragraph and set the note point. 
-  oq/'=DocBulletString/ r-0 ( ( (v/ /r)0 (v'~r-f1'~-okx3, ) (r\(m-, x3), ) r-\)0 ocm- ( (v/ /r)0 (rr-, mokok\) os(v'~ r-(f1'~-osoco=, mokok)okokx3, os) (oco=, mokok\) (m-, okokx3) )0 ) n.ocon
-  %%Search forward for the end of the paragraph, and abstract to ( ! ). 
-  oq/'=DocBulletString/ r-0 ( (v/ /r)0 (v'~r-f1'~- x2, ) (r\(m, x3), ) r-\)0 oc ( (m, okokm-r0x3) (v/ /r)0 (rr-, r-0okok\) os(v'~ okokm-r0x2, os) oc(o=, okokm-r0\) )0 a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz@m-0oz(v'@(r-, m-r0)) x-2)0 )
-%%Overall search success - this paragraph contains matches for all string specifications.
-ozono-om or %h'=call GeneralFindReport; obz@m-0oz (v'@r-, m-r0) %s=system 0;
-
-<<FindSentenceNext>>
-%%Prompt string: Find-in-sentence substring list> 
-%%Finds next sentence containing a set of substrings
 %%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the sentence to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindNext;
-  %%Now find the start point of the sentence then abstract it to buffer ( ! ).
-  ( (f-1/./\m-(v/ /r)0rr0)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./(v-/./r-)0r- )0 n.ocon
-  %%Search forward for the end of the sentence, and abstract to ( ! ).
-  ( (f1/./\m(v/ /r)0rr-)0 (v/./r)0 (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./)0 a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
-%%Overall search success - this sentence contains matches for all string specifications.
-ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, omm-)or
-
-<<FindSentencePrev>>
-%%Prompt string: Find-in-sentence substring list> 
-%%Finds next sentence containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the sentence to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindPrev;
-  %%Search back for the start of the sentence and set the note point.
-  ( (f-1/./\m-(v/ /r)0rr0)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./ )0 n.ocon
-  %%Search forward for the end of the sentence, and abstract to ( ! ).
-  ( (f1/./\m(v/ /r)0rr-)0 (v/./r, ) (v/ /r)0 rr-q/A-ZА-ЯҐΑ-Ω/\f-1/./ )0 a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
-%%Overall search success - this sentence contains matches for all string specifications.
-ozono-om or %h'=call GeneralFindReport; %s=system 0;
-
-<<FindPhraseNext>>
-%%Prompt string: Find-in-phrase substring list> 
-%%Finds next phrase containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the phrase to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindNext;
-  %%Search back for the start of the phrase and set the note point.
-  ( ( (q-/,.:;!-/\r-)0(q-//(v/ /, rr-2, \) x2, m-r0\) )0 )  n.ocon
-  %%Search forward for the end of the phrase, and abstract to ( ! ).
-  ( ( ( ( (q/,.:;!-/\r)0q//\m)0 r(v/ /\ r))0x2, m(v/ /r)0)0 ) a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
-%%Overall search success - this phrase contains matches for all string specifications.
-ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, omm-)or
-
-<<FindPhrasePrev>>
-%%Prompt string: Find-in-phrase substring list> 
-%%Finds next phrase containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the phrase to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindPrev;
-  %%Search back for the start of the phrase and set the note point.
-  ( ( ( (q-/,.:;!-/\r-)0(q-//(v/ /\ rr-3) ) )0 x2, m-r0 )0 ) n.ocon
-  %%Search forward for the end of the phrase, and abstract to ( ! ).
-  ( ( ( ( (q/,.:;!-/\r)0q//\m)0 r(v/ /\ r))0x2, m(v/ /r)0)0 ) a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
-%%Overall search success - this phrase contains matches for all string specifications.
-ozono-om or %h'=call GeneralFindReport; %s=system 0;
-
-<<FindHeadedSectionNext>>
-%%Prompt string: Find-in-section substring list> 
-%%Finds next section containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the section to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindNext;
-  %%Search back for the start of the section and set the note point.
-  r-0(q/0-9/\m-)0 n. ocon
-  %%Search forward for the end of the section, and abstract to ( ! ).
-  (mq/0-9/\)0 a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
-%%Overall search success - this section contains matches for all string specifications.
-ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, om w m-)or
-
-<<FindHeadedSectionPrev>>
-%%Prompt string: Find-in-section substring list> 
-%%Finds next section containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the section to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindPrev;
-  %%Search back for the start of the section and set the note point.
-  r-0(q/0-9/\m-)0(q//m-)0m n. ocon
-  %%Search forward for the end of the section, and abstract to ( ! ). 
-  (mq/0-9/\)0 m- a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
-%%Overall search success - this section contains matches for all string specifications.
-ozono-om or %h'=call GeneralFindReport; %s=system 0;
-
-<<FindBlockNext>>
-%%Prompt string: Find-in-block substring list> 
-%%Finds next block containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the block to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindNext;
-  %%Search back for the start of the block and set the note point.
-  r-0 (m-r)0)0 n. ocon
-  %%Search forward for the end of the block, and abstract to ( ! ).
-  r-0 (mr)0 m- a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
-%%Overall search success - this block contains matches for all string specifications.
-ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, om w m-)or
-
-<<FindBlockPrev>>
-%%Prompt string: Find-in-block substring list> 
-%%Finds next block containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the block to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindPrev;
-  %%Search back for the start of the block and set the note point.
-  r-0 (m-r\)0 m n. ocon
-  %%Search forward for the end of the block, and abstract to ( ! ). 
-  r-0(mr)0 m- a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
-%%Overall search success - this block contains matches for all string specifications.
-ozono-om or %h'=call GeneralFindReport; %s=system 0;
-
-<<FindChapterNext>>
-%%Prompt string: Find-in-chapter substring list> 
-%%Finds next chapter containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the chapter to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindNext;
-  %%Search back for the start of the chapter and set the note point.
-  r-0(q/A-Za-zĀ-𠀹/\m-)0(q//m-)0m n. ocon
-  %%Search forward for the end of the chapter, and abstract to ( ! ).
-  (mq/A-Za-zĀ-𠀹/\)0 m- a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor obz!m0r0ocosonosoz(ol1o=ok, omm-)or x-2)0 )
-%%Overall search success - this chapter contains matches for all string specifications.
-ozono-omor %h'=call GeneralFindReport; %s=system 0; obz!m0r0ocosonosoz(ol1o=ok, om w m-)or
-
-<<FindChapterPrev>>
-%%Prompt string: Find-in-chapter substring list> 
-%%Finds next chapter containing a set of substrings
-%%
-%%Pick up args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the chapter to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz %h'=call GeneralFindPrev;
-  %%Search back for the start of the chapter and set the note point.
-  r-0(q/A-Za-zĀ-𠀹/\m-)0(q//m-)0m n. ocon
-  %%Search forward for the end of the chapter, and abstract to ( ! ). 
-  (mq/A-Za-zĀ-𠀹/\)0 m- a!& ob
-  %%Check remaining substrings in the list.
-  ( z@(m2m-, x2) z!m-0 %h'=call GeneralFindNext;, ozono-omor x-2)0 )
-%%Overall search success - this chapter contains matches for all string specifications.
-ozono-om or %h'=call GeneralFindReport; %s=system 0;
-
-<<FindInNLines>>
-%%Prompt string: Find-in same line string> 
-%%Function finds next sequence of no more than N lines containing a set of substrings in the any order.
-%%
-%%If this is a repeat search, go to end of paragraph
-( oq/'=FindNLinesAperture/ok, %h'=data FindNLinesAperture; ol1 ov/'=FindNLinesAperture/ )
-%s=system 1; obz$r-0 (q/0-9/oide-0 ov/'=FindNLinesAperture/, ) oz
-%%Pick search-specification args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz ( %h'=call GeneralFindNext;, x3 )
-  %%Define the end-point line no.
-  onoq/'=FindNLinesAperture/o+
-  %%For an n-line aperture, begin by going back n-1 lines.
-  oq/'=FindNLinesAperture/ol1oso-om?
-  ( %%Moving aperture loop - abstract next n lines to the ( ! ) buffer.
-    n.oq/'=FindNLinesAperture/oma!& obz@m-0oz
-    %%Check remaining substrings in the list.
-    (obz@(m2m-, x4) z!m-0 %h'=call GeneralFindNext; oz)0 
-    %%That n-line sample failed, check line number then select a new sample and repeat.
-    oz(ono= okx2,) mn.ol0oq/'=FindNLinesAperture/o-om )0
-  %%Repeat the opening search.
+( %%Term loop - evaluate next term in the expression and set the top of stack with term status.
+  obz@ 
+  %%Set the inversion flag - inverts the value of the complete subexpression -  100 for non-inversion, -101 for inversion.
+  (v/!/rol-101, ol100) os
+  %%Evaluate term status.
+  ( v/(/  %%A subexpression term.
+    roz ( %h'=call ProximityExpr; ol-1, ol0) 
+  , %%A simple word term - pick up word and launch a search.
+    (n.(q/()|&!/\r)0a$&z$r-0 
+    ( v/#/ %%This word must match exactly.
+      rb oz (%f= -aperture '$; ((q-/_A-Za-z0-9Ā-𠀹/\f'$-q//\)\(r, m) onoc %f= -aperture -restart '$;)0 v-'$ol-1, ol0)
+    , %%A non-exact match will do.
+      oz %f= -aperture '$; ol-1, ol0) ) )
+  %%Invert the result, if required.
+  ( osol-101o=oko!, ok ) 
+  %%
+  %%At this point the current buffer should be the main text and the top of stack is the status of the most recent term.
+  obz@
+  ( %%AND/OR block.
+    v/&/roz %%  AND 
+    ( ol-1o=ok,   %%The latest term of the AND subexpressions failed - skip to the matching end-brace and exit with FALSE.
+      okobz@ ol-1(v/(/ol1o-(r, m), v/)/\(r,m,okol-1?\),o~(r, m))0  okoz x0\ )
+  , v/|/roz  %%  OR
+    ( ol-1o=\ok,  %%The latest of the OR subexpressions matched within the proximity aperture - skip to the matching end-brace and exit with TRUE.
+      okobz@ ol-1(v/(/ol1o-(r, m), v/)/\(r,m,okol-1?\),o~(r, m))0 okoz x0 )
+  , (rv-/)/\)\    %%Expression terminated by close brace or an EOL - return with correct status value.
+    %%
+    %%Now irrespective of whether it's OR or AND, if it gets to the last term and the last term is TRUE then the whole expresson value *must* be TRUE.
+    oz(ol-1o= okx0, okx0\)
+  , r- %x=Syntax error: Unexpected character found in proximity expression.; pozx0\ )
   )0
-%%Overall search success - this paragraph contains matches for all string specifications.
-z@m-0 ozol0oq/'=FindNLinesAperture/o-omok %h'=call GeneralFindReport; oq/'=FindNLinesAperture/om  %s=system 0;
-
-<<FindInNLinesPrev>>
-%%Prompt string: Find-in same line string> 
-%%Function searches back finding next sequence of no more than N lines containing a set of substrings in the any order.
 %%
-%%If this is a repeat search, go to end of paragraph
-( oq/'=FindNLinesAperture/ok, %h'=data FindNLinesAperture; ol1 ov/'=FindNLinesAperture/ )
-%s=system 1; obz$r-0 (q/0-9/oide-0 ov/'=FindNLinesAperture/, ) oz
-%%Pick search-specification args and clear any tagged text.
-%h'=call GeneralFindSetup;
-( %%Main search loop - first find a match to the first substring then abstract the paragraph to buffer ( ! ) and check the other required substrings.
-  obz@m-0oz ( %h'=call GeneralFindPrev;, x3 )
-  %%Define the end-point line no.
-  onoq/'=FindNLinesAperture/o+
-  %%For an n-line aperture, begin by going back n-1 lines.
-  oq/'=FindNLinesAperture/ol1oso-om?
-  ( %%Moving aperture loop - abstract next n lines to the ( ! ) buffer.
-    n.oq/'=FindNLinesAperture/oma!& obz@m-0oz
-    %%Check remaining substrings in the list.
-    (obz@(m2m-, x4) z!m-0 %h'=call GeneralFindNext; oz)0 
-    %%That n-line sample failed, check line number then select a new sample and repeat.
-    oz(ono= okx2,) mn.ol0oq/'=FindNLinesAperture/o-om )0
-  %%Repeat the opening search.
-  ol0oq/'=FindNLinesAperture/o-om )0
+%%A matched expression will exit before this point - this must be a failure.
+x0\
+
+<<ProximityCharacters>>
+%%Prompt string: Find-in-N-characters substring list> 
+%%Finds next set of n consecutive characters containing a set of substrings, optional arg n defaults to 1 and is the first arg.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext;
+  %%Start point is the current character.
+  onoc %f= -setaperture -startchr='~ -startline='~;
+  onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/ 
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the end of the n-th character.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol100, )ol0oso-
+  ( (r, m) os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -endchr='~ -endline='~;
+  %%Check the full expression.
+  %h'=call ProximityExpr;\
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityCharactersBack>>
+%%Prompt string: Find-in-N-characters substring list> 
+%%Finds next set of n consecutive characters containing a set of substrings, optional arg n defaults to 1 and is the first arg.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack;
+  %%End point is the current character.
+  onoc %f= -setaperture -endchr='~ -endline='~;
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the end of the n-th phrase.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol100, )ol0oso-
+  ( (r-, m-r0) os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~;
+  %%Check the full expression.
+  %h'=call ProximityExpr;\
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityWords>>
+%%Prompt string: Find-in-N-words substring list> 
+%%Finds next set of n consecutive words containing a set of substrings, optional arg n defaults to 1 and is the first arg.
+%%
+%s=system 1;
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext;
+  %%Start point will be the beginning of matching string.
+  (q-/a-zA-Z0-9Ā-𠀹/r-)0 onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the end of the n-th word.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol10, )ol0oso-
+  ( (q/a-zA-Z0-9Ā-𠀹/r)0(q/a-zA-Z0-9Ā-𠀹/\(r, m))0 os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -endchr='~ -endline='~;
+  %%Check the full expression.
+  %h'=call ProximityExpr;\ 
+  %%No match in this aperture, continue searching from end of initial match.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityWordsBack>>
+%%Prompt string: Find-in-N-words substring list> 
+%%Working back from current-character position, finds next set of n consecutive words containing a set of substrings, optional arg n defaults to 1 and is the first arg.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack;
+  %%End point is the end of the word.
+  (q/a-zA-Z0-9Ā-𠀹/r)0 onoc %f= -setaperture -endchr='~ -endline='~;
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the end of the n-th word.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol10, )ol0oso-
+  ( (q-/a-zA-Z0-9Ā-𠀹/r-)0(q-/a-zA-Z0-9Ā-𠀹/\(r-, m-r0))0 os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~;
+  %%Check the full expression.
+  %h'=call ProximityExpr;\
+  %%No match in this aperture, continue searching from start of initial match.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityLines>>
+%%Prompt string: Find-in-N-lines substring list> 
+%%Finds next set of n consecutive lines containing a set of substrings, optional arg n defaults to 1 and is the first arg.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext;
+  %%Start point is the beginning of this line.
+  r-0 onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the end of the n-1th line.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  (m os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~)0 okok m-?r0onoc %f= -setaperture -endchr='~ -endline='~;
+  %%Check the full expression.
+  %h'=call ProximityExpr;\
+  %%No match in this aperture, continue searching from end of initial match.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%End of buffer or overall search success - this sentence contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityLinesBack>>
+%%Prompt string: Find-in-N-lines substring list> 
+%%Finds next set of n consecutive lines containing a set of substrings, optional arg n defaults to 1 and is the first arg.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack;
+  %%End point is the end of this line.
+  r0onoc %f= -setaperture -endchr='~ -endline='~;
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the start of the n-1th line.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  (m- os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~)0 okok m?onoc %f= -setaperture -startchr='~ -startline='~;
+  %%Check the full expression.
+  %h'=call ProximityExpr;\
+  %%Restart
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityPhrase>>
+%%Prompt string: Find-in-phrase substring list> 
+%%Finds next phrase containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext; 
+  %%Search back for the start of the phrase and set the aperture staaart.
+  (on %f= -back -first -reverse -endline='~ ,	.	:	\;	!	?	 - ;\ m-(v/ /r)0 rr0)0 onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the end of the first phrase, then set the aperture at the end of the n-th phrase.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  ( (on %f= -endline='~ -first ,	.	:	\!	?	\; - ;\m (v/ /r)0 rr-)0 (r, m) os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  %%Define the aperture end point and we're all set to go.
+  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this phrase contains matches for all string specifications.
+%h'=call ProximityReport; (r, m)
+%s=system 0;
+
+<<ProximityPhraseBack>>
+%%Prompt string: Find-in-phrase substring list> 
+%%Finds next phrase containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack; 
+  %%Search forwards for the end of the phrase and set the aperture end.
+  (on %f= -first -endline='~ ,	.	:	\;	!	?	 - 	;\ m(v/ /r)0rr-)0 onoc %f= -setaperture -endchr='~ -endline='~;
+  %%This loop has two counters because we need to set the restart point at the start of the first phrase, then set the aperture at the start of the n-th phrase.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  ( (on %f= -back -first -reverse -endline='~ ,	.	:	\;	!	?	 - ;\ m-(v/ /r)0rr0)0 (r-, m-(v/ /r)0rr0) 
+    os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~;
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this phrase contains matches for all string specifications.
+%h'=call ProximityReport; (r-, m-r0) 
+%s=system 0;
+
+<<ProximitySentence>>
+%%Prompt string: Find-in-sentence substring list> 
+%%Finds next sentence containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext; 
+  %%Search back for the start of the sentence and set the aperture staaart.
+  (on %f= -back -first -reverse -endline='~ .	!~?	 - ;\ m-(v/ /r)0 rr0)0 onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the end of the first sentence, then set the aperture at the end of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  ( (on %f= -endline='~ -first .	\!	?	\; - ;\m (v/ /r)0 rr-)0 (r, m) os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  %%Define the aperture end point and we're all set to go.
+  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this sentence contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximitySentenceBack>>
+%%Prompt string: Find-in-sentence substring list> 
+%%Finds next sentence containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack; 
+  %%Search forwards for the end of the sentence and set the aperture end.
+  (on %f= -first -endline='~ .	!	?	 - 	;\ m(v/ /r)0rr-)0 onoc %f= -setaperture -endchr='~ -endline='~;
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  ( (on %f= -back -first -reverse -endline='~ .	!	?	 - ;\ m-(v/ /r)0rr0)0 (r-, m-(v/ /r)0rr0) os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/)  oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this sentence contains matches for all string specifications.
+%h'=call ProximityReport; (r-, m-r0) 
+%s=system 0;
+
+<<ProximityPara>>
+%%Prompt string: Find-in-paragraph substring list>
+%%Finds next paragraph containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext; 
+  %%Searching back from initial match, locate start of this paragraph and set aperture start.
+  oq/'=DocBulletString/obosz~r-0n.r0a$& osozok r-0 (v/ /r)0oc (v'$oxo+, ) (m- (v/ /r)0oc (v'$okoxorx2, ) (rr-, ok\)o= )0 ok m(v/ /r)0onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso- 
+  %%Paragraphs are delimited by any indentation change - search forwards for end of n-th paragraph.
+  r-0 ( ((v/ /r)0r\m )0r-oc (v'$oxo+, ) (m (v/ /r)0oc (v'$okoxorx2, ) (rr-, ok\)o= )0 m okos (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
 %%Overall search success - this paragraph contains matches for all string specifications.
-z@m-0 ozol0oq/'=FindNLinesAperture/o-omok %h'=call GeneralFindReport; %s=system 0;
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityParaBack>>
+%%Prompt string: Find-in-paragraph substring list>
+%%Finds previous paragraph containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack; 
+  %%Searching forwards from initial match, locate end of this paragraph and set aperture end.
+  oq/'=DocBulletString/obosz~r-0n.r0a$& osozok r-0 (v/ /r)0oc (v'$oxo+, ) m ( (v/ /r)0oc (v'$okx2, ) (rr-, ok\)o= m)0 ok m-r0onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  %%Paragraphs are delimited by any indentation change - search back to start of nth paragraph.
+  r-0 ( ((v/ /r)0r\m-)0r-oc (v'$oxo+, ) ( (v/ /r)0oc (v'$okoxorx2, ) (rr-, ok\)o= m-)0 m- okos (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this paragraph contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityHeadedSection>>
+%%Prompt string: Find-in-section substring list> 
+%%Finds next section containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext; 
+  %%Searching back from initial match, locate start of this section and set aperture start.
+  r-0 (q/0-9/\ m-)0 onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  m ( (q/0-9/\ m)0 m os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok m-?
+  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this section contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityHeadedSectionBack>>
+%%Prompt string: Find-in-section substring list> 
+%%Finds next section containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack; 
+  %%Searching forwards from initial match, locate end of this section and set aperture end.
+  r-0 (q/0-9/\ m)0  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  m- ( (q/0-9/\ m-)0 m- os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this section contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityBlock>>
+%%Prompt string: Find-in-block substring list> 
+%%Finds next block containing a set of substrings - a block being any number of paragraphs and headed sections bounded by entierly blank lines.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindNext; 
+  %%Searching back from initial match, locate start of this section and set aperture start.
+  r-0 (rm-)0 onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  m ( (rm)0 m os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/)  oso~ )0 okok
+  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this section contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityBlockBack>>
+%%Prompt string: Find-in-block substring list> 
+%%Finds next block containing a set of substrings - a block being any number of paragraphs and headed sections bounded by entierly blank lines.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop.
+  %h'=call ProximityFindBack; 
+  %%Searching forwards from initial match, locate end of this section and set aperture end.
+  r-0 (rm)0  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  m- ( (rm-)0 m- os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/)  oso~ )0 okok
+  onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this section contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityChapter>>
+%%Prompt string: Find-in-chapter substring list> 
+%%Finds next chapter containing a set of substrings - a block being any number of paragraphs and headed sections bounded by entierly blank lines.
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the chapter to buffer ( ! ) and check the other required substrings.
+  %h'=call ProximityFindNext;
+  %%Search back for the start of the chapter and set the aperture start point.
+  r-0((q/A-Za-zĀ-𠀹/\m-)0 m-r)0 ocon onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  (m ((rm)0 mq/A-Za-zĀ-𠀹/\)0 os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/)  oso~ )0 okok
+  onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this chapter contains matches for all string specifications.
+%h'=call ProximityReport;
+%s=system 0;
+
+<<ProximityChapterBack>>
+%%Prompt string: Find-in-chapter substring list> 
+( %%Finds next chapter containing a set of substrings
+%%
+%%Pick up args and clear any tagged text.
+%h'=call ProximityFindSetup;
+( %%Main search loop - first find a match to the first substring then abstract the chapter to buffer ( ! ) and check the other required substrings.
+  %h'=call ProximityFindBack;
+  %%Search forwards for the end of the chapter and set the aperture end point.
+  r-0((q/A-Za-zĀ-𠀹/\m)0m-rm2)0 m onoc %f= -setaperture -endchr='~ -endline='~; 
+  %%This loop has two counters because we need to set the restart point at the start of the first sentence, then set the aperture at the start of the n-th sentence.
+  ol-1 oq/'=ProximityMultiplier/(ol0o=okol1, )ol0oso-
+  ( ((m-q/A-Za-zĀ-𠀹/\)0 (m-r))0 os (o~, onov/'=ProximityRestartLine/ ocov/'=ProximityRestartChr/) oso~ )0 okok onoc %f= -setaperture -startchr='~ -startline='~; 
+  %%Check remaining substrings in the list.
+  %h'=call ProximityExpr;\
+  %%Failed - respin.
+  oq/'=ProximityRestartLine/ono-om oq/'=ProximityRestartChr/or )0
+%%Overall search success - this chapter contains matches for all string specifications.
+%h'=call ProximityReport; )?
+%s=system 0;
 
 <<CutRectangle>>
 %%Copies (to paste buffer) a rectangular block of text from the note point to the current cursor position.
@@ -1695,8 +2024,7 @@ ocoso- osono-
 %%Return to original note point.
 oso#ol0oso-or oso#(y-o~)0 ok
 %%Abstract block, one record at a time.
-n.a_ol1o- (n.oso#or?a_+obz_r0 ocb osoz ol-1oso-o#(o~i/ /)0oko~or oso~y)0 okok
-%%n.a_ol1o- (n.oso#or?a_+*obz_r0boz oso~y)0 okok
+n.a_&ol1o- (n.oso#or?a_+obz_r0 ocb osoz ol-1oso-o#(o~i/ /)0oko~or oso~y)0 okok
 %%Return to note point (top-left corner of abstracted block).
 obz_onol2oso-osoz (y-o~)0ok %s=system 0;
 
@@ -1896,8 +2224,8 @@ oz(m, r0b) ol0o+(o~(r, i/ /))0ok %s=system 0;
 %%20 Valid crossings:    ┼ ┽ ┾ ┿ ╀ ╁ ╂ ╃ ╄ ╅ ╆ ╇ ╈ ╉ ╊ ╋ ╪ ╫ ╬  
 %%
 %% 3 valid diagonals:    ╱ ╲ ╳
-
-obz$(v/ /e)0 (q/lLhHdD/, e0)(q/LHD/cr-, )n.r?a~ ov/'=DefaultLineDrawing/ oz
+  
+obz$(v/ /e)0 (q/aAlLhHdD/, e0)(q/LHD/cr-, )n.r?a~ ov/'=DefaultLineDrawing/ oz
 
 <<LineCheckIntersection>>
 %%Checks all four characters ajacent to current character and modifies current character if lines intersect.
@@ -1926,7 +2254,7 @@ z@r-0 (o#ozr-n.ra$& osz~m-0f'$r3n.ra$&oso#oz, oso#oz%d$=.;) z@r0i'$
 oq/'=DefaultLineDrawing/
 z@r-0r (v/..../ (q-/ns/, r2)e2i'~2, (q-/n/, q-/s/r, q-/e/r2, r3)ei'~ ) ok
 %%Search for a matching character.
-z@r-0rbosz~m-0(f'@r-r-\n.ra$&, %m=Match not found: "'@",  "'$"; %d$=?;)
+z@r-0rbosz~m-0(f'@r-r-\n.ra$&, %m=Match not found: "&'@&",  "&'$&"; %d$=?;)
 %%
 %%Insert the new character.
 osozoki'$er-
@@ -2063,7 +2391,7 @@ o#r2oc (ol2o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok %s=system 0;
   , %%Yes add the word.
     i'$obz$ocosozol0oso-(eo~)0ok obz$ocosozo- obz$mr0ocosoz)0
   obz$mm-oz)0
-ok osokosok z$(m\, %x=Failed to add some of your words.;) ozw %s=system 0;
+ok osokosok z$(m\, %x=Failed to add some of your words.;) oz %w=refresh;  %s=system 0;
 
 <<Help>>
 %%Prompt string: Help key> 
@@ -2206,11 +2534,9 @@ ov/'=DocRightMargin/
 r-0(v/ /, %X=Error: this is not a valid paragraph.; )
 %%Get current indentation level.
 (v/ /r)0 oq/'=DocBulletString/ (v'~rr-f1//-,)oc
-%%(v/ /r)0obz&m+3oz(v'&rr-f1//-,)oc
 (
   %%Exit if bullet at current level.
   os(v-'~\, m-?\)
-%%  (v-'&\, m-?\)
   %%Exit if indentation level has gone up.
   v/ /\
   %%Exit if indentation level has gone down.
@@ -2220,7 +2546,6 @@ r-0(v/ /, %X=Error: this is not a valid paragraph.; )
   r-0(r\, r-(v/ /, m-?\))
   %%Exit now if any bullet.
   (v/ /r)0v'~\
-%%  (v/ /r)0v'&\
   %%Exit if line is blank.
   rr-
   m-
@@ -2236,13 +2561,11 @@ okok
 r-0(v/ /, %X=Error: this is not a valid paragraph.; )
 %%Get the current indentation level.
 oq/'=DocBulletString/ ((v/ /r)0r\m)0r- (v'~rr-f1//-,)oc
-%%obz&m+3oz ((v/ /r)0r\m)0r- (v'&rr-f1//-,)oc
 (
   %%Exit if a change in indentation level.
   (v/ /r)0oco=
   %%Exit if it's a next-level bullet.
   osv'~\os
-%%  v'&\
   %%Exit if don't touch line.
   r-0(r\, r-v/ /)
   %%Exit if it's a blank line.
@@ -2258,9 +2581,13 @@ z$m0onos
 %%Acquire pathName for local spelling dictonary.
 o#oz %q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
 %%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
-z_n.a$z$ i"%e#=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+z_n.a$&z$ i"%e#=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/
+%%  %s=trace F901;
+ ('$, %X=failed to run the spelling checker;)
+%%Strip out blank lines, those only containing one or less character and those beginning with "# " - words allowed by the personal spelling dic.
+m-0(r2\k, v-/# /k, m)0
 %%Sort and purge.
-%b=sort; (r\k, r-v/& /\k, m)0 m0r0b m-0(n.r2(f1/ /-q/0-9/\)0a$& m(v'$k)0)0
+%b=sort; m0r0b m-0(n.r2(f1/ /-q/0-9/\)0a$& m(v'$k)0)0
 %%Remove any words which appear in the spelling list.
 o#oz (%i$=spell.dic; (i/ /r0i//m)0m-0 z#m-0(rn.rf1/ /-a;& (z$m-0f';z#k, z#m))0, )
 %%Report number of spelling mistakes.
@@ -2268,7 +2595,7 @@ z#m-0ol0(ro~m, k)0m-0
 (ol0o= 
   ok%m=Congratulations, there were no spelling mistakes.; ozok
 , %%Some spellings to fix.
-  %m=Oh dear, there were '~ spelling mistakes.;
+  %m=Oh dear, there were &'~& spelling mistakes.;
   %%Add return signpost to buffer ( # ).
   o#m-0b-oo/Spell-check report, original buffer: %c/ ozo#onoso-o~obosz#r0oo/ lines %d/ ozonol-1o+obosz#r0oo/ to %d/b
   %%Go to first misspelling.
@@ -2315,9 +2642,9 @@ z-m-0k0
 %%Acquire pathName for local spelling dictonary.
 o#oz%q~=buffer; f/pathName = /-br0(f-1./.-, r-0i"./")b-i/spell.dic/
 %%Run the spelling checker and read back results, if there is there a local spelling dictonary use that.
-z_n.a$z$ i"%e#=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$
+z_n.a$&z$ i"%e#=\cat /tmp/spell.tmp | \aspell -a " (o# %q=file '~; i/--personal=/i'~ , )ok r0i/ list;/ '$ z#
 %%Set up popup menu.
-k(f1/: /-n.r0a-& z-(f1/, /e2b)0 oz %h'=call PopupRestore; , oz %x=The spelling was correct.; ) oz
+k(f1/: /-n.r0a-& z-(f1/, /e2b)0 m-0oz %h'=call PopupRestore; , oz %x=The spelling was correct.; ) oz
 
 <<NextMisspelling>>
 %%Goes to next word in spelling-errors list, if at end of line move to next misspelling.
@@ -2330,7 +2657,7 @@ obz#(m, oz%x=All done;)
   %%Maybe a new-style report with no suggestions.
   v/# /r2n.f1/ /a$&
 , %%Maybe the old-style report, just pick up the misspelling.
-  v/& /\ n.r0a$& n.a-
+  v/& /\ n.r0a$& n.a-&
 , %%It's a new-style Aspell report, hopefully with suggested corrections.
   r2n.f1/ /a$& f1/: /-n.r0a-& z-m-0 (f1/, / e2b)0
   %h'=call PopupRestore;
@@ -2355,18 +2682,17 @@ obz#r-0(v/& /\n.r0a$&, r2n.f1/ /a$&) r0oz(v'$r, )
 z;onm-0f1/original buffer: /-oicosono-om ozs';
 
 <<SpellLexicon>>
-%%Prompt string: Lexicon-search ReX> 
+%%Prompt string: Lexicon-search REx> 
 %%Greps for string in lexicon.
 %%
 %%Construct the egrep command then do it.
 obz$r-0 i"%e-=\egrep -i '"r0i"' ${JOT_RESOURCES}/lexicon.lis" '$
 %%Announce and display.
-m0onm-0 osoz %m=There were '~ matching words.; %h'=call PopupRestore;
+m0onm-0 osoz %m=There were &'~& matching words.; %h'=call PopupRestore;
 
 <<MakeParagraphIntoBullet>>
 %%Makes current paragraph a bullet.
 oq/'=DocBulletString/ onoc
-%%obz&m+3oz onoc
 %%Condense paragraph to one line.
 %h'=call FindParagraphStart; on %h'=call FindNextParagraphStart; ono-b-(j-o~)0ok %h'=call FindParagraphStart; 
 %%Go back to start of previous paragraph and get it-s indentation level.
@@ -2386,7 +2712,6 @@ osono-om(v/ /e)0 ol0oso-(i/ /o~)0 okokok
 r-0(v/ /e)0r0(v-/ /e-)0
 %%Get length of line.
 oc oq/'=DocLeftMargin/o# oq/'=DocRightMargin/ oso-oco-ol-2o/oso-r-0
-%%ocobz&m+1r-0oidosozo#obz&m+2r-0oidosozoso-oco-ol-2o/oso-r-0
 %%Underline it.
 (o~i/ /)0okn.r-0a$h$r0bh$ol0oso-(i/-/o~)0okm(v/ /r)0(v/--/k,)
 
@@ -2398,9 +2723,9 @@ na$h$2m-(v/ /r, (v/  /\ ei/-/)0r)0m
 %%Purges all headings.
 on
 %%Find the first heading.
-m-0((q/0-9/\m)0mm-q/0-9/((q/0-9/e)0i/1/v/./r)0(v/ /e)0i/ /)0
+m-0((q/0-9/\m)0mm-q/0-9/((q/0-9/e)0i/1/v/./r)0(v/ /e)0i/ /m)0
 %%Change it to all-the-zeros.
-n.a$obz$i/0/oz
+n.a$&obz$i/0/oz
 m-0
 ( %%Heading loop.
   %%Find next heading.
@@ -2429,7 +2754,6 @@ r-0ol0
 m(v/-/k,)m-r0
 %%If levels < Limit add new underlines.
 oq/'=DocHeaderMax/ o-ol0o< (v-/ /e-)0ol0oco-b(i/-/o~)0okm,
-%%obz&m+4oidosozo-ol0o< (v-/ /e-)0ol0oco-b(i/-/o~)0okm,
 
 <<ConvertLineToHeading>>
 %%Prompt string: Heading proforma> 
@@ -2480,27 +2804,36 @@ r-0(q/	 /e)0r0(q-/	 /e-)0oc oq/'=DocRightMargin/ o-r-0(i/ /o~)0okm
 %%
 %s=system 1; obz'm0 (rr0bm-, m-)2m0 onh@ ono-om
 %%Check the function definitions and set up the function hashtable.
-((v/<</\m)0 mm-r2n.f1/>>/a@&r2 %h=add '@;)0
+( (v/<</\m)0 mm-r2n.f1/>>/a@&r2 %h=code '@;)0
 %%
 %%If the keymap buffer contains any symbolic keys ( of the form {<keySequenceDescription>} ) then resolve these now.
 z^m-0(v/{/\m)0 
-( v/{/\oz ,
+( v/{/\,
   ( %q=windows;
     %r=WindowsNT_keys;
-  , %%unix then.
-    %q$=env TERM; m %r=curses_keys_'$;?
-  , %m=Error: No jot key-mapping file for TERM '$, using xterm instead.;
+  , %%Use correct keymap for this version of curses.
+    %q@=version; m
+    f1/ncurses/-(v/ /r)0e-0 (f1/./s/_/)0 %r=curses_keys_&'@;
+  , %%All other versions of curses, use TERM-specific keymap.
+    %q@=env TERM; m %r=curses_keys_&'@;
+  , %%Give up and use the generic xterm keymap.
     %r=curses_keys_xterm; )
-  %%Replace symbolic keys.
-  (z^v/{/n.f1/}/-a$&v-'$ z@m-0(f'$r-0n.r12a$&z^s'$m, m) )0 oz) %s=system 0;
+  (z^v/{/n.f1/}/-a$&v-'$ z@m-0(f'$r-0n.r12a$&z^s'$m
+  , %%Not in the keymap file - maybe it's {Ctrl+<ordinaryKey>}
+    z^r-0v/{Ctrl+/r7v/}/er-e-0i/^/f/ /(v/ /e)0ocol12o-(i/ /o~)0okm
+  , %%Not {Ctrl+<key>} - maybe it's {Alt+<key>}
+    z^r-0v/{Alt+/r6v/}/er-e-0i/^[/ f1/ /(v/ /e)0ocol12o-(i/ /o~)0okm
+  , %%Not {Alt+<key>}
+    m ) )0 ) 
+oz %s=system 0;
 
-:
+Code_Repository:
   
 %%Set up the hashtable in the code-repository buffer ( ' ).
 %h'=create 1000;
 
-%%Define functins map in buffer ( ! ).
-%g!
+%%Define functions key map - this is expected in buffer ( ! ).
+%g!=Hot_Keys;
 <<CopyFromMouse>>            {Button1Up}
 <<NoteFromMouse>>            {Button1Down}
 <<FocusToMouse>>             {Button1Click}
@@ -2542,29 +2875,29 @@ z^m-0(v/{/\m)0
 <<Substitute>>               {F5}
 <<Remove>>                   {Shift+F5}
 <<SubstituteAgain>>          {Ctrl+F5}
-<<AngleMatchLeft>>           {Ctrl+Shift+F5}
-<<ParenMatchLeft>>           {Shift+Alt+F5}
-<<CurlyMatchLeft>>           {Ctrl+Shift+Alt+F5}
+<<MatchAngleLeft>>           {Ctrl+Shift+F5}
+<<MatchParenLeft>>           {Shift+Alt+F5}
+<<MatchCurlyLeft>>           {Ctrl+Shift+Alt+F5}
 <<Insert>>                   {F6}
 <<Overwrite>>                {Shift+F6}
 <<InsertAgain>>              {Ctrl+F6}
-<<AngleMatchRight>>          {Ctrl+Shift+F6}
-<<ParenMatchRight>>          {Shift+Alt+F6}
-<<CurlyMatchRight>>          {Ctrl+Shift+Alt+F6}
-<<FindPrev>>                 {F7}
+<<MatchAngleRight>>          {Ctrl+Shift+F6}
+<<MatchParenRight>>          {Shift+Alt+F6}
+<<MatchCurlyRight>>          {Ctrl+Shift+Alt+F6}
+<<FindBack>>                 {F7}
 <<SubsThenFindPv>>           {Shift+F7}
-<<FindPrevAgain>>            {Ctrl+F7}
-<<MarkupMatchLeft>>          {Shift+Alt+F7}
+<<FindBackAgain>>            {Ctrl+F7}
+<<MatchMarkupLeft>>          {Shift+Alt+F7}
 <<IndentMatchUp>>            {Ctrl+Shift+F7}
-<<SquareMatchLeft>>          {Ctrl+Shift+Alt+F7}
+<<MatchSquareLeft>>          {Ctrl+Shift+Alt+F7}
 <<FindNext>>                 {F8}
 <<SubsThenFindNx>>           {Shift+F8}
 <<FindNextAgain>>            {Ctrl+F8}
-<<MarkupMatchRight>>         {Shift+Alt+F8}
+<<MatchMarkupRight>>         {Shift+Alt+F8}
 <<IndentMatchDown>>          {Ctrl+Shift+F8}
-<<SquareMatchRight>>         {Ctrl+Shift+Alt+F8}
-<<FindExactNext>>            {F9}
-<<FindExactPrev>>            {Shift+F9}
+<<MatchSquareRight>>         {Ctrl+Shift+Alt+F8}
+<<FindExact>>                {F9}
+<<FindExactBack>>            {Shift+F9}
 <<SetFindString>>            {Ctrl+F9}
 <<AppendLeftPrev>>           {Alt+F9}
 <<IndentFromPrev>>           {Ctrl+Shift+F9}
@@ -2591,21 +2924,13 @@ z^m-0(v/{/\m)0
 <<Left>>                     {LeftArrow}
 <<WordLeft>>                 {Shift+LeftArrow}
 <<LineLeft>>                 {Ctrl+LeftArrow}
-<<DeleteChrLeft>>            {Alt+LeftArrow}
 <<PageUp>>                   {Alt+UpArrow}
 <<PageDown>>                 {Alt+DownArrow}
 <<ViewLeft>>                 {Ctrl+Shift+LeftArrow}
-<<DeleteLineLeft>>           {Ctrl+Alt+LeftArrow}
-<<DeleteWordLeft>>           {Shift+Alt+LeftArrow}
-<<RestoreChrLeft>>           {Ctrl+Shift+Alt+LeftArrow}
 <<Right>>                    {RightArrow}
 <<WordRight>>                {Shift+RightArrow}
 <<LineRight>>                {Ctrl+RightArrow} Collides with {Ctrl+Alt+PageUp}
-<<DeleteChrRight>>           {Alt+RightArrow} Collides with {Ctrl+PageUp}
 <<ViewRight>>                {Ctrl+Shift+RightArrow}
-<<DeleteLineRight>>          {Ctrl+Alt+RightArrow}
-<<DeleteWordRight>>          {Shift+Alt+RightArrow}
-<<RestoreChrRight>>          {Ctrl+Shift+Alt+RightArrow}
 <<Macro1>>                   {KP_1}
 <<LineSW>>                   {Ctrl+Alt+KP_1}
 <<Macro2>>                   {KP_2}
@@ -2630,17 +2955,17 @@ z^m-0(v/{/\m)0
 <<Macro0>>                   {KP_0}
 <<Enter>>                    {KP_Enter}
 <<Again>>                    {KP_Decimal}
-<<ParenMatchRight>>          ^[m(
-<<ParenMatchLeft>>           ^[m)
-<<CurlyMatchLeft>>           ^[m}
-<<CurlyMatchRight>>          ^[m{
-<<SquareMatchLeft>>          ^[m]
-<<SquareMatchRight>>         ^[m[
-<<AngleMatchRight>>          ^[m<
-<<AngleMatchLeft>>           ^[m>
-<<AnyMatch>>                 ^[ma
-<<MarkupMatchRight>>         ^[mm
-<<MarkupMatchLeft>>          ^[-mm
+<<MatchParenRight>>          ^[m(
+<<MatchParenLeft>>           ^[m)
+<<MatchCurlyLeft>>           ^[m}
+<<MatchCurlyRight>>          ^[m{
+<<MatchSquareLeft>>          ^[m]
+<<MatchSquareRight>>         ^[m[
+<<MatchAngleRight>>          ^[m<
+<<MatchAngleLeft>>           ^[m>
+<<MatchAny>>                 ^[ma
+<<MatchMarkupRight>>         ^[mm
+<<MatchMarkupLeft>>          ^[-mm
 <<IndentMatchDown>>          ^[mi
 <<IndentMatchUp>>            ^[-mi
 <<ParagraphDown>>            ^[mp
@@ -2654,33 +2979,43 @@ z^m-0(v/{/\m)0
 <<BlockDown>>                ^[mb
 <<BlockUp>>                  ^[-mb
 <<FindSequence>>             ^[fq
-<<FindSequencePrev>>         ^[-fq
+<<FindSequenceBack>>         ^[-fq
 <<FindLineOrd>>              ^[fo
-<<FindLineOrdPrev>>          ^[-fo
-<<FindLineUn>>               ^[fu
-<<FindLineUnPrev>>           ^[-fu
-<<FindInNLines>>             ^[fn
-<<FindInNLinesPrev>>         ^[-fn
-<<FindWild>>                 ^[fw
-<<FindWildPrev>>             ^[-fw
-<<FindSentenceNext>>         ^[fs
-<<FindSentencePrev>>         ^[-fs
-<<FindPhraseNext>>           ^[fr
-<<FindPhrasePrev>>           ^[-fr
-<<FindParaNext>>             ^[fp
-<<FindParaPrev>>             ^[-fp
-<<FindBlockNext>>            ^[fb
-<<FindBlockPrev>>            ^[-fb
-<<FindChapterNext>>          ^[fc
-<<FindChapterPrev>>          ^[-fc
-<<FindHeadedSectionNext>>    ^[fh
-<<findColNext>>              ^[fl
-<<findColPrev>>              ^[-fl
-<<findVertNext>>             ^[fv
-<<findVertPrev>>             ^[-fv
-<<findRectNext>>             ^[fe
-<<findRectPrev>>             ^[-fe
-<<FindHeadedSectionPrev>>    ^[-fh
+<<FindLineOrdBack>>          ^[-fo
+<<FindWild>>                 ^[f*
+<<FindWildBack>>             ^[-f*
+<<FindCol>>                  ^[fy
+<<FindColBack>>              ^[-fy
+<<FindVert>>                 ^[fv
+<<FindVertBack>>             ^[-fv
+<<findRect>>                 ^[fe
+<<findRectBack>>             ^[-fe
+<<ProximityCharacters>>      ^[fn
+<<ProximityCharactersBack>>  ^[-fn
+<<ProximityLines>>           ^[fl
+<<ProximityLinesBack>>       ^[-fl
+<<ProximityWords>>           ^[fw
+<<ProximityWordsBack>>       ^[-fw
+<<ProximitySentence>>        ^[fs
+<<ProximitySentenceBack>>    ^[-fs
+<<ProximityPhrase>>          ^[fr
+<<ProximityPhraseBack>>      ^[-fr
+<<ProximityPara>>            ^[fp
+<<ProximityParaBack>>        ^[-fp
+<<ProximityHeadedSection>>    ^[fh
+<<ProximityHeadedSectionBack>>   ^[-fh
+<<ProximityBlock>>           ^[fb
+<<ProximityBlockBack>>       ^[-fb
+<<ProximityChapter>>         ^[fc
+<<ProximityChapterBack>>     ^[-fc
+<<DeleteChrLeft>>            {Alt+LeftArrow}
+<<DeleteChrRight>>           {Alt+RightArrow} Collides with {Ctrl+PageUp}
+<<DeleteLineLeft>>           {Ctrl+Alt+LeftArrow}
+<<DeleteWordLeft>>           {Shift+Alt+LeftArrow}
+<<DeleteLineRight>>          {Ctrl+Alt+RightArrow}
+<<DeleteWordRight>>          {Shift+Alt+RightArrow}
+<<RestoreChrRight>>          {Ctrl+Shift+Alt+RightArrow}
+<<RestoreChrLeft>>           {Ctrl+Shift+Alt+LeftArrow}
 <<RestoreWordRight>>         ^[rw
 <<RestoreLineRight>>         ^[rl
 <<RestoreWordLeft>>          ^[-rw
@@ -2691,11 +3026,14 @@ z^m-0(v/{/\m)0
 <<rotateDiagonal>>           ^[rd
 <<rotateHorizontal>>         ^[rh
 <<rotateVertical>>           ^[rv
+<<ViewUp>>                   ^[vu
+<<ViewDown>>                 ^[vd
 <<ViewSave>>                 ^[vs
 <<ViewRestore>>              ^[vr
 <<WindowDown>>               ^[wd
 <<WindowUp>>                 ^[wu
 <<WindowOne>>                ^[w1
+<<WindowNine>>               ^[w9
 <<WindowSave>>               ^[ws
 <<WindowRestore>>            ^[wr
 <<WindowReassign>>           ^[wa
@@ -2706,6 +3044,7 @@ z^m-0(v/{/\m)0
 <<WindowAlignBot>>           ^[wb
 <<WindowStretch>>            ^[w+
 <<WindowShrink>>             ^[w-
+<<WindowWithLineNumbers>>    ^[wl
 <<PopupSearch>>              ^[ps
 <<PopupIncrementalSearch>>   ^[pi
 <<PopupRestore>>             ^[pr
@@ -2716,10 +3055,12 @@ z^m-0(v/{/\m)0
 <<Enter>>                    ^[e
 <<TempInsertMode>>           ^[in
 <<InsertMode>>               ^[In
+<<CompareBufs>>              ^[cb
 <<CmdEditStart>>             ^[ce
 <<CmdEditGo>>                ^[cg
 <<CmdString>>                ^[cs
-<<Left>>                     ^[mw
+<<WordLeft>>                 ^[-mw
+<<WordRight>>                ^[mw
 <<LineDefaultChrs>>          ^[ld
 <<LineSW>>                   ^[/d
 <<DSLineSW>>                 ^[/s
@@ -2767,13 +3108,22 @@ z^m-0(v/{/\m)0
 <<FixSpelling>>              ^[sf
 <<SpellLexicon>>             ^[sx
 
-:
+Hot_Keys:
 %%Windows does not send events on window resize.
 (%q=windows; z!m-0f/{SizeAdj}/k, )
 
 %%This macro finalizes the startup, normally called at the end of this script but may be deferred by the -nofinalize qualifier 
 %%and called by the parent startup script.
-%g#
+%%
+%%This macro expects to see the followig:
+%%  - The correct key-mapping table in buffer ( @ ) - normally defined by the relevant curses_keys_xyz.jot  or WindowsNT.jot script.
+%%  - The symbolic hotkey to function call table in ( ! ) - normally set up earlier in startup.jot, 
+%%    but custom startup scripts calling startup with the -nofinalize qualifier will add some more.
+%%    Each entry in ( ! ) consists of a function name in double angle brackets followed by a symbolic key description or an escape sequence.
+%%
+%%It also checks for the existence of referenced functions in tthe ( ' ) buffer - the code repositary.
+%%
+%g#=Finalize_Macro;
 %%For single-line functions, the code is copied directly into the key-translations buffer ( ^ )
 %%for multi-line functions a call stub of the form "%h'=call <name>;" goes into the key-translations buffer.
 %%
@@ -2782,7 +3132,7 @@ z^m-0(v/{/\m)0
 %%Key-code identification requires case sensitivity on.
 %s=case 1;
 %%Now check the function definitions and set up the function hashtable.
-obz'm-0 ((v/<</\m)0 mm-r2n.f1/>>/a$&r2 ( %h=new '$;, %m=Warning: duplicate function definition for '$;) )0 oz
+obz'm-0 ((v/<</\m)0 mm-r2n.f1/>>/a$& (%h=code '$;, %m?=Warning: duplicate function definition for &'$;) )0 oz
 %%Add code to pick up parameters and call functions.
 ob z?m0r0b z!m-0
 ( %%Skip blank lines and comments.
@@ -2790,23 +3140,28 @@ ob z?m0r0b z!m-0
   %%For each function name, pick up either the key description or the escape-sequence specification.
   ( v/<</r2n.f1/>>/a$&
     %%Check function names ( in $ buffer) and keycodes.
-    ( %h'=jump '$;, %m?=Error: No definition of function '$;)
+    (z'm-0 %f=<<&'$&>>;
+  , 
+    %m?=Error: No definition of function &'$;)
+%%    (z'm-0 %f=<<&'$&>>;, %m?=Error: No definition of function &'$;)
+%%    (z'm-0 %f=<<'$>>;, %m?=Error: No definition of function '$;)
     %%
     %%The remainder of the line is either a key description or an escape sequence.
     z! ( f1/ {/ %%It's a key description of the form {<[shift][ctrl][Alt]><KeyName>} to be translated using key translations in ( ! ) buffer.
-      rn.(f1/}/-a;&, %m?=Error: Syntax of key-name to keycode translation for '!.;) 
+      rn.(f1/}/-a;&, %m?=Error: Syntax of key-name to keycode translation for &'!&.;) 
       %%Now pick up the key code.
-      z@m-0(f';r-0n.r12a;&, %m?=Error: Syntax or missing keycode in translation of key ''; z?r0i'; ) 
+      z@m-0(f';r-0n.r12a;&, %m?=Error: Syntax or missing keycode in translation of key &''; z?r0i'; ) 
     , %%Not a key description - should be a simple escape sequence.
-      r2(v/ /r)0n.(r12, r0i/            /f-1/  /-n.r12)a;& 
-    , %m?=Error: syntax of function-names to key-description map at '!.; ) 
+      r2(v/ /r)0n.(r12, r0i-/            /r-f-1/  /-n.r12)a;& 
+    , %m?=Error: syntax of function-names to key-description map at &'!&.; ) 
     %%
     %%Add the key code and single-line function code or, for longer functions, function call to the ( ^ ) buffer.
-    z'on(mv/%%/, r\)0 onm ((v/%%/, (v/ /r)0r\)m)0r-? (v/<</ono-omz^i'', okz^i/%h'=call /h$i/;/) r-0h;i/ / z'ono-om
+    z'on(mv/%%/, r\)0 onm ((v/%%/, (v/ /r)0r\)m)0r-? (v/<</ono-omz^i'', okz^i/%h'=call /h$i/;/) r-0h; z'ono-om
     %%If function code has parameters, insert parameter-capture code to ( ^ ) buffer.
-    ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^i|%d$=##"|h$i| " -hereEndsThePercentCommand; | )
+%%    ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^(f1/;/, r0)i| ##"|h$i|"| )
+    ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^i|%d$= -LITERAL_DEFINITION ##"|h$i|" -BUFFERDEFINITIONENDSHERE; | )
   , %%Line should begin "<<FunctionName>>" flag it as an error.
-    %m?=Error: invalid line in function to key mapping entry "'!"; )
+    %m?=Error: invalid line in function to key mapping entry "&'!&"; )
   %%
   %%Index to next key description.
   z^r0b z!m2m-)0
@@ -2826,27 +3181,27 @@ ob
 oz
   
 %%Check for errors and display them if necessary.
-ob z?m0ol0 (v/Error: /m-o~)0 ol0(o=ok, m0w %m=Oh dear! - there were '~ errors in your startup file - hit {return} to continue; g )
+ob z?m0ol0 (v/Error: /m-o~)0 ol0(o=ok, m0 %w=refresh;  %m=Oh dear! - there were &'~& errors in your startup file - hit {return} to continue; g )
 %%Restore original verbosity level.
 ( %q$=system; f/Verbosity =    /-v/0/, %q=version; ) oz
 %s=system 0;
-:
+Finalize_Macro:
 
-%%All functions are defined in the code repository ( ' buffer).
-%%All function-names to key-description mapping is set up in ( ! ) buffer.
-%%All physical-keys to Key-descriptions are set up in the ( @ ) buffer.
+%%All functions are now defined in the code repository ( ' buffer).
+%%All function-names to key-description mapping is now defined up in ( ! ) buffer.
+%%All physical-keys to Key-descriptions are are defined up in the ( @ ) buffer.
 %%
-%%Macro ( # ) merges the keycodes and key functions tables to create the keystroke-map in buffer ( ^ ) 
-%%and set up the remaining functions in the code repository buffer ( ' ).
-z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
+z~m-0(f/-nofinalize/-b-k-0, '#)? z.ok
 
 %%define default properties for document processing.
-%h'=data DocLeftMargin;          ol2         ov/'=DocLeftMargin/
-%h'=data DocRightMargin;         ol78        ov/'=DocRightMargin/
-%h'=data DocBulletString;        %d~=- ;     ov/'=DocBulletString/
-%h'=data DocHeaderMax;           ol4         ov/'=DocHeaderMax/
-%h'=data DefaultLineDrawing;     %d~=a;      ov/'=DefaultLineDrawing/
-%h'=data LineIntersectionLookup;
+z'
+ol2        %h'=setdata -new DocLeftMargin;
+ol78       %h'=setdata -new DocRightMargin;
+%d~=\- ;   %h'=setdata -new DocBulletString;
+ol4        %h'=setdata -new DocHeaderMax;
+%d~=a;     %h'=setdata -new DefaultLineDrawing;
+%d~=;      %h'=setdata -new LineIntersectionLookup;
+z.
 
 %%This table is used by <<LineCheckIntersection>> it is part of the line-drawing system (LineN, LineS, LineE and LineW).
 %%It shows the correct drawing character for various combinations of adjacent characters.
@@ -2860,7 +3215,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 %%The font codes are ( . ) no connection, ( a ) ASCII, ( l ) light, ( h ) heavy and  ( d ) double.
 %%
 %g~
-
+%%All ASCII intersections.
 ╵l...
 ╷.l..
 ╹h...
@@ -2870,7 +3225,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 │ll..
 ┃hh..
 ║dd..
-
+%%Simple horizontal lines.
 ╴...l
 ╶..l.
 ╸...h
@@ -2880,7 +3235,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ─..ll
 ━..hh
 ═..dd
-
+%%Simple corners top-left quadrent.
 ┌.ll.
 ┍.lh.
 ╒.ld.
@@ -2888,7 +3243,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ┏.hh.
 ╓.dl.
 ╔.dd.
-
+%%Simple corners bottom-left quadrent.
 └l.l.
 ╚d.d.
 ╙d.l.
@@ -2896,7 +3251,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ┗h.h.
 ┖h.l.
 ┕l.h.
-
+%%Simple corners bottom-right quadrent.
 ┘l..l
 ┙l..h
 ┚h..l
@@ -2904,7 +3259,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ╛l..d
 ╜d..l
 ╝d..d
-
+%%Simple corners top-right quadrent.
 ┐.l.l
 ┑.l.h
 ╕.l.d
@@ -2912,7 +3267,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ┓.h.h
 ╖.d.l
 ╗.d.d
-
+%%Vertical-right tee.
 ├lll.
 ┝llh.
 ┞lld.
@@ -2924,7 +3279,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ┣hhl.
 ╟ddl.
 ╠ddd.
-
+%%Vertical-left tee.
 ╢dd.l
 ╣dd.d
 ┧lh.l
@@ -2936,7 +3291,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ┥ll.h
 ┦hl.l
 ╡ll.d
-
+%%Horizontal-down tee.
 ┬.lll
 ┭.llh
 ┮.lhl
@@ -2948,7 +3303,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ╤.ldd
 ╥.dll
 ╦.ddd
-
+%%Horizontal-up tee.
 ┴l.ll
 ┵l.lh
 ┶l.hl
@@ -2960,7 +3315,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ╧l.dd
 ╨d.ll
 ╩d.dd 
-
+%%Crossovers
 ┼llll
 ┽lllh
 ┾llhl
@@ -2980,7 +3335,7 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 ╋hhhh
 ╫ddll
 ╬dddd
-
+%%ASCII intersections
  .a.a
  .aa.
  a..a
@@ -2994,5 +3349,6 @@ z~m-0(f/-nofinalize/-b-k-0, osozok '#)?
 +aaaa
 :
 
+obosz~m-0 (f/%%/e0)0 osoz
 ov/'=LineIntersectionLookup/
-  
+

@@ -22,7 +22,7 @@
 %%
 %%Revision history: 
 
-%g? 
+%g?
 Buffer usage:
   . - list of file paths
   c - jot commands to obey.
@@ -68,16 +68,16 @@ Buffer usage:
   
 %%
 %%Load the buffers
-(zsm-0r, m, z?w
+(zsm-0r, m, z? %w=refresh; 
   %s=prompt now the SCCS comment: 
   g1m-n.r0ask)
-(zcm-0r, m, z?w
+(zcm-0r, m, z? %w=refresh; 
   %s=prompt jot commands: 
   g1m-n.r0ack)
 %s=prompt > ;
 :
 
-%g1 
+%g1
 %%On entry we may be recovering from a break.
 %%If file is current and writable then assume that it's been manually
 %%edited following a trapped editor error. 
@@ -88,7 +88,7 @@ zmm-0
   %%can we write it?
   %o
   %%File was writable - restore it to it's former state and restart edit loop.
-  z?n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs unedit "r0i" > /tmp/sccs.log" '$
+  z?n.a$& z$i"%e=cd "i'.r0f-1"/"s" ; sccs unedit "r0i" > /tmp/sccs.log" '$
   zlm0bi/Restarted using /h$b
   %i$=/tmp/sccs.log
   zlh$e-0
@@ -96,9 +96,9 @@ zmm-0
    
 ( %%Main loop - read and check-out, edit then write and check-in.
   %%read
-  z?n.a$z$i"%im="i'. '$
+  z?n.a$& z$i"%im="i'. '$
   %%Check out
-  z?n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs edit "r0i" > /tmp/sccs.log" '$
+  z?n.a$& z$i"%e=cd "i'.r0f-1"/"s" ; sccs edit "r0i" > /tmp/sccs.log" '$
   zlm0bi/Checked out using /h$b
   %i$=/tmp/sccs.log
   zlh$e-0
@@ -107,11 +107,11 @@ zmm-0
   %%Write
   %o
   %%and check in.
-  n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs delget "r0i" -y'"i'si"' > /tmp/sccs.log" '$
+  n.a$& z$i"%e=cd "i'.r0f-1"/"s" ; sccs delget "r0i" -y'"i'si"' > /tmp/sccs.log" '$
   zlm0bi/Checked in using /h$b
   %i$=/tmp/sccs.log
   zlh$e-0
-  z.wmrr-
+  z. %w=refresh; mrr-
   %l
   )0
   
@@ -124,13 +124,13 @@ zlh$e-0
 
 %g2
 %%Unedit the current file - then move to next.
-z?n.a$z$i"%e=cd "i'.r0f-1"/"s" ; sccs unedit " '$
+z?n.a$& z$i"%e=cd "i'.r0f-1"/"s" ; sccs unedit " '$
 zdmrr-
 :
 
 %g3
 %%Advance to the next file.
-zdmwrr-p
+zdm %w=refresh; rr-p
 :
 
 %%Time to get cracking.

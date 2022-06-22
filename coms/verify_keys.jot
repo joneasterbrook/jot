@@ -21,10 +21,44 @@
 %%
 %%
  
-%w; %w 9; %w 0;
-  
+%g#
+%%Defne a smallish window;
+%w=clear; %w=new -height=9 -delim;
+%%Set up to read all input as hotkeys.
+%s=commandmode 30;
 %%Read the appropriate key map.
-( %q=windows; %r=WindowsNT_keys;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$, %r=curses_keys_xterm;) )
+( %q=windows;
+  %r=WindowsNT_keys;
+, %%Not windows, use term defined by the TERM env and curses version.
+  %q@=version; m
+  ( f1/ ncurses /-  
+    %%Use correct keymap for this version of curses.
+    e-0 (f1/./s/_/)0
+    %r=curses_keys_&'@;
+  , %%For all other versions of curses, use TERM-specific keymap.
+    %q@=env TERM; m %r=curses_keys_&'@;
+  , %%No keymap for that flavour of TERM - give up with generic xterm keymap.
+    %m=Error: No jot key-mapping file for TERM &'@&, using xterm instead.;
+    %r=curses_keys_xterm; ) )
+%%( %q=windows; %r=WindowsNT_keys;, %q$=env TERM; ki/%r=curses_keys_/ (f1/./s/_/)0 r0i/;/ '$, %r=curses_keys_xterm;) )
+%%
 %%Define the commands to reflect each keystroke.
 z@m-0 (f1/{/r-0r12(v/ /e)0i/%m=/m, k)0
-m-0n.m0r0a^& z.
+%%
+%%Add in all other codes in the ASCII range 1-127.
+m0r0b
+ol1   (o#ol64o+oo/^%c          /r0o#ol64o+  oo/%%m=ASCII character {Ctrl+%c}/b ol1o+ )31
+ol33  (o#oo/%c                 /r0o#        oo/%%m=ASCII character       %c/b  ol1o+ )95
+ol127 (o#ol64o-oo/&%c          /r0o#ol64o-  oo/%%m=ASCII character  {Alt+%c}/b ol1o+ )127
+%%
+%%Add codes to the keymap buffer
+m-0n.m0r0a^&
+%%
+%%Remove any dead keys.
+z^m-0(v/        /k, m)0
+z.
+%%
+:
+'#
+
+%%%m=Hit {Ctrl+c} to exit the verification loop.;

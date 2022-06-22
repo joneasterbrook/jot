@@ -203,6 +203,5 @@ m-0
 %%Copy mif stuff into mif template.
 z!h@
 %o
-oz
-w
+oz %w=refresh; 
 

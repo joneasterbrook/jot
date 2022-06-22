@@ -22,18 +22,24 @@
 %g?
 Usage (command-line startup):
 $    ./jot_dev t.t -in="[ol<n1> [ol<n2>[...]]] %r=test_visual[ -debug][ -nosize][ -nounicode]
-  - By default, runs all tests but n1 n2 ... are test numbers of selected tests to run.
+  - By default, runs all tests
   - -debug - enters the jot debugger at start of comparison stage of each test.
   - -nosize - ignores size of terminal nb some tests *are* very much dependant on this.
   - -nounicode - skips tests involving unicode.
-  - -fromtest <n> - starts testing at test_<n>
+  - -win10relaxation - skips tests affected by windows10 bug.
+  - -break <n> - specifies a command-counter step to trigger a break point (failed tests indicate the failing command no.)
+  - -cc[ <n>] - Sets up the jot command counter and displays command counter in messages.
+  - -exit  - On failure, exits with failure status (by default it holds the session open).
+  - -noexit - Holds the session open after completing all tests.
   
 On successful completion, it exits with the message: "Passed all tests."
 In the event of one or more failures it displays a list of failed tests without exiting.
 To start at a specified test set the stack to to that test no. e.g. for test 44:
 $   ./jot_dev t.t -in=ol44%r=test_visual
-To set a breakpint immediately after it captures the screen image:
+To set a breakpoint immediately after it captures the screen image:
 $   ./jot_dev t.t -in="ol44 %r=test_visual -debug"
+To set a breakpoint using the command counter:
+$   ./jot_dev t.t -in="%r=test_visual -break 1234"
       
   Buffer usage:
     @ - List of tests to do.
@@ -43,83 +49,139 @@ $   ./jot_dev t.t -in="ol44 %r=test_visual -debug"
     ! - Holds original args:
     9 - Re-order test numbers macro.
     
-  Optional Args (in $ buffer):
-    - -debug - turn on trace for all tests in lists.
-    - -nosize - suppress terminal-size check.
-    - -log   - writes a log to test_visual.log
-    
 Run all tests - terminates session if all tests pass.
 $ ./jot_dev ${JOT_RESOURCES}/t.t -in=%r=test_visual
 
 Run specific tests - in this case Test_24, Test_63 and Test_71
-$ ./jot_dev ${JOT_RESOURCES}/t.t -in="ol24 ol63 ol71 %r=test_visual"
+$ jot_dev ${JOT_RESOURCES}/t.t -in="%r=test_visual -part 24 63 71""
 Run specific tests - with debugger
 $ ./jot_dev ${JOT_RESOURCES}/t.t -in="ol24 ol63 ol71 %r=test_visual -debug"
 :
 
-%%Use this to renumber tests:
-%%  %d9=onol1m0 f-/%g@/(f/%%Test /-(q/0-9/e)0o#oo/%d/o~m)0 ok ono-om
- 
 %g#
-%w; %w= -height=9;
+%%
+%%Pick up and save args from $
+(oq/'=args/, %h'=data args;) z$m-0n.r0a~ov/'=args/
+%%Create data objects.
+(oq/'=win10relaxation/, %h'=data win10relaxation; )
+(oq/'=debug/, %h'=data debug; )
+(oq/'=test/, %h'=data test; )
+(oq/'=cc/, %h'=data cc; )
+(oq/'=exit/, %h'=data exit; )
+(oq/'=noexit/, %h'=data noexit; )
+(oq/'=nounicode/, %h'=data nounicode; )
+%%
+%%Copy args to buffer ( * ).
+oq/'=args/z~r-0n.r0a*&z*r-0i/ /r0i/ /ok
+%%
+%%Check terminal dimensions.
+(z*r-0f/ -nosize /s/ /, 
+  ( %%Check screen size.
+    %q@=window;
+    %%Check screen height - must be 40 or more.
+    f/ screenHeight = /-boidol39 (o>ok, okz. %m=Screen height must be at least 40 - this one is &'@;\ )
+    %%Check screen width - must be at least 80.
+    z@f/ screenWidth = /-boidol80 (o<\ok, okz. %m=Error: Screen width must be at least 80 columns - this one is &'@;\ )
+    %l=80 40;? x
+  , %%The screen was not big enough.
+    %m=Tweak the screen size then hit any key to continue or {Ctrl+c} to exit.;
+    og %l; %d$=; %h'=call WindowOne;
+  , %%This can only be a {Ctrl+c}
+    %x=Abandoning test_all;
+   )0 ) 
+%%
+%%Debugging mode.
+z*r-0 (f/ -debug /s/ / ol1s/ /, ol0 ) ov/'=debug/ z.
+%%Exit on completion.
+z*r-0 (f/ -exit /s/ / ol1s/ /, ol0 ) ov/'=exit/ z.
+%%Hold the session on completion.
+z*r-0 (f/ -noexit /s/ / ol1s/ /, ol0 ) ov/'=noexit/ z.
+%%Windows-10 relaxation - windows10 seems to have a bug affecting the screen readback.
+z*r-0 (f/ -win10relaxation /s/ / ol1s/ /, ol0 ) ov/'=win10relaxation/ z.
+%%Nounicode mode.
+z*r-0 (f/ -nounicode /s/ / ol1s/ /, ol0 ) ov/'=nounicode/ z.
+%%Test selection.
+z*r-0 (f/ -test /s/ / n.(f1/ -/, r0), n.)a~ ov/'=test/ z.
+%%Command counter.
+z*r-0 (f/ -cc / (s/ / (oids/ /ol4o+, ol0)) %s=verbose 13; , ol0) ov/'=cc/ z.
+%%
+%%Check for unrecognized qualifiers.
+z*r-0 (v/ /r)0 (r\, z. %X=Error: Unrecognized qualifier "&'*&"; ) z.
+  
+:
+z.'#
+
+%g#
+%%
+%w=clear; %w=new -height=9 -delim;
 %%Pick up args from $
 z$m-0i-/ /n.r0a!
 %%
-(z!m+1f1/-nosize/, 
-  %%Check screen size.
-  %q@=window;
-  %%Check screen height - must be 44 or more.
-  f/ screenHeight = /-boidol39 (o>, z. %x=Error: Screen height must be at least 40 - this one is '@; ) ok
-  %%Check screen width - must be exactly 80.
-  z@f/ screenWidth = /-boidol80 (o<\, z. %x=Error: Screen width must be at least 80 columns - this one is '@;) ok
-  %l=80 40;? )
+%%Check the current directory is writable.
+(%q=windows;, %q$=wd; m %q%=file '$; f/writable by this UID = /- (v/yes/, z. %x=Error: Cannot write to directory &'$;) )
+%%
 :
 z.'#
 
 %g#
 %%Add tests to main subroutine repository.
 %h'=call AddNewFunctions;
-%%z'm0h@ ((v/<</\m-)0  r2n.f1/>>/a$& %h=new '$; m-)0
+%%z'm0h@ ((v/<</\m-)0  r2n.f1/>>/a$& %h=newjump '$; m-)0
 %s=console 0;
 %%
 %%Set up list of tests - run tests specified in stack or all of them.
 z.n.a; n.a*z*
-( %%Are tests specified?
-  oo/Test_%d/r-0
-  %%Yes - set up specified tests.
-  (oo/Test_%d/b-r-0)0 m0r0b
-, %%No run all defined tests - or tests starting at specified test no..
-  (z!r-0f/ -fromtest /-oid, ol1)z* (o#oo/Test_%d/ %h'=jump '*; z*bo~, z*j-e0\)0 b)
+%%Are tests specified?
+oq/'=test/ z~r-0
+( rr-  %%Run only the specified tests.
+  (z~oid z*oo/Test_%d/b)0 z*ok
+, %%No specified - run all tests.
+  ol1z* (o#oo/Test_%d/ z'm-0f'* z*bo~, z*j-e0\)0 b)
 %%
-%%Test dispatcher loop.
+%%
 z*m-0z.
 %%
-( %%Main test loop.
+%%Reset command counter here.
+oq/'=cc/ %s=commandcounter '~; 
+%%
+( %%Test dispatcher loop.
   %%Pick up and run the test, optionally add T command to raw code in ( ' ) buffer.
-  ((z!m+1f1/ -debug/ z. %l=80 40;? %m='*; z'm-0((f'*v-/<</f1/>>/v-'*)\m)0f/%q@=window;/- i/t/, z. %l=80 40;? ) %h'=call '*; z*k, z*m2m-)
+  ( 
+    ( %%Setup
+      %l=80 40;? %m='*;
+      %%Pick up the next test function.
+      z'm-0((f'*v-/<</f1/>>/v-'*)\m)0
+      %%Implement -debug if required.
+      oq/'=debug/ol0o=,  f/%q@=window;/- i/  %w=clear; %w=new -height=20 -delim; t/ ) ok
+    ( %%Do it.
+      z. %h'=call '*; z*k,t z@m-0(f1/ (/n.r0a$& z*r0i'$, z*)m)
+    mm-o@)
   )0
-z*m-0 %m=; %m=; 
-( m  %%At least one failure. 
-  m0onol1o-m-0 %w; %w= -height=20 -delim; 
-%%  m0onol1o-m-0 %w; %w= -height=35 -delim; 
-  ((ji/   /)4 m)0m-0 %x=Oh dear! '~ test(s) failed.;
-, z;m0onol1o-ol0o=\
-  %x=Passed all tests execpt '~ unicode test(s).;
-, %a0=Passed all tests; )
+%%Clear windows and report results to console.
+%w=clear; %l;
+%%Prepare skipped-tests report.
+z;m-0ol0 (r0ocol70(o>b, )ok ji/    / o~)0
+m-0 (rr-bo#oo/The following %d test(s) were skipped by request:/bm-0p0, )
+%%Prepare failed-tests report.
+z*m-0ol0 (r0ocol70(o>b, )ok ji/    / o~)0
+m-0 (rr-o#oo/The following %d test(s) failed:/bm-0p0, )
+%%
+%%Exit or not depending on test status and -exit / -noexit qualifiers.
+( (oso+ol0o=)\  %%At least one failed or skipped test. 
+  %w=clear; %w=new -height=20 -delim; 
+  z*m-0b-2h;
+  oq/'=exit/ol0 (o=\ ok %a1=Oh dear! &'~& test(s) failed (  &'*&  ).;, ok z*m=2 %m=Oh dear! '~ test(s) failed (  &'*&  ).; x2 )
+, %%No failed or skipped tests.
+  oq/'=noexit/ol0 (o= %a0=Passed all tests;, %m=Passed all tests;) ok )
+
 :
 
-%%With some non-unicode terminal emulators, %G fails to read any unicode characters so we'll do it this way.
-%i@=${JOT_HOME}/coms/test_visual.jot;
-(f/%%  %G@/r-m)0k-0(v/:/\m)0k0 '#
-
-%%  %G@
-%%JotUpdateWindow regression checks (N.B. *must* be done in a 40*80 xterm):
-%%
+%G@
 
 <<Test_1>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-%l=80 40;? ww
+%l=80 40;?  %w=refresh; 
 %q@=window;
 %m=Test_1: Test_1: First line should remain at the top of window (lines 1-30 visible):
 (f/Screen dump follows:/
@@ -130,10 +192,10 @@ z*m-0 %m=; %m=;
   z., z.\ )
 
 <<Test_2>>
-%w;  %w= -height=31 -delim;   
+%w=clear;  %w=new -height=31 -delim;   
 %i.=${JOT_RESOURCES}/l99.t
-n.m0aqhq m+40wm-20k10 
-%l=80 40;? w
+n.m0aqhq m+40 %w=refresh; m-20k10 
+%l=80 40;?  %w=refresh; 
 %q@=window;
 %m=Test_2: Should not add blank lines at top of display (lines 10-49 visible):
 (f/Screen dump follows:/
@@ -143,10 +205,10 @@ n.m0aqhq m+40wm-20k10
   z., z.\ )
 
 <<Test_3>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-n.m0aqhq m+40wm-20k10wm-0k0 
-w
+n.m0aqhq m+40 %w=refresh; m-20k10 %w=refresh; m-0k0 
+ %w=refresh; 
 %q@=window;
 %m=Test_3: Should clear all lines  (only ~ in first line):
 f/Screen dump follows:/
@@ -155,10 +217,10 @@ mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
 (m(v/ /r)0r\)29
 
 <<Test_4>>
-%w;  %w= -height=30 -delim;  
+%w=clear;  %w=new -height=30 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
 m5n.m0aa
-( z.m- w %q@=window;
+( z.m-  %w=refresh;  %q@=window;
   %m=Test_4: Should show lines 0-4 and hold view when moving through the text:
   f/Attrs: /km-0
   (f/Screen dump follows:/
@@ -169,13 +231,13 @@ m5n.m0aa
     mv/__05: abc/
     m(v/ /r)0r\
     z., z.\ )
-  z.)4 m-w
+  z.)4 m- %w=refresh; 
 
 <<Test_5>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-m+55wm-5w %ia;wz.
-pw
+m+55 %w=refresh; m-5 %w=refresh;  %ia; %w=refresh; z.
+p %w=refresh; 
 %q@=window;
 %m=Test_5: Return to view - on return current line 49, lines 25 to 54 visible:
 (f/Screen dump follows:/
@@ -185,11 +247,11 @@ pw
   z., z.\ )
 
 <<Test_6>>
-%w;  %w= -height=30 -delim;  
+%w=clear;  %w=new -height=30 -delim;  
 %i.=${JOT_RESOURCES}/t.t
-k5%ip=${JOT_RESOURCES}/l99.t;wz. 
+k5%ip=${JOT_RESOURCES}/l99.t; %w=refresh; z. 
 %%%d1=z.wzqm-0k0hpm-0wz.
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_6: Should clear old text when switching to a short buffer (lines 6-10 visible):
 (f/Screen dump follows:/
@@ -203,10 +265,10 @@ w
   z., z.\ )
 
 <<Test_7>>
-%w;  %w= -height=30 -delim;  
+%w=clear;  %w=new -height=30 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-m+61wm-5w ol-1ow
-(ol1ow w
+m+61 %w=refresh; m-5 %w=refresh;  ol-1ow
+(ol1ow  %w=refresh; 
   %q@=window;
 %m=Test_7: Check scroll-window command ( OW ) line 55 always visible:
   f/Attrs:/km-0
@@ -216,10 +278,10 @@ m+61wm-5w ol-1ow
   )28
 
 <<Test_8>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-m+60wm-5wk
-w
+m+60 %w=refresh; m-5 %w=refresh; k
+ %w=refresh; 
 %q@=window;
 %m=Test_8: Removing one line should scroll-up lower lines by 1 (lines 30-60 in view).
 (f/Screen dump follows:/
@@ -232,12 +294,12 @@ w
   z., z.\ )
 
 <<Test_9>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-m0wm-0
+m0 %w=refresh; m-0
 %m=Test_9: Some bugs cause the current line to be placed above the visible area.
 %m=Should display lines 0-29:
-w
+ %w=refresh; 
 %q@=window;
 %m=Should display current line at top of view when to scrolling up
 (f/Screen dump follows:/
@@ -248,14 +310,14 @@ w
   z., z.\ )
 
 <<Test_10>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-m0wm-8n.m5aa 
+m0 %w=refresh; m-8n.m5aa 
 %%%d1=ham0wm-8n.m5aa
 %%Some bugs cause the display to wrap past the end of buffer into the top of the buffer.
-%l=80 40;? w
+%l=80 40;?  %w=refresh; 
 %q@=window;
-%m=Test_10: Should not wrap lines (lines 66-91 & 97-99 visible):
+%m=Test_10: Should not wrap lines (lines 66-91 \& 97-99 visible):
 (f/Screen dump follows:/
   mv/__66: abc/
   m25v/__91: abc/
@@ -267,10 +329,11 @@ m0wm-8n.m5aa
   z., z.\ )
 
 <<Test_11>>
-%i.=${JOT_RESOURCES}/t.t; %w; %w.= -height=6 -delim;   %wq= -height=13 -delim; %w= -height=11 -delim;  
+%i.=${JOT_RESOURCES}/t.t; 
 %iq=${JOT_RESOURCES}/l99.t
 %iw=${JOT_RESOURCES}/Richard_III_Entire_Play.txt;
-%l=80 40;? wzqr9 w
+%w=clear; %w.=new -height=6 -delim;   %wq=new -height=13 -delim; %w=new -height=11 -delim;  
+%l=80 40;? %w=refresh; zqr9 %w=refresh; 
 %q@=window;
 %m=Test_11: Check with multiple windows:
 (f/Screen dump follows:/
@@ -283,6 +346,7 @@ m0wm-8n.m5aa
   m11v/__12: abc/
   mf1/l99.t   /
   mv/Attrs: (X=0 Reverse_Video) /r0v-//
+%%  mr(v/ /r)0r\
   mv/~/r(v/ /r)0r\
   mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text) /r0v-
   mv/                   The Life and Death of Richard the Third/
@@ -290,12 +354,13 @@ m0wm-8n.m5aa
   m2f1/Richard_III_Entire_Play.txt    /
   mv/Attrs: (X=0 Reverse_Video) /r0v-//
   z., z.\ )
-z.r5w
+z.r5 %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   mv/1 :abcdefghijklmnopqrstuvwxyz/
   mv/Attrs: (X=5 Current_Chr) (X=6 Normal_Text)/
   m4v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/
+%%  t %w=clear; %w=new -height=20 -delim;
   mf1/t.t    /
   mv/Attrs: (X=0 Reverse_Video) /r0v-//
   mv/__01: abc d/
@@ -303,16 +368,18 @@ z.r5w
   m10v/__12: abc/
   mf1/l99.t   /
   mv/Attrs: (X=0 Reverse_Video) /r0v-//
+%%  m(rv/ /)0r\
   mv/~/(rv/ /)0r\
   m11f1/Richard_III_Entire_Play.txt    /
   mv/Attrs: (X=0 Reverse_Video) / r0v-//
   z., z.\ )
 
 <<Test_12>>
-%w;  %w= -height=31 -delim;  
+%w=clear; %l; %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
-m+60wm-9b
-w
+%w=refresh;
+m+60 %w=refresh; m-9b
+%w=refresh;
 %q@=window;
 %m=Test_12: Adding a line at top of window preserves focus (30-49 and 50-58 in view):
 (f/Screen dump follows:/
@@ -327,10 +394,10 @@ w
   z., z.\ )
 
 <<Test_13>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
-%b=tabcells 15; m+50wm-5r20 %b=leftoffset 1;
-pw
+%b=tabcells 15; m+50 %w=refresh; m-5r20 %b=leftoffset 1;
+p %w=refresh; 
 %q@=window;
 %m=Test_13: Changing leftoffset does not reset view (rows 20-49 in view):
 (f/Screen dump follows:/
@@ -342,12 +409,12 @@ pw
   z., z.\ )
 
 <<Test_14>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t;
-m+50n.m0wm-5aa
-w
+m+50n.m0 %w=refresh; m-5aa
+ %w=refresh; 
 %q@=window;
-%m=Test_14: Removing many lines does not leave blanks (lines 26-49 & 95-99 in view):
+%m=Test_14: Removing many lines does not leave blanks (lines 26-49 \& 95-99 in view):
 (f/Screen dump follows:/
   mv/__26: abc/
   m23v/__49: abc/
@@ -361,10 +428,10 @@ w
   z., z.\ )
 
 <<Test_15>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
 n.m0aaha100 m-0(j4m)0 m-0p
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_15: Not wrapping with long lines - linear text:
 (f/Screen dump follows:/
@@ -374,22 +441,22 @@ w
   z., z.\ )
 
 <<Test_16>>
-%w;  %w= -height=31 -delim;  
+%m=Test_16: A leftoffset higher than the current text should display a blank window:
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/t.t
 k0((i/abcdefghijklmnoqrstuvwxyz0123456789/)3b)100 %b=leftoffset 120; m-0 r30
-w
+%w=refresh; 
 %q@=window;
-%m=Test_16: A leftoffset higher than the current text should display a blank window:
 (f/Screen dump follows:/
   m((v/ /r)0r\m)30
   f1/t.t/
   z., z.\ )
 
 <<Test_17>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
 (j4m)0n.m-0aaha100 m+1000 r100
-wp
+%w=refresh; p
 %q@=window;
 %m=Test_17: Overlong linear text should not wrap the console repeat text:
 (f/Screen dump follows:/
@@ -399,10 +466,10 @@ wp
   z., z.\ )
 
 <<Test_18>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
 %b=leftoffset 50; (j4m)0n.m-0aaha100 m+1000
-w
+%w=refresh; 
 %q@=window;
 %m=Test_18: Overlong text should display OK in window:
 (f/Screen dump follows:/
@@ -413,10 +480,10 @@ w
   z., z.\ )
 
 <<Test_19>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/t.t
 m4r0
-w
+%w=refresh; 
 %q@=window;
 %m=Test_19: It should not display any junk characters at end of line in window:
 (f/Screen dump follows:/
@@ -424,11 +491,11 @@ w
   z., z.\ )
 
 <<Test_20>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/l99.t
 %%n.m0aaha100 m-0(j4m)0 %b=leftoffset 48; m+100 r129
 n.m0aaha100 m-0(j4m)0 m+100 r82
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_20: Linear text should repeat when cursor is 2 or more places beyond right margin:
 (f/Screen dump follows:/
@@ -438,24 +505,26 @@ w
   z., z.\ )
 
 <<Test_21>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
-  %w;  %w= -height=31 -delim;  
+oq/'=nounicode/ol0 (o=
+  %w=clear;  %w=new -height=31 -delim;  
   %i.=${JOT_RESOURCES}/t.t
   %b=unicode 0; b-i/./80 r0r-10eol-94 ol-124 ol-30 oo/%c/rr-oo/%c/rr-oo/%c/r0i-/++++/ %b=leftoffset 80; %b=unicode 1;
-  w
+   %w=refresh; 
   %q@=window;
   %m=Test_21: Calcualting unicode width correctly for linear text (only "++++" visible):
   (f/Screen dump follows:/
     mv/++++    /
-    z., z.\ ) )
+    z., z.\ )
+, %%Skipped unicode tests.
+  z*n.ma;+& ) ok
 
 %%Regression checks on WriteString - tabular text.
 <<Test_22>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 12
 m40 r50
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_22: Not wrapping round of long lines - tabular text:
 (f/Screen dump follows:/
@@ -467,12 +536,12 @@ w
   z., z.\ )
 
 <<Test_23>>
-%w;  %w= -height=5 -delim;  
+%w=clear;  %w=new -height=5 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
-%b=tabcells 12; m50 w
+%b=tabcells 12; m50  %w=refresh; 
 %m=Test_23: At righthand limit of screen, check for auto-repeat blindspot:
 ol0 ( %%These checks repeated for 3 different left offsets.
-  r-0r64o~o# %b=leftoffset '~; w
+  r-0r64o~o# %b=leftoffset '~;  %w=refresh; 
   %q@=window;
   %m=Some bugs cause the console-area auto-repeat to fail - a blind spot.
   (f/Screen dump follows:/
@@ -489,10 +558,10 @@ ol0 ( %%These checks repeated for 3 different left offsets.
 %%  )6 okr-0r64
 
 <<Test_24>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 m+50r252 %b=leftoffset 435; %b=tabcells 20
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_24: Check for repeat of rightmost cell when truncated by right margin:
 (f/Screen dump follows:/
@@ -500,14 +569,16 @@ w
   z., z.\ )
 
 <<Test_25>>
-%w; %w= -height=32 -delim;  
-%i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-%b=tabcells -1; m+13 %b=header '.; %b=leftoffset 50; m50r0r-4w (f1/	/2, r0) (%q=inview; okokok, oso-osok %b=leftoffset '~;) w n.f-1/	/-a$&f-1'$? w
-%%%m=Test_25: then hit Ctrl+Alt+RightArrow - leftoffset goes off into hyperspace (190):
 %m=Leftoffset not sent off into hyperspace:
-w
+%w=clear; %w=new -height=32 -delim;  
+%i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
+%b=tabcells -1; m+13 %b=header '.; %b=leftoffset 50; m50r0r-4 
+%w=refresh;  
+(f1/	/2, r0) (%q=inview; okokok, oso-osok %b=leftoffset '~;)  
+%w=refresh;  
+n.f-1/	/-a$&f-1'$?  
+%w=refresh; 
 %q@=window;
-%%%m=CellRight miscalculating new leftoffset (leftoffset initially set to 50) 
 (f/Screen dump follows:/
   mv/ADMQ ADMR ADYL ADYO ADYN ADYM ADYP ADMS C692 ADYR ADMT    /
   mv/Attrs: (X=0 Current_Chr)/
@@ -518,28 +589,26 @@ w
   z., z.\ )
 
 <<Test_26>>
-%w;  %w= -height=31 -delim;    
+%w=clear;  %w=new -height=31 -delim;    
 %i.=${JOT_RESOURCES}/test_table.txt; 
-%b=tabcells 15; %b=leftoffset 308; m50r250 w ((f1/	/2, r0) (%q=inview; okokok, oso-osok %b=leftoffset '~;) n.f-1/	/-a$&f-1'$? )2
-%%  %b=tabcells 15; %b=leftoffset 308; m50r250 w ((f1/	/2, r0) (%q=inview; okokok, oso-osok %b=leftoffset '~;) n.f-1/	/-a$&f-1'$? )2
-%%   Hit Ctrl+Alt+RightArrow - leftoffset goes off into hyperspace (190) then hit Ctrl+Alt+RightArrow ...
+%b=tabcells 15; %b=leftoffset 308; m50r250  %w=refresh;  ((f1/	/2, r0) (%q=inview; okokok, oso-osok %b=leftoffset '~;) n.f-1/	/-a$&f-1'$? )2
 %m=Leftoffset not sent off into hyperspace (no. 2):
-w
+%w=refresh; 
 %q@=window;
 %%%m=CellRight miscalculating new leftoffset (leftoffset initially set to 50) 
 (f/Screen dump follows:/
-  mv/!21      colVrow21      colWrow21      colXrow21      colYrow21      colZrow21  /
-  mv/!22      colVrow22      colWrow22      colXrow22      colYrow22      colZrow22  /
-  m28v/!50      colVrow50      colWrow50      colXrow50      colYrow50      colZrow50  /
-  mv/Attrs: (X=63 Current_Chr) (X=70 Selected_Substring) (X=78 Normal_Text)/
+  mv/!ow21      colVrow21      colWrow21      colXrow21      colYrow21      colZrow21/
+  mv/!ow22      colVrow22      colWrow22      colXrow22      colYrow22      colZrow22/
+  m28v/!ow50      colVrow50      colWrow50      colXrow50      colYrow50      colZrow50/
+  mv/Attrs: (X=65 Current_Chr) (X=72 Selected_Substring)/
   mf1"/test_table.txt"
   z., z.\ )
 
 <<Test_27>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
-%b=tabcells 15; %b=leftoffset 20; m50r25w (f-1/	/2r, r-0)(%q=inview; okokok, osokosokol1o- %b=leftoffset '~;) n.f1/	/a$&f-1'$?
-w
+%b=tabcells 15; %b=leftoffset 20; m50r25 %w=refresh;  (f-1/	/2r, r-0)(%q=inview; okokok, osokosokol1o- %b=leftoffset '~;) n.f1/	/a$&f-1'$?
+ %w=refresh; 
 %q@=window;
 %m=Test_27: Leftmost cell fully visible:
 (f/Screen dump follows:/
@@ -552,31 +621,31 @@ w
   z., z.\ )
 
 <<Test_28>>
-%w;  %w= -height=12 -delim;  
+%w=clear;  %w=new -height=12 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells -1; m+1 %b=header '.; %b=leftoffset 200; m50
-( z.r0 %h'=call WordLeft; w  %q@=window;
+( z.r0 %h'=call WordLeft;  %w=refresh;   %q@=window;
 %m=Test_28: WordLeft shows all of cell:
   f/Screen dump follows:/
   m12v/ colUrow50 colVrow50 colWrow50 colXrow50 colYrow50 colZrow50   /
   mv/Attrs: (X=50 Current_Chr) (X=52 Selected_Substring) (X=59 Normal_Text/
   
-  z.  %h'=call WordLeft; w %q@=window;
+  z.  %h'=call WordLeft;  %w=refresh;  %q@=window;
   f/Screen dump follows:/
   m12v/ colUrow50 colVrow50 colWrow50 colXrow50 colYrow50 colZrow50   /
   mv/Attrs: (X=40 Current_Chr) (X=42 Selected_Substring) (X=50 Normal_Text)/
   
-  z.  %h'=call WordLeft; w %q@=window;
+  z.  %h'=call WordLeft;  %w=refresh;  %q@=window;
   f/Screen dump follows:/
   m12v/ colUrow50 colVrow50 colWrow50 colXrow50 colYrow50 colZrow50   /
   mv/Attrs: (X=30 Current_Chr) (X=32 Selected_Substring) (X=40 Normal_Text)/
   
-  z.  %h'=call WordLeft; w %q@=window;
+  z.  %h'=call WordLeft;  %w=refresh;  %q@=window;
   f/Screen dump follows:/
   m12v/ colUrow50 colVrow50 colWrow50 colXrow50 colYrow50 colZrow50   /
   mv/Attrs: (X=20 Current_Chr) (X=22 Selected_Substring) (X=30 Normal_Text)/
   
-  z.  %h'=call WordLeft; w %q@=window;
+  z.  %h'=call WordLeft;  %w=refresh;  %q@=window;
   f/Screen dump follows:/
   m12v/ colUrow50 colVrow50 colWrow50 colXrow50 colYrow50 colZrow50   /
   mv/Attrs: (X=10 Current_Chr) (X=12 Selected_Substring) (X=20 Normal_Text)/
@@ -585,10 +654,10 @@ w
   )
 
 <<Test_29>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 m+50r4 %b=leftoffset 15; %b=tabcells 20; %q=inview; okokokr- %q=inview;\ okokok
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_29: Should repeat in console when cell has padding blanks (First Cell):
 (f/Screen dump follows:/
@@ -597,10 +666,10 @@ w
   z., z.\ )
 
 <<Test_30>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 m+50r14 %b=leftoffset 35; %b=tabcells 20; %q=inview; okokokr- %q=inview;\ okokok
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_30: Should repeat in console when cell has padding blanks (2nd. Cell)
 (f/Screen dump follows:/
@@ -609,11 +678,11 @@ w
   z., z.\ )
 
 <<Test_31>>
-%w;  %w= -height=10 -delim;  
-%%  %w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=10 -delim;  
+%%  %w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 m+50r253 %b=leftoffset 435; %b=tabcells 20; %q=inview; okokokr %q=inview;\ okokok
-w
+%w=refresh; 
 %q@=window;
 %m=Test_31: Should repeat in console when cell has padding blanks (last Cell)
 (f/Screen dump follows:/
@@ -623,10 +692,10 @@ w
   z., z.\ )
 
 <<Test_32>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 296; m50r228 %b=pathname 1234567890123456789012345678901234567890
-w
+%w=refresh; 
 %q@=window;
 %m=Test_32: Check padding blanks not wrapping into next line:
 (f/Screen dump follows:/
@@ -636,10 +705,11 @@ w
   z., z.\ )
 
 <<Test_33>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
-%b=tabcells 15; %b=leftoffset 381; m50r0r- %b=pathname 1234567890123456789012345678901234567890
-w
+%b=tabcells 15; %b=leftoffset 381; m50r0r- %b=pathname 1234567890123456789012345678901234567890;
+%w=refresh; 
+o?
 %q@=window;
 %m=Test_33: Should display last character:
 (f/Screen dump follows:/
@@ -649,10 +719,10 @@ w
   z., z.\ )
 
 <<Test_34>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 277; m50r235p
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_34: Check out-of-view-repeat logic at righthand limit of screen:
 (f/Screen dump follows:/
@@ -662,10 +732,10 @@ w
   z., z.\ )
 
 <<Test_35>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 300; m50r249 %b=pathname 1234567890123456789012345678901234567890
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_35: Should not merge last cell into predecessor cell:
 (f/Screen dump follows:/
@@ -673,10 +743,10 @@ w
   z., z.\ )
 
 <<Test_36>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 76; m50r238 %b=pathname 0123456789012345678901234567890123456789
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_36: Should not print next cell chrs in padding area when past right margin:
 (f/Screen dump follows:/
@@ -686,10 +756,10 @@ w
   z., z.\ )
 
 <<Test_37>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 12; m20r7
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_37: Not corrupting cell text in tabular display:
 (f/Screen dump follows:/
@@ -697,67 +767,67 @@ w
   z., z.\ )
 
 <<Test_38>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 328; m50r228 %b=pathname 1234567890123456789012345678901234567890
 ol0
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_38: Adjusting leftoffset causes text to shift smothly:
 (f/Screen dump follows:/
   m30v/      colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/     colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/    colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/   colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/  colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/ colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/colArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/!lArow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/!Arow50      colBrow50      colCrow50      colDrow50      colErow50/
   z., z.\ )
 o# %b=leftoffset '~; o~
-w
+ %w=refresh; 
 %q@=window;
 (f/Screen dump follows:/
   m30v/!row50      colBrow50      colCrow50      colDrow50      colErow50/
@@ -765,10 +835,10 @@ w
 ok
 
 <<Test_39>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 295; m50r228 %b=pathname 1234567890123456789012345678901234567890
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_39: Should not hang up on this leftoffset:
 (f/Screen dump follows:/
@@ -776,10 +846,10 @@ w
   z., z.\ )
 
 <<Test_40>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 6; m+50 r53
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_40: Not locking when tabcells are set too tight:
 (f/Screen dump follows:/
@@ -787,10 +857,10 @@ w
   z., z.\ )
 
 <<Test_41>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/t.t
 m-0ol9(f/ /o#oo/%c/)0m-0 %b=tabcells 10; ok
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_41: Not locking while setting tabcells:
 (f/Screen dump follows:/
@@ -804,16 +874,16 @@ w
   mv/         7!qwertyuio    /
   mv/         8!asdgfghjk    /
   mv/         9!zxcvbnm,.    /
-  mv/10:<>\|~!@#$%^&*()_+-=/
-%%  mv/!0:<>\|~!@    /
+%%  mv/10:<>\|~!@#$%^&*()_+-=/
+  mv/!0:<>\|~!@    /
   m(v/ /r)0r\
   z., z.\ )
 
 <<Test_42>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 15; %b=leftoffset 300; m50r228 %b=pathname 1234567890123456789012345678901234567890
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_42: Check not wrapping into next line:
 (f/Screen dump follows:/
@@ -823,10 +893,10 @@ w
   z., z.\ )
 
 <<Test_43>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 10; %b=leftoffset 233; m50r238 %b=pathname 0123456789012345678901234567890123456789
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_43: Should display character and highlight current chr in truncated cells:
 (f/Screen dump follows:/
@@ -836,10 +906,10 @@ w
   z., z.\ )
 
 <<Test_44>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells -1; m+13 %b=header '.; %b=leftoffset 50; m50r0r-4
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_44: Not missing first 2 items in header when leftoffset is set:
 (f/Screen dump follows:/
@@ -851,11 +921,11 @@ w
   z., z.\ )
 
 <<Test_45>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/t.t
 b-i/./80r0
-%%At the end of an 80-character line, on an 80-chr screen, in the window area, WriteString() allows the line to wrap, writing the EOL tilde in chr 1 of the next line.
-w
+%%At the end of an 80-character line, on an 80-chr screen, in the window area, WriteString() should not allow the line to wrap, writing the EOL tilde in chr 1 of the next line.
+ %w=refresh; 
 %q@=window;
 %m=Test_45: No line wrap at the end of an 80-character line:
 (f/Screen dump follows:/
@@ -864,10 +934,10 @@ w
   z., z.\ )
 
 <<Test_46>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells 8; %b=leftoffset 77; m+50 r90
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_46: Over-long lines not wrapping in window area (tabular text):
 (f/Screen dump follows:/
@@ -877,10 +947,10 @@ w
   z., z.\ )
 
 <<Test_47>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells 8; %b=leftoffset 50; m+50 r47
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_47: Over-long lines not wrapping in window area (tabular text):
 (f/Screen dump follows:/
@@ -890,11 +960,11 @@ w
   z., z.\ )
 
 <<Test_48>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells 8; %b=leftoffset 50; m+50 r47
 %%leftoffset garbling tabular text (It seems to be miscalculating the left screen boundary - sending the current character below 47 triggers the normal console redisplay of the line.):
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_48: leftoffset not garbling tabular text:
 (f/Screen dump follows:/
@@ -904,24 +974,28 @@ w
   z., z.\ )
 
 <<Test_49>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
-  %w;  %w= -height=31 -delim;  
+oq/'=nounicode/ol0 (o=
+  %w=clear;  %w=new -height=31 -delim;  
   %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
   %b=unicode 0; %b=tabcells 8; %b=leftoffset 60; m+84 r70(rr-ol-93ol-62oo/%c/rr-oo/%c/)6 r %b=unicode 1; 
-  w
+  %w=refresh; 
   %q@=window;
-  %m=Test_49: Not crashing while truncating overlong table cells containing unicode:
-  (f/Screen dump follows:/
-    m30v/1084     932    3690    4889    2970     918     386!£££££61            895/
-    mv/Attrs: (X=59 Current_Chr) (X=60 Normal_Text)/
-    mf1"/consumertrends2012q3cvmnsa_"
-    z., z.\ ) )
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %m=Test_49: Not crashing while truncating overlong table cells containing unicode:
+    (f/Screen dump follows:/
+      m30v/1084     932    3690    4889    2970     918     386!£££££61            895/
+      mv/Attrs: (X=59 Current_Chr) (X=60 Normal_Text)/
+      mf1"/consumertrends2012q3cvmnsa_"
+      z., z.\ ), x\)
+, %%Skipped unicode tests.
+  z*n.ma;+& ) ok
 
 <<Test_50>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells 6; %b=leftoffset 30; m+50 r52i/abcdefghijk/r-0r53
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_50: Should truncate properly when leftoffset is set:
 (f/Screen dump follows:/
@@ -931,10 +1005,10 @@ w
   z., z.\ )
 
 <<Test_51>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 10; %b=leftoffset 90; m50r101e4
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_51: Check WriteString is adding padding to short cell text:
 (f/Screen dump follows:/
@@ -944,10 +1018,10 @@ w
   z., z.\ )
 
 <<Test_52>>
-%w;  %w= -height=32 -delim;  
+%w=clear;  %w=new -height=32 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells 10; %b=header '.; m50
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_52: Header is not misaligned
 (f/Screen dump follows:/
@@ -961,10 +1035,10 @@ w
   z., z.\ )
 
 <<Test_53>>
-%w;  %w= -height=32 -delim;  
+%w=clear;  %w=new -height=32 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells -1; m+13 %b=header '.; %b=leftoffset 50; m50r0r-4
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_53: Not missing first 1 or 2 items in header when leftoffset is set:
 (f/Screen dump follows:/
@@ -977,37 +1051,41 @@ w
   z., z.\ )
 
 <<Test_54>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
-  %w;  %w= -height=31 -delim;  
+oq/'=nounicode/ol0 (o=\, 
+  %w=clear;  %w=new -height=31 -delim;  
   %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-  %%%b=tabcells 8; m+84 r19(rlol-93ol-62oo/%c/rloo/%c/)3 rl %w; %w= -height=15 -delim;  
-  %b=unicode 0; %b=tabcells 8; m+84 r19(rr-ol-93ol-62oo/%c/rr-oo/%c/)3 f1/	/n.f-1//-aahar-0f1'a w(ol5ow) %b=unicode 1;
-  w
-  %q@=window;
-  %m=Test_54: Should display unicode OK in tabular text when highlighting:
-  (f/Screen dump follows:/
-    f/2010 Q2 /r-0
-    v/ 2010 Q2   26429    5280 /
-    r0v-/1469     246    3565    2016    1084     932    3/
-    z., z.\ ) )
+  %%%b=tabcells 8; m+84 r19(rlol-93ol-62oo/%c/rloo/%c/)3 rl %w=clear; %w=new -height=15 -delim;  
+  %b=unicode 0; %b=tabcells 8; m+84 r19(rr-ol-93ol-62oo/%c/rr-oo/%c/)3 f1/	/n.f-1//-aahar-0f1'a  %w=refresh; (ol5ow) %b=unicode 1;
+  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_54: Should display unicode OK in tabular text when highlighting:
+    (f/Screen dump follows:/
+      f/2010 Q2 /r-0
+      v/ 2010 Q2   26429    5280 /
+      r0v-/1469     246    3565    2016    1084     932    3/
+      z., z.\ ) ) ) ok
 
 <<Test_55>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
-  %w;  %w= -height=32 -delim;  
+oq/'=nounicode/ol0 (o=\, 
+  %w=clear;  %w=new -height=32 -delim;  
   %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-  %b=unicode 0; %b=tabcells 8; m+84 r19(rr-ol-93ol-62oo/%c/rr-oo/%c/)3 r-0r19 %w; %w= -height=15 -delim; %b=unicode 1; 
-  w
-  %q@=window;
-  %m=Test_55: Should display three pound signs:
-  (f/Screen dump follows:/
-    m14v/ 2010 Q2   26429    5280/
-    r0v-/1469     246    3565    2016    1084     932    3/
-    z., z.\ ) )
+  %b=unicode 0; %b=tabcells 8; m+84 r19(rr-ol-93ol-62oo/%c/rr-oo/%c/)3 r-0r19 %w=clear; %w=new -height=15 -delim; %b=unicode 1; 
+  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_55: Should display three pound signs:
+    (f/Screen dump follows:/
+      m14v/ 2010 Q2   26429    5280/
+      r0v-/1469     246    3565    2016    1084     932    3/
+      z., z.\ ) ) ) ok
 
 <<Test_56>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-%w; %w= -height=10 -delim;   %b=tabcells -1; %b=leftoffset 18; m+62 r0r-4 w y-
+%w=clear; %w=new -height=10 -delim;   %b=tabcells -1; %b=leftoffset 18; m+62 r0r-4  %w=refresh;  y-
 %%Screen dump follows:
 z.( v-/1079		7974	3232	4908	/
   v/2348/
@@ -1015,10 +1093,10 @@ z.( v-/1079		7974	3232	4908	/
 %m=Test_56: Check the y- stays in column (highlights " 2" of 2348 cell.
 
 <<Test_57>>
-%w;  %w= -height=32 -delim;  
+%w=clear;  %w=new -height=32 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells -1; m+13 %b=header '.; %b=leftoffset 50; m+62 f1/2376/
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_57: With an excessively large leftoffset should not garble headings:
 (f/Screen dump follows:/
@@ -1031,10 +1109,10 @@ w
   z., z.\ )
 
 <<Test_58>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells -1; m40
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_58: Check long lines not wrapped round - tabular text:
 (f/Screen dump follows:/
@@ -1044,10 +1122,10 @@ w
   z., z.\ )
 
 <<Test_59>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
 %b=tabcells -1; %b=leftoffset 30; m+50 r90
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_59: For tabular text, setting LeftOffset brings current chr into view:
 (f/Screen dump follows:/
@@ -1057,10 +1135,10 @@ w
   z., z.\ )
 
 <<Test_60>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-%w; %w= -height=3 -delim;   %b=tabcells -1; m+10
-w
+%w=clear; %w=new -height=3 -delim;   %b=tabcells -1; m+10
+ %w=refresh; 
 %q@=window;
 %m=Test_60: Should not crash:
 (f/Screen dump follows:/
@@ -1071,40 +1149,44 @@ w
   z., z.\ )
 
 <<Test_61>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
 %b=tabcells 10
-w
+ %w=refresh; 
 %q@=window;
 %m=Test_61: Should not crash:
-(f/Screen dump follows:/
-  mv/!ousehold   /
-  mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
-  mv/!hained vo   /
-  m27v/      2011    106362     21412      5547      1124     14741      9133      5263/
-  m(v/ /r)0r\
-  mf1"/consumertrends2012q3cvmnsa_"
-  z., z.\ )
+oq/'=win10relaxation/ol0
+( o=\,
+  (f/Screen dump follows:/
+    mv/!ousehold   /
+    mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
+    mv/!hained vo   /
+    m27v/      2011    106362     21412      5547      1124     14741      9133      5263/
+    m(v/ /r)0r\
+    mf1"/consumertrends2012q3cvmnsa_"
+    z., z.\ ) ) ok
 
 <<Test_62>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-%%%w; %w= -height=9 -delim;   
+%%%w=clear; %w=new -height=9 -delim;   
 %b=tabcells 10;
-w
-%q@=window;
-%m=Test_62: Should not crash when fixed tabcells are set:
-(f/Screen dump follows:/
-  mv/!ousehold   /
-  mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
-  m28v/      2011    106362     21412      5547      1124     14741      9133      5263/
-  z., z.\ )
+%w=refresh; 
+oq/'=win10relaxation/ol0
+( o=\,
+  %q@=window;
+  %m=Test_62: Should not crash when fixed tabcells are set:
+  (f/Screen dump follows:/
+    mv/!ousehold   /
+    mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
+    m28v/      2011    106362     21412      5547      1124     14741      9133      5263/
+    z., z.\ ) ) ok
 
 <<Test_63>>
-%w;  %w= -height=32 -delim;  
+%w=clear;  %w=new -height=32 -delim;  
 %i.=${JOT_RESOURCES}/consumertrends2012q3cvmnsa_tcm77-292466.tsv
-%b=tabcells 9; %w; %w= -height=2 -delim;   m+93f1/193/i/aaaaaaaa/ p
-w
+%b=tabcells 9; %w=clear; %w=new -height=2 -delim;   m+93f1/193/i/aaaaaaaa/ p
+ %w=refresh; 
 %q@=window;
 %m=Test_63: Should not crash:
 (f/Screen dump follows:/
@@ -1114,10 +1196,10 @@ w
   z., z.\ )
 
 <<Test_64>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
-%b=tabcells -1; %b=leftoffset 30; m+50 f/colJrow49/ wol5ow p
-w
+%b=tabcells -1; %b=leftoffset 30; m+50 f/colJrow49/  %w=refresh; ol5ow p
+ %w=refresh; 
 %q@=window;
 %m=Test_64: P command displays extent of selected substring correctly for tabular text (1).
 (f/Screen dump follows:/
@@ -1127,10 +1209,10 @@ w
   z., z.\ )
 
 <<Test_65>>
-%w;  %w= -height=31 -delim;  
+%w=clear;  %w=new -height=31 -delim;  
 %i.=${JOT_RESOURCES}/test_table.txt
-%b=tabcells -1; %b=leftoffset 30; m+50 f/colJrow49/- wol5ow p
-w
+%b=tabcells -1; %b=leftoffset 30; m+50 f/colJrow49/-  %w=refresh; ol5ow p
+ %w=refresh; 
 %q@=window;
 %m=Test_65: P command displays extent of selected substring correctly for tabular text (2).
 (f/Screen dump follows:/
@@ -1139,30 +1221,32 @@ w
   z., z.\ )
 
 <<Test_66>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
-  %w;  %w= -height=20 -delim;  
+oq/'=nounicode/ol0 (o=\, 
+  %w=clear;  %w=new -height=20 -delim;  
   %i.=${JOT_RESOURCES}/t.t
   n.a@z@
   i"f/jon"b
-  i"Iabc£defI       "b
+  i"Inabc£defIn       "b
   %o=./test_unicode.jot
   %%
   %m=Test_66: Displays typed-to-screen unicode correctly.
   z.
   %s=verbose F;
-  %r=./test_unicode.jot -asConsole;
+  %r= -asConsole ./test_unicode.jot;
   %s=commandmode 0;
-  %q@=window;
-  %s=verbose 3;
-  (f/Screen dump follows:/
-    m4v/4 :Test file for abc£defjonathans wonderful editor./
-    z., z.\ ) )
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %s=verbose 3;
+    (f/Screen dump follows:/
+      m4v/4 :Test file for abc£defjonathans wonderful editor./
+      z., z.\ ) ) ) ok
 
 <<Test_67>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r-0f/jon/p w
+r-0f/jon/p  %w=refresh; 
 %q@=window;
 %m=Test_67: Should underline "jon" with cursor over "j":
 ( f/Screen dump follows:/
@@ -1172,9 +1256,9 @@ r-0f/jon/p w
 
 <<Test_68>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r-0f/jon/-p w
+r-0f/jon/-p  %w=refresh; 
 %q@=window;
 %m=Test_68: Should underline "jon" with following cursor over "a":
 ( f/Screen dump follows:/
@@ -1184,9 +1268,9 @@ r-0f/jon/-p w
 
 <<Test_69>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r-0f/j/p w
+r-0f/j/p  %w=refresh; 
 %q@=window;
 %m=Test_69: Should highlight "j" correctly with cursor over "j":
 ( f/Screen dump follows:/
@@ -1196,9 +1280,9 @@ r-0f/j/p w
 
 <<Test_70>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r-0f/j/-p w
+r-0f/j/-p  %w=refresh; 
 %q@=window;
 %m=Test_70: Should underline "j" with following cursor over "o":
 ( f/Screen dump follows:/
@@ -1208,9 +1292,9 @@ r-0f/j/-p w
 
 <<Test_71>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r-0r17p w
+r-0r17p  %w=refresh; 
 %q@=window;
 %m=Test_71: Should highlight "j" correctly with cursor over "j" (no substring):
 ( f/Screen dump follows:/
@@ -1220,9 +1304,9 @@ r-0r17p w
 
 <<Test_72>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r0p w
+r0p  %w=refresh; 
 %q@=window;
 %m=Test_72: Should display line with highlight on trailing "~":
 ( f/Screen dump follows:/
@@ -1232,9 +1316,9 @@ r0p w
 
 <<Test_73>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r0r-p w
+r0r-p  %w=refresh; 
 %q@=window;
 %m=Test_73: Should display line with highlight on final ".":
 ( f/Screen dump follows:/
@@ -1244,9 +1328,9 @@ r0r-p w
 
 <<Test_74>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r0r-2p w
+r0r-2p  %w=refresh; 
 %q@=window;
 %m=Test_74: Should display line with highlight on penultimate chr. ( "r" ):
 ( f/Screen dump follows:/
@@ -1256,9 +1340,9 @@ r0r-2p w
 
 <<Test_75>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-r-0p w
+r-0p  %w=refresh; 
 %q@=window;
 %m=Test_75: Should display line with highlight on initial "4":
 ( f/Screen dump follows:/
@@ -1268,9 +1352,9 @@ r-0p w
 
 <<Test_76>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %l=80 40;? z$m-0p0z.
+%w=clear; %l=80 40;? z$m-0p0z.
 m+4
-m-0j3r0p w
+m-0j3r0p  %w=refresh; 
 %q@=window;
 %m=Test_76: Should display over-long line with highlight on trailing "~":
 ( f/Screen dump follows:/
@@ -1280,83 +1364,95 @@ m-0j3r0p w
   z., z.\ )
 
 <<Test_77>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
+oq/'=nounicode/ol0 (o=\, 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l=80 40;? z$m-0p0z. f/jon/
-  r-0f/jon/r-1p w
-  %q@=window;
-  %m=Test_77: Should highlight unicode correctly when current chr."
-  ( f/Screen dump follows:/
-    m0m-2v/  4 :Test file for £jonathans wonderful editor./
-    mv/Attrs: (X=19 Current_Chr) (X=20 Normal_Text)/
-    z., z.\ ) )
+  %w=clear; %l=80 40;? z$m-0p0z. f/jon/
+  r-0f/jon/r-1p  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_77: Should highlight unicode correctly when current chr."
+    ( f/Screen dump follows:/
+      m0m-2v/  4 :Test file for £jonathans wonderful editor./
+      mv/Attrs: (X=19 Current_Chr) (X=20 Normal_Text)/
+      z., z.\ ) ) ) ok
 
 <<Test_78>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
+oq/'=nounicode/ol0 (o=\, 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l=80 40;? z$m-0p0z. f/jon/
-  r-0f/jon/n.r-1aa&r-0f'ap w
-  %q@=window;
-  %m=Test_78: Should highlight unicode correctly when selected unicode substring.
-  ( f/Screen dump follows:/
-    m0m-2v/  4 :Test file for £jonathans wonderful editor./
-    mv/Attrs: (X=19 Current_Chr) (X=20 Normal_Text)/
-    z., z.\ ) )
+  %w=clear; %l=80 40;? z$m-0p0z. f/jon/
+  r-0f/jon/n.r-1aa&r-0f'ap  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_78: Should highlight unicode correctly when selected unicode substring.
+    ( f/Screen dump follows:/
+      m0m-2v/  4 :Test file for £jonathans wonderful editor./
+      mv/Attrs: (X=19 Current_Chr) (X=20 Normal_Text)/
+      z., z.\ ) ) ) ok
 
 <<Test_79>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
+oq/'=nounicode/ol0 (o=\, 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l=80 40;? z$m-0p0z. f/jon/
-  r-0f/jon/n.r-1aa&r-0f'a-p w
-  %q@=window;
-  %m=Test_79: Should underline unicode when inverse selected unicode substring.
-  ( f/Screen dump follows:/
-    m0m-2v/  4 :Test file for £jonathans wonderful editor./
-    mv/Attrs: (X=19 Selected_Substring) (X=20 Current_Chr) (X=21 Normal_Text)/
-    z., z.\ ) )
+  %w=clear; %l=80 40;? z$m-0p0z. f/jon/
+  r-0f/jon/n.r-1aa&r-0f'a-p  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_79: Should underline unicode when inverse selected unicode substring.
+    ( f/Screen dump follows:/
+      m0m-2v/  4 :Test file for £jonathans wonderful editor./
+      mv/Attrs: (X=19 Selected_Substring) (X=20 Current_Chr) (X=21 Normal_Text)/
+      z., z.\ ) ) ) ok
 
 <<Test_80>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
+oq/'=nounicode/ol0 (o=\, 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l=80 40;? z$m-0p0z. f/jon/
-  r-0f/jon/r-3f1/ /-p w
+  %w=clear; %l=80 40;? z$m-0p0z. f/jon/
+  r-0f/jon/r-3f1/ /-p  %w=refresh; 
   %m=Test_80: N.B. Highlighting of whitespace does not show up in windows.
-  %q@=window;
-  %m=Should highlight unicode correctly showing " £".
-  ( f/Screen dump follows:/
-    m0m-3v/  4 :Test file for £jonathans wonderful editor./
-    mv/Attrs: (X=18 Selected_Substring) (X=19 Current_Chr) (X=20 Normal_Text)/
-    z., z.\ ) )
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Should highlight unicode correctly showing " £".
+    ( f/Screen dump follows:/
+      m0m-3v/  4 :Test file for £jonathans wonderful editor./
+      mv/Attrs: (X=18 Selected_Substring) (X=19 Current_Chr) (X=20 Normal_Text)/
+      z., z.\ ) ) ) ok
 
 <<Test_81>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
+oq/'=nounicode/ol0 (o=\, 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l=80 40;? z$m-0p0z. f/jon/
-  r-0f/jon/4n.r-16aahar-0f'ap w
-  %q@=window;
-  %m=Test_81: Should underline strings of unicode correctly "££££££££££££££££"
-  ( f/Screen dump follows:/
-    m0m-2v/  4 :Test file for ££££££££££££££££jonathans wonderful editor./
-    mv/Attrs: (X=19 Current_Chr) (X=20 Selected_Substring) (X=35 Normal_Text)/
-    z., z.\ ) )
+  %w=clear; %l=80 40;? z$m-0p0z. f/jon/
+  r-0f/jon/4n.r-16aahar-0f'ap  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_81: Should underline strings of unicode correctly "££££££££££££££££"
+    ( f/Screen dump follows:/
+      m0m-2v/  4 :Test file for ££££££££££££££££jonathans wonderful editor./
+      mv/Attrs: (X=19 Current_Chr) (X=20 Selected_Substring) (X=35 Normal_Text)/
+      z., z.\ ) ) ) ok
 
 <<Test_82>>
-(z!r-0f/ -nounicode/ z;i'*b z., 
+oq/'=nounicode/ol0 (o=\, 
   %i.=${JOT_RESOURCES}/test_doc.t
-  %w; %l=80 40;? z$m-0p0z. f/jon/
-  r-0f/jon/4f1/ /n.r-f-1/ /-2aahar-0f'ap w
-  %q@=window;
-  %m=Test_82: Should highlight strings of unicode right "for ££££££££££££££££jonathans"
-  ( f/Screen dump follows:/
-    m0m-2v/  4 :Test file for ££££££££££££££££jonathans wonderful editor./
-    mv/Attrs: (X=15 Current_Chr) (X=16 Selected_Substring) (X=44 Normal_Text)/
-    z., z.\ ) )
+  %w=clear; %l=80 40;? z$m-0p0z. f/jon/
+  r-0f/jon/4f1/ /n.r- f-1/ /-2aahar-0f'ap  %w=refresh; 
+  oq/'=win10relaxation/ol0
+  ( o=\,
+    %q@=window;
+    %m=Test_82: Should highlight strings of unicode right "for ££££££££££££££££jonathans"
+    ( f/Screen dump follows:/
+      m0m-2v/  4 :Test file for ££££££££££££££££jonathans wonderful editor./
+      mv/Attrs: (X=15 Current_Chr) (X=16 Selected_Substring) (X=44 Normal_Text)/
+      z., z.\ ) ) ) ok
 
 <<Test_83>>
 %i.=${JOT_RESOURCES}/t.t
 %b=header XXXXXXXXXXXXXXX;
 %iq=${JOT_RESOURCES}/l99.t
-%w; %w= -height=9 -delim;   zqwz.wzqw
+%w=clear; %w=new -height=9 -delim;   zq %w=refresh; z. %w=refresh; zq %w=refresh; 
 %q@=window;
 %m=Test_83: Should not display another buffers header.
 ( f/Screen dump follows:/m
@@ -1367,11 +1463,11 @@ m-0j3r0p w
 
 <<Test_84>>
 %i.=${JOT_RESOURCES}/test_table.txt
-%w; %w.= -height=4 -delim;   %wx= -height=1;
+%w=clear; %w.=new -height=4 -delim;   %wx=new -height=1;
 zxi/zzz/r-0z.
 %b=tabcells -1;
 %%There was a scrolling bug - scrolling a one-line window clears current line in window immediately above.
-w
+ %w=refresh; 
 %q@=window;
 ( f/Screen dump follows:/m
   v|        A        B        C        D        E        F        G        H       |m
@@ -1385,9 +1481,9 @@ w
 
 <<Test_85>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=15 -delim;  
+%w=clear; %w=new -height=15 -delim;  
 %%Check that a text tag does not make the cursor disappear.
-r5ol10ou %b=addtag -text=Hello world; r5w
+r5ol10ou %b=addtag -text=Hello world; r5 %w=refresh; 
 %q@=window;
 ( f|Screen dump follows:|m
   v|1 :abcdefghijklmnopqrstuvwxyz|m
@@ -1397,45 +1493,48 @@ r5ol10ou %b=addtag -text=Hello world; r5w
 
 <<Test_86>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; f|jon|ol15ou %b=addtag x; r-10ol15ou
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; f|jon|ol15ou %b=addtag x; r-10ol15ou
+%%%b=tagtype x colour 7 1; f|jon|ol15ou %b=addtag x; r-10ol15ou
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_84: Verify behaviour when substring crosses colour-tag start.
 ( mv|Attrs: (X=7 Current_Chr) (X=8 Selected_Substring) (X=17 colour 7/1) (X=32 Normal_Text)|
   z., z.\  )
 
 <<Test_87>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; f/jon/ol15ou %b=addtag x; r10ol15ou
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; f/jon/ol15ou %b=addtag x; r10ol15ou
+%%%b=tagtype x colour 7 1; f/jon/ol15ou %b=addtag x; r10ol15ou
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_87: Verify behaviour when substring crosses colour-tag end.
 ( mv|Attrs: (X=17 colour 7/1) (X=32 Selected_Substring) (X=42 Normal_Text)|
   z., z.\  )
 
 <<Test_88>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; f/jon/ol15ou %b=addtag x; r5ol-15ou
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; f/jon/ol15ou %b=addtag x; r5ol-15ou
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_88: Verify behaviour when negative substring crosses colour-tag start.
 ( mv|Attrs: (X=7 Selected_Substring) (X=17 colour 7/1) (X=32 Normal_Text)|
   z., z.\  )
 
 <<Test_89>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; f/jon/ol15ou %b=addtag x; r20ol-15ou
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; f/jon/ol15ou %b=addtag x; r20ol-15ou
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_89: Verify behaviour when negative substring crosses colour-tag end.
 ( mv|Attrs: (X=17 colour 7/1) (X=32 Selected_Substring) (X=37 Current_Chr) (X=38 Normal_Text)|
   z., z.\  )
 
 <<Test_90>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; %b=tagtype y colour 7 2; f/jon/ %b=addtag x; f/atha/ %b=addtag y; f-1/file/ %b=addtag y; r0
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; %b=tagtype -colour=7:2 y; f/jon/ %b=addtag x; f/atha/ %b=addtag y; f-1/file/ %b=addtag y; r0
+%%%b=tagtype -colour=7:1 x; %b=tagtype y colour 7 2; f/jon/ %b=addtag x; f/atha/ %b=addtag y; f-1/file/ %b=addtag y; r0
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_90: Check that multiple colour tags are displayed correctly when abutting or on the same line.
 ( ( %q=windows;
     mv|Attrs: (X=8 colour 7/2) (X=12 Normal_Text) (X=17 colour 7/1) (X=20 colour 7/2) (X=24 Normal_Text)|
@@ -1446,18 +1545,18 @@ w %q@=window; f|4 :Test file for jonathans wonderful editor.|
 
 <<Test_91>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; %b=tagtype y colour 7 2; f/jon/ %b=addtag x; f-1/file/ %b=addtag y; r-0r18 z1i/%qa=tags -here;/z.
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; %b=tagtype -colour=7:2 y; f/jon/ %b=addtag x; f-1/file/ %b=addtag y; r-0r18 z1i/%qa=tags -here;/z.
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_91: Check that multiple colour tags are not currupted by an earlier tag.
 ( mv|Attrs: (X=8 colour 7/2) (X=12 Normal_Text) (X=17 colour 7/1) (X=20 Normal_Text)|
   z., z.\  )
 
 <<Test_92>>
 %i.=${JOT_RESOURCES}/t.t
-%w; %w= -height=11 -delim;  
-%b=tagtype x colour 7 1; %b=tagtype y colour 7 2; f/jon/ %b=addtag x; f/atha/ %b=addtag y; f-1/file/ %b=addtag y; m
-w %q@=window; f|4 :Test file for jonathans wonderful editor.|
+%w=clear; %w=new -height=11 -delim;  
+%b=tagtype -colour=7:1 x; %b=tagtype -colour=7:2 y; f/jon/ %b=addtag x; f/atha/ %b=addtag y; f-1/file/ %b=addtag y; m
+ %w=refresh;  %q@=window; f|4 :Test file for jonathans wonderful editor.|
 %m=Test_92: Check that multiple colour tags are displayed correctly when abutting or on the same line for non-current line.
 ( ( %q=windows;
     mv|Attrs: (X=8 colour 7/2) (X=12 Normal_Text) (X=17 colour 7/1) (X=20 colour 7/2) (X=24 Normal_Text)|
@@ -1471,11 +1570,11 @@ w %q@=window; f|4 :Test file for jonathans wonderful editor.|
 <<Test_93>>
 %iq=${JOT_RESOURCES}/t.t;
 %i.=${JOT_RESOURCES}/l99.t;
-%w; %wq= -height=1; %w= -height=6 -delim;  
+%w=clear; %wq=new -height=1; %w=new -height=6 -delim;  
 %l=80 40;?
 %m=Test_93: Check that overlong lines do not wrap in window when there is a small window above.
 m+50jr0 
-(pw)2w %q@=window;
+(p %w=refresh; )2 %w=refresh;  %q@=window;
 f/Screen dump follows:/m
 ( v/1 :abcdefghijklmnopqrstuvwxyz/m
   v/__46: abc def/m
@@ -1489,11 +1588,11 @@ f/Screen dump follows:/m
 
 <<Test_94>>
 %i.=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=6 -delim;  
+%w=clear; %w=new -height=6 -delim;  
 %l=80 40;?
 %m=Test_94: Check behaviour with negative line numbers.
 ol-3o.
-w %q@=window; f/Screen dump follows:/m
+ %w=refresh;  %q@=window; f/Screen dump follows:/m
 ( v|__01: abc def ghi jkl mno pqr stu vwxyz:0123456789|m
   v|Attrs: (X=0 Current_Chr) (X=1 Normal_Text)|m
   v|__02: abc def ghi jkl mno pqr stu vwxyz:0123456789|m
@@ -1506,11 +1605,11 @@ w %q@=window; f/Screen dump follows:/m
 
 <<Test_95>>
 %i.=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=6 -delim;  
+%w=clear; %w=new -height=6 -delim;  
 %l=80 40;?
 %m=Test_95: Check that a header line doesn't cause miscalcualtion of window size:
 %b=header '.; m50
-w %q@=window; f/Screen dump follows:/m
+ %w=refresh;  %q@=window; f/Screen dump follows:/m
 ( v|__01: abc def ghi jkl mno pqr stu vwxyz:0123456789|m
   v|Attrs: (X=0 Current_Chr)|m
   v|__48: abc def ghi jkl mno pqr stu vwxyz:0123456789|m
@@ -1525,10 +1624,10 @@ w %q@=window; f/Screen dump follows:/m
 <<Test_96>>
 %iq=${JOT_RESOURCES}/l99.t;
 %i.=${JOT_RESOURCES}/t.t;
-%w; %w= -height=5 -delim;  
+%w=clear; %w=new -height=5 -delim;  
 %l=80 40;?
 %m=Test_96: Check that a previous window doesn't muck up the current window.
-z. %w; %wq= -height=6 -delim;   %w= -height=16 -delim;   z. w zq w
+z. %w=clear; %wq=new -height=6 -delim;   %w=new -height=16 -delim;   z.  %w=refresh;  zq  %w=refresh; 
  %q@=window; f/Screen dump follows:/m
 ( v|__01: abc def ghi jkl mno pqr stu vwxyz:0123456789|m
   v|Attrs: (X=0 Current_Chr) (X=1 Normal_Text)|m
@@ -1546,9 +1645,9 @@ z. %w; %wq= -height=6 -delim;   %w= -height=16 -delim;   z. w zq w
 
 <<Test_97>>
 %i.=${JOT_RESOURCES}/t.t;
-%w; %w= -height=6 -delim;  
+%w=clear; %w=new -height=6 -delim;  
 %b=footer This is my footer;
-w
+ %w=refresh; 
 %m=Test_97: Check that the footer is correctly displayed.
 %q@=window; f/Screen dump follows:/m
 ( v|1 :abcdefghijklmnopqrstuvwxyz |m
@@ -1563,8 +1662,8 @@ w
 
 <<Test_98>>
 %iq=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=6 -delim;   ol-3o. mwm2
-w
+%w=clear; %w=new -height=6 -delim;   ol-3o. m %w=refresh; m2
+%w=refresh; 
 %m=Test_98: Check handling near top of screen when first line has a negative line number.
 %q@=window; f/Screen dump follows:/m
 v/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
@@ -1577,8 +1676,8 @@ z., z.\
 
 <<Test_99>>
 %iq=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=11 -delim;   m0 w m+89
-w
+%w=clear; %w=new -height=11 -delim;   m0  %w=refresh;  m+89
+ %w=refresh; 
 %m=Test_99: When moving above the current view, current line placed at the top of new view.
 %q@=window; f/Screen dump follows:/m
 v/__89: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
@@ -1589,8 +1688,8 @@ z., z.\
 
 <<Test_100>>
 %iq=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=11 -delim;   m0 w m-0k20m0
-w
+%w=clear; %w=new -height=11 -delim;   m0  %w=refresh;  m-0k20m0
+ %w=refresh; 
 %m=Test_100: Check that display is updated immediately.
 %q@=window; f/Screen dump follows:/m
 v/__91: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
@@ -1605,8 +1704,8 @@ z., z.\
 <<Test_101>>
 %iq=${JOT_RESOURCES}/l99.t;
 %s=guardband 2;
-%w; %w= -height=11 -delim;   m=55 w
-w
+%w=clear; %w=new -height=11 -delim;   m=55  %w=refresh; 
+%w=refresh;
 %m=Test_101: Check with guardbands set - bottom guardband.
 %q@=window; f/Screen dump follows:/m
   v/__48: abc def ghi jkl mno pqr stu vwxyz:0123456789/
@@ -1621,8 +1720,8 @@ z., z.\
 <<Test_102>>
 %iq=${JOT_RESOURCES}/l99.t;
 %s=guardband 2;
-%w; %w= -height=11 -delim;   m=55 w m-10
-w
+%w=clear; %w=new -height=11 -delim;   m=55  %w=refresh;  m-10
+ %w=refresh; 
 %m=Test_102: Check with guardbands set - top guardband.
 %q@=window; f/Screen dump follows:/m
   v/__43: abc def ghi jkl mno pqr stu vwxyz:0123456789/
@@ -1637,10 +1736,10 @@ z., z.\
 <<Test_103>>
 %iq=${JOT_RESOURCES}/l99.t;
 %s=guardband 0;
-%w; %w= -height=30 -delim;  
-w
+%w=clear; %w=new -height=30 -delim;  
+ %w=refresh; 
 %m=Test_103: Check scrolling up
-m40bm40bm0w m-(r\m-)0r-(rm-)0mw m-(r\m-)0r-(rm-)0mw
+m40bm40bm0 %w=refresh;  m-(r\m-)0r-(rm-)0m %w=refresh;  m-(r\m-)0r-(rm-)0m %w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__41: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
@@ -1653,10 +1752,10 @@ z., z.\
 <<Test_104>>
 %iq=${JOT_RESOURCES}/l99.t;
 %s=guardband 0;
-%w; %w= -height=30 -delim;  
-w
+%w=clear; %w=new -height=30 -delim;  
+ %w=refresh; 
 %m=Test_104: Check scrolling up again
-m0w m-40wm-30w
+m0 %w=refresh;  m-40 %w=refresh; m-30 %w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__30: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/
@@ -1669,73 +1768,74 @@ z., z.\
 <<Test_105>>
 %m=Test_105: Check %w ... -popup option at top right of screen.;
 %iq=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=30 -delim; %w-= -height=3 -width=-20 -popup;
+%w=clear; %w=new -height=20 -delim; %w-=new -height=3 -width=20 -popup=59;
+%%  %w=clear; %w=new -height=20 -delim; %w-=new -height=3 -width=-20 -popup;
 %d-=** I am a popup **;
-w
+ %w=refresh; 
 %q@=window; f/Screen dump follows:/m
-v/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789           ** I am a popup **/m
+v/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789          ** I am a popup **/m
 v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/m
 v/__02: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 %%Now add more lines to ( - ) buffer only the first 3 should be displayed.
 z-r0 ol2(bo#oo/** Line %4d    **/o~)4 m--0
 %%z-r0bi/Line 2/bi/Line 3/bi/Line 4/ m-0
-zqw
+zq %w=refresh; 
 %q@=window; f/Screen dump follows:/m
-v/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789           ** I am a popup **/m
+v/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789          ** I am a popup **/m
 v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/m
-v/__02: abc def ghi jkl mno pqr stu vwxyz:0123456789           ** Line    2    **/m
-v/__03: abc def ghi jkl mno pqr stu vwxyz:0123456789           ** Line    3    **/m
+v/__02: abc def ghi jkl mno pqr stu vwxyz:0123456789          ** Line    2    **/m
+v/__03: abc def ghi jkl mno pqr stu vwxyz:0123456789          ** Line    3    **/m
 v/__04: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
 
 <<Test_106>>
 %m=Test_106: Check %w ... -popup option at top left of screen.;
 %iq=${JOT_RESOURCES}/l99.t;
-n.a- %w; %w= -height=30 -delim; %w-= -height=3 -width=20 -popup;
+n.a- %w=clear; %w=new -height=30 -delim; %w-=new -height=3 -width=20 -popup;
 %d-=** I am a popup **;
-w
+%w=refresh; 
 %q@=window; f/Screen dump follows:/m
-v/** I am a popup **jkl mno pqr stu vwxyz:0123456789/m
+%%N.B. This *is* correct - the two blanks before resuming the main display are due to the popup message being 18 characters in a 20-character popup.
+v/** I am a popup **  l mno pqr stu vwxyz:0123456789/m
 v/__02: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 %%Now add more lines to ( - ) buffer only the first 3 should be displayed.
 z-r0 ol2(bo#oo/** Line %4d    **/o~)4 m--0
 %%z-r0bi/Line 2/bi/Line 3/bi/Line 4/ m-0
-zqw
+zq %w=refresh; 
 %q@=window; f/Screen dump follows:/m
-v/** I am a popup **jkl mno pqr stu vwxyz:0123456789/m
-v/** Line    2    **jkl mno pqr stu vwxyz:0123456789/m
-v/** Line    3    **jkl mno pqr stu vwxyz:0123456789/m
+v/** I am a popup **  l mno pqr stu vwxyz:0123456789/m
+v/** Line    2    **  l mno pqr stu vwxyz:0123456789/m
+v/** Line    3    **  l mno pqr stu vwxyz:0123456789/m
 v/__04: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
 
 <<Test_107>>
 %m=Test_107: Check display of short substrings.
-%w; %w= -height=9 -delim;  
+%w=clear; %w=new -height=9 -delim;  
 %iq=${JOT_RESOURCES}/t.t;
-f/e/ w
+f/e/  %w=refresh; 
 %q@=window; f/Screen dump follows:/m2
 v/Attrs: (X=7 Current_Chr) (X=8 Normal_Text)/
-zqr-0f/e/- w
+zqr-0f/e/-  %w=refresh; 
 %q@=window; f/Screen dump follows:/m2
 v/Attrs: (X=7 Selected_Substring) (X=8 Current_Chr) (X=9 Normal_Text)/
-zqr-0f/ef/ w
+zqr-0f/ef/  %w=refresh; 
 %q@=window; f/Screen dump follows:/m2
 v/Attrs: (X=7 Current_Chr) (X=8 Selected_Substring) (X=9 Normal_Text)/
-zqr-0f/ef/- w
+zqr-0f/ef/-  %w=refresh; 
 %q@=window; f/Screen dump follows:/m2
 v/Attrs: (X=7 Selected_Substring) (X=9 Current_Chr) (X=10 Normal_Text)/
-zqr-0f/efg/ w
+zqr-0f/efg/  %w=refresh; 
 %q@=window; f/Screen dump follows:/m2
 v/Attrs: (X=7 Current_Chr) (X=8 Selected_Substring) (X=10 Normal_Text)/
-zqr-0f/efg/- w
+zqr-0f/efg/-  %w=refresh; 
 %q@=window; f/Screen dump follows:/m2
 v/Attrs: (X=7 Selected_Substring) (X=10 Current_Chr) (X=11 Normal_Text)/
-
 z., z.\
 
 <<Test_108>>
 %m=Test_108: Check that clearing line after an EOL tilde does not wrap into next line.
-%w; %w= -height=9 -delim;  
+%w=clear; %w=new -height=9 -delim;  
 %i.=${JOT_RESOURCES}/t.t;
-m4b- w
+m4b-  %w=refresh; 
 %q@=window; f/Screen dump follows:/
 m4v/4 :Test file for jonathans wonderful editor.
 mv/~/
@@ -1744,11 +1844,11 @@ mv/5 :aaaaa/
 
 <<Test_109>>
 %m=Test_109: Basic check on sliced windows.;
-%w; %wq= -height=9 -width=15 -delim;  %w.= -width=30+1 -delim; 
+%w=clear; %w=refresh; %wq=new -height=9 -width=15 -delim;  %w.=new -width=30+1 -delim; 
 %i.=${JOT_RESOURCES}/t.t;
 %iq=${JOT_RESOURCES}/l99.t;
 %s=trace 400;
-w
+%w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__01: abc def g 1 :abcdefghijklmnopqrstuvwxyz                                   /r0v-//m
 v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/m
@@ -1757,19 +1857,21 @@ v/__03: abc def g 3 :1234567890                                                 
 v/__04: abc def g 4 :Test file for jonathans won                                  /r0v-//m
 v/__05: abc def g 5 :aaaaaaaaaaaaaaaaaaaaaaaaaaa                                  /r0v-//m
 v/__06: abc def g 6 :bbbbbbbbbbbbbbbbbbbbbbbbbbb                                  /r0v-//m
+%%  %w=clear; %w=new -height=30 -delim; t %%Debugging.
 v/__07: abc def g 7 :qwertyuiop[]                                                 /r0v-//m
 v/__08: abc def g 8 :asdgfghjkl;'                                                 /r0v-//m
-v/...l99.t  Q  /m
+%w=refresh; 
+f1/l99.t  Q  / f1/t.t  .  /m
+%%  v/...l99.t  Q  /m
 v/Attrs: (X=0 Reverse_Video) (X=49 Normal_Text)/m
-v/                                 /
 
 <<Test_110>>
 %m=Test_110: Verify repeat for offset slices - 1  current character is at left margin of slice.;
-%w; %wq= -height=9 -width=15 -delim;  %w.= -width=30+1 -delim; 
+%w=clear; %wq=new -height=9 -width=15 -delim;  %w.=new -width=30+1 -delim; 
 %i.=${JOT_RESOURCES}/t.t;
 %iq=${JOT_RESOURCES}/l99.t;
 z.f/jon/rr-%b=leftoffset 17;
-w
+%w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__01: abc def g opqrstuvwxyz/m
 v/__02: abc def g OPQRSTUVWXYZ/m
@@ -1785,11 +1887,11 @@ v/Attrs: (X=0 Reverse_Video) (X=49 Normal_Text)/m
 
 <<Test_111>>
 %m=Test_111: Verify repeat for offset slices - 2 current character is before left margin of slice.;
-%w; %wq= -height=9 -width=15 -delim;  %w.= -width=30+1 -delim; 
+%w=clear; %wq=new -height=9 -width=15 -delim;  %w.=new -width=30+1 -delim; 
 %i.=${JOT_RESOURCES}/t.t;
 %iq=${JOT_RESOURCES}/l99.t;
 z.f/jon/rr-%b=leftoffset 18;
-w
+%w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__01: abc def g pqrstuvwxyz   /m
 v/__02: abc def g PQRSTUVWXYZ   /m
@@ -1807,12 +1909,12 @@ mv/Attrs: (X=17 Current_Chr)/
 
 <<Test_112>>
 %m=Test_112: Verify repeat for offset slices - 3 current character is at right margin of slice.;
-%w; %wq= -height=9 -width=15 -delim;  %w.= -width=30+1 -delim; 
+%w=clear; %wq=new -height=9 -width=15 -delim;  %w.=new -width=30+1 -delim; 
 %i.=${JOT_RESOURCES}/t.t;
 %iq=${JOT_RESOURCES}/l99.t;
 %s=trace 400;
 z.f/jon/j-2 %b=leftoffset 31;
-w
+ %w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__01: abc def g               /m
 v/__02: abc def g :12345678904 :Test file for jo  /m
@@ -1824,11 +1926,11 @@ v/Attrs: (X=29 Current_Chr) (X=30 Normal_Text)/
 
 <<Test_113>>
 %m=Test_113: Verify repeat for offset slices - 3 current character is past right margin of slice.;
-%w; %wq= -height=9 -width=15 -delim;  %w.= -width=30+1 -delim; 
+%w=clear; %wq=new -height=9 -width=15 -delim;  %w.=new -width=30+1 -delim; 
 %i.=${JOT_RESOURCES}/t.t;
 %iq=${JOT_RESOURCES}/l99.t;
 z.f/jon/j-2 %b=leftoffset 30;
-w
+ %w=refresh; 
 %q@=window; f/Screen dump follows:/m
 v/__01: abc def g               /m
 v/__02: abc def g  :12345678904 :Test file for j  /m
@@ -1838,20 +1940,20 @@ v/Attrs: (X=0 Reverse_Video) (X=49 Normal_Text)/m
 
 <<Test_114>>
 %m=Test_114: Verify correct display of negative substrings.
-%w; %w= -height=9 -delim;
+%w=clear; %w=new -height=9 -delim;
 %i.=${JOT_RESOURCES}/l99.t;
 j2r-0f/abc/-3 %b=leftoffset 40;
-w %q@=window; f/Screen dump follows:/m
+ %w=refresh;  %q@=window; f/Screen dump follows:/m
 v/0123456789__02: abc def ghi jkl mno pqr stu vwxyz:0123456789__03: abc def ghi jk/m
 v/Attrs: (X=66 Selected_Substring) (X=69 Current_Chr) (X=70 Normal_Text)/m
 v/0123456789/m
 
 <<Test_115>>
 %m=Test_115: Verify that JotClrSlice() clears all of the line.
-%w; %w= -height=9 -delim;
+%w=clear; %w=new -height=9 -delim;
 %iq=${JOT_RESOURCES}/l99.t;
-n.aa (j2m)0 m-0(f/ /s/*/)0 m-0 w za
-w %q@=window; f/Screen dump follows:/m
+n.aa (j2m)0 m-0(f/ /s/*/)0 m-0  %w=refresh;  za
+%w=refresh;  %q@=window; f/Screen dump follows:/m
 v/~                                                                               /r0v-//m
 v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/m
 v/                                                                                /r0v-//m
@@ -1859,8 +1961,8 @@ mv//r0v-//
 
 <<Test_116>>
 %m=Test_116: Verify screen is cleared where necessary.
-%w; %w= -height=30 -delim; 
-%i.=${JOT_RESOURCES}/t.t; b3m3b3 w (%q=windows; %e=ls %JOT_RESOURCES%;, %e=ls ${JOT_RESOURCES};) %l=80 40;? w %q@=window;
+%w=clear; %w=new -height=30 -delim; 
+%i.=${JOT_RESOURCES}/t.t; b3m3b3  %w=refresh;  (%q=windows; %e=ls %JOT_RESOURCES%;, %e=ls ${JOT_RESOURCES};) %l=80 40;? %w=refresh; %q@=window;
 f/Screen dump follows:/m
 v"                                                                                "m
 v"                                                                                "m
@@ -1884,8 +1986,8 @@ v"                                                                              
 
 <<Test_117>>
 %m=Test_117: Verify that old cursor marks are being removed properly when there are spare windows.
-%i.=${JOT_RESOURCES}/t.t; %w; ( %w.= -height=9 -delim; )4
-(wm)4 
+%i.=${JOT_RESOURCES}/t.t; %w=clear; ( %w.=new -height=9 -delim; )4
+( %w=refresh; m)4 
 %q@=window; f/Screen dump follows:/m
 %%Some bugs cause it to highlight the first character of the first 3 lines as well as the 4th. line.
 v/1 :abcdefghijklmnopqrstuvwxyz/m
@@ -1897,8 +1999,9 @@ v/5 :aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/m
 
 <<Test_118>>
 %m=Test_118: Check operation of console-lines borrowing - check that the borrowing-limit works.
-%s=tracedefault C001;
-%i.=${JOT_RESOURCES}/l99.t; %w; %w= -height=39 -delim; %s=console 5; o@ ol1 ol2 ol3 ol4 ol5 ol6 ol7 ol9 w o? %q@=window;
+%%  %s=tracedefault C001;
+%i.=${JOT_RESOURCES}/l99.t; %w=clear; %w=new -height=39 -delim; %s=console 5; o@ ol1 ol2 ol3 ol4 ol5 ol6 ol7 ol9  %w=refresh;  o? 
+%q@=window;
 m0
 m-v/   0        1        1        ~/
 m-v/   1        2        2        ~/
@@ -1910,7 +2013,9 @@ m-v/__34: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 %%
 %%Now check that  second screen update will rewrite borrowed lines.
 %d#=;
-z. w o? w w %q@=window; m0
+z.  %w=refresh;  o?  %w=refresh;   %w=refresh;  
+%q@=window; 
+m0
 m-v/   0        1        1        ~/
 m-v/Attrs: (X=0 Reverse_Video)/
 m-f1/l99.t/
@@ -1919,8 +2024,8 @@ m-v/__38: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 <<Test_119>>
 %m=Test_119: Check operation of OW command.
 %i.=${JOT_RESOURCES}/l99.t;
-%w; %w 30; %w 0;
-f/__50:/wm-10
+%w=clear; %w=new -height=30 -delim;
+f/__50:/ %w=refresh; m-10
 %q@=window;
 f/Screen dump follows:/m30 v/Attrs: (X=0 Current_Chr) (X=1 Selected_Substring) (X=5 Normal_Text) /r0v-//
 z. ol5ow
@@ -1936,8 +2041,8 @@ f/Screen dump follows:/m5v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text) /r0v-//
 %iq=${JOT_RESOURCES}/l99.t; m=50
 %%
 %%This test verifies that it selects the correct window - the right pane is locked to buffer ( ! ) , the current buf.
-%w; %w= -height=30 -width=40 -delim;  %wq= -width=40 -delim;
-z.w zqm-5w ol3ow
+%w=clear; %w=new -height=30 -width=40 -delim;  %wq=new -width=40 -delim;
+z. %w=refresh;  zqm-5 %w=refresh;  ol3ow
 %q@=window;
 f/Screen dump follows:/
 mv/~                                       __25: abc def ghi jkl mno pqr stu vwxyz:/r0v-
@@ -1947,9 +2052,10 @@ mv/                   The Life and Death of__26: abc def ghi jkl mno pqr stu vwx
 <<Test_121>>
 %m=Test_121: Check that an empty popup doesn't mess up the primary window.
 %i.=l99.t;
-%w; %w 20; %w 0; %w-=window -height=20 -width=-20 -popup; 
+%%  %w=clear; %w=new -height=20 -delim; %w=new -height=20 -width=-20 -popup; 
+%w=clear; %w=new -height=20 -delim; %w-=new -height=20 -width=20 -popup=-20; 
 %d-=; 
-m=60wm-10 
+m=60 %w=refresh; m-10 
 %%Check that scrolling down does not clear the first 20 characters of the following line.
 (ol-1ow ol-0z-ow? z.)10
 %q@=window;
@@ -1970,12 +2076,12 @@ mv/__43: abc def ghi jkl mno pqr stu vwxyz:0123456789/
 <<Test_122>>
 %m=Test_122: Check that all affected windows are redrawn after a popup is dismissed.
 %i.=${JOT_RESOURCES}/l99.t;
-%w; 
-%w= -height=22 -delim; %w-= -height=20 -width=-20 -popup;
+%w=clear; 
+%w=new -height=22 -delim; %w-=new -height=20 -width=20 -popup=-20;
 z-k0e0 (i/*/r-0n.r0a$&bh$)20 z.
 %%I've had to double up the W commands because s_TermTable is reset by the first one, display is updated on the 2nd.
 %%This effect doesn't show up in the interactive sessions though.
-m14 w n.a- ww
+m14  %w=refresh;  n.a-  %w=refresh; %w=refresh;
 %q@=window;
 f/Screen dump follows:/
 mv/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789                              /
@@ -2004,12 +2110,12 @@ mv/__21: abc def ghi jkl mno pqr stu vwxyz:0123456789                           
 <<Test_123>>
 %m=Test_123: Check that guardband  does not cause instability in calculation of FirstLineNo near end of buffer.
 %i.=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=22 -delim;
+%w=clear; %w=new -height=22 -delim;
 %s=guardband 5;
-m0 w
+m0  %w=refresh; 
 %%
 %%Test 123 part 1 - initial-window verification.
-%q@=window;
+%l; %w=refresh; %q@=window;
 f/Screen dump follows:/
 m15v/__99: abc def /
 mv/~/
@@ -2018,7 +2124,7 @@ mv/Attrs: (X=0 Current_Chr) (X=1 Normal_Text) /
 mf1"/l99.t         "
 %%
 %%Test 123 part 2 - some bugs cause the display to scroll up by the guard-band size.
-z.w
+z. %w=refresh; 
 %q@=window;
 f/Screen dump follows:/
 m15v/__99: abc def /
@@ -2030,9 +2136,9 @@ mf1"/l99.t         "
 <<Test_124>>
 %m=Test_124: Check that it's displaying expanded console.
 %i.=${JOT_RESOURCES}/l99.t;
-%w; %w= -height=35 -delim;
+%w=clear; %w=new -height=35 -delim;
 %s=console 30;
-o@ ol-30(o~o#)0 z.wo?w
+o@ ol-30(o~o#)0 z. %w=refresh; o? %w=refresh; 
 %q@=window;
 f/Screen dump follows:/
 mv/__01: abc def ghi jkl mno pqr stu vwxyz:0123456789/
@@ -2055,9 +2161,9 @@ mv/  26       -3 FFFFFFFFFFFFFFFD        ~/
 <<Test_125>>
 %m=Test_125: Check that old borrowed console area is cleared away for buffers smaller than the window.
 %i.=${JOT_RESOURCES}/t.t;
-%w; %w= -height=20 -delim;
+%w=clear; %w=new -height=20 -delim;
 %s=console 30;
-o@ ol-30(o~o#)0 z.wo?w
+o@ ol-30(o~o#)0 z. %w=refresh; o? %w=refresh; 
 %q@=window;
 f/8 :asdgfghjkl;'/
 mv"9 :zxcvbnm,./"
@@ -2073,7 +2179,7 @@ mv/   2      -27 FFFFFFFFFFFFFFE5        ~/
 mv/   1      -28 FFFFFFFFFFFFFFE4        ~/
 mv/   0      -29 FFFFFFFFFFFFFFE3        ~/
 %%OK Now test that it clears this away on the next window update.
-z.w
+z. %w=refresh; 
 %q@=window;
 f/Screen dump follows:/
 mv/1 :abcdefghijklmnopqrstuvwxyz/
@@ -2101,6 +2207,47 @@ mv/Attrs: (X=0 Reverse_Video)/
 mv/  19      -10 FFFFFFFFFFFFFFF6        ~/
 mv/  18      -11 FFFFFFFFFFFFFFF5        ~/
 
+<<Test_126>>
+%m=Test_126: Verifies screen is updated correctly in insert (type-to screen) mode.
+o@
+z$m-0k0e0
+ol27oo/%lcIn /b
+i/abcdefghijklmnopqrstuvwxyz/b
+ol27oo/%lcdown /b2
+ol27oo/%lcIn /b
+%o=./test_insert.jot;
+%%
+%s=verbose 3; %s=commandmode 0;
+%w=clear;  %w=new -height=39 -delim;  
+z^m0b-i/^[down      y0y/b
+%i.=${JOT_RESOURCES}/l99.t
+m20r20
+%r= -asConsole ./test_insert.jot;
+%%
+%q@=window;
+f/Screen dump follows:/mv/__01: abc/m19
+v/__20: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
+v/__21: abc def ghi jk                              /m
+v/abcdefghijklmnopqrstuvwxyz                        /m
+v/l mno pqr stu vwxyz:0123456789                    /m
+v/                                                  /m
+v/                                                  /m
+v/__22: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
+v/Attrs: (X=0 Current_Chr) (X=1 Normal_Text)/m
+v/__23: abc def ghi jkl mno pqr stu vwxyz:0123456789/m11
+v/__34: abc def ghi jkl mno pqr stu vwxyz:0123456789/m
+f1"/l99.t  "f1/   .  /m
+v/Attrs: (X=0 Reverse_Video)/m
+v/26 .>/m
+r\
+
+<<Test_127>>
+%m=127: Verifies it's correctly erasing the last character at the very end of the line.
+z.m-0b- i/0123456789/8 r-0
+%w=refresh; e %w=refresh;
+%q@=window;
+f/Screen dump follows:/
+mv/1234567890123456789012345678901234567890123456789012345678901234567890123456789 /
 
 :
-
+'#

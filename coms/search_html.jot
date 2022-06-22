@@ -1,0 +1,58 @@
+%%Runs jot proximity-matching functions on a html archive.
+  
+%%
+%%    Copyright (C) 2013-2018 Jon. Easterbrook
+%%
+%%    This file is part of jot (Joy Of Text - a text editor).
+%%
+%%    jot is free software: you can redistribute it and/or modify
+%%    it under the terms of the GNU General Public License as published by
+%%    the Free Software Foundation, either version 3 of the License, or
+%%    (at your option) any later version.
+%%
+%%    jot is distributed in the hope that it will be useful,
+%%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%    GNU General Public License for more details.
+%%
+%%    You should have received a copy of the GNU General Public License
+%%    along with jot.  If not, see <https://www.gnu.org/licenses/>.
+%%
+%%
+%%Run this as a command file:
+%%      $ jot t.t -in="%r=test;"
+%%To see the command lines:
+%%      $ jot t.t -in="%s=trace=4002; %r=test;"
+
+%g?
+  From command line:
+$ jot <archiveFile> -in="%r=search_html[ <keywordsList>][ -browser=<cmdPrefix>];"
+  
+  Qualifiers:
+    - -browser=<cmdPrefix>  - the command cmdPrefix is the command prefixed to the URL to fire up the browser with a specific URL.
+        e.g: jot <archiveFile> -in="%r=search_html -browser=firefox --new-tab;"
+        When a matching link is followed, the editor fires up a new firefox tab, 
+        jot appends the selected URL to the specified command:
+          firefox --new-tab HTTP://joyoftext.org/jot_tech.html#M
+
+:
+
+%%Macro 1 follows link - find chapter top and take the first link.
+%d1=%h\'=call chapterUp\; (f1/<A HREF="http/\m)0f1/http/n.f1/">/a$& oboq/search_htmlCmd/z$r0i/ /h~oz '$;
+
+%g#
+%%Set default browser command.
+%d~=firefox --new-tab ;
+%%Pick up args.
+obz$ (f1/ -browser=/e10n.r0a~, ) os
+t%%Define the search_htmlCmd data object.
+(%q=keys;, %h=create 10;) (%q=keys -key=search_htmlCmd;, %h=data search_htmlCmd;)  ov/search_htmlCmd/
+%%(%q=keys;, %h=create 10;) (%q=key search_htmlCmd;, %h=data search_htmlCmd;)  ov/search_htmlCmd/
+oz
+%%
+t%%The remainder of the ( $ ) buffer is assumed to be the search string.
+%h'=call FindChapter;
+:
+'#
+
+

@@ -5,31 +5,55 @@
 1 jot (Joy Of Text) - a text editor
 -----------------------------------
   Jot is a collection of a few basic text editing functions wrapped  up  in  a
-  terse programming language with a customizable  user  interface  and  highly
-  adaptable viewer. The default startup script sets up a useful  selection  of
-  functions and reasonably-sane function-key environment.
+  terse programming language with a customizable user interface and  adaptable
+  viewer. The native language is so terse that, for  simple  operations,  it's
+  often less effort to type in commands than to use function keys.  There's  a
+  useful selection of functions and reasonably-sane function-key environment. 
   
+  With jot it's not about the can't-live-without-it gui, it's  not  the  fancy
+  windowing system and not about all the gee-wiz features  -  It's  all  about
+  the text - your text ... Maybe it's the text you've spent  hours  typing  in
+  and are not keen to retype, the text reports you've received from some  mega
+  batch job that went wrong and you want to  find  out  why  or  maybe  you're
+  trying to suck some nuggets of information some huge  document  -  the  name
+  "Joy Of Text" gives it away.
+  
+  As  it  happens  jot  does  support  a  mouse  interface  (focus  to  mouse,
+  callbacks, cascading menus, popups and split-screens) within the  boundaries
+  set by xterms (or similar) and windows consoles.
+
   Anyway, you might well ask, why should we be needing yet another text editor
-  when there are already dozens to chose from? Well one good  reason  is  that
-  this one is better than the others, being simpler, speedier,  smaller,  more
-  powerful, more flexible, less crashey and much more fun than  many  of  it's
-  main rivals.
+  when there are already hundreds to  chose  from  (about  2000  according  to
+  http://www.texteditors.org/cgi-bin/wiki.pl?EditorIndex)?   Well   one   good
+  reason is that this one is better than the others, being simpler,  speedier,
+  smaller, more powerful, more flexible, less crashey and much more  fun  than
+  it's main rivals.
   
-  Fun! ... since when have text editors had to be fun? Well, most of  us  text
-  editor users don't mind putting together a few lines of code  and,  perhaps,
-  find it quite satisfying when a bit of automation saves us some effort.  Now
-  many text editors have some sort of scripting language. Of these, jot raises
-  the lowest energy barrier. The jot scripting language  is  succinct  to  the
-  point of terse and all you need do is type in your code and hit return -  no
-  special mode switching required.
+  Fun indeed! ... since when have text editors had to be fun? Well, most of us
+  text editor users don't mind putting together  a  few  lines  of  code  and,
+  perhaps, find it quite satisfying when a bit of  automation  saves  us  some
+  effort. Now many text editors have  some  sort  of  scripting  language.  Of
+  these, jot raises the lowest energy initial barrier to scripting  there  are
+  no special modes or weird incantations - you just type your commands and hit
+  return.
+  
+  The jot scripting language (based on ECCE)  is  succinct  to  the  point  of
+  terse. It being reassuringly simple  for  trivial  operations  and  no  more
+  complicated than it has to be for less trivial ones. This complexity profile
+  also serves to reduce the  energy  barrier  to  the  use  of  the  scripting
+  language. 
   
   In comparison to the three main open-source rivals: emacs, vim and nano. Not
   only does jot match the power, sophistication and elegance of emacs  without
   requiring the 10-year apprenticeship but it also matches the simplicity  and
-  can-do usefulness of vim without the well documented RSI risks. But what,  I
-  hear someone ask, about nano? Well, if anyone's  still  bothered  about  the
-  sizes of executable in this day and age,  jot's  is  actually  smaller  than
-  nano's. More importantly though, jot is less crashy than nano.
+  can-do usefulness of vim. But what, I hear someone ask, about nano? Well, if
+  anyone's still bothered about the sizes of executable in this day  and  age,
+  jot is significantly smaller than that either nano or mg.  Note:  the  linux
+  version of jot supplied in the tarballs is actually considerably larger than
+  either  mg  or  nano  -  these  are  usually   stripped   dynamically-linked
+  executables. By giving  the  install.sh  installation  script  the  -compile
+  option, it will compile and link to a comparable stripped dynamically-linked
+  executable.
   
   The default startup script defines a useful set of  functions.  When  it  is
   necessary to go off piste, command strings can be typed in without  entering
@@ -37,12 +61,15 @@
   similar number of more specialised ones for  housekeeping  operations.  Then
   it's just programming - a skill many text-editor users possess anyway.
   
-  Jot came about in response to a requirement to  analyze  large  intermediate
-  CAD files, reports and source files. For these it's frequently necessary  to
-  cross-reference two or more files (maybe a violation report, a netlist and a
-  parasitics file) to extract some nugget of truth, locate an inconsistency or
-  identify elements mentioned in some report. That kind of activity demands  a
-  programming interface and very speedy, reliable text processing.
+  Jot came about in response to a requirement to analyze  and  cross-reference
+  CAD files, CAD-system reports and source files. For  these  it's  frequently
+  necessary to cross-reference two or more files (maybe a violation report,  a
+  netlist and a parasitics file) to extract some nugget of  truth,  locate  an
+  inconsistency or identify elements mentioned in some report.  That  kind  of
+  activity demands a programming interface  and  very  speedy,  reliable  text
+  processing. Not only that, as chip designs have become larger, so  too  have
+  the design files. Jot has acquired an approach for dealing with  very  large
+  files.
   
   Although jot's natural environment is chewing it's  way  through  large  CAD
   files, all that power, speed and adaptability make it extremely  useful  for
@@ -72,7 +99,7 @@
     - Easy construction of macro-commands and function-key mapping.
     - Minimal use of magic modes and similar trickery.
     - Powerful search functions swiftly and easily locate sections of interest
-      in large or aggregated documents - see `the context-proximity functions` 
+      in large or aggregated documents - see `the proximity search functions` 
     - An incremental search function `PopupIncrementalSearch` - this updates a
       popup menu as characters are typed in.
     - Hash-table support - see `about hashtables`.
@@ -102,7 +129,102 @@
   
   - `JOT Tests` - describes the pre-release tests.
 
-3 Wonderful ... but where's the *Download* button?
---------------------------------------------------
-  You can download from sourceforge - the JoyOfText project
-    https://sourceforge.net/projects/joyoftext/?source=directory
+Wonderful ... but where's the *Download* button?
+  You can download the latest archive (either zip or tar)  containing  source,
+  executables documentation and scripts from sourceforge - JoyOfText project
+    https://sourceforge.net/projects/joyoftext/files
+  
+  If you fancy getting your hands dirty, then the  source,  documentation  and
+  scripts are also on github:
+    https://github.com/joneasterbrook/jot.git
+
+3 Jot Q & A
+-----------
+  - Q: Why is jot a command driven command-mode editor.  whereas  many  modern
+    alternatives are menu-driven insert-mode editors.
+  - A: Jot is perfectly happy in  when  used  as  a  menu-driven  insert  mode
+    editor. What it does *not* do is force it's users  to  adopt  this  model.
+    Although jot only operates from xterms (or similar) in  unix-like  systems
+    or windows consoles it does support mouse-driven interfaces.
+    
+    Jot can do realistic, if limited, imitations of vi/vim,  emacs  and  nano.
+    Vi,  is  a  command-driven  editor  with  an   insert   mode,   emacs   (a
+    command/menu-driven, insert-mode editor) and nano (can be used in  command
+    or menu mode in insert mode). Jot could similarly imitate the  menu-driven
+    interface of notepad - but why would anyone want to  emulate  the  notepad
+    interface?
+    
+  - Q: Why does jot have this funny two-level command language?
+  - A: In a word history. In a few more words: because  it  works  and  avoids
+    the  horrors   of   typists   cramp.   The   jot   language   has   simple
+    single-character  commands  that  perform  basic  editing  operations  and
+    'percent' commands all of which are prefixed by a percent ( % ) sign.
+    
+    While the simple single-character commands  are  used  for  editing  these
+    commands can be  built  into  programming  structures  of  any  complexity
+    demanded by  the  task.  The  percent  commands  are  generally  used  for
+    housekeeping.
+    
+  - Q: How do I enter commands to jot?
+  - A: By default (with no startup or the normal startup file) jot  starts  up
+    in command  mode  anyway.  Just  type  your  commands  in,  they  will  be
+    displayed in the console area at the bottom of the  of  the  screen,  then
+    hit {Return}, or hit any of the function keys and off it goes. 
+    
+  - Q: What is the purpose of the startup file.
+  - A: The startup file written,  of  course,  in  the  jot  coding  language,
+    defines a bunch of functions and defines keyboard mapping which  to  match
+    your system. Jot makes extensive use of function keys and  it  depends  on
+    the startup file to make the correct decisions. 
+    
+    It is possible  to  run  jot  without  a  startup  file  using  only  it's
+    primitive  commands.  In  some  cases  (when  using  some  wierd  terminal
+    emulator, say) it may even be necessary to run it in teletype  mode  -  it
+    still works:
+$ jot <pathName> -st -tty
+  
+  - Q: Why does jot not display the line numbers of all visible lines.
+  - A: By default, jot does not do  this  because  it  seeks  to  display  the
+    maximum amount of useful information  on  screens  of  limited  size.  The
+    current line's number is, of course, displayed in the command  prompt  and
+    in many instances, this is sufficient - but  hey,  don't  panic.  See  the
+    `WindowWithLineNumbers` function to find out how to  control  the  display
+    of linenumbers of all visible lines.
+    
+  - Q: Why does jot have that colonky command-editing interface?
+  - A: (See `CmdEditStart`,  `CmdEditGo`  and  `-history`)  Most  command-line
+    editing interfaces only respond to cursor keys  and  the  delete  key.  In
+    jot,    all    of    the     cursor     keys     and     all     available
+    {Ctrl|Shift+|Alt+<cursorKey>}  combinations  are  already   dedicated   to
+    useful editing functions. It's possible to implement some  sort  of  magic
+    mode where these become  command-editing  functions  -  but  that  too  is
+    fairly clonky. The  approach  adopted  by  jot  is  to  have  a  dedicated
+    command-editing buffer with access to all editing functions  and  a  brief
+    snapshot of previous commands.
+    
+  - Q: Why does jot not show continuations of long lines on  successive  lines
+    of the screen
+  - A: Because continuation lines are a rotten way of  displaying  long  lines
+    in  general  and  for  tabular  text  in  particular  -  not  to   mention
+    hugely-long lines (perhaps tens or  hundreds  of  characters).  Jot  deals
+    with long lines by setting a leftoffset (see `%b=leftoffset`). Jot  always
+    displays the current character either in the text window or  by  repeating
+    a section of the line in the console area - under no circumstances  should
+    it ever attempt to display more characters than can be accomodated by  the
+    current width of the screen.
+    
+  - Q: How can I possibly manage without some sort of undo facility.
+  - A: The flippant awnser is to stop making mistakes. The serious answer  not
+    really far removed from that.
+    
+    Yes it's true - jot does not have an undo feature.  But  it  does  have  a
+    recovery feature, designed to restore  a  session  after  a  sytem  crash,
+    power failure - or maybe just a dead battery (see `about not  losing  your
+    work`). So it is possible to restore the  session  to  it's  state  before
+    something went wrong. Now, while this is  clearly  not  as  convenient  as
+    just hitting the undo button or {Ctrl+Z} it it can be done. 
+    
+    The procedure is, unfortunately, moderately painful -  you  have  to  wade
+    through the recovery script to find the place where  you  went  wrong  and
+    then edit it to remove the offending operations - there's  even  a  script
+    (`annotate_recovery_file.jot`) to help.

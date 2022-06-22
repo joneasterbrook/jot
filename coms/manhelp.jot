@@ -21,7 +21,7 @@
 %%
 %%
 
-%g?= 
+%g?=
   manhelp [<manArgs>] <page>[ -flat]
     - The -fold qualifier turns on internal folding.
     - Passes all other args and qualifiers, as is, to the unix man command.
@@ -40,4 +40,4 @@ z$m-0f1/-fold /\z@, z@m-0f1/      /s/ -fold/ z@m-0m ((q/A-Z/\m)0 mm-i/}}}/bi/{{{
 m-0i/{{{ /m0r0bi-/}}}/m-0 z:m-0(f'@on, ono~r0bh@) 
 
 %%Now show the new top-level help page.
-n.a$ %h'=call Help; z:ono-om z;m-0f': %l;
+n.a$& %h'=call Help; z:ono-om z;m-0f': %l;

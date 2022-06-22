@@ -50,7 +50,7 @@ HotKeys:
 :
 
 %%Initialization. 
-n.a@
+n.a@& 
 
 %%Set up Esc-d hotkey - descend into block.
 %g$
@@ -71,7 +71,7 @@ obz$m-0((v/ /e)0r0(v-/ /e-)0j)0z^m-0b-i"d       "h$oz
 %%Initialization.
 m0
 %%Process the hierarchy name.
-n.a+obz+i"##"r-0(f/|/eb)0 m-0oz
+n.a+& obz+i"##"r-0(f/|/eb)0 m-0oz
 ( %%Loop to locate instance definitions - excluding any net or terminal names that might happen to match.
   ((f-'+(q-/_A-Za-z0-9/r?,r-?f1'+-q/_A-Za-z0-9/)r-f-1'+)0f-1'+ (v-/ /r-)0q-/.(/f-'+)0
   %%Get module name.
@@ -81,7 +81,7 @@ n.a+obz+i"##"r-0(f/|/eb)0 m-0oz
   %%Locate module definition.
   ((f-'$(q-/_A-Za-z0-9/r?,r-?f1'$-q/_A-Za-z0-9/)r-f-1'$)0f-1'$ (v-/ /r-)0v-/module/\(r-,m-r0) )0 
   %%If not found report it.
-  (v-/module/, n.a@z@i/%X=Cannot locate definition of module /h$oz'@)
+  (v-/module/, n.a@& z@i/%X=Cannot locate definition of module /h$oz'@)
   %%Advance to next subpath name.
   obz+m2m-oz
   %%Since there is more than one subpath left it's still an instance name - seek out that instance in current module.
@@ -97,7 +97,7 @@ obz$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z^m-0b-i"n       "h$oz
 %%Initialization.
 m0
 %%Process the hierarchy name.
-n.a+obz+i"##"r-0(f/|/eb)0 m-0oz
+n.a+& obz+i"##"r-0(f/|/eb)0 m-0oz
 %%n.a+obz+i"dc1_padring_inst|rtc_padlogic|PadLogic_40"l0(f/|/eb)0 m-0oz
 ( %%Loop to locate instance definitions - excluding any net or terminal names that might happen to match.
   ((f-'+(q-/_A-Za-z0-9/r?,r-?f1'+-q/_A-Za-z0-9/)r-f-1'+)0f-1'+ (v-/ /r-)0q-/.(/f-'+)0
@@ -108,7 +108,7 @@ n.a+obz+i"##"r-0(f/|/eb)0 m-0oz
   %%Locate module definition.
   ((f-'$(q-/_A-Za-z0-9/r?,r-?f1'$-q/_A-Za-z0-9/)r-f-1'$)0f-1'$ (v-/ /r-)0v-/module/\(r-,m-r0) )0 
   %%If not found report it.
-  (v-/module/, n.a@obz@i/%X=Cannot locate definition of module /h$oz'@)
+  (v-/module/, n.a@& obz@i/%X=Cannot locate definition of module /h$oz'@)
   %%Advance to next subpath name.
   obz+moz
   %%Since there is more than one subpath left it's still an instance name - seek out that instance in current module.
@@ -125,7 +125,7 @@ obz+ob
   %%We are not in the menu - assume it's a verilog  buffer then.
   %%Clear the instance-terminal list.
 %%  ozorn.a+
-  ozn.a+
+  ozn.a+& 
    
   %%Extract net name.
   (q-"a-zA-Z0-9_[]/\"r-)0 n.(q"a-zA-Z0-9_[]/\"r)0 a$h$ (v/ /r)0 v/)/ f-'$(((v-/ /r-)0 r-\ m-r0)0 rv-/(/,
@@ -134,7 +134,7 @@ obz+ob
   %%Copy net name to journal.  
   obz@m0r0bh$
   %%Start building the list of destination instance terminals.
-  n.a+ z+i/Instance terminals connecting to net /h$b oz
+  n.a+&  z+i/Instance terminals connecting to net /h$b oz
    
   %%Construct a list of instance-terminals.
   on m-0

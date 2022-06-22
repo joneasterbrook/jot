@@ -32,7 +32,7 @@
     - {Esc s k} - skip, will skip past the current key leaving it unchanged.
   
   Usage example:
-    jot ${JOT_HOME}/coms/std_keys.jot -in="%w; %w 20; %w 0; %b=pathname ./new_keys.jot; %r=define_keymap"
+    jot ${JOT_HOME}/coms/std_keys.jot -in="%w=clear; %w=new -height=20 -delim; %b=pathname ./new_keys.jot; %r=define_keymap"
   
   Buffer usage: 
     . - the new keymap file.
@@ -84,7 +84,7 @@
   ( %%Ignore 'xxxxxxxx' entries.
     v/xxxxxxxx/m
   ,
-    on n.r12a$& n.a@ m-0 (v'$n.ma@+&, m)0
+    on n.r12a$& n.a@& m-0 (v'$n.ma@+&, m)0
     %%Return to original line.
     ono-om
     %%Report errors as and when.
@@ -99,21 +99,23 @@
 %s=trace B000;
 %%Add to functions and create the entry in the functions hashtable.
 %h'=call AddNewFunctions;
-obz^m-0i/check   %h'=call DefineKeymapCheck;/b oz
-%%ob z'm0bh$ f-/DefineKeymapCheck/m %h=add DefineKeymapCheck;
+obz^m-0i/^[check     %h'=call DefineKeymapCheck;/b oz
+%%ob z'm0bh$ f-/DefineKeymapCheck/m %h=addjump DefineKeymapCheck;
 %%%%Create entry in local key translations table.
 %%z^m0i/check   %h'=call DefineKeymapCheck;/ oz
 
 %g#
 
-%w
-%l
+%w=clear;
+%l;
 %%Set window size to be 10 less than screen height.
 ob %q~=window; f/screenHeight = /-oidol10o-
-%w '~
-%w 0
+%w=new -height='~ -delim;
 %%Tidy up stack, display help screen and return to main buffer.
-z?wosozok
+z? %w=refresh; osozok
+  
+%%Make it a bit more difficult to lose the setup.
+%b=writeifchanged;
   
 %%
 %%First check that this looks like a key-map file.
@@ -127,13 +129,13 @@ m-0(f/ {/r, %x=ERROR: This does not look like a key map file.;)
 
 %%init.
 %%obz?w ozm-0 %s=commandmode 8000
-obz?w ozm-0
+obz? %w=refresh;  ozm-0
 
 ( %%Main loop, request a key press and notes it's code  then pushes code into the new setup file.
   %%Pick up next key name.
   ((v/????????/\m)0 f1/{/- v/Esc/m)0 (v/ /r)0n.f1/}/(v-/ /r-)0a$&
   %%Set prompt and get keycode.
-  %s=prompt Hit {'$}{Return} > ; obz?woz g m- %s=prompt > ;
+  %s=prompt Hit {&'$&}{Return} > ; obz? %w=refresh; oz g m- %s=prompt > ;
   %%Translate control characters.
   (oicol32o< ol64o+ oo/^%c/, okrr-, i/ /)12
   %%If it matches {Esc s k} then skip to the next keycode, leaving this one unchanged.

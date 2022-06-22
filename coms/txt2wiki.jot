@@ -22,7 +22,7 @@
 %%
 %%Revision history.
 
-%g? 
+%g?
   Converts a plaintext document in jot's doc format into markdown text suitable for a wiki entry.
   The final text is pushed into the paste buffer for easy uploading to a wiki site.
   

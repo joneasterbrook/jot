@@ -268,17 +268,17 @@ NOTES:
 z.m-0z!m+3
 %%
 ( %%Find the nominated (or first) resource.
-  r z.(f'!\m ,(v-/ /r-)0v-/RESOURCE:/\m, r0(v-/ /r-)0v-'!\m)0 (v-'! , %X=Error resources file does not contain the resource named '!; ) ,
+  r z.(f'!\m ,(v-/ /r-)0v-/RESOURCE:/\m, r0(v-/ /r-)0v-'!\m)0 (v-'! , %X=Error resources file does not contain the resource named &'!; ) ,
   z.f/RESOURCE:/-n.r0a$&)
 %%Create the hashtable with sufficent entries.
-%h=create 10000 -delete; %h=new Resource; %hc=create 10000 -delete;
+%h=create -delete 10000; %h=newjump Resource; %hc=create -delete 10000;
 %%Add text tags and links to original bookings;
 (m(v/BOOKING:/
-  r8n.r0a$&r-17 %h=new '$; m
+  r8n.r0a$&r-17 %h=newjump '$; m
   %%Tag the notes section - create it if it doesn't exist.
-  z.%h=jump '$; ((v/NOTES:/ v/BOOKING:/\)\m)0(v/BOOKING:/b-2i/NOTES:/, ) %h=new N_'$;
+  z.%h=jump '$; ((v/NOTES:/ v/BOOKING:/\)\m)0(v/BOOKING:/b-2i/NOTES:/, ) %h=newjump N_&'$;
   %%Tag the mailthread section - create it if it doesn't exist.
-  z.%h=jump '$; ((v/MAILTHREAD:/ v/BOOKING:/\)\m)0(v/BOOKING:/b-2i/MAILTHREAD:/, ) %h=new MT_'$;
+  z.%h=jump '$; ((v/MAILTHREAD:/ v/BOOKING:/\)\m)0(v/BOOKING:/b-2i/MAILTHREAD:/, ) %h=newjump MT_&'$;
 , %%Not a new booking section - exit if it's a new resource.
   v/RESOURCE:/\))0 %h=jump Resource;m
 %%
@@ -286,13 +286,13 @@ z.m-0z!m+3
 z.%h=jump Resource;m
 ((v/ACCOUNTS:/\ v/RESOURCE:/\)m)0
 ( v/ACCOUNTS:/
-  %h=new Accounts; %b=tabcells -1; (mf1/	/\)0 (v/	/ r-0n.r0a$& %b=header '$;, %x=Resource '! does not have a spreadsheet header line in the ACCOUNTS section.;) 
+  %h=newjump Accounts; %b=tabcells -1; (mf1/	/\)0 (v/	/ r-0n.r0a$& %b=header '$;, %x=Resource &'!& does not have a spreadsheet header line in the ACCOUNTS section.;) 
   %%Add tags for Accounts table Headings.
-  r-0 (v/"/rn.f1/"	/a$&r-f-1/"/- %h=new H_'$; f1/"	/-)0
+  r-0 (v/"/rn.f1/"	/a$&r-f-1/"/- %h=newjump H_&'$; f1/"	/-)0
   %%Now run down the Booking-ID column tagging the bookings for accounts.
-  %h=jump H_Booking-ID; (yv/"/r (q/0-9/r)8?v/-/?r(q/0-9/r)8?v/"/n.r-17a$&r-17 ol17ou %h=new A_'$; %b=addtag -text='$;)0
+  %h=jump H_Booking-ID; (yv/"/r (q/0-9/r)8?v/-/?r(q/0-9/r)8?v/"/n.r-17a$&r-17 ol17ou %h=newjump A_&'$; %b=addtag -text='$;)0
 , %%Something's gone wrong - probably an invalid resources.txt file.
-  %x=Error: Resource '! does not contain an ACCOUNTS: section.; )
+  %x=Error: Resource &'!& does not contain an ACCOUNTS: section.; )
 %%
 %%
 %%Are we working from a POP email file or an Owners-direct mail archive?
@@ -325,7 +325,7 @@ zmm-0 ((v/ /r)0r\m)0r-
 ze(onol1o=okm-0bi/Congratulations: there were no errors in initial setup./b2 %m='e; m-0zc
 , m-0ol4o/ ol1o=
   ok%m=Oh dear there was an error - better check it now.;
-, %m=Oh dear there were '~ errors - better check them now.; )
+, %m=Oh dear there were &'~& errors - better check them now.; )
 
 
 <<TagAndLinkOldBookings>>
@@ -340,10 +340,10 @@ z. %h=jump H_Booking-ID; y
     %h'=call SetPaymentStatus;
     %h'=call LinkAndTagBooking;, )
   %%Add any notes to the calendar.
-  z!m+7z. %h=jump N_'!; m
+  z!m+7z. %h=jump N_&'!; m
   (z.rr-n.r0a$&m zc %h=jump '!; r0i/  /h$)0
   %%Index to next booking-ID.
-  z!m+7z. %h=jump A_'!; y
+  z!m+7z. %h=jump A_&'!; y
 )0
 
 <<OwnersDirectBooking>>
@@ -355,7 +355,7 @@ z*
   m-0m2f/Enquiry for Owners Direct property ref /-n.r0a$&,
   m-0m2f/Owners Direct - Enquiry for property ref: /-n.r0a$&,
   m-0m2f/Vacation Rental Inquiry Notification/ f/Listing #:	/- rr-n.(f1/ /, r0)a$&)
-z.m-0(f'$(v-/ /r-)0v-/RESOURCE:/ z!m+3e0i'$z*, z*%x=Resource "'$" does not exist in resources file.;)
+z.m-0(f'$(v-/ /r-)0v-/RESOURCE:/ z!m+3e0i'$z*, z*%x=Resource "&'$&" does not exist in resources file.;)
 %%OK - go for it.
 %%
 %%Pick up booking-start date and munge it down to the first half of a booking tag and a more easily searchable form.
@@ -386,7 +386,7 @@ z.m-0(f'$(v-/ /r-)0v-/RESOURCE:/ z!m+3e0i'$z*, z*%x=Resource "'$" does not exist
 %%
 zim0m-
 ( %%Message loop - pick up next message.
-  ziw%q$=tags -here; m3f1/Type text from/f1/"/-bf1/"/b-zm %h=jump '$; n.(mr)0m(mr)0a*&z* m-0i'iocbol0oso- (i/-/o~)0 okb2
+  zi %w=refresh; %q$=tags -here; m3f1/Type text from/f1/"/-bf1/"/b-zm %h=jump '$; n.(mr)0m(mr)0a*&z* m-0i'iocbol0oso- (i/-/o~)0 okb2
   %%Pick up booking-start date and munge it down to the first half of a booking tag and a more easily searchable form.
   ( m-0f/Arrival date/-rn.r0a$& z!m+7e0 z$n.f1"/"a!.&eb n.f1"/"a!.&eb n.r0a!.& m-0(v/0/e,)i/ /r0i/ / moid z$mz!m+6ol3o*orn.r3a$.&
     %%Find start day in calendar.
@@ -412,4 +412,1158 @@ zim0m-
   zim-)0
 
 <<Initialize>>
-%%Called at the very start
+%%Called at the very start of day or following a change of resources.
+%%
+%%Clear out the secondary buffers.
+n.ae& n.ac& n.am& n.ab& n.ai& n.ao&
+%%
+%%Set up windows - main window size to be 8 less than screen height.
+%w=clear; %wb=new -height=2; %wo=new -height=1; ob %q~=window; f/screenHeight = /- oidol8o-z.osokosoz %w=new -height='~ -delim; %w=new -refresh;
+%%
+%%Set up the mail spool pathname and read the mail.
+z!m+1(r\i"/var/spool/mail/"%q@=env USER;mz!i'@, ) (%im='!;, %x=Error: mail file '! is missing or not readable; )
+%%In the event of duplicated message-ID tags these may need uniquification and, hence, writing out.
+zm %b=writeifchanged;
+%%Set up the month-name to month no. lookup table.
+z!m+6i/   JanFebMarAprMayJunJulAugSepOctNovDec/
+n.ab&
+%%
+%%Define colour tags - OldBooking: White on Red and NewBooking White on Green.
+( %q=linux; z.
+  %b=tagtype -colour=7:2 PaidUp;  %%Green - Account is fully paid up.
+  %b=tagtype -colour=7:5 PartPaid;  %%Mauve - Deposit or some monies paid.
+  %b=tagtype -colour=7:1 NoPayment;  %%Red - Client says there's a cheque in the post.
+  %b=tagtype -colour=7:6 message;  %%Magenta - link to an email
+  zc  
+  %b=tagtype -colour=0:7 Pending;  %%Black on White - temporary colour after left-button drag.
+  %b=tagtype -colour=7:2 PaidUp;  %%Green - Account is fully paid up.
+  %b=tagtype -colour=7:5 PartPaid;  %%Mauve - Deposit or some monies paid.
+  %b=tagtype -colour=7:1 NoPayment;  %%Red - Client says the cheque's in the post.
+  zi 
+  %b=tagtype -colour=0:3 MailRead;  %%Yellow - mail is listed in a mailtread - assumed to be read.
+  ze
+  %b=tagtype -colour=0:3 ErrorTag;  %%Yellow - Link to mail or booking.
+  zb
+  %b=tagtype -colour=7:5 Menu;  %%Mauve colour tag for static menu.
+  zo
+  %b=tagtype -colour=7:6 Option;  %%Magenta colour tag for the option menu.
+  zs
+  %b=tagtype -colour=7:6 message;  %%Magenta - link to an email.
+, %%Windows then.
+  z.
+  %b=tagtype -colour=15:10 PaidUp;  %%Green - Account is fully paid up.
+  %b=tagtype -colour=15:13 PartPaid;  %%Mauve - Deposit or some monies paid.
+  %b=tagtype -colour=15:12 NoPayment;  %%Red - Client says there's a cheque in the post.
+  %b=tagtype -colour=15:14 message;  %%Magenta - link to an email
+  zc
+  %b=tagtype -colour=8:15 Pending;  %%Black on White - temporary colour after left-button drag.
+  %b=tagtype -colour=15:10 PaidUp;  %%Green - Account is fully paid up.
+  %b=tagtype -colour=15:13 PartPaid;  %%Mauve - Deposit or some monies paid.
+  %b=tagtype -colour=15:12 NoPayment;  %%Red - Client says the cheque's in the post.
+  zi
+  %b=tagtype -colour=0:14 MailRead;  %%Yellow - mail is listed in a mailtread - assumed to be read.
+  ze
+  %b=tagtype -colour=0:14 ErrorTag;  %%Yellow - Link to mail or booking.
+  zb
+  %b=tagtype -colour=15:3 Menu;  %%Mauve colour tag for static menu.
+  zo
+  %b=tagtype -colour=15:14 Option;  %%Magenta colour tag for the option menu.
+  zs
+  %b=tagtype -colour=15:14 message;  %%Magenta - link to an email
+  )
+%%
+%%Set up Button-box menus.
+%%Line 1 of static button box.
+zb
+r0     i-/Save and Exit/%b=addtag Menu;   %b=addtag -text=O_Exit;
+r0i/  /i-/Abandon/%b=addtag Menu;   %b=addtag -text=O_Abandon;
+r0i/  /i-/Save resources/ %b=addtag Menu; %b=addtag -text=O_SaveResources;
+r0i/  Goto: /
+r0     i-/Calendar/ %b=addtag Menu; %b=addtag -text=O_Calendar;
+r0i/  /i-/Account/%b=addtag Menu;   %b=addtag -text=O_Accounts;
+r0i/  /i-/Booking/%b=addtag Menu;   %b=addtag -text=O_Bookings;
+r0i/  /i-/Errors/%b=addtag Menu;    %b=addtag -text=O_ErrorLog;
+r0bi/Emails: /
+r0i/  /i-/Previous/%b=addtag Menu;  %b=addtag -text=O_PrevMail;
+r0i/  /i-/Current/%b=addtag Menu;   %b=addtag -text=O_CurrentMail;
+r0i/  /i-/Next/%b=addtag Menu;      %b=addtag -text=O_NextMail;
+r0i/  /i-/Paste/%b=addtag Menu;     %b=addtag -text=O_MailPaste;
+r0i/  /i-/List/%b=addtag Menu;      %b=addtag -text=O_MailList;
+r0i/  /i-/Search/%b=addtag Menu;    %b=addtag -text=O_MailSearch;
+r0i/  /i-/Results/%b=addtag Menu;   %b=addtag -text=O_MailResults;
+%%
+%%Set up the secondary button-box options - secondary button box in buffer o.
+%%Line 1 is blank - visible when no other line is shown.
+zob
+%%Line no. 2 visible when viewing a mail message.
+i/Options:/
+r0i/  /i-/Add to mail thread/ %b=addtag Option; %b=addtag -text=O_AddToMailThread; r0i/  /r0
+r0i/  /i-/Find more from sender/ %b=addtag Option; %b=addtag -text=O_FindMoreFromSender; r0
+r0i/  /i-/Owners Direct Booking/ %b=addtag Option; %b=addtag -text=O_OwnersDirectBooking; r0
+b
+%%Line no. 3 visible when viewing accounts.
+i/Options:/
+r0i/  /i-/Set cell/ %b=addtag Option; %b=addtag -text=O_SetCell; r0i/  /r0
+b
+%%Line 4 visible when viewing booking.
+i/Options:/
+r0i/  /i-/Note/ %b=addtag Option; %b=addtag -text=O_AddNote; r0i/  /r0
+b
+%%Line 5 visible when viewing calendar.
+i/Options:/
+r0i/  /i-/New booking/ %b=addtag Option; %b=addtag -text=O_NewBooking; r0i/  /r0
+r0i/  /i-/Delete booking/ %b=addtag Option; %b=addtag -text=O_DeleteBooking; r0i/  /r0
+r0i/  /i-/Re-make calendar/ %b=addtag Option; %b=addtag -text=O_ReMakeCalendar; r0i/  /r0
+b
+%%Line 6 visible when viewing error log.
+i/Options:/
+b
+m+1
+
+<<SwitchView>>
+%%Change focus to the current booking in the calendar view.
+%%
+%%Pick up booking-ID from curently-tagged text.
+ob %q$=tags -here; 
+( %%If there's a valid booking-ID tag then perform the requested context switch.
+  f/Type text from/ f1/"/-e-0f1/"/e0mk0m- (q/0-9/r)0v/-/r(q/0-9/r)0r\
+t  %%Register change to booking-ID if a new valid booking-ID tag was found.
+  z!m+7 (v'$, e0i'$ %h'=call SetPaymentStatus; )
+  %%Set up calendar heading.
+  z!m+10z$r-0i'! z$i-/,  booking-ID: / z!m+7 
+  %%
+  %%Display resource name.
+  z!m+3z$i/, res: /i'!
+  %%If client name is set up then add that to header.
+  z!m+7 z. ( %h=jump A_'!; on %h=jump H_name;  onoso- (yo~)0ok v/"/rn.f1/"/a$+&z$j-i/,  for: /, )
+  zc %b=header '$;
+, %%Not a booking tag - maybe a mailthread message?
+  %%Check for a mailthread tag and find the same tag in the resources.txt image.
+  o#oz %q$=tags -here; f/Type text from/f1/"/-
+  v/M_</ o#oz %q@=tags; f'$ (m-v/Rec /\)0r4oid
+  %%Now find the BOOKING: line and extract the booking-ID.
+  z.ono-om(m-v/BOOKING:/\)0 %q$=tags -here; f/"BOOKING:/-b(q/0-9/r)8v/-/r(q/0-9/r)8b-
+  %%Now set the Booking-ID.
+  z!m+7e0i'$
+, %%No valid booking-ID text tag - use current booking-ID tag.
+  z!m+7 (rr-n.r0 a$&, okz.ob %h=jump Accounts; %m=No booking is selected.; )
+, %%No current booking set. return to original context and exit.
+  okz.obm0 %w=refresh; %h=jump Accounts; m %x=Error: No booking-ID is selected.; )
+oz
+
+<<SwitchToCalendar>>
+%%Change focus to the current booking in the calendar view.
+%%
+%%Set up options-menu field.
+obzom+5oz
+%%
+%h'=call SwitchView;
+obz!m+7(r, okzc %x=Error: No booking selected;)okzc %h=jump '!;
+
+<<SwitchToAccounts>>
+%%Change focus to the current booking in the accounts-table view.
+%%
+%%Set up options-menu field.
+obzom+3oz
+%%
+%h'=call SwitchView;
+obz!m+7(r, okz. %x=Error: No booking selected;)okz. %h=jump Accounts; m2ol99ow %h=jump A_'!; r-0
+
+<<SwitchToBooking>>
+%%Change focus to the start of the current booking
+%%
+%%Set up options-menu field.
+obzom+4oz
+%%
+%h'=call SwitchView;
+obz!m+7(r, okz. %x=Error: No booking selected;)okz. %h=jump '!;  on(mf/BOOKING:/, )m- %w=refresh; ono-om
+
+<<SwitchToResource>>
+%%Prompt string: Resource name> 
+%%Change focus to the current booking in the accounts-table view.
+%%
+%%If a resource name was given then change resource name to that, otherwise just go to start of current resource.
+ob
+( %%Set the resource name then strip out all the old links, add new links and rebuild calendar
+  z$r-0n.r z!m+3e0i'$
+  %%Strip out the old links.
+  z. %b=readonly 0; m-0n.m0r0a$h$ %b=readonly 1;
+  %h'=call IndexResource;
+, )
+%%Now go to resource.
+z!m+3z. (%h=jump R_'!;, %x=Error unknown resource name "'!"; ) okonono-om 
+
+<<ReMakeCalendar>>
+%%Deletes then rebuilds the calendar, the optional +[n] argument adds one or more years to the calendar.
+z$r-0 (f/+/r (oid, ol1), ol0)
+%%
+%%Find original start year and no. of years.
+zcm-0f1/Jan/-oidosr-4oid m0f-/Dec/-oido~o-oso-os
+%%
+%%Delete the original calendar and create the new one.
+m-0k0e0
+%%
+%h'=call MakeCalendar;
+%h'=call TagAndLinkOldBookings;
+%%
+%%Now find this week in calendar.
+zom+5 zcm-0f'$ r-0f/  1 / z$m-i/ /(v/0/s/ /, )r0i/ /zcf'$
+
+<<MakeCalendar>>
+%%
+%%line 5 of ! defines calendar range <firstYear>-<lastYear>
+z!m+5(rr-oido#v/-/roido~o-os, %q$=date; f1"/"-2oidol2000o+ol-1os)
+%%
+%%Define days for a Saturday-to-Saturday booking week.
+n.a*&z*i/ Su Mo Tu We Th Fr Sa/r-0
+%%
+%%According to Gauss the way to find the day of the first of January of year A in the Gregorian calendar
+%%  (see http://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week) is:
+%%  Mod7(1 + 5*Mod4(A-1) + 4*Mod100(A-1) + 6*Mod400(A-1))
+%%First year should be at top of stack.
+o#o#ol1o-ol4o%ol5o*ol1o+ oso#ol1o-ol100o%ol4o*  osol1o-ol400o%ol6o* o+o+ol7o%
+%%
+%%Now, we start the first year's calendar at the changeover day, this defaults to Saturday - add the right number of days for december of the previous year.
+z!m+4(r-0v/Sunday/ol0, v/Monday/ol1, v/Tuesday/ol2, v/Wednesday/ol3, v/Thursday/ol4, v/Friday/ol5, v/Saturday/ol6, ol6)
+%%The days list will now be transformed into a days-of week heading for the calendar with the specified changeover day at the beginning and end.
+o#ol3o*z*r-0n.ora@r0h@ r-0n.r3a@&r0h@ zch*b- %b=header \\'c; z!m+10e0i'c zck
+%%Insert the right number of padding blanks at the start of the booking week.
+zcol7o-o-ol-1o*ol31 (o#oo/ %2d/r-0ol1o-oso~os)0 r0bokok
+%%
+( %%Year loop.
+  %%
+  z!m+6r3 n.a*&z*o#oo/%d/
+  %%
+  %% LeapYear = Mod4(Y)!=0 ? True : Mod100(Y)==0 ? False : Mod400(Y)!=0 ? False : True
+  %%See http://en.wikipedia.org/wiki/Leap_year
+  %%
+  ( %%Ithink this encoding is about as good as it gets?
+    (o#ol4o%ol0o=\okol0, oko#ol100o%ol0o=\ okol1, oko#ol400o%ol0o=okol0, okol1) ol1o=
+    %%A leap year
+    ok ol31ol30ol31ol30ol31ol31ol30ol31ol30ol31ol29ol31
+  , %%A common (non-leap) year.
+    ok ol31ol30ol31ol30ol31ol31ol30ol31ol30ol31ol28ol31 )
+  %%
+  zc
+  ( %% Month loop.
+    %%Print the month in one line.
+    (o#oo/ %2d/r-0 ol1o-ol0o=\)0 ok
+    %%Construct month tag to go at the end of each week.
+    z*r0r-4e-0i/ - /z!n.r3a*.&zc
+    %%Join with last week of previous month and split the month at changeover days.
+    j-r-0 (r21b-i/ /i'*m)0 b
+    )12 
+  o~oso~os )0 okok
+%%
+%%Copy the changeover dates.
+zcm-0m (n.r3a@&m-r21h@m2)0
+%%Copy month tags for weeks that straddle months.
+zcm-0 f/  1 / ((f/  1 /r-\m)0r (v/  1  - /mf1/ - /n.r0a@&m-r0, m-f1/ - /n.r0a@&m f1/ - /)h@m)0
+%%Change month tag for first week if it starts in December of previous year.
+m-0(v/  1 /, r0r-4oidol1o-r-10 oo/ - Dec%4d/)
+
+<<TagBooking>>
+%%First removes any preexisting colour tags then adds tags on booking to reflect current payment status.
+z!m+7n.r0a$&
+%%First the Accounts entry.
+z!m+7z. (%h=jump A_'!; %q$=tags -here; f/active colour is /-b z.ol17ou %b=remove_tag -colour '$;, ) z!m+8z.ol17ou %b=addtag '!;
+%%Now the booking entry.
+z!m+7z. %h=jump '!; (%q$=tags -here; f/Type Colour at chr /f/, Name /-b z.ol17ou %b=remove_tag -colour '$;, ) z!m+8z. %b=addtag '!; z!m+7z. %b=addtag -text='!;
+
+<<SetPaymentStatus>>
+%%Sets the payment-status field of ! buffer by comparing "Due" and "Paid" fields  of accounts table.
+%%
+%%Find accounts table and identify the "Due" and "Paid" columns, A_<Booking_ID is not set for pending bookings.
+z!m+7z. 
+( %h=jump A_'!; ono# %h=jump H_due; onoso- (yo~)0okoid %h=jump H_paid; osonoso- (yo~)0ok oid
+  %%Now set up correct payment-status colour-tag name by compairing Due and Paid cells.
+  z!m+8e0 (ol0o=i/NoPayment/ok, o>i/PartPaid/, i/PaidUp/), z!m+8e0i/NoPayment/) ok
+
+<<TagCalendarEntry>>
+%%Add hashtable entry and colour tag in the the calendar for current booking.
+%%
+%h'=call StartAndEndFromBookingID;
+%%
+(zcono> t%%Arrrrggghhhh! start follows end date - maybe it's a single-day booking on a changeover day.
+  (o#ono-ol1(o=okmz$m+6zcf1'$, ok\), %qq=backtrace; %X=Error in booking-ID end date is before start date?;), ) zcon
+(o=  %%The start and endpoint are on the same line.
+  zcoko#ocoso-osr-0orouz!m+8zc %b=addtag '!; z!m+7zc %b=addtag -text='!; %h=addjump '!;? 
+, %%Not on the same line - add colour tags to intermediate lines and the hashtable tag to the start point.
+  z!m+8 zcocr-0(v/ /r)0oco-ou %b=addtag '!; z!m+7zc %b=addtag -text='!; 
+  %%Add colour and text tags to all intermediate lines.
+  ( z!m+8zc m-ono=\(v/ /r)0ol24oco-ou%b=addtag '!; z!m+7zc %b=addtag -text='!; )0
+  %%At start of booking add colour tag, hash entry and hashtable target tag.
+  z!m+8zc okr-0o#ol24oso-osorou %b=addtag '!; z!m+7zc %b=addtag -text='!; %h=addjump '!; )
+
+<<StartAndEndFromBookingID>>
+%%Translates a booking-ID, on completion the start-date line and chr no. are on the stack and the cursor is set to the end date
+%%Breaks lines in the calendar if start and/or end does not fall on a normal changeover day.
+%%  0 - The start-point line no.
+%%  1 - the start-point character no.
+%%
+%%Parse the Booking-ID.
+z!m+7n.r0a$&z$r-0r4b(r2b)2er4b(r2b)2 m-0(v/0/s/ /m, m)0 m+3i/ /r0i/ /m+6i/ /r0i/ / m+2oidm-ol3o*z!m+6orn.r3a$.& z$m+5oidm-ol3o*z!r-0orn.r3a$.&
+%%
+%%Sanity check - is the end year in the calendar.
+z$m+4zcm-0 (f'$, %x=Error the calendar does not go to month-year '$; )
+%%
+%%Find the start date - if it's on a changeover day, ensure we don't get the end of the previous booking week (which has the same date).
+z$m+1zcm-0f'$r-0f/  1 /?rr- z$m+3zcf'$ m(f1'$, m-f1'$) (v/ /r)0ocon z$m+1zcf1'$
+%%
+%%Find the end date.
+z$m+4zcm-0f'$r-0f/  1 /?rr- z$m+6zcf'$- (v-/ /r-)0oc z$m+4zcf1'$r-0or
+
+<<CheckPendingBooking>>
+%%Checks that no other bookings exist for the period of a proposed booking given by the Booking-ID.
+%%If one does exist then the booking-ID and payment status lines of ! are silently reset.
+%%
+%h'=call StartAndEndFromBookingID;
+%%Now plod through every day of the proposed booking (from last to first) to check for preexisting bookings.
+( %%Day loop.
+  %%Go to end of previous week if necessary.
+  (v-/ /r-)0(r-r, m-r24) (v-/ /r-)0(v-/ /\r-)0
+  %%Check this day.
+  %q$=tags -here; (m+5\zc, f/Type text from chr/f1/"/-bf1/"/b-z. %h=jump A_'$; on%h=jump H_email; onoso-(yo~)0ok v/"/rz*m-0f/Sender's email/-rn.r0a$&z.v'$zc, z!m+7n.r0a@\ )
+  %%Have we reached the first day of the booking?
+  (ono= osoco=\os)\ )0 okok
+( z!m+7r\
+  %m=Double-booking alert - see error log.
+  zebi/Double-booking alert:/b
+  i/  Original booking-ID: /zc %q$=tags -here; f/Type text from chr /f1/"/-bf1/"/b-zei'$ r-17ol17ou %b=addtag ErrorTag; %b=addtag -text='$; r0b
+  ( %%Original booking is either from an email or it's in the original bookings.
+    zir-0r  %%An email index exists,
+    zei/  New booking email:   /oci'io#ocoso-osr-0orou zir-0 %q$=tags -here; f/Type text from chr /f1/"M_</rbf1/"/b-ze %b=addtag ErrorTag; %b=addtag -text='$; r0bzc
+  , %%Original booking was in the resources file all along.
+    zei/  This booking-ID:     /h@r-17ol17ou %b=addtag ErrorTag; %b=addtag -text='@; r0bzc )
+, )
+
+<<CheckDoubleBookings>>
+%%Checks for double bookings - this is done by looking for more than one active colour tag at the same point in the calendar.
+%%
+%%Get a full ist of tags and strip out any unwanted report lines.
+zc %q*=tags; (f/Type text from chr/k)0 m-0(f/Type target /k)0
+%%Now find records with more than one active colour tag - these are not necessaraly at the same point.
+m-0(f/Type colour at chr/ mf1//\m-k)0
+%%
+%%The remaining colour tags may overlap indicating a double booking but they are ordered 
+%%so two consecutive set-colour tags without an intermediate default, indicates a double booking.
+m-0(f/Type colour at chr/mf1/, Name default/\
+  %%Report the double booking.
+  %%f-/Rec /-oidzcono-om
+  n.a$&z$b10b-10i/                      Error: Double booking!!/bi/                      =======================/r-0
+  f1/Type Colour at chr/-oid(m-v/Rec /\)0oidzcono-omorzc %x=Error: double booking;
+, %%That one's OK.
+  m )0
+zc
+
+<<IndexEmails>>
+%%Function to Index emails and add links.
+%%
+zim-0k0 zm %h=create -delete 10000;
+%%Initialize to message no. 1
+ol1m0
+%%
+%%An alternative way of finding the end of a message in POP.
+%%n.a3z3i|(f/Content-Type: /lm)0 ((f1/boundary=/-\m(q/ 	/r)0)0 v-//(v/"/rn.f1/"/, n.r0)a$&(f'$-v/--/\m)0(mr\)0l, (f/Content-Type: /lm)0(m-r)0m) v/from jone|
+zmm-0
+( %%Message loop
+  %%Pick up a copy of the mail.
+  (f/Content-Length: /r-m)0on(m-r)0(rr-, m,) n.ono-omm(f/Content-Length: /r-m)0(m-r)0(r\m-)0ma*&mon
+  %%Add the index number to the mail-index buffer ( I ).
+  zir-0oso#oo/ %03d /os 
+  %%Get the sender name.
+  z*m-0(f/From: /r-m)0(r6n.(f1/ /2r0f-1/ /, r0)ai.&, )zii/ /(r, i/ /)15i/ /e0
+  %%Get the date.
+  z*m-0(f/Date: /r-m)0(r6n.r0f-1/ /-ai.&, )zi(r, i/ /)26
+  %%Get the subject.
+  z*m-0(f/Subject: /r-m)0(r9n.r0ai.&, )
+  %%Get, or assign, the Message-ID:
+  z*m-0(f/Message-ID:/r-m)0(r12, %q$=date; mi/Message-ID: <Bookings_id_/rf1/ /s/_/r0i/>/ z*m0ono# zmol0oso-ommb-i'$om z*m-0(r\m)0mb-i-'$r12 ) n.r0a$&
+  %%Check for uniqueness of Message-ID - uniquify if necessary.
+  zm (%h=jump M_&'$;\, z$r0r-oso#oo/_%d/oso# z*r-0r12e0i'$m0on zmono+o-omm (f/Message-ID: /r-m)0r12e0i'$o#ono-om)
+  %%Now tag the index and add the hash-table entry for the mail buffer ( M ).
+  zir0ocr-0ou %b=addtag -text=M_&'$; %w=refresh; r-0b-zm %h=newjump M_&'$; oko~)0
+okzim-0j
+%%  
+%%Add tags to mail-thread lines.
+%%
+z.ol-1
+%%Pick up the booking ID
+( %%Booking-ID loop.
+  %h=jump H_Booking-ID; o#(yo~)0 okol1o- v/"/rn.f1/"/a$&
+  %%Go to mail thread.
+  %h=jump '$; (mv/MAILTHREAD:/\)0
+  ( %%Message loop.
+    z.m v/</n.f1/>/-a$& ocr-0ou %b=addtag message; %b=addtag -text=M_&'$;
+    )0
+  )0 ok
+%%Identify all messages that have been indexed by *any* booking for *any* resource and tag them yellow in the main mail index.
+z. %w=refresh; %q*=tags; zi %q@=tags; (z* (f/Type text from chr /f1/"M_</\m)0rn.f1/>/-a$& z@m-0f'$(m-v/Rec /\)0 r4oid ziono-om r0ocr-0ou %b=addtag MailRead; )0
+
+<<IndexODArchive>>
+%%Function to Index an Owners-direct email archive and add links.
+%%
+zm %h=create 10000 -delete;
+%%Initialize to message no. 1
+ol1m-0((v/ /r)0r\m)0 r-
+%%
+( %%Message loop.
+  v/Date/
+  %%Construct a message-id tag based on the mail no.
+  n.a$&z$o#oo/<From_an_Owners-direct_mail_archive_No._%d>/
+  %%Make the hash-table entry then add a message-ID line.
+  zm %h=newjump M_&'$; mb-i/Message-ID: /i'$
+  %%Add the index number to the mail-index buffer ( I ).
+  zio#oo/ %03d /o~ 
+  %%Get the message date.
+  zmm-v/Date/r5n.r0ai+&zi(r, i/ /)18
+  %%Get the sender name.
+  zmm4v/Sender's name/r14n.r0ai+&zi(r, i/ /)35e0
+  %%Start date and no. of nights of proposed stay.
+  zmm5v/Arrival date/r13n.r0ai+& zi(rr0i/ + /zmmv/Number of nights/r17n.r0ai+&, zmm)
+  %%Split the message into lines of 80 characters or less.
+  mv/Message/r8b2(r80(f-1/ /-b, b))0
+  %%Remove the "Delete this email" option.
+  mf1/Delete this email/r-0e0
+  %%Now tag the index and add the hash-table entry for the mail buffer ( M ).
+  zir0ocr-0ou %b=addtag -text=M_&'$; r0b zmm)0
+okzim0e0m-0
+%%  
+%%Add tags to mail-thread lines.
+%%
+z.ol-1
+%%Pick up the booking ID
+( %%Booking-ID loop.
+  %h=jump H_Booking-ID; o#(yo~)0 okol1o- v/"/rn.f1/"/a$&
+  %%Go to mail thread.
+  %h=jump '$; (mv/MAILTHREAD:/\)0
+  ( %%Message loop.
+    z.m v/</n.f1/>/-a$& ocr-0ou %b=addtag message; %b=addtag -text=M_&'$;
+    )0
+  )0 ok
+%%Identify all messages that have been indexed by *any* booking for *any* resource and tag them yellow in the main mail index.
+z. %w=refresh;  %q*=tags; zi %q@=tags; (z* (f/Type text from chr /f1/"M_</\m)0rn.f1/>/-a$& z@m-0f'$(m-v/Rec /\)0 r4oid ziono-om r0ocr-0ou %b=addtag MailRead; )0
+
+<<SetCell>>
+%%Prompt string: Column-name Value >
+%%Set specified cell to specified value, if more than one value specified then set successive cells until list of values is exhausted.
+%%
+%%Check and parse the arguments.
+z$r-0(v/ /e)0 (f1/ /(v/ /e)0b-, z. %x=Error: Incorrect syntax - try <<CellName> <Value1>...; )
+%%Split the value at tabs or semicolons - these indicate successive cells in the table.
+m(f1/	/(v/	/eb)0, (f1/;/eb)0) m-0
+%%Go to row then to column head and then down to first cell.
+z!m+7z. %h=jump A_'!; on %h=jump H_'$; onoso- (yo~)0 ok
+%%Now set the cell(s).
+%b=readonly 0; (z$mz. (v/"/r,)(q/"	/\e)0i'$ f1/	/-)0 z. %b=readonly 1; 
+%%
+%%Check Paid-up status.
+z!m+8n.r0a$ m+9e0h$
+%h'=call SetPaymentStatus;
+z!m+8 ( v'$, %%Payment status has changed.
+  %h'=call DeleteCalendarTag;
+  %h'=call TagCalendarEntry;
+  %h'=call TagBooking; )
+z.
+
+<<OpenSelectedMail>>
+%%Go to message selected by key in $ buffer.
+%%
+%%Set up options-menu field.
+obzom+2
+%%
+%%Pick up message tag - if the message tag is prefixed "M_" then it came from a mail thread.
+z$(v/M_</r2b, ) zm %h=jump M_&'$;(f-/Content-Length: /r-m-)0(m-r)0(m-m2,)
+%%This picks up the message from either a POP email or an Owners-direct archive.
+( v/From /(rm)0n.(mf/From /r-)0a*&
+  %%A POP email.
+  %%Remove non-text sections.
+  %%Translate simple MIME-character encoding.
+  z*m-0 (f1/=/-(v/0A/e-e2b, q/0-9/e- n.r2a$z$oixz*oo/%c/, r, e-j) )0
+  %%Break over-long lines.
+  %q$=window; f/screenWidth = /-oid z*m-0 (r0oco>\ r-0o#or(q-/A-Za-z0-9/r-)10? (q-//r10, ) bi/&  /r-0, m)0 ok
+, %%Assume it's from an Owners-direct archive.
+  v/Date/n.(rm)0m(rm)0 a*&z* )
+%%Add header.
+ozr-0(v/</f1/>/-r(v/ /r)0, )n.r0a@&r-0 z* %b=header '@; m-0h@ocb ol0oso- (i/-/o~)0okb2
+
+<<CurrentMail>>
+%%Go to currently-selected EMail in mailthread or main email index buffer ( i ).
+%%
+%%If in a mail index then pick up Email tag from current line, otherwise use current line of Email index buffer ( i ).
+ob (r-0 %q$=tags -here; (f/Type text from chr/f1/"M_</\m)0 m\ ziokob)2?
+%%Pick up message tag.
+m-f1/"M_</rbf1/"/b-r-0 oz
+%h'=call OpenSelectedMail;
+
+<<DownMail>>
+%%Down - the function to read the next or current Email in mail index or current mail thread.
+%%
+( %%Are we in the mail index - if so pick up message tag directly.
+  ( obziobo=
+    %%Yes - in the mail index buffer I.
+    r-0 %q$=tags -here; f/Type text from chr/f1/"M_</rbf1/"/b-r-0
+  , %%No Are we in a mailthread.
+    z.obo=r-0v/</
+    %%Yes - then pick up message directly.
+    n.f1/>/-a$&r-0 ) 
+  oz %h'=call OpenSelectedMail;
+, %%Not on the mail index or mail thread.
+  ok
+  %%Are we currently reading messages from the main index?
+  z*m-0v/ /r(q/0-9/r)0v/ /
+  %%Yes - go to next in message list.
+  zi (m, %x=Last message in mail thread.; )
+  ob %q$=tags -here; (f/Type text from chr/f1/"M_</\m)0 rbf1/"/b-r-0oz %h'=call OpenSelectedMail;
+, %%No - pick up mail indicated by mail thread.
+  z.m (v/NOTES:/ %x=Reached last message in this mail thread;, )n.f1/>/-a$&  %h'=call OpenSelectedMail;
+  )
+
+<<UpMail>>
+%%Up - the function to read the previous or current Email in mail index or current mail thread.
+%%
+( %%Are we in the mail index - if so pick up message tag directly.
+  ( obziobo=
+    %%Yes - in the mail index buffer I.
+    r-0 %q$=tags -here; f/Type text from chr/f1/"M_</rbf1/"/b-r-0
+  , %%No Are we in a mailthread.
+    z.obo=r-0v/</
+    %%Yes - then pick up message directly.
+    n.f1/>/-a$&r-0 ) 
+  oz %h'=call OpenSelectedMail;
+, %%Not on the mail index or mail thread.
+  ok
+  z*m-0v/ /r(q/0-9/r)0v/ /
+  %%Yes - go to next in message list.
+  zi (m-, %x=First message in mail thread.; )
+  ob %q$=tags -here; (f/Type text from chr/f1/"M_</\m)0 rbf1/"/b-r-0oz %h'=call OpenSelectedMail;
+, %%No - pick up mail indicated by mail thread.
+  z.m- (v/MAILTHREAD:/ %x=Reached first message in this mail thread;, )n.f1/>/-a$&  %h'=call OpenSelectedMail;
+  )
+
+<<AddToMailThread>>
+%%Add current message to current mail thread.
+%%Sanity checks
+%%First, are we reading a mail message
+obz*ob(o=ok, ok %x=Error: You must be reading an email to attach a mail to a booking.;)
+%%Next, is there a valid booking selected?
+z!m+7r-0((q/0-9/r)8v/-/r(q/0-9/r)8r\, %x=Error: No valid booking has been selected.;)
+%%Check the message summary matches the index entry.
+z*m-0 zir-0(f1'*, zsf1'*, %x=Error: Inconsistency in message header.;)
+%%Find the mail ID.
+%q$=tags -here; f/Type text from chr/f1/"/-v/M_</r2bf1/"/b- zm %h=jump M_&'$;
+%%First unlock the resources.txt buffer.
+z. %b=readonly 0;
+%%Tag mail with current booking ID and add tagged mail entry to resources-file image.
+z. %h=jump MT_'!; r0bi'$ r0ocr-0ou %b=addtag message; %b=addtag -text=M_&'$; zin.r-0a$&z. %b=addtag -text=Message '$; r0i/: /i'*
+z. %b=readonly;
+%%Now mark the message as read in the mail index.
+zi(v'*, m-0f'*)r0ocr-0ou %b=addtag MailRead; z.
+%%After changing linenumbers of subsequent entries fix the hashtable.
+z. %h=fix; %h=jump MT_'!; m
+
+<<ReReadEMail>>
+( r-
+  %%A pathname was given - prepend specified file to mail-spool image.
+  %%Count messages to determine next message index.
+  zm%q@=keys; m0onol3o-
+  %%Remove old hashtable.
+  zmm-0n.m0r0a@z@n.am& zmh@
+  %%Read new mail file and prepend it to existing mail spool image.
+  %i@='$; zmm-0h@b
+,
+  %%Re-read the same mail spool file, if a pathname is given then add new mails to end of existing mail.
+  z!m+1 %im='!;
+  %%Assign index no. 1 to last message in mail spool image.
+  )
+  
+%h'=call IndexEmails;
+zi
+
+<<FindMoreFromSender>>
+%%Searches mail archive for more messages from the sender of the current message.
+%%
+%%Extract mail tag and find author.
+z*m-0
+( f/Sender's email	/ %%An Owners-direct archive.
+, %%A POP archive - assume mail is undisturbed since message was extracted.
+  zm(f-/From: /r-m-)0
+ )
+r6(v/ /r)0(f1/</-n.f1/>/a$&, n.r0a$&)
+%%Now search for all messages from the same author.
+%h'=call SearchMessages;
+
+<<MailPaste>>
+%%Adds contents of paste buffer as a new message to the mail archive, sets the archive to writeifchanged.
+%%
+%e@=\xsel;
+%%Top and tail.
+m-0i/From xsel/b %q$=date; m(f1/ /s/_/)0z@i/Message-ID: <from_xsel_/i'$i/>/b-n.r-0a$& m0b
+%%Add to mail archive and lock it.
+zmm0h@m-0 %b=writeifchanged;
+%h'=call IndexEmails;
+%h'=call OpenSelectedMail;
+
+<<SearchMessages>>
+%%Prompt string: Search string> 
+%%Searches mail archive for messages containing the string given in $ buffer, list of messages appears in S buffer.
+%%
+%%If no search string specified then prompt for it now.
+z$r-0(r, %s=prompt Search string> ; gm-)
+%%
+%%Clear the destination buffer S and use the text tags in the main mail index to generate a message-ID to mail index lookup table in @.
+zsm-0k0 zi %q*=tags; (v/Rec /m, v/  Type text/m,k)0
+%%
+( ol1zmm-0(r\m)0r- v/From /  %%A POP archive.
+  ( %%POP-message loop.
+    %%Get the message-ID key.
+    zmf'$(f-/From /r-m-)0 f/Message-ID: /-n.r0a@&(f/From /r-m)0  z*m-0f'@m-v/Rec /r4oidziono-omn.mas+&
+    %%Add text tag pointing back into mail archive.
+    zsm-r0ocr-0ou %b=addtag -text=M_'@; %b=addtag message; )0
+, %%An Owners-direct archive.
+  ( %%Owners-direct message loop - copy message to $.
+    zmf'$ (f-/Date	/r-\m-)0 f/Message-ID: /-n.r0a@&(f/Date~/r-\m)0 z*m-0f'@m-v/Rec /r4oidziono-omn.mas+&
+    %%Add text tag pointing back into mail archive.
+    zsm-r0ocr-0ou %b=addtag -text=M_'@; %b=addtag message; )0 )
+zsm-0b-i/Results of search for messages containing "/i'$r0i/"/r-0
+
+<<NewBooking>>
+%%Create a new Accounts-table row at end of accounts table.
+z. %b=readonly 0; %h=jump Accounts; f/	/r-0n.r0a@&(mf1/	/)0r-0 b-h@r-0f1/"Due"/e5r-0f1/"Paid"/e6r-0(q/"	/r, e)0 on 
+%%Enter new booking ID in the accounts table.
+%h=jump H_Booking-ID; onoso- (yo~)0ok z!m+7z.ri'!r-17 %b=readonly 1;
+%%Tag and link.
+%h=newjump A_'!; ol17ou %b=addtag NoPayment; %b=addtag -text='!;
+%%
+%%Create a new BOOKING: section.
+z!m+7z. (mv/BOOKING:/\ v/RESOURCE:/\)0
+%b=readonly 0; b-2i/BOOKING:/i'! r-17ol17ou %h=newjump '!; %b=addtag NoPayment; %b=addtag -text='!;
+mb-i-/MAILTHREAD:/ %h=newjump MT_'!;
+mb-i-/NOTES:/ %h=newjump N_'!; %b=readonly 1;
+%%
+%%Clear out the pending colour tag.
+z! m+8n.r0a$i/NoPayment/ m+9e0h$ m+7n.r0a$&
+%h'=call DeleteCalendarTag;
+%%
+%%Now add hashtable entries and colour tags. for the booking.
+%h'=call LinkAndTagBooking;
+
+<<LinkAndTagBooking>>
+%%Currently-defined pending booking, or booking-ID given in ! is to be used to define a real booking.
+%%
+%%Check that the booking starts and ends on a changover day.
+%h'=call StartAndEndFromBookingID;
+%%If the booking does not end on a changeover day then break the week to introduce a new one.
+zc((v/  - /, v/    /), b-ocn.r-2a@& mol1oso- (o~i/ /)0okh@ f1/ - /n.r10(v/ - /r10, )a@& m-ol-25((r, i/ /)o~)0okh@ r-0f1/ - /(v-/ /r-)0, )
+%%If the booking does not start on a changeover day, break the week to introduce a new one.
+ono-omo#or(v-/ /r-)0 (r-r(v/ /r)0f1/ /b-ocn.r-2a@& mol1oso- (o~i/ /)0okh@o~ f1/ - /n.r10(v/ - /r10, )a@& m-ol-25((r, i/ /)o~)0okh@, ) ok
+%%
+%%Tag the calendar entry.
+%%%h'=call DeleteCalendarTag;
+%h'=call TagCalendarEntry;
+%h'=call TagBooking;
+zc %q@=tags; k(v/Rec /n.f1/:/a$k, h$m)0 m-0(f1/Type text from chr/m, k)0 m-0(f1/ = "/-(q/0-9/r)8v/-/r(q/0-9/r)8v/"/m, k)0
+zc
+
+<<GetBookingIdFromCalendar>>
+%%Extracts a booking-ID from selection points in the calendar.
+%%
+%%At the start of play, the stack contains the end-point line no. and character offset followed by the start-point line no. and character offsets.
+%%
+%%First go to endpoint and pick up end date. If the week goes across two months take the correct month if date is 7 or less it's in the new month otherwise the old month.
+zcono-om(ol24o<, okol24)r-0or (v-/ /r-)0r-f-1/ /-oidf/ - /- (ol8o<f1/ - /-, ) n.r3a$&
+%%Get month number.
+z!m+6f'$ocol3o/
+%%Construct end part of booking-ID.
+z!m+7 e0 zcoidz!oo/%4d/r-roo/%02d/r-roo/%02d/
+%%
+%%Pick up start date if the week goes across two months take the correct month if date is 7 or less it's in the new month otherwise the old month.
+zcono-omor f-1/ /-(v/ /r)0oidf/ - /- (ol8o<f1/ - /-, ) n.r3a$&
+%%Get month number.
+z!m+6f'$ocol3o/
+%%Construct start part of booking-ID.
+z!m+7 r-0 zcoidz!oo/%4d/r-roo/%02d/r-roo/%02d-/
+
+<<DeleteCalendarTag>>
+%%For the booking indicated by line 7 of ! buffer, change the calendar colour tag from that defined line 8 of buffer ! to that defined in line 9.
+%%
+%%Parse the Booking-ID
+z!m+7n.r0a$& z$r-0n.r0a@&z@r-0r4b(r2b)2er4b(r2b)2 m-0(v/0/s/ /m, m)0 m+3i/ /r0i/ /m+6i/ /r0i/ / m+2oidm-z!m+6ol3o*orn.r3a@.& z@m+5oidm-ol3o*z!r-0orn.r3a@.&
+%%Find the start date - if it's a changeover day ensure we don't get the end of the previous booking week.
+z@m+1zcm-0f'@r-0f/  1 /?rr- z@m+3zcf'@ m(f1'@, m-f1'@) (v/ /r)0ocon z@m+1zcf1'@
+%%Find the end date.
+z@m+4zcm-0f'@r-0f/  1 /?rr- z@m+6zcf'@- (v-/ /r-)0onoc z@m+4zcf1'@r-0or
+%%
+(o> %%Arrrrggghhhh! start follows end date - maybe it's a single-day booking on a changeover day.
+  (o#ono-ol1(o=okmz$m+6zcf1'$, ok\), %qq=backtrace; %X=Error in booking-ID end date is before start date?;), ) zcon
+(o= %%The start and endpoint are on the same line.
+  z!m+9 zcoko#ocoso-osr-0orou %b=remove_tag -colour '!;? %b=remove_tag -text '$;? %b=remove_tag -target '$;? 
+, %%Not on the same line - add colour tags to intermediate lines and the hashtable tag to the start point.
+  z!m+9 zcocr-0(v/ /r)0oco-ou %b=remove_tag -colour '!;? %b=remove_tag -text '$;?  
+  %%Remove colour and text tags from all intermediate lines.
+  (m-ono=\ol24(v/ /r)0oco-ou%b=remove_tag -colour '!;? %b=remove_tag -text '$;? )0
+  %%At start of booking remove colour tag, hash entry and hashtable target tag.
+  okr-0o#ol24oso-osorou %b=remove_tag -colour '!;? %b=remove_tag -text '$;? %b=remove_tag -target '$;? )
+
+<<DeleteBooking>>
+%%Deletes the currently selected booking.
+%%
+z!m+8n.r0a$ m+9e0h$
+%h'=call DeleteCalendarTag;
+%%Now remove tags and records from the resources view.
+z. %b=readonly 0; 
+%%Delete the accounts-table line, the mailthread tag and any mailthread links - Accounts line does not exist for pending bookings.
+( %%If the booking has been set up in accounts then delete it from there and delete the BOOKING: lines.
+  %h=jump A_'$; k 
+  %%delete the BOOKING: line.
+  %h=jump '$; k
+  %%Get a list of mail-index tags.
+  zi %q@=tags; z.
+  ( %%Delete subsequent lines through to next BOOKING: or RESOURCE: line.
+    (v/BOOKING:/\ v/RESOURCE:/\)
+    %%If it's a mailthread entry, delete the mail-index tag.
+    ( v/</
+      n.f1/>/-a$& z@m-0 (f'$m-r3oid ziono-om r0ocr-0ou %b=remove_tag -colour MailRead;, ) z.k
+    , k) )0, )
+z. %b=readonly 1;
+%%z!m+7e0me0
+
+<<AddNote>>
+%%Prompt string: Note text> 
+%%This function adds specified text to the list of notes in the current booking.
+%%
+%%If no note-text given then prompt for it.
+obz$r-0(r, %s=prompt Note text: ; gm-rok, oz%x=No note text given.;)
+%%
+%%Locate end of current notes list then add the new note.
+obz!m+7z.%h=jump N_'!; (mrr- %q*=tags -here;m3\z.)0 z. %b=readonly 0; i'$b %b=readonly 1;
+%%Add revised notes to calendar.
+zc %h=jump '!; f1/ - /-2?r7e0 z. %h=jump N_'!; (mrr- %q*=tags -here;m3\z. r-0n.r0a$&zci/  /h$ z.)0
+oz
+
+<<LeftClick>>
+%%Define the left-click mouse function.
+%%On a left-button click on tagged text in the calendar, switch context to the relevant mail thread in the bookings buffer.
+%%
+%%Go to the mouse-click position if we're in the C or . buffers, otherwise ignore event.
+%%
+%%N.B. The buffer returned by the mouse click can be either the current buffer or the button box, this logic is driven by clicked buffer.
+%%
+opobos
+( (z.obo=\ zcobo=\ ziobo=\ zsobo=\)\
+  %%Buffer OK move to mouse-event point.
+  okokono-omor ob %q$=tags -here; 
+  f/Type text from chr/f1/"/-
+  %%Identify tag type.
+  ( v/M_</bf1/"/b-r-0 %%A mail message - open mail.
+    oz %h'=call OpenSelectedMail;
+  , %%Not mail - assume it's a Booking-ID
+    f1/"/(q-/0-9/r-)8v-/-/r-(q-/0-9/r-)8 oz %h'=call SwitchView; z!m+7zc %h=jump '!; z. %h=jump Accounts; %h=jump A_'!; r-0
+    %%Return to original buffer at mouse-click point.
+    opozono-omor )
+    
+, %%Not in . i or c buffers
+  zeobo=  %%In the error-log buffer E - switch to calendar or email.
+  okokono-omor ob %q$=tags -here; f/Type text from chr/f1/"/-
+  ( %%Is it an email?
+    v/M_</bf1/"/b-r-0oz %h'=call OpenSelectedMail;
+  , %%Maybe it's a booking-ID - if so then go to the calendar entry.
+    q/0-9/bf1/"/b- z!m+7(v'$, e0i'$)zcok %h=jump '$;
+  , %x=Unknown tag type found in error log.; )
+  
+, %%The B (Button-box menu) buffer.
+  zbobo=
+  ( okosono-omosor %q@=tags -here; f/"O_/\oz, r
+    ( v/O_Calendar/           oz(%h'=call SwitchToCalendar;, %x=Something went wrong with that;),
+      v/O_Accounts/           oz(%h'=call SwitchToAccounts;, %x=Something went wrong with that;),
+      v/O_Booking/            oz(%h'=call SwitchToBooking;, %x=Something went wrong with that;),
+      v/O_ErrorLog/           ok(zom+6ze, %x=Something went wrong with that;),
+      v/O_CurrentMail/        ok(zi %q$=tags -here; f/"M_</-r-bf1/"/b-r-0zi  %h'=call OpenSelectedMail;, %x=Something went wrong with that;),
+      v/O_NextMail/           ok( %h'=call DownMail;, %x=Something went wrong with that;),
+      v/O_PrevMail/           ok( %h'=call UpMail;, %x=Something went wrong with that;),
+      v/O_MailList/           ok(zi, %x=Something went wrong with that;),
+      v/O_MailPaste/          ok(n.a$& %h'=call MailPaste;, %x=Something went wrong with that;),
+      v/O_MailSearch/         ok(n.a$& %h'=call SearchMessages;, %x=Something went wrong with that;),
+      v/O_MailResults/        ok(zs, %x=Something went wrong with that;),
+      v/O_Abandon/            z.( %b=unrestricted; zm %b=unrestricted; %a*, %x=Something went wrong with that;),
+      v/O_Exit/               z.(%c;, %x=Failed to save resources file;),
+      v/O_SaveResources/      z.(%o;, %x=Failed to save resources file;),
+    , oz\) )
+, %%The O (Options menu) buffer.
+  zoobo=
+  ( okosono-omosor %q@=tags -here; f/"O_/\oz, r
+    ( v/O_AddToMailThread/      oz%h'=call AddToMailThread;,
+      v/O_FindMoreFromSender/   oz%h'=call FindMoreFromSender;,
+      v/O_OwnersDirectBooking/  oz%h'=call OwnersDirectBooking;,
+      v/O_SetCell/              oz%h'=call SetSelectedCell;,
+      v/O_AddNote/              oz%h'=call AddNote;,
+      v/O_ReMakeCalendar/       oz%h'=call ReMakeCalendar;,
+      v/O_NewBooking/           oz%h'=call NewBooking;,
+      v/O_DeleteBooking/        oz%h'=call DeleteBooking;,
+    , oz\) )
+, %%Maybe the & buffer - list of mail messages returned by SearchMessages
+  z&obo=
+  okosono-omosor %q$=tags -here; f/Type text from/f/"M_</-r-bf1/"/b-r-0z& %h'=call OpenSelectedMail;,
+, %%Not in any buffer that's valid for clicking - exit without any action.
+  ozokok %x=Mouse clicks only valid in tagged calendar entries or resources entries or any mail headline.; )
+
+<<DragStart>>
+%%Mouse button held down while mouse moves - get the start-point coordinates.
+obopok
+
+<<DragEnd>>
+%%Left button held down while mouse moves.
+op
+%%If this is the calendar then get the start/end-point dates and construct a booking-ID
+%%If not in calendar then assume it's a click gone wrong.
+zcob(o=
+  %%First clear out any pre-existing pending tags.
+  (z!m+8 v/Pending/ %h'=call DeleteBooking;, )
+  %%
+  ok%h'=call GetBookingIdFromCalendar;
+  %h'=call CheckPendingBooking;
+  %%
+  %%Set up to apply the Pending colour tag in the calendar.
+  z!m+7n.r0a$& m+8e0i/Pending/
+  %h'=call TagCalendarEntry;
+  %h'=call SwitchView;
+  zc ok
+, %%Not a valid buffer - ignore this drag operation and assume a click was intended.
+  (ok)5
+  oz %h'=call LeftClick; )
+
+<<BookingsSelfTest>>
+%%Self-test routine for bookings.jot
+%%The reference results are only good for jot v1.8.5 or higher
+%q*=version; mf1/ /3f/v/-oidol100o*v/./roido+ol100o*(v/./roid,)o+ (ol10805o< %x=Error: these tests only work for jot v1.8.5 or higher.;, )
+%%
+%%Check the screen size - must be at least 24 lines by 80 characters.
+%q$=window; ((f/screenHeight = /-oid ol24 o<\ okf/screenWidth = /-oid ol80o<\ ok),
+   ok %m=Fail:; %x=BookingsSelfTest requires a console of at least 24 lines by 80 characters; )
+%%
+%%Set up the test resources.txt and load bookings functions.
+zm %b=unrestricted; z. %b=unrestricted; %i.=${JOT_RESOURCES}/resources.txt; n.a!&z!i"${JOT_RESOURCES}/mail"bbi/The House/b8z. 
+%%
+%%Lanch bookings.
+%h'=call IndexResource;
+%%
+%%Reset linenumbers.
+zc %h=fix;
+%%
+%%Simplified window structure for regression testing.
+%w=clear; %w=new -height=20 -delim;
+%%
+%%Nobble the mouse.
+%s=mousemask 0;
+%%
+%%Clear booking ID and payment status.
+z!m+7e0me0 zi
+%%
+%%Now begin at the top of the calendar.
+zim-0
+
+%m=First check that it has set up the calendar correctly.
+zcm0 %w=refresh;  f-/29 30  1  2  3  4  5  6  - Nov2014 - Dec2014/r-0 %w=refresh;  %q*=window; f/Screen dump follows:/m
+v| Sa Su Mo Tu We Th Fr Sa|m
+v|Attrs: (X=0 Current_Chr) (X=24 Normal_Text)|m
+v| 29 30  1  2  3  4  5  6  - Nov2014 - Dec2014|m
+v|Attrs: (X=0 Current_Chr) (X=1 Normal_Text)|m
+v|  6  7  8  9 10 11 12 13  - Dec2014|m
+v| 13 14 15 16 17 18 19 20  - Dec2014|m
+v|Attrs: (X=1 colour 7/5) (X=24 Normal_Text)|m
+v| 20 21 22 23 24 25 26 27  - Dec2014|m
+v| 27 28 29 30 31  1        - Dec2014 - Jan2015|m
+v|                 1  2  3  - Dec2014 - Jan2015|m
+v|Attrs: (X=17 colour 7/2) (X=24 Normal_Text)|m
+v|  3  4  5  6  7  8  9 10  - Jan2015|m
+v|Attrs: (X=2 colour 7/2) (X=24 Normal_Text)|m
+v| 10 11 12 13 14           - Jan2015|m
+v|Attrs: (X=1 colour 7/2) (X=15 Normal_Text)|m
+v|             14 15 16 17  - Jan2015|m
+v|Attrs: (X=13 colour 7/1) (X=24 Normal_Text)|m
+v| 17 18 19 20 21 22 23 24  - Jan2015|m
+v|Attrs: (X=1 colour 7/5) (X=24 Normal_Text)|m
+v| 24 25 26 27 28 29 30 31  - Jan2015|m
+v|Attrs: (X=1 colour 7/2) (X=24 Normal_Text)|m
+v| 31  1                    - Jan2015 - Feb2015|m
+v|Attrs: (X=1 colour 7/1) (X=6 Normal_Text)|m
+v|     1  2  3  4  5  6     - Jan2015 - Feb2015|m
+v|Attrs: (X=5 colour 7/5) (X=21 Normal_Text)|m
+v|                    6  7  - Jan2015 - Feb2015|m
+v|Attrs: (X=20 colour 7/1) (X=24 Normal_Text)|m
+v|  7  8  9 10 11 12 13 14  - Feb2015|m
+v|Attrs: (X=2 colour 7/1) (X=24 Normal_Text)|m
+v| 14 15 16 17 18 19 20 21  - Feb2015|m
+v|Attrs: (X=1 colour 7/5) (X=24 Normal_Text)|m
+v| 21 22 23                 - Feb2015|m
+v|Attrs: (X=1 colour 7/1) (X=9 Normal_Text)|m
+v|       23 24 25 26 27     - Feb2015|m
+v|Attrs: (X=7 colour 7/2) (X=21 Normal_Text)|m
+v|                   27 28  - Feb2015|m
+%%v| 28  1  2  3  4  5  6  7  - Feb2015 - Mar2015|m
+%%v|Attrs: (X=1 colour 7/5) (X=24 Normal_Text)|m
+
+%%Now verify the accounts table.
+z.m0 %w=refresh;  %h=jump Accounts; m  %w=refresh;  %q*=window; f/Screen dump follows:/m
+v|        "Booking-ID" "due" "paid"                   "name"            "email"   |m
+v|Attrs: (X=0 Current_Chr)|m
+v|        "Booking-ID" "due" "paid"                   "name"            "email"   |m
+v|Attrs: (X=0 Current_Chr) (X=9 Normal_Text)|m
+v| "20141213-20141220"   450    400         "Little Bo Peep"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150101-20150114"   400    400            "Mavis Cruet"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20150117-20150124"   400    200           "Roger Rabbit"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150124-20150131"   400    400              "Peter Pan"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20150201-20150206"   400    100            "Farie Queen"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150207-20150214"   400      0                 "Popeye"                 ""   |m
+v|Attrs: (X=2 colour 7/1) (X=19 Normal_Text)|m
+v| "20150214-20150221"   500    100     "The Little Mermaid"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150223-20150227"   500    500     "Goosy Goosy Gander"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20150228-20150307"   450     50    "The Man In The Moon"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150307-20150312"   450      0             "Goldilocks"                 ""   |m
+v|Attrs: (X=2 colour 7/1) (X=19 Normal_Text)|m
+v| "20150314-20150321"   450    450   "Tom (the pipers son)"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20150413-20150418"   300    200           "Captain Hook"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150524-20150608"   420     50           "Mickey Mouse" "mickey@disney.com |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150608-20150612"   200    150         "Polly Flinders"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+v| "20150620-20150627"   200    200 "Little Red Riding Hood"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20150627-20150704"   250    250      "Three Little Pigs"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20150704-20150711"   200    200         "Charlie Bucket"                 ""   |m
+v|Attrs: (X=2 colour 7/2) (X=19 Normal_Text)|m
+v| "20170304-20170310"   123    100             "Billy Bean"                 ""   |m
+v|Attrs: (X=2 colour 7/5) (X=19 Normal_Text)|m
+
+%%Now verify the last few bookings.
+z.m0 %w=refresh;  %q*=window; f/Screen dump follows:/m
+v| "Booking-ID" "due" "paid" "name" "email" "phone" "ad1" "ad2" "ad3" "postcode"|m
+v|Attrs: (X=0 Current_Chr) (X=78 Normal_Text)|m
+v|BOOKING:20150101-20150114|m
+v|Attrs: (X=8 colour 7/2) (X=25 Normal_Text)|m
+v|MAILTHREAD:|m
+v|<13993c32185f49a52f73ad92bba4ef21-22@spammail.com>:  018  Mavis.Cruet@spa Wed, 1|m
+v|Attrs: (X=0 colour 7/6) (X=50 Normal_Text)|m
+v|<13993c32185f49a52f73ad92bba4ef21-2@spammail.com>:  019  Mavis.Cruet@spa Wed, 18|m
+v|Attrs: (X=0 colour 7/6) (X=49 Normal_Text)|m
+v|NOTES:|m
+v|          |m
+v|BOOKING:20150207-20150214|m
+v|Attrs: (X=8 colour 7/1) (X=25 Normal_Text)|m
+v|MAILTHREAD:|m
+v|<13993c32185f49a52f73ad92bba4ef21-6@spammail.com>:  015  Popeye@spammail Wed, 18|m
+v|Attrs: (X=0 colour 7/6) (X=49 Normal_Text)|m
+v|NOTES:|m
+v|          |m
+v|BOOKING:20150524-20150608|m
+v|Attrs: (X=8 colour 7/5) (X=25 Normal_Text)|m
+v|MAILTHREAD:|m
+v|<13993c32185f49a52f73ad92bba4ef21-24@spammail.com>:  004  Mickey.Mouse@sp Wed, 1|m
+v|Attrs: (X=0 colour 7/6) (X=50 Normal_Text)|m
+v|<13993c32185f49a52f73ad92bba4ef21-15@spammail.com>:  006  Mickey.Mouse@sp Wed, 1|m
+v|Attrs: (X=0 colour 7/6) (X=50 Normal_Text)|m
+v|NOTES:|m
+v|$20 rodent surcharge.|m
+
+%m=Now simulate a mouse drag to create a pending booking.
+zcm+49r %s=setmouse; %h'=call DragStart;r23 %s=setmouse; %h'=call DragEnd;
+%%Convert it to a new booking.
+%h'=call NewBooking;
+%%Add booking details to accounts.
+n.a$& z$i/due 123;100;Lord Snooty/ %h'=call SetCell;
+%%Add snooty's message to the mail thread.
+zim-0f/snooty/ %q$=tags -here; f/"M_/-bf1/"/b-r-0zi %h'=call OpenSelectedMail; %h'=call AddToMailThread;
+%%
+%%Verify the calendar.
+zc %w=refresh;  %q*=window; f/Screen dump follows:/m
+v| Sa Su Mo Tu We Th Fr Sa, res: The House,  booking-ID: 20141129-20141206|m
+v|Attrs: (X=0 Current_Chr) (X=72 Normal_Text)|m
+v| 29 30  1  2  3  4  5  6  - Nov2014 - Dec2014|m
+%%v|Attrs: (X=1 Current_Chr) (X=2 colour 7/1) (X=24 Normal_Text)|m
+%%v|Attrs: (X=1 Current_Chr) (X=2 Selected_Substring) (X=24 Normal_Text)|m
+v|Attrs: (X=1 Current_Chr) (X=2 colour 7/5) (X=24 Normal_Text)|m
+v|  6  7  8  9 10 11 12 13  - Dec2014|m
+v| 13 14 15 16 17 18 19 20  - Dec2014|m
+%%
+%%Verify the new booking entry.
+z.m0 %w=refresh;  %h=jump '!;  %w=refresh;  %q*=window; f/Screen dump follows:/m
+v| "Booking-ID" "due" "paid" "name" "email" "phone" "ad1" "ad2" "ad3" "postcode"|m
+v|Attrs: (X=0 Current_Chr) (X=78 Normal_Text)|m
+v|BOOKING:20141129-20141206|m
+%%v|Attrs: (X=8 Current_Chr) (X=9 colour 7/5) (X=25 Normal_Text)|m
+v|Attrs: (X=8 Current_Chr) (X=9 colour 7/1) (X=25 Normal_Text)|m
+v|MAILTHREAD:|m
+v|<13993c32185f49a52f73ad92bba4ef21-31@spammail.com>:  030  Snooty@poshmail Sun, 2|m
+v|Attrs: (X=0 colour 7/6) (X=50 Normal_Text)|m
+v|NOTES:|m
+v|          |m
+%%
+%%Verify the new accounts-table entry.
+z. %h=jump A_'!;  %w=refresh;  %q*=window; f/Screen dump follows:/m
+v|        "Booking-ID" "due" "paid"        "name" "email" "phone" "ad1" "ad2" |m
+v|Attrs: (X=0 Current_Chr)|m
+v| "20141129-20141206"   123    100 "Lord Snooty"      ""      ""    ""    ""   |m
+v|Attrs: (X=2 Current_Chr) (X=3 colour 7/5) (X=19 Normal_Text)|m
+%%v|Attrs: (X=2 Current_Chr) (X=3 colour 7/5) (X=19 Normal_Text)|m
+zc
+
+%m=Delete the booking and check that it's all completely gone.
+%%
+%h'=call DeleteBooking;
+%%Verify removal of booking from calendar.
+zc %w=refresh;  %q*=window; f/Screen dump follows:/m
+v| Sa Su Mo Tu We Th Fr Sa, res: The House,  booking-ID: 20141129-20141206|m
+v|Attrs: (X=0 Current_Chr) (X=72 Normal_Text)|m
+v| 29 30  1  2  3  4  5  6  - Nov2014 - Dec2014|m
+v|Attrs: (X=1 Current_Chr) (X=2 Selected_Substring) (X=24 Normal_Text)|m
+%%v|Attrs: (X=1 Current_Chr) (X=2 colour 0/7) (X=24 Normal_Text)|m
+v|  6  7  8  9 10 11 12 13  - Dec2014|m
+v| 13 14 15 16 17 18 19 20  - Dec2014|m
+
+%m=Verify removal of booking from resources file image.
+z. %h=jump Accounts; f'$\
+z. %q*=tags; f'$\
+z. %q*=keys; (f'$r0v-/deleted key/)0 m\
+z.
+
+%m=Now a slightly more complicated midweek booking this involves splitting the calendar line.
+%%
+zcm+49f1/ 1 / %s=setmouse; %h'=call DragStart;f1/ 4 /- %s=setmouse;  %h'=call DragEnd;
+%h'=call NewBooking;
+%%Verify the calendar.
+%w=refresh;  %q*=window; f/Screen dump follows:/m
+v| Sa Su Mo Tu We Th Fr Sa, res: The House,  booking-ID: 20141201-20141204|m
+v|Attrs: (X=0 Current_Chr) (X=72 Normal_Text)|m
+v| 29 30  1                 - Nov2014 - Dec2014|m
+v|        1  2  3  4        - Nov2014 - Dec2014|m
+%%v|Attrs: (X=8 Current_Chr) (X=9 colour 7/1) (X=18 Normal_Text)|m
+%%v|Attrs: (X=8 Current_Chr) (X=9 Selected_Substring) (X=18 Normal_Text)|m
+v|Attrs: (X=8 Current_Chr) (X=9 colour 7/1) (X=18 Normal_Text)|m
+v|                 4  5  6  - Nov2014 - Dec2014|m
+%%
+%%Now a booking in to the first half week.
+%%
+zcm+49f1/ 29 / %s=setmouse; %h'=call DragStart;f1/ 1 /- %s=setmouse;  %h'=call DragEnd;
+%h'=call NewBooking;
+%%Verify the calendar.
+%w=refresh; %q*=window; f/Screen dump follows:/m
+v| Sa Su Mo Tu We Th Fr Sa, res: The House,  booking-ID: 20141129-20141201|m
+v|Attrs: (X=0 Current_Chr) (X=72 Normal_Text)|m
+v| 29 30  1                 - Nov2014 - Dec2014|m
+%%v|Attrs: (X=1 Current_Chr) (X=2 colour 7/1) (X=9 Normal_Text)|m
+%%v|Attrs: (X=1 Current_Chr) (X=2 Selected_Substring) (X=9 Normal_Text)|m
+v|Attrs: (X=1 Current_Chr) (X=2 colour 7/1) (X=9 Normal_Text)|m
+v|        1  2  3  4        - Nov2014 - Dec2014|m
+v|Attrs: (X=8 colour 7/1) (X=18 Normal_Text) |m
+v|                 4  5  6  - Nov2014 - Dec2014|m
+%%
+%%Now a booking in to the second half week.
+%%
+zcm+51f1/ 4 / %s=setmouse; %h'=call DragStart;f1/ 6 /- %s=setmouse;  %h'=call DragEnd;
+%h'=call NewBooking;
+%%Verify the calendar.
+%w=refresh; %q*=window; f/Screen dump follows:/m
+v| Sa Su Mo Tu We Th Fr Sa, res: The House,  booking-ID: 20141204-20141206|m
+v|Attrs: (X=0 Current_Chr) (X=72 Normal_Text)|m
+v| 29 30  1                 - Nov2014 - Dec2014|m
+v|Attrs: (X=1 colour 7/1) (X=9 Normal_Text)|m
+v|        1  2  3  4        - Nov2014 - Dec2014|m
+v|Attrs: (X=8 colour 7/1) (X=18 Normal_Text) |m
+v|                 4  5  6  - Nov2014 - Dec2014|m
+%%v|Attrs: (X=17 Current_Chr) (X=18 colour 7/1) (X=24 Normal_Text)|m
+%%v|Attrs: (X=17 Current_Chr) (X=18 Selected_Substring) (X=24 Normal_Text)|m
+v|Attrs: (X=17 Current_Chr) (X=18 colour 7/1) (X=24 Normal_Text)|m
+%%
+zc
+%m=Passed all tests.
+
+:
+
+%%Pick command-line up arguments.
+z!m-0k0 (m, r0b)10 z$r-0(v/-/i/ /,)
+z$m-0(f/ -mail=/-b(f1/ /,       r0)b-z!m+1i'$, z!m+1(r, i"/var/spool/mail/" %q@=env USER;mz!i'@))
+z$m0r0b
+z$m-0(f/ -query=/-b(f1/ -/,      r0)b-z!m+2i'$, z!m+2(r, i"((v/Subject: /\m)0f1/Enquiry/\m)0"))
+z$m-0(f/ -resource=/-b(f1/ -/,   r0)b-z!m+3i'$, z!m+3(r, z.m-0f/RESOURCE:/-(v/ /r)0n.r0(v-/ /r-)0a@& z!h@))
+z$m-0(f/ -changeover=/-b(f1/ -/, r0)b-z!m+4i'$, z!m+4(r, i/Saturday/))
+z$m-0(f/ -calendar=/-bf1/ -/,    r0)b-z!m+5i'$)
+  
+%%Modify any conflicting escape sequences.
+z^
+m-0(v/r/i/x/m, m)0
+m-0(v/c/i/x/m, m)0
+m-0(v/a/i/x/m, m)0
+m-0(v/b/i/x/m, m)0
+m-0(v/e/i/x/m, m)0
+m-0(v/n/i/x/m, m)0
+m-0(v/s/i/x/m, m)0
+m-0(v/m/i/x/m, m)0
+m-0(v/u/i/x/m, m)0
+m-0(v/d/i/x/m, m)0
+  
+%%Define key-translations for bookings.
+%g$
+r           %h'=call SwitchToResource;
+c           %h'=call SwitchToCalendar;
+a           %h'=call SwitchToAccounts;
+b           %h'=call SwitchToBooking;
+e           ze
+n           %h'=call AddNote;
+s           %h'=call SetCell;
+m           %h'=call CurrentMail;
+D           %h'=call DeleteBooking;
+u           %h'=call UpMail;
+d           %h'=call DownMail;
+T           %h'=call AddToMailThread;
+R           %h'=call ReReadEMail;
+B           %h'=call NewBooking;
+C           %h'=call ReMakeCalendar;
+A           z.%b=unrestricted; %a
+S           z.%c
+{Button1Click}%h'=call LeftClick;
+{Button1Down}%h'=call DragStart;
+{Button1Up}%h'=call DragEnd;
+:
+z^m-0h$b
+
+%h'=call AddNewFunctions;
+
+%%%s=trace 2804;
+%%%s=verbose 7;
+
+%%Apply suitable locks to resources file.
+z. %b=readonly; %b=writeifchanged;
+%%
+%%Go.
+%h'=call IndexResource;
+%%Linenumbers may have altered since the hashtable indeces were set up - sort them out now.
+zc %h=fix;?
+%%
+%%Enable left-button clicks and drags.
+%s=mousemask 0007;
+%%
+%%Clear booking ID and payment status.
+m+7e0me0 zi
+%%  z!m-0k0 b8 m+7e0me0 zi
+zim-0
+%%Find this week in the calendar.
+%%Get todays date and munge into search keys.
+%q$=date; mr8e0f-1./.-2oide-2eol3o*z!m+6orn.r3a$.&z$r3i/20/r-6eb
+%%
+%%Now find this week in calendar.
+zom+5 zcm-0 (f'$ r-0f/  1 / z$m-i/ /(v/0/s/ /, )r0i/ /zcf'$, m0)
+%%  zom+5 zcm-0f'$ r-0f/  1 / z$m-i/ /(v/0/s/ /, )r0i/ /zcf'$
+%%
+
+zi

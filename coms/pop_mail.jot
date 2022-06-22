@@ -76,15 +76,15 @@ m-0(n.r0a?z?m-0 (v/ /r)0e-0(f1/-/br)0m-0, )
   , m-0f/-fo/- %% use specified folder
     okf1/ /-(v/ /r)0n.(f1/ /, r0)a$kz$i"/u/$$/Mail/"
   , m-0f/-n/- %% Run without reading any mail file.
-    kn.a$z$i"/dev/null"
+    kn.a$& z$i"/dev/null"
   , %X=Logic error - unknown qualifier in filename setup.; )
 , %%Folder not specified - use the users mail file.
-  n.a$z$r-0e0i"/var/spool/mail/" )
+  n.a$& z$r-0e0i"/var/spool/mail/" )
 %%
 %%Read the USER env variable - used to identify mailspool and to read autograph.
 %q~=env USER; mz$
 %%Read in the mail file.
-%i$='$/'~;
+%i$='$&/&'~;
 %%
 %%Sort out any user options
 z?m-0
@@ -96,7 +96,7 @@ z?m-0
    
 %%Read in the autograph message.
 %q~=env HOME; m
-n.a;z;(%i?='~/.mailrc;, z?)
+n.a;& z;(%i?='~&/.mailrc;, z?)
 %%Clip out the unwanted .mailrc crap.
 z?m-0(f/ Sign=/- e-0m-k-0 (r0q-/\"/(f-1/\n/e0,)m)0k0e0 m-0(f/\n/e2b)0, m-0) 
 m-0(f1/"/e,) m0e0
@@ -104,7 +104,7 @@ m-0(f1/"/e,) m0e0
 %%
 %%Now add fold marks and adds mail to help buffer and remove old mail.
 %%Initialization.
-z$n.a@ ol0 m-0
+z$n.a@&  ol0 m-0
 %m=Inserting fold marks.
 ( %%Main mail-message loop.
   %%Extract a copy of the mail header.
@@ -133,7 +133,7 @@ z;r0b2z$m-0 ((v/{{{/\m)0 r3(v/ /r)0(q/0-9/na@h@z;h@,)z$m)0
 z;i/>Exit/m-0m2
 
 %%Locate last unread message.
-z;m0wm-0f/ * /?r-0
+z;m0 %w=refresh; m-0f/ * /?r-0
  
 %l
  
@@ -151,9 +151,9 @@ m-0n.m0r0a@h@z@ m0r0b
 %%Find/create "To:" line?
 m-0(v/To:/\m)0(v/To:/, m-0b-2i/To:/)r0
 %%Add any named recipiants to list.
-n.a$z$i/ /i/## /(v-/   /kz@, z@i/, /h$)
+n.a$& z$i/ /i/## /(v-/   /kz@, z@i/, /h$)
 %%Check for whitespace after header.
-z@m-0(f1/:/m)0(r\, n.a$z$i/%X=White space after header/ozono-om'$)
+z@m-0(f1/:/m)0(r\, n.a$& z$i/%X=White space after header/ozono-om'$)
 %%Check and prepare to write out.
 z@m-0(v/To: /\m)0(m, ozono-om %X=Can not find a To: line in the message.; )
 %o=/tmp/mail.tmp;
@@ -171,11 +171,11 @@ r
 :
 z^m-0b-h$
 %g$
-obz;ob(o=, n.a$z$i/%x=Error, you must be in the ; buffer to reply./oz'$)
+obz;ob(o=, n.a$& z$i/%x=Error, you must be in the ; buffer to reply./oz'$)
 %%We could be in the fold or above, just looking at it?
 r-0(v/{{{/, m-0) (f1/ Headerinfo (/m-, )
 %%Go to the message and check.
-z:m-0f'; f1/Mail fold/\ n.a$
+z:m-0f'; f1/Mail fold/\ n.a$& 
 %%Make a 'To:' list from sender of original.
 ( %%Header-search loop - we need From: and Subject: lines.
   v/From: /na"h"z"m-0f/@/f-/ /e-0i/To: /(f1/</ef1/>/e0,) z:,
@@ -212,7 +212,7 @@ obz;
 %%We could be in the fold or above, just looking at it?
 r-0(v/{{{/, m-0) (f1/ Headerinfo (/m-, ) z:m-0f';
 %%Is a message-number specified?
-n.a$z$i/## /e-(r-r-0i/{{{/(v/ /e)0i/ /(r2, r-i/ /)r0(v-/ /e-)0i/ /, i';) 
+n.a$& z$i/## /e-(r-r-0i/{{{/(v/ /e)0i/ /(r2, r-i/ /)r0(v-/ /e-)0i/ /, i';) 
 %%Go to the message and check.
 z:m-0f'$ f1/Mail fold/\
 %%Pick up date from "From " line.
@@ -245,7 +245,7 @@ a
 z^m-0b-h$
 %g$
 %%Get the autograph message and insert it.
-obz?m0(f-/Autograph Message:/mnm0m-a$h$, n.a$)ozh$
+obz?m0(f-/Autograph Message:/mnm0m-a$h$, n.a$& )ozh$
 :
 z$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z^h$
 
@@ -262,15 +262,15 @@ z^m-0b-h$
 %%  2 - a temprary command macro.
 %%
 %%Is pathname specified?
-n.a$obz$i/## /e- oz
+n.a$& obz$i/## /e- oz
 (
   %%We should be on a separator - check.
-  onr-0n.r0a@h@ (mr)0m n.(f'@a@h@, n.a$obz$i/%x=This line does not look like a boundary/ozono-om'$)
+  onr-0n.r0a@h@ (mr)0m n.(f'@a@h@, n.a$& obz$i/%x=This line does not look like a boundary/ozono-om'$)
   %%Write it to a temp file.
   obz@m0i"/tmp/attachment" z$r-0i-/%/2r0bi/%o/z@'$z$m0e0j-r-0e2 ozono-om
   %%
   %%Extract file name if not specified.
-  obz$r-0(roz, oz (f5/Content-Transfer-Encoding/ f-3/name=/-, n.a$z$i/%x=No filename specified - extraction fails./z;'$)
+  obz$r-0(roz, oz (f5/Content-Transfer-Encoding/ f-3/name=/-, n.a$& z$i/%x=No filename specified - extraction fails./z;'$)
     (f1/"/-, f1/ /r0f-1/ /-,)(f1/:/-,)(f1/~/-,) n.(f1/"/, r0) a$h$m, )
      
   %%Post process the temporary file according to encoding scheme.
@@ -286,11 +286,11 @@ n.a$obz$i/## /e- oz
     z$i"%e=uudecode /tmp/attachment > /tmp/" '$
   ,
   %%Unrecognized encoding scheme.
-    (r-0v/begin /, n.a$z$i/%x=Can not locate valid attachment header - "begin ..." or "Content-Transfer-Encoding ..."/z;'$) )
+    (r-0v/begin /, n.a$& z$i/%x=Can not locate valid attachment header - "begin ..." or "Content-Transfer-Encoding ..."/z;'$) )
     
   %%Final tidy up and write confirmation.
   r-0f1/ > /-e-0i/%l/ b i"%e=rm -f /tmp/attachment" b i/%m=Decoded attachment to file /'$ )
-oz w
+oz  %w=refresh; 
 :
 z$m-0((v/ /e)0(f1/%%/e0,)r0(v-/ /e-)0j)0z^h$
   

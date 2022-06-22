@@ -43,9 +43,9 @@ obz$m-0(f/-h/e-0i/@/b-r-0, m-0)(v/ /r)0e-0(f1/ /e0,)
 m-0(rr\, %s=prompt Buffer key?; gm- %s=prompt > ; )
  
 %%Import now.
-n.a@z@i/%e/i'$i/=xsel -p/ '@
+n.a@& z@i/%e/i'$i/=xsel -p/ '@
 
 %%If the -h argument was given, then trim and insert into the original buffer.
 obz$(f/-h/z@n.m0a$okozh$, ozok)
-w
+ %w=refresh; 
 

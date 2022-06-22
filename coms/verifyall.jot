@@ -24,7 +24,7 @@
 %m=Verification of all buffers - starting;
 ob %q~=system; f/buffers:/
 %%Buffer loop
-(z~mf1/ buffer /- q/a-z$;~/, oico#o#n.a$z$oo/%%m=verifying %c/boo/z%c/b oo/(%%q=verify;, %%x=Fail buffer %c;)/ '$)0
+(z~mf1/ buffer /- q/a-z$;~/, oico#o#n.a$& z$oo/%%m=verifying %c/boo/z%c/b oo/(%%q=verify;, %%x=Fail buffer %c;)/ '$)0
 z$okoz
 %m=Verification of all buffers - complete;
 

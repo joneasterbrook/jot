@@ -79,7 +79,7 @@ z@m-0
 m-0b-2i"#!/bin/sh"
 
 %%Write the command file.
-z@%b=pathname '\;.sh; %o
+z@ %b=pathname '\;.sh; %o
 
 %%Change permissions to execute.
 z;r-0n.r0a$h$z$r-0i/%e=chmod u+x /r0i/.sh/ '$

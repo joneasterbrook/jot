@@ -67,10 +67,10 @@ m0onol1000o+ %h=create '~;
 %%Now create the list of files in .=Files
 %h=data .=Files; %d~=;o# ov/.=Files/ z~%h=create 100; z. ok
 %%Set up the hashtable, duplicated keys are suffixed with "__n".
-m-0 (v/!/m, n.f1/	/a$& (%h=new '$;, ol0(o# %h=new '$__'~;\ o~)0 ok) m)0
+m-0 (v/!/m, n.f1/	/a$& (%h=newjump '$;, ol0(o# %h=newjump '$&__&'~;\ o~)0 ok) m)0
 %%
 %%Set up the tags_index_stack.
-%h=data .=tags_index_stack; n.a~ov/.=tags_index_stack/
+%h=data .=tags_index_stack; n.a~& ov/.=tags_index_stack/
 
 %g7
 %%Macro 7 - go to specified section, if section is not in memory, read the relevant source file.
@@ -85,7 +85,7 @@ oq/.=tags_index_stack/ z~m0r0bi'$ z.ok
 %%
 ( %h=jump .='$;
 , %%Key not recognized return back up the stack.
-  oq/.=tags_index_stack/z~(k-(rr-n.r0a$k)? z.ok %h=jump '$;, %x=Error: Section '$ not found in the tags-index file.; )
+  oq/.=tags_index_stack/z~(k-(rr-n.r0a$k)? z.ok %h=jump '$;, %x=Error: Section &'$& not found in the tags-index file.; )
   )
 %%
 %%The hashtable key is now defined by ( $ ).
@@ -103,7 +103,7 @@ f1/	/-n.f1//a!&
 %%Find the requested code section using either the string or line number from the ctags file.
 z.r(v"/^"r2n.f1|$/;"|a$&z~m-0 (f'$r-\r0v-'$\)0, q/0-9/oid osz~osono-om)
 %%Now adjust the view to get the section start about 3/4 of the way up the screen.
-z~w %q$=window; f/currently buffer ( ~ ), /-oidosz~os ol3o*ol4o/ow
+z~ %w=refresh;  %q$=window; f/currently buffer ( ~ ), /-oidosz~os ol3o*ol4o/ow
 
 :
 

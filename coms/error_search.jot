@@ -28,10 +28,10 @@
 %g?
   Command-line arguments:
     - -script=<pathName>[ +<pathname2>[ +...]] - pathName[s] of script[s] to be processed (this is copied to <pathName>_orig).
-    - -invoke=<name> name of jot image - typically jot, jot_dev ...
-    - -hangup[=<n>] - script is deemd to have faild if it has not stopped after n seconds (n defaults to 60)
     - -valgrind - sets up to run the script under valgrind supervision.
     - -gdb - sets up to run the script under gdb supervision.
+    - -timeout[=<n>] - script is deemed to have failed if it has not completed after n seconds (n defaults to 60)
+    - -invoke=<name> name of jot image - typically jot, jot_dev - defauls to whatever's running error_search script.
     - -winedbg - sets up to run script under winedbg
     - -wine - runs script under wineconsole but only checks the exit status - use this when the script crashes winedbg.
     - -winecrash - runs script under wineconsole but only checks the exit status - use this when the script crashes winedbg.
@@ -67,13 +67,13 @@ $ jot t.t -in="%r=error_search -script=./test123456789.jot;"
 
 %g#
 %%Set up windows;
-%w; %wh= -height=11; %w= -height=15 -delim;
+%w=clear; %wh=new -height=11; %w=new -height=15 -delim;
 %%
 %%Set up default invocation name.
 %qi=system; (f/ Invocation name = /- b-k-0mk0, m-0k0i/jot/)
 %%
 %%Process command-line args.
-z$r-0(v/ /, i-/ /) n.af
+z$r-0(v/ /, i-/ /) n.af&
 %%
 %%If -invoke is given this replaces the default.
 r-0(f/ -invoke=/-n.(f1/ /, r0)ai&, )
@@ -91,40 +91,46 @@ r-0
       , %%No -script qualifier.
         zp %x=No -script=<pathname> - you must specify a test script to be searched.; ) )
     %%
-    
+    %e=rm -f l99.t.jnl/LOCK;
     %%Verify existance of the test script.
-    ( %q=file 's;, zs %l;w %x=Test script 's does not exist, bye.;)
+    ( %q=file 's;, zs %l; %w=refresh; %x=Test script &'s& does not exist, bye.;)
     %%
     %%Rename script
     %i.='s; zsr0i/_boiled/z. %b=pathname 's; %o='s;
     %%
     %%Use pid to uniquify no_fail pathname.
     %q@=pid; k
+    %e=rm -f ./l99.t.jnl/LOCK;
     %%Now any optional args.
     ( z$r-0f1/ -valgrind/
       %%valgrind command line.
-      n.aczci/%e@=\valgrind --leak-check=full --track-origins=yes / i'i i/ l99.t -st -init="%r=/i'si/ -asConsole\; %a\;" 2>&1;/
+      %dc=%e@=\valgrind --leak-check=full --track-origins=yes &'i& l99.t -st -jou -init="%r= -asConsole &'s&\\\\\; %a" 2>\\\&1\\\;?;
       %%Valgrind failure detector.
       zfi"f/ERROR SUMMARY: 0 errors from 0 contexts/"
     , f1/ -gdb/
       %%gdb command line.
-      n.aczci/%e@=\gdb -ex="set confirm off" -ex="r" -ex="q" --args / i'i i/ l99.t -st -init="%r=/i'si/ -asConsole\; %a" 2>&1;/
+      %dc=%e@=\gdb -ex="set confirm off" -ex="r" -ex="q" --args &'i& l99.t -st -init="%r= -asConsole &'s& \\\; %a=\\\;" 2>\\\&1\\\;?;
       %%gdb failure detector.
       zfi"f/Program received signal SIGSEGV, Segmentation fault./\"
+    , f1/ -timeout/- (v/=/roid, ol60)
+      %%Launch the job and if it's not completed within the timeout period it's deemed to have failed.
+      %dc=%e@=\timeout &'~& &'i& l99.t -st -init="%r= -asConsole &'s& \\\; %m=Normal_exit\\\; %a\\\;" 2>\\\&1\\\;?;
+      %%timeout failure detector.
+      zfi"f/Normal_exit/"
     , f1/ -winedbg/
       %e=rm -f error_search_NoFail;
       %%winedbg command line.
-      n.aczci/%l; %e=echo "%e=touch\ error_search_NoFail\;" >> /i'si/\; rm -f error_search_NoFail\;echo "c" | \winedbg / i'i i/ l99.t -st -init="%r=/i'si@\\ -asConsole\;\\ %a\;" 2>&1 > /dev/null @
+      n.ac& zci/%l; %e=echo "%e=touch\ error_search_NoFail\;" >> /i'si/\; rm -f error_search_NoFail\;echo "c" | \winedbg / i'i i/ l99.t -st -init="%r=/i@\\ -asConsole@i'si@\;\\ %a\;" 2>&1 > /dev/null @
       %%winedbg failure detector.
       zfi"%q=file error_search_NoFail;"
     , f1/ -wine/
       %%Check only wineconsole status code.
-      n.aczci/%l;  (%e=\wineconsole / i'i i/ l99.t -st -init="%r=/i'si/ -asConsole\; %a0\;";ol1, ol0) /
+      n.ac& zci/%l;  (%e=\wineconsole / i'i i/ l99.t -st -init="%r= -asConsole/i'si/\; %a0\;";ol1, ol0) /
       %%winedbg failure detector.
       zfi"ol0(o=ok, ok\)"
     , f1/ -winecrash/
       %%Check only wineconsole status code.
-      n.aczci/%l;  (%e=\wineconsole / i'i i/ l99.t -st -init="%r=/i'si/ -asConsole\;\ %a0\;";ol0, ol1) /
+      n.ac& zci/%l;  (%e=\wineconsole / i'i i/ l99.t -st -init="%r= -asConsole/i'si/\;\ %a0\;";ol0, ol1) /
       %%winedbg failure detector.
       zfi"ol0(o=ok, ok\)"
     , %%By default a crash supresses the Normal-exit message, so check for the no_fail file written at the end of a successful run.
@@ -132,19 +138,19 @@ r-0
       %%
       z$f1/ -xterm/
       %%xterm command line.
-      n.aczci/%e@=\xterm -e / i'i i/ l99.t -st -init=\"%r=/ i's i/ -asConsole\; z@m-0k0 %o=no_fail_/ i'@ i/\; %a0\;" 2>&1;? /
+      n.ac& zci/%e@=\xterm -e / i'i i/ l99.t -st -init=\"%r= -asConsole/ i's i/\; z@m-0k0 %o=no_fail_/ i'@ i/\; %a0\;" 2>&1;? /
     , f1/ -xgdb/
       %%xgdb command line.
-      n.aczci/%e@=/ i/\; \xterm -e \gdb -ex="set confirm off" -ex="r" -ex="q" --args / i'i i/ l99.t -st -init=t\"%r=/ i's i/ -asConsole\; (t f.Program received signal SIGSEGV, ., z@m-0k0%o=no_fail_/ i'@ i/\;) %a0\;" 2>&1;/
+      n.ac& zci/%e@=/ i/\; \xterm -e \gdb -ex="set confirm off" -ex="r" -ex="q" --args / i'i i/ l99.t -st -init=t\"%r= -asConsole/ i's i/\; (t f.Program received signal SIGSEGV, ., z@m-0k0%o=no_fail_/ i'@ i/\;) %a0\;" 2>&1;/
     , %%If no run environment specified, run it in a subprocess.
-      n.aczci/%e@=/i'i i/ l99.t -st -init=\"%r=/ i's i/ -asConsole\; z@m-0k0 %o=no_fail_/ i'@ i/\; %a0\;" 2>&1; %l; /
+      n.ac& zci/%e@=/i'i i/ l99.t -st -init=\"%r= -asConsole/ i's i/\; z@m-0k0 %o=no_fail_/ i'@ i/\; %a0\;" 2>&1; %l; /
       )
     %%
     %%If -failif=<cmds> is given this replaces the default comparator.
     ocr-0(f1/ -failif=/ n.(f1/ -/, r0)af&, )oco-or
     
     %%Initialize progress monitor etc.
-    z.m0on n.ab n.ah n.apzpb100m-0 zh
+    z.m0on n.ab& n.ah& n.ap& zpb100m-0 zh
     i/Progress monitor: /i's b
     i/------------------------------------------------------/b
     ol1o-o#
@@ -162,19 +168,19 @@ r-0
     i/Comparator command: /hfb
     i/Launch command: /hc
     %%
-    %qt=date; mzpm-0i/Progress summary:/b
-    i/Pass  0, start time /i'ti/ (Ensures the script really does detect errors)/b m-0w
+    %qt=date; mzpm0i/Progress summary:/b
+    i/Pass  0, start time /i'ti/ (Ensures the script really does fail)/b m0 %w=refresh; 
     
     %%Print a timecheck.
     %q@=date; mp
     %%Check that this script really does exhibit errors.
-    'c %l; ('f zp %m=; %m=; %m=This script does not seem to fail.;, %M=Pass0 OK - it fails;\?) )0
+    'c? %l; ('f zp %m=; %m=; %m=This script did not fail.;, %M=Pass0 OK - it fails;\?) )0
     %%
     %%Exit now if only a -check run.
-    z$r-0 (f/ -check/zp %x=The script fails, error_search halted after pass 0 as requested.;, )
+    z$r-0 (f/ -check/zp %x=The script failed, error_search halted after pass 0 as requested.;, )
 
   %%Set up pass counter.
-  ol1os zhm-0 zp w
+  ol1os zhm-0 zp  %w=refresh; 
   ( %%Main loop - remove a block of commands, re-run tests.
     %%If it exits normally restore block, if it fails put end of block in rubbish bin.
     %%
@@ -193,18 +199,18 @@ r-0
       %%Print a timecheck.
       %q@=date; mp
       %%Re-run tests.
-      zp 'c %l;
+      %e=rm -f l99.t.jnl/LOCK; zp 'c? %l;
       %%Check results.
-      ('f %%Success - failure dependant on whatever's in current block, restore block and continue.
+      ('f %%Success - failure is dependant on something in deleted block, restore this block and continue.
         z.h_
-      , %%Fail - delete current block.
+      , %%Fail - current block stays deleted.
         zbh_zhm+8oido~oo/%8d/
         %%Make a security copy of the last-failing version of the boiled-down script.
-        z.n.a@z@i/%e=\cp -p /i's i/ /i's i/~;/zpw '@ )
+        z.n.a@& z@i/%e=\cp -p /i's i/ /i's i/~;/zp %w=refresh;  '@ )
       %%Update progress monitor.
       ( z. onm0onol1o-zhm+4e8oo/%8d/z.ono-om onzhm+5e8oo/%8d/ zbm0onol1o-zhm+6e8oo/%8d/, )
       %%Exit if at end of test script.
-      zp w z.mm- )0
+      zp  %w=refresh;  z.mm- )0
     %%Stop now if previous loop exited early.
     z.(m %x=Forced or error exit;, m-)
     %o
@@ -213,7 +219,7 @@ r-0
     zhm+8oid zpm0r0oo/, removed %5d blocks / 
     zhm+7oid zpr0oo/of %8d lines/ 
     zhm+4oid zpr0oo/, script size now %8d lines/b
-    zp w )0 zp w)0
+    zp  %w=refresh;  )0 zp  %w=refresh; )0
 ok ok
 :
   

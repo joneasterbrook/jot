@@ -80,7 +80,7 @@ z$m-0
   oz
   %%No jot command - prompt for command.
   %s=prompt Enter command line (":" to finish) 
-  n.a!z!g0?m0r0b
+  n.a!& z!g0?m0r0b
   %s=prompt > ;
   m-0b(i/  /m2m-)0j-
   )
@@ -108,4 +108,4 @@ m-0 (f/!/s'@)0
 z@m-0oicos '#
 
 %%Launch user commands in @ or whatever buffer defined by -use qualifier.
-n.a$z$oo/'%c/ '$
+n.a$& z$oo/'%c/ '$

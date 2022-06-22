@@ -1,5 +1,4 @@
-%w
-
+%%Spelling checker.
 %%
 %%    Copyright (C) 2013-2018 Jon. Easterbrook
 %%
@@ -33,13 +32,13 @@
 '$
 
 %%Run the spelling checker.
-m0n.r0a_h_n.a$z$i/%e=spell /h_i/ | sort -f > /h_i/.spl/
-%w
+m0n.r0a_h_n.a$& z$ i/%e=spell /h_i/ | sort -f > /h_i/.spl/
+%w=clear;
 %m=Running the spelling checker
 '$
 %% 
 %id=${JOT_RESOURCES}/wpspell.lis
 %il=${JOT_RESOURCES}/lexicon.lis
-n.a$z$i/%ie=/h_i/.spl/
+n.a$& z$i/%ie=/h_i/.spl/
 z.'$
 %r=spellwin
