@@ -154,7 +154,7 @@ oq/'=cc/ %s=commandcounter '~;
       %%Implement -debug if required.
       oq/'=debug/ol0o=,  f/%q@=window;/- i/  %w=clear; %w=new -height=20 -delim; t/ ) ok
     ( %%Do it.
-      z. %h'=call '*; z*k,t z@m-0(f1/ (/n.r0a$& z*r0i'$, z*)m)
+      z. %h'=call '*; z*k, z@m-0(f1/ (/n.r0a$& z*r0i'$, z*)m)
     mm-o@)
   )0
 %%Clear windows and report results to console.

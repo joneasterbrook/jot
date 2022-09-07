@@ -582,7 +582,7 @@ int ReadUnbufferedStreamRec(struct Buf *, int, HANDLE *, int, long long *);
 
 volatile int PropagateSigwinch = 0;
 void SigwinchHandler(int);
-int RegexSearchBuffer(struct Buf *, char, char *, int , int, int);
+int RegexSearchBuffer(struct Buf *, char, char *, int , int, int, int);
 static int s_DefaultColourPair;
 static char *s_Locale;
 void Ctrl_C_Interrupt(int);
@@ -735,6 +735,7 @@ int FetchHexArgFunc(struct AnyArg **);
 double FetchFloatArg(struct FloatArg **);
 struct Block *FetchBlock(struct PtrArg **);
 int FetchStringArgPercent(char *, int *, struct AnyArg **);
+int FetchStringArgSimple(char *, struct AnyArg **);
 char * FetchStringArg(struct PtrArg **, char *);
 int DoHash(char, struct AnyArg **, struct Com *);
 int SetDataObject(char *);
@@ -2251,7 +2252,7 @@ void JOT_Sequence(struct Buf *CommandBuf, struct Seq *ThisSequence, int StopOnEO
           else if (CheckToken("CLEAR", Token, 1, QualLen, ThisCommand, W_clear))
             { }
           else
-            LocalFail = SynError(CommandBuf, "Unrecognized %%W command %S", Token);
+            LocalFail = SynError(CommandBuf, "Unrecognized %%W command: %s", Token);
           while ( (QualLen = CopyToken(Token, CommandBuf, TRUE)) ) {
             if (CheckToken("HEIGHT", Token, 1, QualLen, ThisCommand, W_heightQual)) {
               if ((CommandBuf->CurrentRec->text + CommandBuf->CurrentByte)[0] == '=') {
@@ -5071,7 +5072,10 @@ int Run_Sequence(struct Seq *Sequence)
             break; } }
         if (LocalFail)
           continue;
-        FetchStringArgPercent(Expr, NULL, &ThisArg);
+        if (RexQual)
+          FetchStringArgSimple(Expr, &ThisArg);
+        else
+          FetchStringArgPercent(Expr, NULL, &ThisArg);
         if (Expr[0] != '\0')
           strncpy(s_GenFindString, Expr, StringMaxChr);
         else
@@ -5159,7 +5163,7 @@ int Run_Sequence(struct Seq *Sequence)
                 break;
               ConditionalEndByte = ConditionalLineCount==0 ? EndByte : -1; }        //Only set the ConditionalEndByte on the last line.
             if( ! (RexQual ?
-                RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, ConditionalLineCount, EndByte) :
+                RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, ConditionalLineCount, EndByte, ReverseQual) :
                 GeneralSearchBuffer(s_CurrentBuf, s_GenFindString, LocalTab, MultiSearchArg, Direction, ConditionalLineCount, EndByte, ReverseQual)) )
               break;
             
@@ -5167,7 +5171,7 @@ int Run_Sequence(struct Seq *Sequence)
             InstanceCount = 1;
             OrigText = s_CurrentBuf->CurrentRec->text;
             while (RexQual ?
-                RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, 0, ConditionalEndByte) :
+                RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, 0, ConditionalEndByte, ReverseQual) :
                 GeneralSearchBuffer(s_CurrentBuf, s_GenFindString, LocalTab, MultiSearchArg, Direction, 0, ConditionalEndByte, ReverseQual) ) {
               InstanceCount++;
               TotalInstancesLen += s_CurrentBuf->SubstringLength; }
@@ -5182,7 +5186,7 @@ int Run_Sequence(struct Seq *Sequence)
             s_CurrentBuf->CurrentByte = (s_CurrentBuf->LineNumber == StartLine) ? StartChr : 0;
             
             while (RexQual ?
-              RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, 0, ConditionalEndByte) :
+              RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, 0, ConditionalEndByte, ReverseQual) :
               GeneralSearchBuffer(s_CurrentBuf, s_GenFindString, LocalTab, MultiSearchArg, Direction, 0, ConditionalEndByte, ReverseQual) )
             { //Text-copying loop.
               memcpy(NewText + PrevSubsEnd, OrigText + PrevMatchEnd, s_CurrentBuf->CurrentByte - PrevMatchEnd + 1);
@@ -5207,7 +5211,7 @@ int Run_Sequence(struct Seq *Sequence)
             if (GeneralSearchBuffer(s_CurrentBuf, s_GenFindString, LocalTab, MultiSearchArg, Direction, LineCount, EndByte, ReverseQual) == 0)
               LocalFail = 1; }
           else { //It's a regular expression.
-            if (RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, LineCount, EndByte) == 0)
+            if (RegexSearchBuffer(s_CurrentBuf, BufferKey, s_GenFindString, Direction, LineCount, EndByte, ReverseQual) == 0)
               LocalFail = 1;
             break; } }
         break; }
@@ -5311,6 +5315,8 @@ int Run_Sequence(struct Seq *Sequence)
         Message(NULL, "%s", MessageText);
         LocalFail = 1;
         s_BombOut = TRUE;
+        if (s_TraceMode & Trace_Interrupt)
+          s_TraceMode = s_DefaultTraceMode;
         break; }
 
      case 'S': { //%S - System settings and utilities.
@@ -5488,7 +5494,7 @@ int Run_Sequence(struct Seq *Sequence)
           long long Value;
           FetchIntArg(&Value, (struct AnyArg **)&ThisArg);
           s_CommandCounter = s_CommandCounterInit = 0ll-Value;
-          if (s_Verbose & Verbose_NonSilent)
+          if ( (s_Verbose & Verbose_NonSilent) && Value)
             Message(NULL, "Command sequence will be interrupted after %lld commands", Value);
           break; }
 
@@ -5513,7 +5519,7 @@ int Run_Sequence(struct Seq *Sequence)
           s_ModifiedCommandString = (char *)JotMalloc(strlen(TempString)+1);
           strcpy(s_ModifiedCommandString, TempString);
           if (s_JournalHand)
-            UpdateJournal("%% %s=commandstring", NULL);
+            UpdateJournal("%s=commandstring", NULL);
           break; }
 
         case S_prompt: { //%s=prompt <string> - sets the prompt string used by G command.
@@ -8422,9 +8428,10 @@ int GeneralSearchBuffer(struct Buf *TextBuf, char *OrigSearchString, char TabChr
   else { //Backwards searches.
     MatchedLineNo = INT_MIN;
     MatchedByte = INT_MIN;
-    if (0 < TextBuf->SubstringLength)
-      RefStartPoint -= 1;
-    else if (TextBuf->SubstringLength < 0)
+//    if (0 < TextBuf->SubstringLength)
+//      RefStartPoint -= 1;
+//    else if (TextBuf->SubstringLength < 0)
+    if (TextBuf->SubstringLength < 0)
       RefStartPoint -= -(TextBuf->SubstringLength);
     TextBuf->SubstringLength = 0;
     if (s_CaseSensitivity) { //Case-sensitive backwards search.
@@ -8660,7 +8667,7 @@ int SimpleSearchBuffer(struct Buf *TextBuf, char *OrigSearchString, int Directio
       return TRUE; }
 
 //----------------------------------------------RegexSearchBuffer
-int RegexSearchBuffer(struct Buf *TextBuf, char BufferKey, char *SearchString, int Direction, int LineCount, int LastByte)
+int RegexSearchBuffer(struct Buf *TextBuf, char BufferKey, char *SearchString, int Direction, int LineCount, int LastByte, int Reverse)
   { // Regular-expression Search of buffer, limited to a number of records.
 #if defined(NoRegEx)
   return FALSE;
@@ -8671,28 +8678,28 @@ int RegexSearchBuffer(struct Buf *TextBuf, char BufferKey, char *SearchString, i
   int frame = 0;      //Used to allocate each regexec call a new frame in pmatch in backwards searches.
   size_t frameSize;   //Used in management of and extraction from frames in pmatch array.
   int IgnoreCase = s_CaseSensitivity ? 0 : REG_ICASE;
-  int StartPoint = TextBuf->CurrentByte;
+  int StartByte = TextBuf->CurrentByte;
   struct Buf *DestBuf = NULL;
   int RegExFailed = FALSE, i, Byte;
   
   //This deals with the situation where the search follows an earlier successful search - possibly of the same string.
   if (TextBuf->SubstringLength) {
     if (TextBuf->SubstringLength < 0)
-      StartPoint += TextBuf->SubstringLength + Direction;
+      StartByte += TextBuf->SubstringLength + Direction;
     else
-      StartPoint += Direction;
+      StartByte += Direction;
     TextBuf->SubstringLength = 0; }
-    //Having done that, we may have left the StartPoint out of bounds.
+    //Having done that, we may have left the StartByte out of bounds.
     if (0 < Direction) { //Forwards search.
-      if (strlen(TextBuf->CurrentRec->text) <= StartPoint) { //Oh dear - we need to move to the next record.
+      if (strlen(TextBuf->CurrentRec->text) <= StartByte) { //Oh dear - we need to move to the next record.
         if (LineCount-- == 0 || AdvanceRecord(TextBuf, 1))
           return FALSE;
-        StartPoint = 0; } }
+        StartByte = 0; } }
     else { //Backwards search.
-      if (StartPoint <= 0) { //Oh dear - we need to move to the end of the previousrecord.
+      if (StartByte <= 0) { //Oh dear - we need to move to the end of the previous record.
         if (LineCount-- == 0 || AdvanceRecord(TextBuf, -1))
           return FALSE;
-        StartPoint = strlen(TextBuf->CurrentRec->text); } }
+        StartByte = strlen(TextBuf->CurrentRec->text); } }
     
   if (BufferKey) {
     DestBuf = GetBuffer(BufferKey, AlwaysNew);
@@ -8714,10 +8721,10 @@ int RegexSearchBuffer(struct Buf *TextBuf, char BufferKey, char *SearchString, i
   
   if (0 < Direction) { //Forward search.
     for (;;) { //Record loop, if pattern not matched in this record, move record pointer.
-      if (StartPoint < strlen(TextBuf->CurrentRec->text)) {
-        if ( ! regexec(&re, (TextBuf->CurrentRec->text)+StartPoint, 100, pmatch, 0) )
+      if (StartByte < strlen(TextBuf->CurrentRec->text)) {
+        if ( ! regexec(&re, (TextBuf->CurrentRec->text)+StartByte, 100, pmatch, 0) )
           break; }
-      StartPoint = 0;
+      StartByte = 0;
       if ( ! LineCount-- || AdvanceRecord(TextBuf, Direction)) { //End of buffer or record-limit reached.
         regfree(&re);
         if (DestBuf)
@@ -8734,18 +8741,18 @@ int RegexSearchBuffer(struct Buf *TextBuf, char BufferKey, char *SearchString, i
       int firstChr;
       int pass2OrMore = 0; //Flag indicating 2nd or subsequent retry in this record, also an increment to offset the start point after first successful match.
        
-      StartPoint = 0;
+      StartByte = 0;
        
       //Inner loop locates the last matching substring before the endStop
       //If there was a previous successful match in this record then offset the start point.
       for ( ; ; ) {
-        int status = regexec(&re, rec+StartPoint+pass2OrMore, 100-frame, pmatch+frame, 0);
+        int status = regexec(&re, rec+StartByte+pass2OrMore, 100-frame, pmatch+frame, 0);
         firstChr = pmatch[frame].rm_so;
-        if ( status || firstChr <= 0 || (endStop <= (StartPoint+pass2OrMore+firstChr)) ) { //Exit RE-match loop if match fails or we've gone past the endStop.
+        if ( status || firstChr <= 0 || (endStop <= (StartByte+pass2OrMore+firstChr)) ) { //Exit RE-match loop if match fails or we've gone past the endStop.
           if (pass2OrMore)
             goto reverseRegexMatchFound;
           break; }
-        StartPoint += firstChr+pass2OrMore;
+        StartByte += firstChr+pass2OrMore;
         frame += frameSize;
         pass2OrMore = 1; }
       RegExFailed |= ( ! LineCount-- ) || AdvanceRecord(TextBuf, Direction);
@@ -8758,26 +8765,32 @@ int RegexSearchBuffer(struct Buf *TextBuf, char BufferKey, char *SearchString, i
         return FALSE; }
       TempCount--; }
       
-reverseRegexMatchFound: //Last regexec call failed but the previous match was successful - rewind pmatch and StartPoint.
+reverseRegexMatchFound: //Last regexec call failed but the previous match was successful - rewind pmatch and StartByte.
     TextBuf->CurrentByte = 0;
     frame -= frameSize; 
-    StartPoint -= pmatch[frame].rm_so; }
+    StartByte -= pmatch[frame].rm_so; }
   
   for (i = 0; i < frameSize; i++) {
     regoff_t start = pmatch[frame+i].rm_so;
     regoff_t end = pmatch[frame+i].rm_eo;
-    Byte = StartPoint+pmatch[frame].rm_so;
-    if ( LineCount || (Byte <= LastByte) ) { //The match was within the soecified range.
+    Byte = StartByte+pmatch[frame].rm_so;
+    if (LastByte < 0 || Byte <= LastByte) { //Match was within the specified range.
+//    if ( LineCount || (Byte <= LastByte) ) { //Match was within the specified range.
       TextBuf->CurrentByte = Byte;
       TextBuf->SubstringLength = end-start; }
     if (DestBuf) {
       GetRecord(DestBuf, end-start+1, NULL);
-      strncat(DestBuf->CurrentRec->text, (s_CurrentBuf->CurrentRec->text)+StartPoint+start, end-start); } }
+      strncat(DestBuf->CurrentRec->text, (s_CurrentBuf->CurrentRec->text)+StartByte+start, end-start); } }
       
   if (DestBuf) {
     ResetBuffer(DestBuf);
     DestBuf->AbstractWholeRecordFlag = TRUE; }
   regfree(&re);
+  if (Reverse && (TextBuf->SubstringLength != 0) ) {
+    int SubstringLength = TextBuf->SubstringLength;
+    TextBuf->CurrentByte += SubstringLength;
+    TextBuf->SubstringLength = -SubstringLength;
+    return TRUE; }
   return (TextBuf->SubstringLength != 0);
 #endif
   }
@@ -9761,14 +9774,16 @@ int FetchStringArgPercent(char *DestString, int *LengthPtr, struct AnyArg **Curr
     int PopTheStack = FALSE;
     
     Length = ((struct StringArg *)ThisArg)->StringLength;
-    if (StringMaxChr <= Length) {
+    if (StringMaxChr <= OutputIndex+Length) {
+//    if (StringMaxChr <= Length) {
       DestString[0] = '\0';
       LocalFail = Fail("Overlong string truncated"); }
     if (Length) {
 //      if (OrigString[0] == '\0')
 //        break;
-      if (OrigString[0] == '\\')
-        Result = StartPoint+1;
+      if (OrigString[0] == '\\') {
+        Length--;
+        Result = StartPoint+1; }
       else if (OrigString[0] == '\'') { //It's some sort of indirect reference.
         char BufferKey = toupper(OrigString[1]);
         if (OrigString[1] == '~' || (OrigString[1] != '\0' && OrigString[2] == '=') ) { //It's either a stack or pathname-expression reference.
@@ -9825,6 +9840,18 @@ int FetchStringArgPercent(char *DestString, int *LengthPtr, struct AnyArg **Curr
       KillTop(); }
   
   return LocalFail;  }
+
+//---------------------------------------------FetchStringArgSimple
+int FetchStringArgSimple(char * DestString, struct AnyArg **CurrentArgs_a)
+  { //Extracts string are without allowing any indirection or control-character substitution.
+  if (*CurrentArgs_a == NULL) {
+    RunError("Insufficient args in list.");
+    return 0; }
+  if ((*CurrentArgs_a)->type != StringArgType)
+    RunError("Expecting a string-point argument, found some other type.");
+  strncpy(DestString, ((struct StringArg *)(*CurrentArgs_a))->String, ((struct StringArg *)(*CurrentArgs_a))->StringLength+1);
+  *CurrentArgs_a = ((struct StringArg *)(*CurrentArgs_a))->next;
+  return TRUE;  }
 
 //---------------------------------------------FetchFloatArg
 double FetchFloatArg(struct FloatArg **CurrentArgs_a)
@@ -10092,37 +10119,38 @@ int DoSort(int TabSort, struct AnyArg **ThisArg)
 int AddFormattedRecord(int AddToJournal, struct Buf *Buffer, char *String, ...)
   { //Appends a new record to buffer using specified format string and values, retuns no. of characters.
   va_list ap;
-  char *TempString, RealString[StringMaxChr];
+  char *ResultString, FullString[StringMaxChr];
   int Len;
    
-  TempString = RealString;
-  TempString[0] = '\0';
+  ResultString = FullString;
+  ResultString[0] = '\0';
   va_start(ap, String);
-Len = vsnprintf(TempString, StringMaxChr, String, ap);
-//  if ( (Len = vsnprintf(TempString, StringMaxChr-1, String, ap))==StringMaxChr-1 )
-//    TempString[StringMaxChr-1] = '\0';
+//Len = vsnprintf(ResultString, StringMaxChr, String, ap);
+  if ( (Len = vsnprintf(ResultString, StringMaxChr-1, String, ap))==StringMaxChr-1 )
+    ResultString[StringMaxChr-1] = '\0';
   va_end(ap); 
   if (AddToJournal && s_JournalPath) {
-    if (s_RecoveryMode) { //Replace given text with a line read from the recovery file.
-      fgets(RealString, StringMaxChr, s_asConsole->FileHandle);
+    if (s_RecoveryMode) { //Replace given text with a line read from the recovery file - fgets appends a '\n' which an cause recovery to crash.
+      fgets(FullString, StringMaxChr, s_asConsole->FileHandle);
       s_asConsole->LineNo++;
-      if (strstr(RealString, "%%Recovery record: ") == RealString) {
-        TempString = RealString+19;
-        Len = strlen(TempString);
-        if (TempString[Len-1] != '\0')
-          TempString[Len-1] = '\0'; }
-      else if (strstr(RealString, "%%Recovery open-ended report ends") == RealString)
+      if (strstr(FullString, "%%Recovery record: ") == FullString) {
+        ResultString = FullString+19;
+        Len = strlen(ResultString);
+        if (ResultString[Len-1] != '\0')
+          ResultString[--Len] = '\0'; }
+//          ResultString[Len-1] = '\0'; }
+      else if (strstr(FullString, "%%Recovery open-ended report ends") == FullString)
         return 0;
       else
-        Disaster("Wrong record type at line %d in recovery script, should be \"%%%%Recovery record: ...\" - read: \"%s\"",   s_asConsole->LineNo, RealString); }
-    else { //Using given text.
+        Disaster("Wrong record type at line %d in recovery script, should be \"%%%%Recovery record: ...\" - read: \"%s\"",   s_asConsole->LineNo, FullString); }
+    else { //Writing to journal file.
       char Buf[StringMaxChr];
-      sprintf(Buf, "%%%%Recovery record: %s", TempString);
+      sprintf(Buf, "%%%%Recovery record: %s", ResultString);
       if (s_JournalHand)
         UpdateJournal(Buf, NULL); } }
-  TempString[StringMaxChr-1] = '\0';
-  GetRecord(Buffer, Len+1, TempString);
-  return strlen(TempString); }
+  ResultString[StringMaxChr-1] = '\0';
+  GetRecord(Buffer, Len+1, ResultString);
+  return strlen(ResultString); }
 
 //-----------------------------------------------GetBufferPath
 int GetBufferPath(struct Buf *ThisBuf, char * ParentPath, int MaxSize) {
@@ -12513,6 +12541,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
   char EscapeString[EscapeSequenceLength+1];                            //Escape string derived from curses key code.
   int ScreenMode = (s_CommandMode & CommandMode_ScreenMode);
   char *CommandText = DestBuf->CurrentRec->text;
+  int RecordLength = DestBuf->CurrentRec->MaxLength-1;
   
   if (ScreenMode && s_CurrentBuf->EditLock & ReadOnly) {
     Message(NULL, "Buffer is readonly - exiting insert mode.");
@@ -12540,7 +12569,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
     DestBuf->CurrentByte = 0; }
 
   for ( ; ; ) { // Main character loop.
-    int RecordLength = DestBuf->CurrentRec->MaxLength;
+//    int RecordLength = DestBuf->CurrentRec->MaxLength;
     CommandText = DestBuf->CurrentRec->text;
     Chr = JotGetCh(FileHandle);
     if (feof(s_EditorInput->FileHandle))
@@ -12650,7 +12679,7 @@ char ReadCommand(struct Buf *DestBuf, FILE *FileHandle, char *FormatString, ...)
         CommandText[ByteCount] = Chr;
         if (RecordLength <= ++ByteCount) { //Abandon this command line, but first suck out any further characters that might screw things up later.
           CommandText[ByteCount-1] = '\0';
-          while ( (Chr = JotGetCh(FileHandle)) )
+          while ( (ByteCount < RecordLength) && (Chr = JotGetCh(FileHandle)) )
             if (Chr == '\n')
               break;
           return 1; }
@@ -14896,7 +14925,8 @@ void Zombify(struct Buf *TextBuf, struct AnyHTabObj *ThisObj)
     else if (ThisObj->type == HTabObj_Zombie)
       return;
     else if (ThisObj->type == HTabObj_Code)
-      free(((struct CodeHTabObj*)ThisObj)->CodeHeader);
+      { }
+//      free(((struct CodeHTabObj*)ThisObj)->CodeHeader);
     else {
       if (ThisObj->type == HTabObj_Setsect) 
         ((struct ZombieHTabObj *)ThisObj)->NewObj = NULL;

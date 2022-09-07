@@ -120,7 +120,7 @@ zoi"obz^m-0i/^[<<DEL>>    i`## `e-(e-, j-)/b   i/^[<<INS>>    i`## `e-/b  i/^[<<
   ( %%Is this a readFile operation, a keycode or some text?
     %%Comment out failed reads.
     zcv/%%Read file failed/ i.//.zom-r-0i.//.m, 
-    %%Nobble the %s=commandstring lines, the actual string is going to appear in the next line anyway.
+%%    %%Nobble the %s=commandstring lines, the actual string is going to appear in the next line anyway.
     %%Skip past command-file calls.
     zcf1/%%Running script /,
     %%Suppress <Esc I> - we don't need screen-enter mode and it just make life too confusing.
@@ -157,8 +157,8 @@ zoi"obz^m-0i/^[<<DEL>>    i`## `e-(e-, j-)/b   i/^[<<INS>>    i`## `e-/b  i/^[<<
   )0
 
 %%Now post-hoc tweaking of the %% %s=commandstring lines.
-%%  %%These might be wrapped up in a longer string of commands so, rather than attempting to comment these out, convert to a harmless message.
-%%  zom-0 (f/%s=commandstring/ i/%M=/m(f1//m, ))0
+%%These might be wrapped up in a longer string of commands so, rather than attempting to comment these out, convert to a harmless message.
+zom-0 (f/%s=commandstring/ i/%%  /mi/%%  /m)0
   
 :
 '#

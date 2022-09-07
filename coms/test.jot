@@ -115,6 +115,7 @@ m=4r20ol-3ou f-1/jon/\
 m=4r20ol-3ou f-/jon/\ 
 m=4r20ol-3ou %f= -back -endline=4 jon;\ 
 m=4r20ol-3ou %f= -back jon;\ 
+m-0f/9/f-1/8/- s/./v-/3 :1234567./e-i/8/
 
 %M=Check Qualify - Q command. 
 m-0m8r5v/c/
@@ -353,6 +354,11 @@ z.%q=windows;, m-0%f= -rex Test.*jon; v/Test file for jonathans wonderful editor
 z.%q=windows;, m0 %f= -rex -back Test.*jon; v/Test file for jonathans wonderful editor./v-/4 :/
 z.%q=windows;, m-0%fa= -rex Test.*jon; v/Test file for jonathans wonderful editor./v-/4 :/ zar\ mv/Test file for jon/r0v-//
 z.%q=windows;, m0 %fa= -rex -back Test.*jon; v/Test file for jonathans wonderful editor./v-/4 :/ zar\ mv/Test file for jon/r0v-//
+z.%q=windows;, m-0%f= -rex -reverse Test.*jon; v-/4 :Test file for jon/v/athans wonderful editor./
+z.%q=windows;, m=4 %f= -endline=4 jon; v-/4 :Test file for /v/jonathans wonderful editor./
+z.%q=windows;, m=4r0 %f= -back -endline=4 jon; v-/4 :Test file for /v/jonathans wonderful editor./
+z.%q=windows;, r-0n.r0a$h$2r-0 %f= -endline=4 jon; v-/4 :Test file for /v/jonathans wonderful editor.4 :/ 
+z.%q=windows;, r0 %f= -rex -back jon; v-/editor.4 :Test file for /r-17e0
 %%Now regular expression searches with start and end points.
 z.
 %q=windows;, m-0 %f= -rex -endline=4 -endchr=16 jon.*ans;\  

@@ -1,4 +1,4 @@
-%%Picks up a file relative to current file.
+%%Picks up a file with a given pathname relative to current file or pwd.
 %%
 %%    Copyright (C) 2013-2018 Jon. Easterbrook
 %%
@@ -21,28 +21,100 @@
   
 %g?
 get.jot: help
-   [Arg1  -  pathname stub.
-   [Arg2  -  Destination buffer key.]]
- or
-   [ -to=<key>][ -prepend=<path1>[;<path2>[;...]]] 
-     - -to= specifies buffer key if no pathname arg.
-     - -prepend=... list of paths to be prepended to relative paths.
+  Basic usage:
+> get[ -to|-allto=<chr>][ -depth=<n>][ -list][ -stdout][ -indent][ <pathSpec>]{F2}
+     - The pathSpec may fully-defined path, in which  case  the  script  lists
+       all members of the initial directory and invites you to select a  child
+       file or a subdirectory.
+     - Alternatively, the pathSpec may  contain  simple  wild  cards  "*"  any
+       number of times in the names  of  any  number  of  path  elements.  The
+       result will be a list of all possible matching path/file names.
+     - In addition  to  simple  wildcards,  an  entire  path  element  may  be
+       replaced by "**" (a tree-search wildcard) - in this case it launches  a
+       breadth-first search of the filing system. The search depth  limit  may
+       be set by the -depth=<n> parameter - defaults to 5.
+     - -to=<chr> - specifies buffer key to be  used  for  the  first  selected
+       file, for any subsequent files get.jot will prompt for a buffer key.
+     - -allto=<chr> - specifies  buffer  key,  every  selected  file  will  be
+       appended to the contents of the buffer. If both -to=  and  -allto=  are
+       specified then the value set by -to= is silently ignored.
+     - -indent when combined with -allto= this requests each nonblank line  be
+       indented by two blanks - this is used with  -allto=  and  ensures  that
+       each  new  document  is   identified   as   a   separate   chapter   in
+       the buffer - see `About words, lines, phrases,  sentences,  paragraphs,
+       sections and chapters`.  If  -allto=  is  not  given  then  -indent  is
+       silently ignored.
+     - -depth=<n> specifies  the  maximum  allowable  search  depth  for  tree
+       searches (see wildcards, above).
+     - -list  specifies  that  the  results  are  displayed  as  a   list   of
+       fully-formed paths - by default results are displayed in  the  form  of
+       a list of parent-directory paths, each followed by a list of children.
+     - -stdout - on completion results are written to stdout and  the  session
+       terminates, this option is probably of little  value  unless  the  path
+       specification contains wildcards.
+       
+  If an initial path is given then the contents of the specified directory  is
+  listeddisplayed as the parent pathname followed by a  list  of  children  in
+  the ( + ) buffer. This buffer is effectively a menu - navigate up  and  down
+  with the Up/DownArrow buttons and hit {Alt+0} to select an item.
+  
+  Moving to one of the child entries and calling macro ( 0  )  (  {Esc  0}  or
+  {Alt+0} ) descends to the child. 
+  
+  If the child is a recognized document type the file is opened and  displayed
+  in the nominated buffer.  MS-word  documents  (.doc  and  .docx)  are  first
+  converted to plain text using  tika,  XL  spreadsheets  are  also  converted
+  using tiks and PDFs are converted using ps2ascii. 
+  
+  If the child is another directory then the full pathname of  that  directory
+  with a list of its children are appended to the menu buffer ( + ).
+  
+  If the selected child is an archive file ( .tar, .tz, .zip or  .cab  )  then
+  the full pathname for the archive, followed by it's contents is appended  to
+  the menu buffer ( + ).
+  
+  For each directory/archive entry in the menu  buffer  (  +  )  the  path  is
+  prefixed with a key followed by an ascii tab (ascii tabs  are  displayed  as
+  tildes ( ~ ) in jot). This is used to determine  the  correct  approach  for
+  opening the object. The following keys are currently used:
+    - dir - a simple directory.
+    - tar --list --file - a tar archive.
+    - tar -tvf - a compressed tar archive.
+    - unzip -l - a zip-file archive.
+    - cabextract -l - an MS-cabenet archive.
+    
+  If the original path contains wildcards then the filing system  is  searched
+  for matching subpaths, the following wildcards are recognized:
+    - * - Replaces any number of characters in a path-element name.
+    - ** - Replaces any number (up to a preset limit) of path  elements.  Note
+      that the ** must be an entire path element i.e. should be ( /**/ ).  The
+      search depth can be set using the -depth=<n> modifier.
+  On completion of a search entries are appended to the menu buffer - one  for
+  each matching path. 
+  
+  If the ( 1 ) macro is used and -toall= was given then all  files  listed  in
+  the menu buffer ( + ) are loaded in the specified buffer. If -toall was  not
+  given then macro-1 exits with an error message.
   
 Buffer usage:
-  # - Main command macro, then used to build directory-listing command.
-  + - Holds directory listing.
-  0 - Holds main get macro.
-  $ - Temporary - holds Args.
-  ! - Holds data parsed from original query:
-      record 1 - pathName from arg
-      record 2 - pathName picked up from text
-      record 3 - destination buffer key.
-      record 4 - Most recent path passed to GetDescendPath.
-      record 5 - Righthand portion of current path - starting at next wildcard element.
-      record 6 - Default search path, either ${GetDefaultPath} or (linux) /usr/include or (windows) ~/ed/wine_32/libgw32c-0.4/include/glibc
+  $ - Temporary - initially holds CLI Args, subsequently ho;ds latest directory or archive-file path, ....
+  # - In a tree search it's the original user-supplied path specification.
+  + - Directory listing/menu.
+  @ - Temporary - copy of the extracted file, tika version name, path stubs,  ....
+      and search-verification macro - checks that the current path concorms to the specification.
+  0 - Main get macro.
+  1 - Macro to load all listed files to buffer indicated by -allto= parameter.
+  
+Data objects:
+  '=getDestinationKey     - target buffer to receive text file (see -to, above)..
+  '=getAllDestinationsKey - target buffer to receive any number of text files (see -allto, above)..
+  '=getTempfilePrefix     - For linux this is typically /tmp/get_<pid> - it is prepended to all temporary file names.
+  '=getIndent             - Indent all nonblank lines to ensure identification of chapters.
+  '=getSearchDepth        - maximum allowable search depth for tree searches (see -depth=<n>, above).
+  '=getList               - changes results format to a simple list of pathnames.
+  '=getStdout             - writes results to stdout (see -stdout, above).
       
 Requires these utilities:
-  - file - (linux only) reports file types.
   - tar - gnu version, lists, unpacks and decompresses tar archives.
   - java/tika - converts various document formats to plaintext. 
   - iconv, converts various unicode encodings to UTF-8
@@ -67,385 +139,288 @@ Behaviour
 :
 
 %g@
-<<GetInitializeSearch>>
-%%Clear out any old path list and gather up all known data into the ( ! ) buffer and determine initial path using path prioritization rules.
+<<GetInit>>
+%%Called by user after selecting a file.
+%%Extract the selected member of the directory/archive file.
 %%
-n.a+& obz!m-0k0e0b6oz
-%%Process qualifiers and add given path to ( ! ) buffer.
-obz$ m-0i/ /r-0(f/ -to=/bf1//-e-0rb-z!m=3i'$z$k, ) m-0(f/ -prepend=/bf1//-e-0 ((f1/ /v-/\/r2)0v/ / b-, r0) z!m=6i'$z$k, ) z$m-0((v/ /e)0 r\m)0 z!m=1i'$ oz
-%%
-%%Pick up any plausable-looking path from the text - in windows and allow colons - used for drive-letter ID.
-ob ((q/ "'/r)0 ocn.( (%q=windows; (q/a-zA-Z/rv/:/r, r-)q"-/~\{}$.@_0-9a-zA-Z%", q"-/~\{}$.@_0-9a-zA-Z~") (q//r)0 a$&, n.a$& ) r-0or z!m=2i'$) oz
-%%
-%%Define the default path (prepended to relative paths when current-files path doesn't work).
-obz!m=6 (r, %q$=env GetDefaultPath; k(rr-f1/<undefined>/\)z!i'$, z! (%q=linux; i"/usr/include/", i"C:/Program Files/Windows Kits/10/Include/10.0.18362.0/ucrt") ) oz
-%%
-%%Expand any references to env variables - already done by the shell in linuxland.
-obz!m=1 ( (f1/${/e2n.f1/}/a$e %q$=env '$; kz!i'$)0 m)2 oz
-%%
-%%In windowsland transliterate backslashes now.
-( %q=windows; obz!m=1 ( (f1"\"s"/")0 m)2 oz, )
-%%
-%%In linuxland remove backslashes from escaped characters - these are not necessary here.
-(%q=windows;, obz!m=1 ((f1/\/(v/\/r, ))0 m)2 oz, )
-%%
-%%In linuxland, expand any leading tilde ( ~ ) to users home area.
-( %q=windows;, obz!m=1 (v/~/%q$=env HOME; kz!ei'$, m)2 oz, )
-%%
-%%Expand any env-variable references in the given or picked-up paths.
-obz!m=1 ( ( f1/$/e(v/{/en.f1/}/a!e, n.(q/a-zA-Z0-9_-/r)0a!) z!r-0i/%q!=env / '! mz$i'! )0 m)2 oz
-%%
-%%In windowsland expand any windows-like env references.
-( %q=windows; obz!m=1 ( (f1/%/-v/%/\ n.f1/%/a$ (%q$='$; kz!ee-, )z!i'$, ) m)2 oz, )
-%%
-%%Trim off leading and trailing blanks and, in linuxland, trailing path separators.
-obz!m=1 ( (v/ /e)0 r0(v-/ /e-)0 (%q=windows;\ (v-"/"e-, ), ) m)2 oz
-%%
-%%If path is actually a whitespace-separated list (shell expansion of a  * ) then form them into get.jot pathname list.
-obz!m=1 (f1/ /v-/\/r)0(v/ / r-0n.r0a+& z+((f1/ /v-/\/r)0v/ /(v/ /eb)0)0 ok %h'=call GetDescendPath; x0, ) oz
-%%  obz!m=1 (f1/ /v-/\/r)0(v/ / r-0n.r0a+& z+((f1/ /v-/\/r)0v/ /(v/ /eb)0)0 ok %h'=call GetDescendPath; x0, oz)
-%%
-%%
-%%Path prioritization behaviour implemented here:
-%%
-%%
-obz!m=1 
-( r %%A path was given.
-  ( z!m=1n.r0a$& f-1/*/\ %q=dir '$;\
-    %%There's no wildcards but an invalid pathname - try searching the given path for anything matching the given name.
-    z$r0(f-1"/"-, r-0i"./")b- %q+=dir '$; z$mz+m(f1'$\k, m)0 m-0r4 n.r0a$k (h$(v-"/", i"/")m)0 %h'=call GetDescendPath;
-  , %%Simple relative (to PWD) path with or without wildcards?
-    r-0n.r0a+& (%q=dir '+; z+r0(v-"/", i"/") %h'=call GetDescendPath;)
-  , %%  - if the pwd prepended to the given path is a valid path, use that
-    r-0n.r0a+& %h'=call GetDescendPath; 
-  , %%  - if the current buffer path prepended to the given path exists, use that
-    z!m=1 o#oz%q+=buffer;
-    ( f/ pathname = /-b-k-0mk0r0f-"/"-e0i'!
-      %h'=call GetDescendPath; )
-  , %% - there was a given path and none of the above worked then exit with a failure message.
-    z! r-0r oz %X=get: cannot match given path &'!;, )
-, %%No given path, try extracted path from the current text
-  z!m=2 n.ma+&z+m-0
-  ( %q=file '+; %%The extracted pathname was a sufficient path.
-    z+r0(f-1"/", r-0i"./")b-r-0i/ /m %h'=call GetDescendSelection; 
-  , %%  - try prepending current-buffers path to the extracted path
-    z!m=2 o#oz%q+=buffer; f/ pathname = /-b-k-0mk0 r r0f-"/"-e0 i'! %q=file '+; z+r0(f-1"/", r-0i"./")b-r-0i/ /m  %h'=call GetDescendSelection;
-  , %%  - if default path list exists, try prepending these to the extracted pathname
-    %%Construct the list of full paths and check each in turn.
-    z!m=6rr-n.r0a+& m=2 z+r-0((f/,/e, r0)(v-"/", i"/")i'! rr-b)0 m-0 (%q=file '+;\ (m, x2\))0 
-    %%Split the path and go.
-    z+r-0i/dir /r0(f-1"/"-, r-0i"./")b %h'=call GetDescendSelection;  )
-, %%No given path and no plausable path at current character in the text - simply list current-files siblings.
-  ( o#oz %q@=buffer; f/ pathname = /-b-k-0mk0r0(f-1"/", r-0i/./)e0 z!m=5(r, i"/*") 
-  %q+=dir '@; n.ma$ (f"./"r-0v"./"k, v"../"k, m)0 %b=sort; h$jm0r0bm-0
-    , %X=get: cannot determine initial path for search.; ) )
-
-<<GetDescendPath>>
-%%The ( + ) buffer contains a list of possible paths.
-%%Each sub-list consists of a path followed by a list of files found in that directory.
-%%
-%%Initialize - clear path list ( @ ), pick up path and wildcard subpath.
-z!m=4e0i'+ z+n.a@& m-0 (f1/*/(f-1"/"r, r-0)n., r0n.)r0a$ z!m=5e0h$ z+(f-1"/", r-0i"./" %q=dir '+;, %q=file '+;, x\) 
-( %%Wrapper block.
-  %%If the specification contains no wildcards, skip the wildcard match.
-  (z!m=5f1/*/,  %%No wildcards - expand original path list.
-    z+m-0n.a@& ( (%q=dir '+; %q@= -append dir '+; e4n.r0(v-"/", i"/")a$(mrr-h$)0, z@bi'+b) z+m)0 x2 )
-  ( %%Wildcard loop - check next subpath up to the next wildcard path element.
-    %%Pick up the next wildcard path-element specification and prepare for matching.
-    z!m=5 rr- n.(f1"/"r, r0) a$ z$r-0( (v/**/ %h'=call GetDescendRecursive; x0, f1/*/(r-rb, )r(rr-b, ) ) )0
-    ( %%Path loop - check the path-element specification, exit if it's empty, return all subpaths if a simple * otherwise check each in turn.
-      %%First, read the directory, if there are further path elements delete non-directory entries.
-      ( (%q@= -append dir '+; onm(f"./"r-0v"./"k, v"../"k, m)0 r0bono-om, )
-        z$m-0v/*/m\ z@m0 %%The path element is a simple ( * ), preserve all entries at this stage.
-      , %%Non-trivial path-element match specification - apply wildcard matching to each filename in turn.
-        %%Begin by sanity checking the current path.
-        z@ (v/dir /m, ) (rr-, x2) 
-        %%
-        ( %%Path-element verification loop.
-          %%First copy this path element to buffer ( # ).
-          z@n.(f1"/"-, r0)a#& 
-          %%Test the leading path element name fragment if that's in the specification.
-          z$m-0 (z$v/*/m, z#r-0v'$) 
-          %%Test any number of mid path-element name fragments as per specification.
-          (z#r-0(f1'$, x2\) z$(f1"/"x2, v/*/, m2 ) )0
-          %%Test the trailing path element name fragment if that's in the specification.
-          (z$m0v/*/, z#r0v-'$)
-          %%Exit the path-element verification loop, failing paths get removed here.
-          z@m, z@k)0
-        )
-      %%Index to next full path, if at last full path, add the next level path-element to paths found by this pass.
-      z+m2m- )0
-    %%If there are some matching entries, prepend the path, otherwise delete the directory header.
-    z@m-0 ( (r\k)0 r-0v/dir /r4n.r0a#k (rr-h#(v-"/", i"/")m)0 )0 r0b
-    %%Exit now if all wild subpaths have been processed.
-    z!m=5r
-    %%If there are more path elements to follow then delete all non-directory entries.
-    z@m-0 z!m=5 (f1"/" z@ (%q=dir '@; m, k)0, rr-, x2)
-    %%Restart with the new pathlist, index to next wildcard path element and descend each new path.
-    z@m-0n.m0r0ba+z+m-0
-    )0
-  )
-%%Exit from the path loop due to either an error or having exhausted all wildcard subpaths.
-(z!m=5r m-oz %X=get: Something went wrong while exploring the path &'!;, )
-%%Sort then copy the final list of paths to ( + ).
-z@ %b=sort; (r\k)0 m0(rr0b) 
-z@m-0 (n.r0v-"/"?f-1"/"-b-n.r-0a$&r-0i/dir / m2 (f1'$-e-0m)0 b)0
-m-0n.m0m-a+
-%%If no valid options exit with failure status, if just one then read it now, otherwise prompt for selection.
-(z+m-0 (m2, x2\) r\ m\ m- %h'=call GetDescendSelection;, m-0m %m=Navigate to select one file and {Esc 0}; x0 )
-
-<<GetDescendRecursive>>
-%%Performs a breadth-first trawl through path options looking for a subpath matching that in ( $ ).
-%%The starting-point path is specified by ( + )
-%%The end-point subpath is the next subpath in line 5 of ( ! ), this may include wildcards.
-%%
-%%Pick up search-depth limit (defaults to 10).
-z$v/**/r2(q/0-9/oid, ol10) ol1oso-
-%%
-( %%Subpath search loop.
-  %%Exit if we've reached the depth limit.
-  o~
-  %%List all children of paths added by the previous pass.
-  ( z+(r\m)0 %q@= -append dir '+;? z+m2m- )0
-  %%Prepend paths.
-  z@m0r0bm-0 ( (r\m)0 r3n.r0a$k (v"./"k, v"../"k, rr-h$m)0 m)0
-  %%One pass completed, add results to ( + ) for next pass.
-  z+ m0r0b2on h@n.a@&  ono-om )0 ok
-%%
-%%Check each path against the termination specification.
-z+m-0 
-n.m0r0az&m-0
-%%Count no. of subpaths before recursive path element.
-z!m=4 ol0 f1/**/(f-1"/"o~)0 ol0oso- ol0
-%%Pick up and prepare the termination subpath specification.
-z!m=5n.(f1/**/, r0) a$&z$ (f1"/"-b)0 m-0 ( (f1/*/(r-rb, )r(rr-b, ) )0 m)0
-( %%Path loop find paths which match the termination-subpath specification.
-  z+(r\k)0r-
-  %%Search this path for a match with the first termination-pathelement expression, starting at the first path element in the recursive subtree.
-  %%First go to the start of the recursive subpath and set the return-to-primary path-element counter.
-  os o# (f1"/"-o~)0 okosokol-1
-  ( %%Primary path-element search loop - the path element might look something like this: /leading*mid1*mid2*...*trailing/
-    %%Reset search expression and copy this path element to buffer ( # ), it is this copy that will be used for path-element verification.
-    z$m-0 z+n.(f1"/"-, r0)a#&
-    %%Check any initial name subexpression.
-    (z$v/*/m, z#r-0v'$)
-    %%Any number of mid-name subexpressions using a copy of the path element in ( # ).
-    (z#r-0(f1'$, x2\) z$(f1"/"x2, v/*/, m2 ) )0
-    %%Check any trailing name expression
-    z$r-0 (f1"/"\, z#r0v-'$)
-    %%Found a path element matching the start of the terminating subpath expression.
-    ( %%Secondary path-element loop - check more terminating-path-element expressions.
-      %%Move to next terminating-path-element expression, success if no more expressions, fail if at the end of the path.
-      z$(m\x3, z+(rr-, x3\) )
-      %%Copy this path element to buffer ( # ).
-      z+n.(f1"/"-, r0)a#& 
-      %%Leading name subexpression.
-      (z$v/*/(m, x4), z#r-0v'$) 
-      %%Any number of mid-name subexpressions using a copy of the path element in ( # ).
-      (z#r-0(f1'$, x2\) z$(f1"/"x2, v/*/, m2 ) )0
-      %%Trailing name subexpression, end of secondary loop.
-      z$r-0 (f1"/"\, z#r0v-'$) )0
-    %%The secondary path-element match failed, return to primary loop at next path element.
-    z+rr-0o#(f1"/"-o~)0ok oso#(f1"/"-o~)0ok os ol-1o+
-  , %%Primary path-element search failed - move on to next path element, if at last path element move to next path, primary loop ends.
-    z+(rr-ol-1o+, x2\) )0
-  %%Secondary match completed, if path match failed delete path now, end of path loop.
-  z+m, z+mm-k )0
-%%Recursive search done - sort and change from single-line paths to usual get format.
-okokok m0r0bm-0 (n.r0v-"/"?f-1"/"-a$&b-r-0i/dir /m2 ( (f1'$-\bx-3, rr-f1"/"-r-0bx-3, e-0m) )0 b)0 m-0
-%%Sort the paths and entries - first pick up and sort the paths and purge duplicated entries.
-m-0n.a@& (na@+&(rm)0(r\m)0)0 z@ %b=sort; m0r0b m-0(r\k)0r- (n.r0a$& m(v'$r0v-'$k)0 r-0)0
-%%The paths are sorted, re-assemble the contents of each path, merging duplicates.
-z@m-0 (z+m-0 n.a$&  ( (f'@r0v-'@\m)0m n.(rm)0a$+)0 z$ %b=sort; kz@mh$b2 z@)0
-%%Finally, copy it all to ( + ).
-z@m-0n.m0a+ z+m-0
-%%m-0n.a@&  (na@+&(rm)0(r\m)0)0 z@%b=sort; m0r0b m-0(r\k)0 (z+m-0 (f'@r0v-'@\m)0mn.(rm)0m-r0a$z$ %b=sort; z@mh$b2 z@)0 m-0n.m0a+ z+m-0
+%%When called initially the current buffer is anything but ( + ) and ( $ ) contains the initial path specification.
+obolc+
+( o=
+  %%In buffer ( + ) - this means we've done initialization and we're ploddng through interactively.
+  ok onf-/	/-n.r0a$& ono-om 
+  %%
+, %%Initialization.
+  %%Set up data objects.
+  ( oq/'=getDestinationKey/ok, %%The get data objects are not defined - set them up now.
+    %h'=data getDestinationKey; ol0ov/'=getDestinationKey/
+    %h'=data getAllDestinationsKey; ol0ov/'=getAllDestinationsKey/
+    %h'=data getIndent; ol0ov/'=getIndent/
+    %h'=data getSearchDepth; ol5ov/'=getSearchDepth/
+    %h'=data getList; ol0ov/'=getList/
+    %h'=data getStdout; ol0ov/'=getStdout/
+    %h'=data getTempfilePrefix; %q~=pid; mi"/tmp/get_"r0i/_/ z.ov/'=getTempfilePrefix/ )
+  %%
+  z$r0i/ /r-0i/ /
+  r-0(f/ -to=/s/ /(q/a-z/cr-, ) oics/ /ov/'=getDestinationKey/, )
+  r-0(f/ -allto=/s/ /(q/a-z/cr-, ) oics/ / o#ov/'=getAllDestinationsKey/ov/'=getDestinationKey/, )
+  r-0(f/ -indent/s/ / ol1ov/'=getIndent/, )
+  r-0(f/ -depth=/s/ /oids/ /, ol5) ov/'=getSearchDepth/
+  r-0(f/ -list /s/ /ol1 ov/'=getList/, )
+  r-0(f/ -stdout /s/ /ol1 ov/'=getStdout/, )
+  %%Substitute envs, trim and transliterate the given path, expanding any envs.
+  r-0 (f1/${/e2n.f1/}/a+e %q@=env '+;mz$i'@)0 r-0(v/ /e)0r0(v-/ /e-)0 
+  ( %q=windows; r-0(f1/\/s"/")0, )
+  %%
+  %%The initial path specification is given in ( $ ).
+  z$r-0 (v/~/ %q@=env HOME; mz$s'@ r-0, ) %%An initial {~} indicates the current users home area.
+  %%
+  %%The following logic determins what (if anything) should be prepended to the path.
+  ( r  %%An initial path specification was given.
+    %%For the purposes of the initialization logic, temporarilly remove all of the path from the start of the first wildcard element.
+    z$r-0(f/*/(f-"/"-, r-0)n.r0a#, n.a#)
+    %%
+    ( z$r-0r %q=file '$;  %%The given path is valid, if it's a relative path then this is relative to our CWD.
+      ok z$r-0 (v"/", %q@=wd; mr0(v-"/", i"/") z$i'@ )
+    , %%Given path fails - try prepending with the current buffer's path.
+      o#oz %q@=buffer; f/ pathname = /-br0 (f-1"/"-, r-0)e0 %q=dir '@&'$; z$r-0i'@ok
+    , oz %m=get: Error - the given path "&'$&" could not be matched against the current pathname.; x0 )
+    %%
+  , %%No path was explicitly given - try picking up a path from the text.
+    %%
+    o#ozn.(q"a-zA-Z0-9/${}\ ."r)0a$&
+    %%It is a path - is it a complete pathname for a file?
+    %q=dir '$; ok  %%It's a direcrory - not a file.
+    %%
+  , %%A possible path in ( $ ) was picked up from the text - it failed on it's own so try prepending the current file's path.
+    %q@=buffer; f/ pathname = /-b n.r0(f-1"/"-, r-0) %q=dir '@&'$;  z$r-0i'@ ok
+  , %%Now try prepending GetDefaultPath. 
+    %q@=env GetDefaultPath; mr0(v-"/", i"/")
+    %q=file '@&'$;  %%It's a valid path.
+    z$r-0i'@ ok
+  , %%Assume the intention is to explore the current file's parent directory.
+    oz %q@=buffer; f/ pathname = /- n.r0(f-1"/"-, r-0)a$& )
+  %%
+  %%If the path contains at least one wildcard - launch a search.
+  z#r-0(f1/*/\, r-0i'$(%h'=call GetSearch;, ok %m=get: An error was detected in the tree search.; ) x0, )
+  %%
+  %%Set up the initial menu in buffer ( + )
+  z$r-0n.r0a+z+r-0i/Initial dir 	/r0v-"/"?(f-"/"-, r-0)br0b-2
+  %h'=call GetDescendSelection; )
 
 <<GetDescendSelection>>
-%%User has selected next level - load or list contents of this object.
+%%If the selected object is a directory or an archive list the contents, if it's a file descend into the file.
 %%
-%%Construct complete path in $ buffer - buffer + contains either a directory or an archive-file listing - tab delimits the files pathname.
-z+onr-0n.r0a$& (m-r)0(r, m) r0(v-"/", i"/")n.r-0a$-& z!m=1k2b2 
-( z$v/dir /e4
-  ( %q=dir '$;
-    %%It's a directory alright - list it's contents to ( + ) buffer.
-    %q@=dir '$;  n.ma$ %b=sort; kh$  z+m0r0b2m-onh@m %w=refresh; ono-om 
-    %%All done for now.
-    n.a$&  %m=Select again.; x0
-  , %q=file '$;  %%It's a file.
-    %%If destination buffer undefined - prompt for it.
-    (z!m=3r, %s=prompt Buffer key ?; g1 j- %s=prompt > ; ,)
-    %%For archive files extract a contents listing and defer selection, for other file types read the file now.
+%%Firstly, set up buffer ( $ ) with the parent path.
+z+onf-/	/-n.r0a$& ono-om
+%%
+( %%Selected item case-block.
+  %q=dir '$&'+;  %%Selected item is a directory - append a list of it's contents to buffer ( + ).
+  ( %q@=dir '$&'+; n.ma$ %b=sort; (r\k)0r-h$m-r4i/	/r0(v-"/", i"/")m0r0b z+m0bh@f-/	/- 
+    %h'=call getPromtSelection; x0
+  , %m=get: something went wrong listing directory "&'$&"; x0 )
+  %%
+, %%Selected item is a file - copy/extract it to /tmp/get_<pid>_<uniquifiedName> - hold the uniquified name in buffer ( $ ).
+  %%If the parent is a directory or an archive then use the appropriate extraction method.
+  %%
+  %% ( # ) is the archive name.
+  %% ( $ ) becomes the simplified and uniquified extracted-file pathname - simplification is removal of any path-stub prefix,
+  %% ( @ ) becomes the archive name of the file to be extracted (might includes subdirectories), 
+  %%
+  %%First pick up the parent path
+  z+onf-/	/-n.r0a#&f-/	/
+  %%
+  ( v-/dir / %%A directory - just copy the selected file.
+    ( ono-om n.r0a@& oq/'=getTempfilePrefix/ z@r-0i'~ok r0(f-/./rr-, r0) ol0 (%q=file '@; o~o#oo/_%d/)0 ok
+      %e=cp "&'#&'+&" "&'@&";
+      %%If it's not an archive then load it into destination buffer now.
+      z+r0 ( (v-/.tar/\ v-/.tz/\ v-/.zip/\ v-/.cab/\ ) z@r-0n.r0a$& %h'=call getReadFile; x0, )
+    , %m=get: Something went wrong copying "&'$&" from  "&'#&'+&"; )
+  , v-/tar --list --file /
+    ( z+ono-om n.r0a@& n.(f-1"/"-, r-0)a$& oq/'=getTempfilePrefix/ z$r-0 i'~ok r0(f-1/./rr-, r0) r0(f-1/./rr-, r0) ol0 (%q=file '$; o~o#oo/_%d/)0 ok
+      %e=tar Oxf "&'#&" "&'@&" > "&'$&"; %h'=call getReadFile; x0, %m=get: Something went wrong extracting file "&'+&" from archive "&'@&".; x0  )
+  , v-/tar --list --file --zip /
+    ( z+ono-om n.r0a@& n.(f-1"/"-, r-0)a$&z$r-0i"/tmp/" r0(f-1/./rr-, r0) ol0 (%q=file '$; o~o#z@r0oo/_%d/)0 ok
+      %e=tar Oxfz "&'@&" "&'#&"> "&'$&"; %h'=call getReadFile; x0, %m=get: Something went wrong extracting file "&'+&" from archive "&'@&".; x0  )
+  , v-/unzip -l /
+    ( ( z+ono-om r0n.r-0 ( (q/ :-/r)0 (q/0-9/r)0 )6 (v/ /r)0 ) a@& 
+      z@r0n.(f-1"/"-, r-0)a$& oq/'=getTempfilePrefix/z$r-0i'~ok r0(f-1/./rr-, r0) ol0 (%q=file '$; o~o#oo/_%d/)0 ok
+      %e=unzip -cq "&'#&" "&'@&" > "&'$&"; %h'=call getReadFile; x0, %m=get: Something went wrong extracting file "&'+&" from archive "&'#&".; x0  )
+  , v-/cabextract -l /
+    ( z+ono-om r0n.(f-1"/"-, r-0)a$&z$r-0i'~ok r0(f-1/./rr-, r0) ol0 (%q=file '$; o~o#z@r0oo/_%d/)0 ok
+      %e=cabextract -F "&'@&" "&'#&" > "&'$&"; %h'=call getReadFile;, %m=get: Something went wrong extracting file "&'+&" from archive "&'@&".; x0  )
+  , ok %m=get: Error - unrecognized archive format "&'+&"; x0 )
+  %%
+  %%if the selected item is an archive list it's contents and prompt again.
+  ( z+r0( (v-/.tar/\ v-/.tz/\ v-/.zip/\ v-/.cab/\ )\   %%Selected item is an archive - append a list of it's contents to buffer ( + ).
+    %%Next menu section is the contents of the archive.
     %%
-    ( %q=windows; %h'=call GetDescendWindows;, %h'=call GetDescendLinux; )
-  , %%Oh dear! an invalid pathname.
-    %x=get: Invalid path-name.; )
-, %%Anything that gets down here is assumed to be one of the archive formats.
-  z$f1'+-i/	/
-  %h'=call GetDescendArchive; )
+    ( %%Selected item archive-type case block.
+      %% ( $ ) - the archive-file pathname.
+      z+r0v-/.tar/  %%Selected item is a tar archive - add it's contents to buffer ( + ).
+        ( %e@=tar --list --file "&'$&&'+&"; b-i/  Original archive: /i'#i'+bi"tar --list --file 	"i'$i'+ z+m0bh@b f-/	/ %h'=call getPromtSelection; x0
+%%        ( %e@=tar --list --file "&'$&"; b-i/  Original archive: /i'#i'+bi"tar --list --file 	"i'$ z+m0bh@b f-/	/ %h'=call getPromtSelection; x0
+        , %m=get: something went wrong listing the contents of the tar archive "&'$&"; x0 )
+        %%
+      , v-/.tz/ %%Selected item is a compressed tar archive - add it's contents to the list.
+        ( %e@=tar --list --gunzip --file "&'$&"; b-i/  Original archive: /i'#i'+bi"tar --list --file 	"i'$ z+m0bh@b f-/	/ %h'=call getPromtSelection; x0
+        , %m=get: something went wrong decompressing an listing the tar archive with "&'$&'+&"; x0 )
+        %%
+      , v-/.zip/ %%Selected item is a PKWARE zip archive -  add it's contents to the list.
+        ( %e@=unzip -l "&'$&"; i/  Original archive: /i'#i'+b i/unzip -l 	/i'$b z+m0r0b2h@ (m-r)0 m3 %h'=call getPromtSelection; x0
+        , %m=get: something went wrong listing the zip archive "&'#&"; x0 )
+        %%
+      , v-/.cab/ %%Selected item is an MS cabenet archive - add it's contents to the list.
+        ( %e@=cabextract -l &'$; z+m0r0b2i/cabextract 	/h$h@ (m-r)0 m3 %h'=call getPromtSelection; x0
+        , %m=get: something went wrong listing the cabenet archive with "&'$&"; x0 ) )
+      %%
+      %h'=call getPromtSelection; x0 )
+      %%
+    , %m=get: Error failed to determine selected file type.; x0 ) )
 
-<<GetDescendArchive>>
-%%The selected file is assumed to be one of the supported archive types:
-( %%If destination buffer is not defined - prompt for it.
-  (z!m=3r, %s=prompt Buffer key ?; g1j- %s=prompt > ; )
-  %%Extract the selected member of the archive file - in whatever file type.
-  z$r-0f1/unzip | tar -tvf /- %%File is in a compressed tar archive (windows only).
-  r-0f1/	/(v-"/"r-, )b ((v/ /r)0(q/-:0-9/r)0)3(v/ /r)0 e-0j-i/ "/r0i/"/ r-0f1/ -tvf /s/ -Oxf / r-0f1/$/z!m=3z$s'!z!r-0e0 z+ono-om '$
-, f1/tar -tvf /-  %%File is in a tar archive.
-  ( e-0 f1/	/(v-"/"r-, )b (v/ /r)0(f1/ /(v/ /r)0)5  e-0i/ "/r0i/"/j-(v-/;/e-, )r-0 z!m=3 z$i/%e/i'!i/=tar -Oxf / z!r-0e0z+ono-om '$,
-    %x=get: something went wrong extracting file "&'$&"; )
-, f1/tar -ztvf /- %%File is in a compressed tar archive.
-  ( e-0 f1/	/(v-"/"r-, )br0f-1/ /e-0j-r-0 z!m=3 z$i/%e/i'!i/=tar -zOxf / z!r-0e0z+ono-om '$,
-    %x=get: something went wrong decompressing file "&'$&"; )
-%%, f1/xls2csv /- %%File is a spreadsheet.
-%%  ( (v/ /r)0f1/-l/(v/	/\e)0e i/ -f "	" - / z!m=3 z$r-0e3i/%e/i'! z!r-0e0z+ono-om '$,
-%%    %x=get: something went wrong extracting sheet "&'$&"; )
-%%  %b=tabcells -1
-, f1/unzip -l/- %%File is a zip archive.
-  ( e-0r0(v-/.doc/, v-/.docx/) %%It's deemed to be in ms-office document format.
-    ( r-0(v/ /r)0f1/	/(v-"/"r-, )b ((v/ /r)0(q/-:0-9/r)0)3(v/ /r)0 e-0j-i/ "/r0i/"/r-0 z!m=3 z$i/%e/i'!i"=unzip -pq "r0i"| \java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text -" z!r-0e0z+ono-om '$,
-      %x=get: something went wrong converting to plain text with tika "&'$&"; )
-  , v-/.pdf/ %%A pdf
-    ( r-0(v/ /r)0f1/	/(v-"/"r-, )b ((v/ /r)0(q/-:0-9/r)0)3(v/ /r)0 e-0j-i/ "/r0i/"/r-0 z!m=3 z$i/%e/i'!i"=unzip -pq "r0i"| \java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text -" z!r-0e0z+ono-om '$,
-      %x=get: something went wrong converting to plain text with tika "&'$&"; )
-  , (v-/.xl/, v/.xls/) %%An ms spreatsheet.
-    ( r-0(v/ /r)0f1/	/(v-"/"r-, )b ((v/ /r)0(q/-:0-9/r)0)3(v/ /r)0 e-0j-i/ "/r0i/"/r-0 z!m=3 z$i/%e/i'!i"=unzip -pq "r0i"| \java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text -" z!r-0e0z+ono-om '$,
-      %x=get: something went wrong extracting sheet with tika "&'$&"; )
-  , %%Not a recognized binary format.
-    ( e-0 (v/ /r)0f1/	/(v-"/"r-, )b ((v/ /r)0(q/-:0-9/r)0)3(v/ /r)0 e-0j-i/ "/r0i/"/r-0 z!m=3 z$i/%e/i'!i/=unzip -cq / z!r-0e0z+ono-om '$ ),
-      %x=get: something went wrong inzipping plain-text file "&'$&"; )
-, f1/cabextract -l/- %%File is an MS cabenet.
-  ( e-0 (v/ /r)0f1/	/e0r-0 z!m=3 z$i/%e/i'!i/=cabextract -p -F / z!r-0e0z+ono-omr0n.f-1/ /-a$.&r-0 '$,
-    %x=get: something went wrong extracting from cabenet archive "&'$&"; )
-, %m=Unknown archive type.; )
-
-<<GetDescendLinux>>
-%%In linuxland we can use file to identify file types
-%%This loop resolves symbolic links.
-z$m-0i/%e~=\file -z "/ r(f1/ /i/\/r)0 r0i/"/'$ z$f1/-z /-e-0 (f1/\/e)0 r-0er0e- z~
+<<getReadFile>>
+%%Promps for destination buffer if not specified then loads selected file to specified buffer and exits.
+%%Selection completed, we now have a copy of the selected file in /tmp/<originalName>
+%%this may require translation to plain text.
 %%
-%%If it's an MS document but creating application is unspecified fudge round that now.
-(f1/ Composite Document File/ r-0((f1/ Microsoft Excel/\ f1/ Microsoft Word/\)
-  r-0f1/:/v-/.doc/r0i/ Probably Microsoft Word/, v-/.xls/r0i/ Probably Microsoft Excel/, ) , )r-0
+%%The file pathname is in buffer ( $ ) - maybe it's been uniquified to something like /tmp/<fileName>[_<uniquificationNumber>]
 %%
-( f1/ text (gzip compressed data/ %%It's compressed text - read now.
-    ( z!okm=3 z$i/%e/i'!i/=cat /r0i/ | gunzip -/z!r-0e0 z+ono-om '$,
-      %x=get: something went wrong uncompressing; )
-    %m=Read a decompressed version of your file.
-  , (f1/zip archive data/) %%It's a zip archive.
-    ( z!okm=3 z$i/%e$=unzip -l / z+m0r0b2h$b '$ z+h$ %w=refresh; (m-r)0m ok,
-      %x=get: something went wrong unzipping the file; )
-  , f1/Excel/ %%It's a spreadsheet - use ssconvert (part of gnumeric).
-    ( z$okr-0i"%e"z!m=3z$i'!i"=ssconvert "r0i" --export-type=Gnumeric_html:xhtml "r0i" fd://1" z+m0r0b2h$b '$ obz+h$ %w=refresh; (m-r)0m ozok
-    %h'=call Get_xml2csv; ,
-      %x=get: something went wrong extracting text from "&'$&" with ssconvert; )
-    %b=tabcells -1;
-    %m=Extracted all xls sheets using ssconvert.;
-  , f1/ pdf Document/ %%It's a PDF document - use tika
-    ( z!okm=3 z$r-0i/%e/i'!i/=/z!r-0e0r0z$i"\java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text " z+ono-om '$,
-      %x=get: something went wrong extracting text from "&'$&" with tika; )
-    %m=Extracted text using tika.
-  , (f1/ Microsoft Word/, f1/ Microsoft OOXML/) %%It's an MS-word document - use tika
-    ( z!okm=3 z$r-0i/%e/i'!i/=/z!r-0e0r0z$i"\java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text " z+ono-om '$,
-      %x=get: something went wrong extracting text from "&'$&" with tika; )
-    %m=Extracted text using tika.
-  , f1/Microsoft Word/ %%It's an MS-word 2007+ (.docx) document - use tika
-    ( z!okm=3 z$r-0i/%e/i'!i/=/z!r-0e0r0z$i"\java -jar ${JOT_RESOURCES}/bin/tika-app.jar --text " z+ono-om '$,
-      %x=get: something went wrong extracting text from "&'$&" with tika; )
-    %m=Extracted text using tika.
-  , (f1/ text/, f1/ empty/) %%It's plain text or empty.
-    ( z!okm=3 z$r-0i/%i/i'!i/=/z!r-0e0 z+ono-om '$, %x=get: something went wrong while trying to read file "&'$&"; )
-    %m=Here's your file.; x0
-  , f1/tar archive (gzip compressed/ %%It's a compressed tar archive.
-    ( z$okr-0i/%e$=tar -ztvf /r0b- z+m0r0b2h$ '$ z+onh$ %w=refresh; ono-omm-e4 ok,
-      %x=get: something went wrong opening tarball "&'$&"; )
-    %m=select a member of the archive.;
-  , f1/tar archive/ %%It's a, possibly compressed, tar archive.
-    ( z$okr-0 r-0i/%e$=tar -tvf "/r0i/"/ z+m0r0b2h$b '$ z+h$ %w=refresh; (m-r)0m ok,
-%%    ( z$okr-0(f1/ /i/\/r)0 r-0i/%e$=tar -tvf / z+m0r0b2h$b t'$ z+h$ %w=refresh; (m-r)0m ok,
-      %x=get: something went wrong opening tarball "&'$&"; )
-    %m=select a member of the archive.; x2?
-  , f1/PE32 executable/ %%Maybe a cabenet?
-    ( z$oki/%e$=cabextract -l / z+m0r0b2h$b '$ z+h$ %w=refresh; (m-r)0m ok,
-      %x=get: something went wrong accessing cabenet archive "&'$&"; )
-    %m=select a member of the archive.;
-  , %%Any other file - assume it's some sort of text.
-    ( r-0f1/: /-e-0 z~r-0(f1/`/s/"/f1/'/s/"/, ) z! %m=File was type "&'~&" reading it anyway.;
-      m-0m2 z$r-0i/%i/i'!i/=/z!r-0e0 z+ono-om '$,
-      %x=get: something went wrong reading file "&'$&" - it was assumed to be plaintext; ) )
-
-<<GetDescendWindows>>
-  %%There's no \file command in  in DOSland, here they just identify file types by the name extension - when in Rome ... 
-  (z$r0
-    v-/.zip/ %%zip archive data 
-    ( z!m=3 z$i/%e$=unzip -l / z+m0r0b2h$b '$ z+h$ %w=refresh; (m-r)0m ok,
-      %x=get: something went wrong while unzipping file "&'$&"; )
-  , v-/.xls/ %%Excel spreadsheet - use tika
-    ( z!m=3 z$(f1/\ /e)0r-0i/%e/i'!i/=/z!r-0e0r0z$i"java -jar %JOT_RESOURCES%/bin/tika-app.jar --text " z+ono-om '$,
-      %x=get: something went wrong extracting text from file "&'$&" with tika; )
-    %m=Extracted all xls sheets using tika.
-  , v-/.tar/ %%tar archive 
-    ( z$r-0i/%e$=tar -tvf / z+m0r0b2h$b '$ z+h$ %w=refresh; (m-r)0m ok,
-      %x=get: something went wrong extracting sheet from file "&'$&" with tika; )
-    %m=select a member of the archive.;
-  , v-/.pdf/ %%pdf Document - use tika
-    ( %e=which java.exe;, %x=No java installation, cannot continue.;)
-    ( %q#=env JOT_RESOURCES;m z!m=3 z$(f1/\ /e)0r-0i/%e/i'!i/=/z!r-0e0r0z$i/java -jar /i'#i"/tika-app.jar --text " z+ono-om tz$r-0(f1.\.s./.)0 '$,
-      %x=get: something went wrong extracting text from file "&'$&" with tika; )
-    %m=Extracted pdf text using tika.
-  , v-/.doc/ %%An MS-word document - pre MS-word 2007 document - use tika
-    ( z!m=3 z$(f1/\ /e)0r-0i/%e/i'!i/=/z!r-0e0r0z$i"java -jar %JOT_RESOURCES%/bin/tika-app.jar --text " z+ono-om '$,
-      %x=get: something went wrong extracting text from file "&'$&" with tika; )
-    %m=Extracted MS-word-document text using tika.
-  , v-/.docx/ %%XML document text - MS-word 2007+ document - use tika
-    ( z!m=3 z$(f1/\ /e)0r-0i/%e/i'!i/=/z!r-0e0r0z$i"java -jar %JOT_RESOURCES%/bin/tika-app.jar --text " z+ono-om '$,
-      %x=get: something went wrong extracting text from file "&'$&" with tika; )
-    %m=Extracted MS-word-document text using tika.
-  , v-/.tz/  %%A special case for windows.
-    %%Note: the wbin tar can't decompress tarballs directly and OpenWindowsCommand (used by %E) doesn't work with binary data in pipes so we're resorting to a temporary tar file.
-    ( z$okr-0i/%e=gunzip -cS.tz /r0i" > %temp%/get.tar;" '$ %q$=env temp; k(f1/\/s./.)0r-0i/%e$=tar -tvf /r0i"/get.tar;"b- z+m0r0b2h$m- '$ (f1/unknown file type/k, m)0 z+h$ %w=refresh; (m-r)0m ok,
-      %x=get: something went wrong decompressing the tarball "&'$&"; )
-    %m=select a member of the archive.;
-  , %s=verbose 13; %%Any other file - assume it's some sort of text.
-    ( z!m=3 z$r-0i/%i/i'!i/=/z!r-0e0 z+ono-om '$,
-      %x=get: something went wrong reading file "&'$&" - assumed to be plain text; )
-    %m=Here's your file - assumed to be plaintext; )
-
-<<Get_xml2csv>>
-%%After extracting spreadsheet as xml, this rebuilds the tables.
+z$r0( (v-/.doc/\ v-/.docx/\)\ %%It's assumed to be in MS-word document format.
+  ( %q@=dir ${JOT_RESOURCES}; (f/tika/, %m=Error: No tika jar file in your resources area.; x0 )
+    z$r-0r0(f-/./, r0)n.(f-1"/"-, r-0)a#& z#r-0i"/tmp/"r0i/.txt/r-4 ol0 (%q=file '#; o~o#oo/_%d/)0 ok
+    %e=\java -jar ${JOT_RESOURCES}/&'@& --text '&'$&\\' > '&'#&\\'; 
+  , %m=get: something went wrong converting to plain text with tika; x0 )
+  %%
+, v-/.pdf/ %%A pdf
+  ( %%Translate the PDF.
+    z$r0(f-/./, r0)n.r-0a#& z#r0i/.txt/r-4 ol0 (%q=file '#; o~o#oo/_%d/)0 ok
+    %r=pdf2txt -ps2ascii \'&'$&\\\' '&'#&\\';
+  , %m=get: Something went wrong translating file with pdf2txt; x0 )
+  %%
+, (v-/.xl/\ v-/.xls/\ v-/.xlsx/\)\ %%A MS spreatsheet - first identify the tika version (if any).
+  ( %q@=dir ${JOT_RESOURCES}; (f/tika/, %m=Error: No tika jar file in your resources area.; x0 )
+    z$r-0r0(f-/./, r0)n.(f-1"/"-, r-0)a#&z#r-0i"/tmp/"r0i/.txt/r-4 ol0 (%q=file '#; o~o#oo/_%d/)0 ok
+    %e=\java -jar ${JOT_RESOURCES}/&'@& --text &'$& > &'#; 
+  , %m=get: something went wrong extracting sheet with tika; x0 )
+  %%
+, %%Assumed to be a plain text file.
+  z$r-0n.r0a#& )
+  
+%%Now we're all set to suck the text into the specified buffer - if it's accumulating text or if it's from an archive suppress the pathname.
+oq/'=getDestinationKey/ (ol0o=ok %s=prompt Destination buffer > ; z@gm-(q/a-z/c, )r-0oic o#ov/'=getDestinationKey/ %s=prompt;, )
 %%
-%%Get the first sheet name and throw away all preeceding text.
-( f"<table "b-k-0n.
-  ( %%xml-token loop.
-    ( f"<"
-      v"<table " f"<caption>"-a$b2i/Sheet: /f1"</caption>"n.,
-      v"<tr>" r4a$bn.,
-      v"<td "f"</td>"f-">"-a$f"</td>"i/	/n.,
-      f">"- ) )0
-  m0a$b )
-%%Now deal with any special characters.
-m-0 
-( (f"&"v-/\/r)0 %%Special-character loop - .
-  v"&quot;" s/"/,
-  v"&#34;" s/"/,
-  v"&apos;" s/'/,
-  v"&#39;" s/'/,
-  v"&lt;" s/</,
-  v"&#60;" s/</,
-  v"&gt;" s/>/,
-  v"&#62;" s/>/,
-  v"&amp;" s/&/,
-  v"&#38;" s/&/, r)0
+%%Read the file to a temporary buffer ( @ ), if The text was from an archive then include the original archive pathname.
+%i@='#; i/File /i'#i/  ------------------------------------------/b z+onf-/	/r-0n.(m-v/  Original archive:/)0 ma@.& ono-om
+%%
+%%If getAllDestinationsKey we are accumulating file images in the destination buffer otherwise clear it first.
+( oq/'=getAllDestinationsKey/ol0o=\ok %%The destination buffer is accumulating file images - append this file.
+  %%If the buffer already holds a file image then insert a chapter mark for this file.
+  ( o#oz %q$=buffer; f/ pathname = /- v/(null)/, bo#ozm-0b-i/File / i'$i/  ------------------------------------------/m0r0b2 )
+  z@ (oq/'=getIndent/ol1o=\, (rr- v/ /\ i/  /m, m)0 )ok o#ozm0 %b=pathname (null); on h@b2 ono-om
+, %%If The text was from an archive then include the original archive pathname and suppress the pathname.
+  ok z@m-0mv/  Original archive:/
+  %%Append the new text as a new chapter to the buffer, if there was a pathname, then add another chapter mark at the top of the buffer.
+  oz m-0k0e0 %b=pathname; m0onh@b2ono-om
+, %%It's just a simple read of a non-archive file.
+  z+onf-/	/-n.r0a@&ono-omn.r0a@+& oz %i='#; %b=pathname '@;  )
+%%
+%%Reset the destination buffer.
+oq/'=getAllDestinationsKey/ ov/'=getDestinationKey/
+%w=refresh; %l;
+%m=There's your file.;
+
+<<getDescendAll>>
+%%Reads all files listed in ( + ) - ignores directories and archive files.
+%h'=call GetInit;
+( oq/'=getAllDestinationsKey/, %m=get: Error -toall was not specified.; x0 )
+%%
+z+m-0 
+( %%Descend-all loop.
+  %%Firse pick up the current path.
+  (f1/	/m, ) onf-/	/-n.r0a$& ono-om
+  %%Disregard directories and archive files.
+  ( r\(m, x0), r-v"./"m,  v"../"m, %q=dir '$&'+;m, r0 (v-/.tar/\ v-/.tz/\ v-/.zip/\ v-/.cab/\)\m )0
+  %%It's not a directory or an archive file - assume it to be text.
+  %h'=call GetDescendSelection; ok z+m )0
+
+<<GetSearch>>
+%%Searches the filing system for matching paths or pathnames containing one or more wildcards ( * or ** ).
+%%A '*' wildcard replaces any number of characters in a path-element name.
+%%A '**' replaces any number of path elements (limited by getSearchDepth).
+%%The default search-depth limit is 5, this can be changed with the -depth=<n> modifier.
+%%
+%%Init.
+z#r-0
+%%Strip out any mid-path /./ and /../ path elements.
+z#r-0 (f1"/."- (v"/"e-2, v"./" r2oc(f-"/"-3, r-0)oco-oe, ) )0 r-0
+%%
+( %%Main search loop
+  %%
+  %%Pick up next non-wild subpath (might be of zero length if one wildcard is followed immediately by another).
+  %%At the start of day buffer ( $ ) is the initial path.
+  z#ocn.(f1/*/\r0a$&ok, (f-1"/"-\, ) (ol0o=a+&z+r0bn.a$, a$&) ok ) 
+  %%Append the non-wild sub-path to each parent path and verify the complete pathname.
+  z+m-0 ( (r\m)0 r0v-"/"(h$ %q=file '+; m, k), m)0
+  %%
+  %%Wildcard-type block - it's a tree search - pick up breadth-first depth limit otherwse set the depth limit to 1.
+  ( z#v/**/  oq/'=getSearchDepth/ ol0oso-, ol-1 )
+  %%
+  ( %%Breadth-first search loop (single pass for simple searches), list each directory and prepend each item with the full path.
+    z+m-0
+    ( (r\m)0 mm- 
+    ( f1/	/-\  %%First pass - just use the paths in the initial path list.
+      (%q@=dir '+; r4i/	/m (z#v-"/"z@(i"/"mrr-)0, ) z+kbh@, z+m)0
+    , %%Subsequent passes (deep searches only) append new path elements to the children.
+      n.r0a$&m (r ( %q@=dir '$&'+; k (rr-i'+m)0 z+kh@, z+m) )0 ) )
+    %%Remove any this-dir and parent-dir entries "./" and "../".
+    z+m-0 (r\m)0 (f"/." (v"/./"k, v"/../"k), m)0
+    o~ )0 ok
+  %%
+  %%Construct the filter macro ( @ ) - this verifies the most recent path elements.
+  z#(v"**/"ol1r3, ol0)(rr- (v-"/"r-n.r, n.)(f1"/"-, r0)a@& z@r-0 (v|/*|s|v"/"|(rr-i|f1"|, x3), i|f1"|) (f1|*|-rr-e-i|"f1"| )0 (v-|*|\r0i|"|, e-)
+%%  z#(v"**/"ol1r3, ol0)(rr- (v-"/"r-n.r, n.)(f1"/"-, r0)a@& z@r-0 (v|/*|s|v"/"f1"|, i|f1"|) (f1|*|-rr-e-i|"f1"| )0 (v-|*|\r0i|"|, e-)
+    %%
+    ( ol1o=  %%It's a tree search - following the first matching path element, continue searching for any later matches.
+      z+m-0 ( (r\m)0r- f1/	/m, ( ol0 ('@ oxorokoc mn.m-a$&h$m-2o#ore0 mo#or(v-"/"r-, ) )0 kokrr-)0 mm-)0 
+%%      z+m-0 ( (r\m)0r- f1/	/m, ( ol0 ('@ oxorokoc mn.m-a$&h$m-2o#ore0 mo#or )0 kokrr-)0 mm-)0 
+   , %%simple search.
+      z+m-0 ( (r\m)0r- f1/	/m, ( ('@ m, k) rr-)0 mm-)0, ) ok )
+  %%
+  %%Purge any duplicate paths.
+  z+ m-0 ( (r\m)0 f1/	/-n.r0a$k (rr-f1/	/\i'$(v-"/"e-, )m)0 r-0)0  %b=sort; m0r0b  m-0 (r\k)0 r- (n.r0a$& m (v'$r0v-'$k)0 mm-)0 
+  %%
+  z#rr- )0
+%%
+%%Strip off trailing directory markers and re-sort with path depth as first sort criterion, then replace directory markers.
+z+m-0 (r0 (v-"/"e-, )m )0 m-0 ( ol0 (f1"/"o~)0 r-0oo/%2d  /m)0 %b=sort; m-0(e4m)0 m-0 (%q=dir '+;r0i"/"m, m)0
+%%z+m-0 ( ol0 (f1"/"o~)0 r-0oo/%2d  /m)0 %b=sort; m-0(e4m)0 
+%%
+%%Optionally rearrange into the usual get menu.
+oq/'=getList/ol1 (o=ok, %%User has not requested results in list form.
+  %%Merge duplicated paths.
+  m0r0bm-0n.a$(r\k)0 ( (r0(v-"/", )(f-1"/"-, r-0) n. v-'$r-0v'$a$, r-0a$&b-r-0rr-(m-mb, )i/dir 	/m)m )0 ) ok
+%%
+z+m-0 %h'=call getPromtSelection;
+
+<<getPromtSelection>>
+%%Prompts user for next-level selection.
+z+onm-0 (mm-  %%It found at least one path.
+  ono-om %m=Navigate down to selected file and resume search with {Esc 0}.; 
+, %%No paths found.
+  ono-om %m=Failed to match any paths to &'#; )
+(oq/'=getStdout/ol0o=okx0, %%Exit now, sending the list to stdout.
+  ok %a='+; )
 
 :
-
+  
 %%Only redefine functions if this is the first get.jot call:
-( %h'=testkey GetInitializeSearch;, %h'=call AddNewFunctions; )
+( %h'=testkey GetDescendSelection;, %h'=call AddNewFunctions; )
 %%
 %%acro ( 0 ) is the restart point from interactive selection phase.
-%d0=%h\'=call GetDescendSelection;
+%d0=%h\'=call GetDescendSelection\; %w=refresh\;;
+%%Macro ( 1 ) reads all files in menu.
+%d1=%h'=call getDescendAll;
   
-%h'=call GetInitializeSearch;
-  
- %w=refresh; 
+n.a+ 
+%h'=call GetInit;
+%w=refresh; 
 

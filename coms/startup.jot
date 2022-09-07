@@ -21,14 +21,12 @@
 %%
 %%
 %%Buffers used/defined.
+%%  $ - passes args from CLI then used in construction of some key functions and key codes resolution.
+%%  ! - hotkey-function lookup table.
+%%  @ - keycap-to-keycode translation.
 %%  ^ - the hotkey translation buffer, defined from scratch or left unchanged.
 %%  : - The help repository, initialized to the contents of the top help file, also used as temporary key-functions buffer.
-%%  @ - temporary, holds keycap-to-keycode translation.
-%%  $ - passes args from CLI then used in construction of some key functions and key codes resolution.
 %%
-
-%%  %%Bodgy fix for old version of jot (specifically jot_3 source file.
-%%  ob %q?=version; ( mf1/jot_3/ z. %r=${JOT_HOME}/release/jot/v3.1.0/coms/startup.jot; %x=;, ) oz
 
 %%Copy args to stack.
 %d~='$;
@@ -36,7 +34,8 @@
 (%w=clear;\, %q$=window; f/screenHeight = /- oid ol1o- %w=clear; %w=new -height='~ -delim; (%q=windows; , %s=mousemask 0;) )
 %s=console 20;
   
-%%Read the relevant keyboard map file.
+%%Read the appropriate keymap file - the finalize macro expects this table in buffer ( @ ).
+%%e.g. curses_keys_xterm_<cursesVersion>.jot or WindowsNT_keys.jot
 %g#
 z^m-0
 ( %q=windows;
@@ -481,10 +480,10 @@ ob %q$=window;
 %%Prompt string: Optionally specify a view name> 
 %%Default view name is "default".
 %s=system 1; obz$(rr-, i/default/) oz
-%%Restore view - if the original buffer was ( ~ ).then use z~ instead of oz and hope the correct floating buffer is at the top of the stack.
+%%Restore view - if the original buffer was ( ~ ) then use z~ instead of oz and hope that the correct floating buffer is at the top of the stack.
 (%h'=jump ViewJump_&'$; obz$r-0i/View_FirstLine_/z' oq'$os(ol126o=okosz~os, oz), oz %x=Could not find a saved view for &'$;)
 %%Now adjust the view.
- %w=refresh; ofo-ow
+%w=refresh; ofo-ow
 %%An unfortunate consequence of using hashtables is that the line numbers can go wrong - this fixes it.
 oconm-0onol1o. o-om or %s=system 0;
 
@@ -785,9 +784,9 @@ y0 (%q=tabstops; y-ocr(f1/	/, r0)oco-o#orol0oso-ou, y-) (%q=inview; okokok, osok
 ob%q-=history; m0m-kb-i'$b m-0mb-oo/In buffer %c/m0m-2
   
 <<CmdEditGo>>
-( %s=system 1; obol45o=okmk0m+2f1/In buffer /-oicm0m-k-0
+( %s=system 1; obolc-o=okmk0m+2f1/In buffer /-oicm0m-k-0
   %%Apply the modified command.
-  i/%s=commandstring / (f1/\/i/\/r)0 r-0(f1/;/i/\/r)0 %s=system 0; 
+  i/%s=commandstring / (f1/\/i/\/r)0 r-0(f1/&/i/\/r)0 r-0(f1/;/i/\/r)0 %s=system 0; 
   %%Return to original buffer and apply.
   oz '-
 , %%Something failed - most probably the checks to ensure we're looking at a valid command-history report.
@@ -1055,8 +1054,7 @@ ol0 ('*o~)0 %m=Completed &'~& repeats;
 
 <<DebuggerQuit>>
 %%With no value or a zero this simply bombs out of the debugger, when a numeric parameter is given it exits the specified number of blocks.
-ol0## (ol0o=ok%s=trace 0;, ol2o+ %s=traceskip '~; )
-%%  ob %d~=##; z~ (oid osz$okosozol1o+ %s=traceskip '~;, z$ok(ol126 o=okz~, oz) %s=trace 0; )
+ol0## (ol0o=ok %s=commandcounte 0; %s=trace 0;, ol2o+ %s=traceskip '~; )
   
 <<FocusToMouse>>
 %%This needs to be at least two lines long, then it gets entered as a function call which can be redefined
@@ -2201,11 +2199,12 @@ oz(m, r0b) ol0o+(o~(r, i/ /))0ok %s=system 0;
 
 <<LineDefaultChrs>>
 %%Prompt string: Line-drawing default > 
+%%
 %%Sets default characters set for line drawing.
 %%  l - Light (Thin) lines.
 %%  h - Heavy (thick) lines.
 %%  d - double lines.
-%%  anything else - normal ascii line drawing characters.
+%%  anything else (the default) - normal ascii line drawing characters.
 %%
 %% 4 Valid verticals:    | │ ┃ ║
 %%
@@ -2345,7 +2344,6 @@ o#ocol0oso- (ol-1o+ oso~oso#e?i"\"(m, r0b)((r, i/ /)o~)0 ok)0 okok
 o#r-ocol0oso- (ol1o+ oso~oso#e?i"/"(m, r0b)((r, i/ /)o~)0 ok)0 okok
 %%3rd. the bottom-left diagonal.
 o#oc (o#m-or ol-1o+ oso~ose?i"\")0 okok
-%%os ocol0oso-(m, r0b) (o~ (r, i/ /))0 ok (o~e-i-/-/)0 ok
 %%Lastly the top-left diagonal.
 o#roc (ol1o+ oso~ose?i"/" o#(m-, r-0b-)or)0 mokol-1o+orok %s=system 0;
 
@@ -2478,10 +2476,17 @@ ma$ m-v/{{{ /e4
 %%Collapse file fold in help window.
 z;e4 %s=system 0;
 
+<<NewParagraph>>
+%%Prompt string: New paragraph> 
+%%Inserts a new paragraph below the current line.
+%s=system 1;
+%%If there's any given text then this becomes a new paragraph.
+obz$(v/ /r)0(rr-e-0oz (v/ /r)0(rr0b, )r0 i'$m-n.(v/ /r)0a$&mh$bh$ m(v/ /r)0(rr-0b-h$, )m-, oz)
+%h'=call ReformatParagraph;
+
 <<ReformatParagraph>>
 %%Reformat current paragraph.
 %%
-%s=system 1;
 oq/'=DocBulletString/ 
 %%Get initial-line indentation.
 (mm- (v/ /\m)0 (v/ /r)0r\m)0 (r-, okx0) (v'~rr-f1'~-, )oc
@@ -2496,7 +2501,6 @@ oq/'=DocBulletString/ os
 %%
 ( %%Record loop - split the long record on word boundaries.
   r-0rr-o#or (rr-f-1/ /- os(v-'~r-f-1'~f-1/ /2, r-)os, ) (rr-b-,) 
-%%  r-0rr-o#or (rr-f-1/ /-, ) os(v-'~r-f-1'~f-1/ /2, r-) os (rr-b-,) 
   %%Calculate how many padding blanks are required to align right margin.
   o#ocoso- ocoxoso-o+
   %%Insert padding blanks.
@@ -2829,10 +2833,7 @@ oz %s=system 0;
 
 Code_Repository:
   
-%%Set up the hashtable in the code-repository buffer ( ' ).
-%h'=create 1000;
-
-%%Define functions key map - this is expected in buffer ( ! ).
+%%Define hot-keys map - the finalize macro expects this table in buffer ( ! ).
 %g!=Hot_Keys;
 <<CopyFromMouse>>            {Button1Up}
 <<NoteFromMouse>>            {Button1Down}
@@ -3090,6 +3091,7 @@ Code_Repository:
 <<Macro8>>                   ^[8
 <<Macro9>>                   ^[9
 <<ReformatParagraph>>        ^[pa
+<<NewParagraph>>             ^[pn
 <<ReformatAll>>              ^[Pa
 <<MakeParagraphIntoBullet>>  ^[bu
 <<CentreAndUnderlineText>>   ^[cu
@@ -3111,6 +3113,9 @@ Code_Repository:
 Hot_Keys:
 %%Windows does not send events on window resize.
 (%q=windows; z!m-0f/{SizeAdj}/k, )
+
+%%Set up the hashtable in the code-repository buffer ( ' ).
+%h'=destroy; %h'=create 1000;
 
 %%This macro finalizes the startup, normally called at the end of this script but may be deferred by the -nofinalize qualifier 
 %%and called by the parent startup script.
@@ -3143,8 +3148,6 @@ ob z?m0r0b z!m-0
     (z'm-0 %f=<<&'$&>>;
   , 
     %m?=Error: No definition of function &'$;)
-%%    (z'm-0 %f=<<&'$&>>;, %m?=Error: No definition of function &'$;)
-%%    (z'm-0 %f=<<'$>>;, %m?=Error: No definition of function '$;)
     %%
     %%The remainder of the line is either a key description or an escape sequence.
     z! ( f1/ {/ %%It's a key description of the form {<[shift][ctrl][Alt]><KeyName>} to be translated using key translations in ( ! ) buffer.
@@ -3158,7 +3161,6 @@ ob z?m0r0b z!m-0
     %%Add the key code and single-line function code or, for longer functions, function call to the ( ^ ) buffer.
     z'on(mv/%%/, r\)0 onm ((v/%%/, (v/ /r)0r\)m)0r-? (v/<</ono-omz^i'', okz^i/%h'=call /h$i/;/) r-0h; z'ono-om
     %%If function code has parameters, insert parameter-capture code to ( ^ ) buffer.
-%%    ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^(f1/;/, r0)i| ##"|h$i|"| )
     ( z'mv/%%Prompt string:/\, f1/:/-n.r0a$& z^i|%d$= -LITERAL_DEFINITION ##"|h$i|" -BUFFERDEFINITIONENDSHERE; | )
   , %%Line should begin "<<FunctionName>>" flag it as an error.
     %m?=Error: invalid line in function to key mapping entry "&'!&"; )

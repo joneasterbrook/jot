@@ -39,7 +39,7 @@
     ( * ) - Holds a tags report for html2txt_FollowAllLinks
     
   Data objects:
-    the html2txt script uses thisthe ( ' ) buffer hashtable to maintain a list
+    the html2txt script uses the ( ' ) buffer hashtable to maintain a list
     of jump points (see `about hashtables`) - one for each href target in  the
     original html:
       - .=html2txt_OriginalArgs -- the argument list given to html2txt
